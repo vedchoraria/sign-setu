@@ -84,6 +84,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
@@ -164,6 +165,8 @@ private enum class Sheet { BOARD_SHOW, BOARD_ATTACH, GESTURE, LOG, CHANGE, DICTI
 
 /** The phrase bank sits beside the triage groups as one more group (FR-62). */
 private const val PHRASES = "phrases"
+private const val WORD_SEP = "\u0001"
+internal val DraftsSaver = listSaver<MutableMap<String, String>, String>(save = { m -> m.flatMap { listOf(it.key, it.value) } }, restore = { l -> mutableStateMapOf<String, String>().apply { l.chunked(2).forEach { put(it[0], it[1]) } } })
 
 /** Prepared questions an officer needs most often, offered on the main page until each has been asked. */
 private val QuickQuestions = listOf("s2", "n1", "n2", "n3", "h2", "f2", "i2", "l1")
@@ -211,7 +214,9 @@ fun OfficerPane(
     var phrase by remember { mutableStateOf<Phrase?>(null) }
     val scope = rememberCoroutineScope()
     val res = LocalResources.current
-    val attached = remember { mutableStateListOf<String>() }
+    val attached = rememberSaveable(saver = listSaver(save = { l -> l.toList() }, restore = { l -> l.toMutableStateList() })) { mutableStateListOf<String>() }
+    // Typed words held by event id ("say:", "sign:") and Show picks ("show"), so dismiss and rotation keep them.
+    val drafts = rememberSaveable(saver = DraftsSaver) { mutableStateMapOf<String, String>() }
     // Held here so closing a sheet does not drop what was typed or picked.
     var logNote by rememberSaveable { mutableStateOf("") }
     var boardDraft by rememberSaveable { mutableStateOf<String?>(null) }
@@ -239,7 +244,8 @@ fun OfficerPane(
 
     // Main page: question run and say-back.
     var run by rememberSaveable { mutableStateOf(listOf<String>()) }
-    var sayingBack by remember { mutableStateOf<SessionEvent?>(null) }
+    var sayingBackId by rememberSaveable { mutableStateOf<Long?>(null) }
+    val sayingBack = ui.events.firstOrNull { it.id == sayingBackId }
     val context = LocalContext.current
     val runQuestions = run.mapNotNull { id -> content.questions.firstOrNull { it.id == id } }
     val sensitiveGroups = content.groups.filter { it.sensitive }.map { it.id }
@@ -331,7 +337,10 @@ fun OfficerPane(
                             leadingIcon = { Icon(painterResource(R.drawable.ic_videocam), contentDescription = null) },
                             trailingIcon = { Text(signLanguage.name) },
                             enabled = paired == null || ui.onStage == null,
-                            onClick = { vm.setSignLanguage(SignLanguage.entries[(signLanguage.ordinal + 1) % SignLanguage.entries.size]) },
+                            onClick = {
+                                val langs = SignLanguage.entries.filter { it == SignLanguage.ISL || !vm.content.aslDisabled }
+                                vm.setSignLanguage(langs[(langs.indexOf(signLanguage) + 1) % langs.size])
+                            },
                         )
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.officer_rotate)) },
@@ -396,7 +405,7 @@ fun OfficerPane(
             )
         } else {
         Box(Modifier.weight(1f).fillMaxWidth()) {
-            Transcript(ui.events, ui.session.profile, ui.signed, onReplay = { replaying = it }, Modifier.fillMaxSize(), onSayBack = { sayingBack = it })
+            Transcript(ui.events, ui.session.profile, ui.signed, onReplay = { replaying = it }, Modifier.fillMaxSize(), onSayBack = { sayingBackId = it.id })
             // The scope-free overload: inside this Box the Column's AnimatedVisibility does not apply.
             androidx.compose.animation.AnimatedVisibility(
                 lastStop != null && lastStop.id != stopSeen && paired == null,
@@ -456,21 +465,31 @@ fun OfficerPane(
         PhraseSheet(p, content, officerLang, onPick = { slot -> vm.prepare(Pending.PhraseAsk(p, slot)); phrase = null; page = 0 }, onDismiss = { phrase = null })
     }
     sayingBack?.let { e ->
-        SayBackDialog(e, onSend = { words -> vm.sayBack(e, words, typedModes(modes, islReorder)); sayingBack = null }, onDismiss = { sayingBack = null })
+        val key = "say:${e.id}"
+        SayBackDialog(
+            e, drafts[key] ?: e.text.orEmpty(), onDraft = { drafts[key] = it },
+            onSend = { words -> vm.sayBack(e, words, typedModes(modes, islReorder)); drafts.remove(key); sayingBackId = null },
+            onDismiss = { sayingBackId = null },
+        )
     }
     replaying?.let { id ->
         ui.signed[id]?.let { segments ->
             SignedSheet(
                 segments,
-                onAccept = { vm.acceptSigned(id, it); replaying = null },
+                onAccept = { vm.acceptSigned(id, it); drafts.remove("sign:$id"); replaying = null },
                 onDismiss = { replaying = null },
                 onAsk = { vm.askSubject(id, it); replaying = null },
+                draft = drafts["sign:$id"]?.split(WORD_SEP), onDraft = { drafts["sign:$id"] = it.joinToString(WORD_SEP) },
                 canAsk = { vm.canAskSubject(id, it) },
             )
         }
     }
     when (sheet) {
-        Sheet.BOARD_SHOW -> BoardSheet(content, officerLang, emptyList(), favourites, onFavourite, onUse = { vm.prepare(Pending.Cards(it)); sheet = null; page = 0 }, onDismiss = { sheet = null })
+        Sheet.BOARD_SHOW -> BoardSheet(
+            content, officerLang, drafts["show"]?.split(",")?.filter { it.isNotEmpty() }.orEmpty(), favourites, onFavourite,
+            onUse = { vm.prepare(Pending.Cards(it)); drafts.remove("show"); sheet = null; page = 0 },
+            onDismiss = { sheet = null }, onDraft = { drafts["show"] = it.joinToString(",") },
+        )
         Sheet.BOARD_ATTACH -> BoardSheet(
             content, officerLang, boardDraft?.split(",")?.filter { it.isNotEmpty() } ?: attached.toList(), favourites, onFavourite,
             onUse = { attached.clear(); attached.addAll(it); boardDraft = null; sheet = null },
@@ -479,7 +498,7 @@ fun OfficerPane(
         Sheet.GESTURE -> GestureSheet(content, officerLang, onPick = { entry, found -> vm.prepare(Pending.ShowBack(entry, checkChoices(entry.card, found.map { it.card }))); sheet = null; page = 0 }, onDismiss = { sheet = null })
         Sheet.LOG -> LogSheet(ui.events, logNote, { logNote = it }, onAddNote = vm::addNote, onDismiss = { sheet = null })
         // ISL hook: the dictionary's Show prepares the sign like a question.
-        Sheet.DICTIONARY -> IslDictionarySheet(content, officerLang, onShow = { vm.prepare(Pending.Ask(it)); sheet = null; page = 0 }, onDismiss = { sheet = null })
+        Sheet.DICTIONARY -> IslDictionarySheet(content, officerLang, signLanguage, onShow = { vm.prepare(Pending.Ask(it)); sheet = null; page = 0 }, onDismiss = { sheet = null })
         // Profile and language stay fixed while an item is on a second screen.
         Sheet.CHANGE -> if (paired == null || ui.onStage == null) ChangeSheet(
             content, ui.session.profile, subjectLang, ui.session.role, ui.juvenile,
@@ -877,7 +896,7 @@ private fun MorePage(
         OfficerCard(Modifier.padding(horizontal = Spacing.lg), padding = 0.dp) {
             // Up to three minutes of signing with nothing on screen to interrupt; replayed later with an interpreter.
             onTell?.let { MoreRow(painterResource(R.drawable.ic_hand), stringResource(R.string.tell_me_long), null, first = true, onClick = it) }
-            MoreRow(painterResource(R.drawable.ic_hand), stringResource(R.string.isl_dictionary), null, first = onTell == null) { onTool(Tool.DICTIONARY) } // ISL hook
+            MoreRow(painterResource(R.drawable.ic_hand), stringResource(if (ui.signLanguage == SignLanguage.ASL) R.string.asl_dictionary else R.string.isl_dictionary), null, first = onTell == null) { onTool(Tool.DICTIONARY) } // ISL hook
             MoreRow(rememberVectorPainter(Icons.AutoMirrored.Filled.List), stringResource(R.string.officer_log), answers.takeIf { it > 0 }?.toString(), onClick = onLog)
             MoreRow(rememberVectorPainter(Icons.Filled.Person), stringResource(R.string.officer_change), null, onClick = onChange)
             onSecondScreen?.let { MoreRow(rememberVectorPainter(Icons.Filled.Phone), stringResource(R.string.second_screen), null, onClick = it) }

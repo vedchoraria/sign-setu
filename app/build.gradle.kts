@@ -66,6 +66,9 @@ android {
         buildConfig = true
     }
 
+    // Security checks fail the release lint gate.
+    lint { error += listOf("HardcodedDebugMode", "SetJavaScriptEnabled", "ExportedService", "AllowBackup") }
+
     // Android calls made in plain JVM tests return defaults instead of throwing (timing marks, log lines).
     testOptions { unitTests.isReturnDefaultValues = true }
 

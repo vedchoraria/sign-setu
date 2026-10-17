@@ -65,6 +65,8 @@ sealed interface AnswerBody {
     @Serializable @SerialName("text") data class Text(val text: String) : AnswerBody
     @Serializable @SerialName("draw") data class Drawing(val png: String) : AnswerBody
     /** A lesson-sheet answer or phrase; [method] is a Method name and the officer's phone re-checks it. */
+    /** The subject changed a lesson answer before confirming it; the earlier entry is dropped. */
+    @Serializable @SerialName("change") data object Change : AnswerBody
     @Serializable @SerialName("given") data class Given(val question: String, val method: String, val confirmed: Boolean, val value: String = "", val picks: List<String> = emptyList()) : AnswerBody
 }
 

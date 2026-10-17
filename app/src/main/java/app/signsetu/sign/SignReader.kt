@@ -19,4 +19,4 @@ interface SignReader : AutoCloseable {
 
 /** One candidate word with the model's probability, highest first. */
 @Immutable
-data class SignGuess(val word: String, val score: Float)
+data class SignGuess(val word: String, val score: Float, val spelled: Boolean = false)

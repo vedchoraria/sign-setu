@@ -48,8 +48,8 @@ header.top h1:empty{display:none}header.top .docset{flex:1}
 @media print{header.top,nav.toc{display:none}.wrap{display:block}section.doc{break-inside:auto;border:0}}
 </style></head><body>
 <header class="top"><nav class="docset" aria-label="Document set"><a href="system-design.html">System design</a><a href="sign-setu-docs.html">Documentation</a><b>Engineering handoff</b></nav><h1></h1><input id="q" type="search" placeholder="Filter documents" aria-label="Filter documents"><button id="theme" type="button">Theme</button></header>
-<div class="wrap"><nav class="toc" aria-label="Contents"><div class="group">Handoff</div><a class="doc" data-doc="doc-teammate-readme" href="#doc-teammate-readme">Sign Setu engineering handbook</a><a class="sub" data-doc="doc-teammate-readme" href="#doc-teammate-readme-1-index">1. Index</a><a class="sub" data-doc="doc-teammate-readme" href="#doc-teammate-readme-2-quick-start">2. Quick start</a><a class="sub" data-doc="doc-teammate-readme" href="#doc-teammate-readme-3-repository-map">3. Repository map</a><a class="doc" data-doc="doc-teammate-srs" href="#doc-teammate-srs">Sign Setu: Software Requirements Specification</a><a class="sub" data-doc="doc-teammate-srs" href="#doc-teammate-srs-1-scope">1. Scope</a><a class="sub" data-doc="doc-teammate-srs" href="#doc-teammate-srs-2-actors">2. Actors</a><a class="sub" data-doc="doc-teammate-srs" href="#doc-teammate-srs-3-functional-requirements">3. Functional requirements</a><a class="sub" data-doc="doc-teammate-srs" href="#doc-teammate-srs-4-non-functional-requirements">4. Non-functional requirements</a><a class="sub" data-doc="doc-teammate-srs" href="#doc-teammate-srs-5-constraints">5. Constraints</a><a class="sub" data-doc="doc-teammate-srs" href="#doc-teammate-srs-6-external-interfaces">6. External interfaces</a><a class="sub" data-doc="doc-teammate-srs" href="#doc-teammate-srs-7-acceptance-criteria">7. Acceptance criteria</a><a class="doc" data-doc="doc-teammate-dfd" href="#doc-teammate-dfd">Sign Setu: Data Flow Diagrams</a><a class="sub" data-doc="doc-teammate-dfd" href="#doc-teammate-dfd-1-level-0-context">1. Level 0: context</a><a class="sub" data-doc="doc-teammate-dfd" href="#doc-teammate-dfd-2-level-1">2. Level 1</a><a class="sub" data-doc="doc-teammate-dfd" href="#doc-teammate-dfd-3-level-2-sign-capture-6-0">3. Level 2: sign capture (6.0)</a><a class="sub" data-doc="doc-teammate-dfd" href="#doc-teammate-dfd-4-data-stores">4. Data stores</a><a class="sub" data-doc="doc-teammate-dfd" href="#doc-teammate-dfd-5-trust-boundaries">5. Trust boundaries</a><a class="doc" data-doc="doc-teammate-architecture" href="#doc-teammate-architecture">Architecture</a><a class="sub" data-doc="doc-teammate-architecture" href="#doc-teammate-architecture-package-map">Package map</a><a class="sub" data-doc="doc-teammate-architecture" href="#doc-teammate-architecture-layering">Layering</a><a class="sub" data-doc="doc-teammate-architecture" href="#doc-teammate-architecture-appcontainer-wiring">AppContainer wiring</a><a class="sub" data-doc="doc-teammate-architecture" href="#doc-teammate-architecture-threading-and-coroutines">Threading and coroutines</a><a class="sub" data-doc="doc-teammate-architecture" href="#doc-teammate-architecture-lifecycle">Lifecycle</a><a class="sub" data-doc="doc-teammate-architecture" href="#doc-teammate-architecture-flavors-and-build-types">Flavors and build types</a><a class="sub" data-doc="doc-teammate-architecture" href="#doc-teammate-architecture-native-language-model">Native language model</a><a class="sub" data-doc="doc-teammate-architecture" href="#doc-teammate-architecture-mediapipe-pipeline">MediaPipe pipeline</a><a class="sub" data-doc="doc-teammate-architecture" href="#doc-teammate-architecture-dependencies">Dependencies</a><a class="doc" data-doc="doc-teammate-data-model" href="#doc-teammate-data-model">Data model</a><a class="sub" data-doc="doc-teammate-data-model" href="#doc-teammate-data-model-session-database">Session database</a><a class="sub" data-doc="doc-teammate-data-model" href="#doc-teammate-data-model-content-assets">Content assets</a><a class="sub" data-doc="doc-teammate-data-model" href="#doc-teammate-data-model-manifest-hashing">Manifest hashing</a><a class="doc" data-doc="doc-teammate-api" href="#doc-teammate-api">Internal interfaces</a><a class="sub" data-doc="doc-teammate-api" href="#doc-teammate-api-landmarktracker">LandmarkTracker</a><a class="sub" data-doc="doc-teammate-api" href="#doc-teammate-api-signreader">SignReader</a><a class="sub" data-doc="doc-teammate-api" href="#doc-teammate-api-stagetransport-pairing">StageTransport (pairing)</a><a class="sub" data-doc="doc-teammate-api" href="#doc-teammate-api-contentrepository">ContentRepository</a><a class="sub" data-doc="doc-teammate-api" href="#doc-teammate-api-motionfor-and-word-lookup">motionFor and word lookup</a><a class="sub" data-doc="doc-teammate-api" href="#doc-teammate-api-plantext">planText</a><a class="sub" data-doc="doc-teammate-api" href="#doc-teammate-api-sessionrepository-write-path">SessionRepository (write path)</a><a class="doc" data-doc="doc-teammate-sequences" href="#doc-teammate-sequences">Sequences</a><a class="sub" data-doc="doc-teammate-sequences" href="#doc-teammate-sequences-1-unlock">1. Unlock</a><a class="sub" data-doc="doc-teammate-sequences" href="#doc-teammate-sequences-2-show-item-local-stage-and-paired-stage">2. Show item (local stage and paired stage)</a><a class="sub" data-doc="doc-teammate-sequences" href="#doc-teammate-sequences-3-subject-answer">3. Subject answer</a><a class="sub" data-doc="doc-teammate-sequences" href="#doc-teammate-sequences-4-sign-window-read-and-subject-confirm">4. Sign window read and subject confirm</a><a class="sub" data-doc="doc-teammate-sequences" href="#doc-teammate-sequences-5-tell-me-narrative">5. Tell me narrative</a><a class="sub" data-doc="doc-teammate-sequences" href="#doc-teammate-sequences-6-pairing-handshake">6. Pairing handshake</a><a class="sub" data-doc="doc-teammate-sequences" href="#doc-teammate-sequences-7-export">7. Export</a><a class="doc" data-doc="doc-teammate-state-machines" href="#doc-teammate-state-machines">State machines</a><a class="sub" data-doc="doc-teammate-state-machines" href="#doc-teammate-state-machines-1-session-ui-session-sessionviewmodel-kt-mode">1. Session (ui/session/SessionViewModel.kt, Mode)</a><a class="sub" data-doc="doc-teammate-state-machines" href="#doc-teammate-state-machines-2-stage-modes-ui-session-stage-kt-stage-composable">2. Stage modes (ui/session/Stage.kt, Stage composable)</a><a class="sub" data-doc="doc-teammate-state-machines" href="#doc-teammate-state-machines-3-sign-window-sign-signcapture-kt-sessionviewmodel">3. Sign window (sign/SignCapture.kt, SessionViewModel)</a><a class="sub" data-doc="doc-teammate-state-machines" href="#doc-teammate-state-machines-4-pairing-link-pair-stagelink-kt-linkstate">4. Pairing link (pair/StageLink.kt, LinkState)</a><a class="sub" data-doc="doc-teammate-state-machines" href="#doc-teammate-state-machines-5-auto-mode-ui-session-autopilot-kt-conv">5. Auto mode (ui/session/AutoPilot.kt, Conv)</a><a class="sub" data-doc="doc-teammate-state-machines" href="#doc-teammate-state-machines-6-handover-ui-session-handover-kt">6. Handover (ui/session/Handover.kt)</a><a class="doc" data-doc="doc-teammate-avatar-rig" href="#doc-teammate-avatar-rig">Avatar rig</a><a class="sub" data-doc="doc-teammate-avatar-rig" href="#doc-teammate-avatar-rig-pipeline">Pipeline</a><a class="sub" data-doc="doc-teammate-avatar-rig" href="#doc-teammate-avatar-rig-space-and-builds">Space and builds</a><a class="sub" data-doc="doc-teammate-avatar-rig" href="#doc-teammate-avatar-rig-two-bone-elbow-solveelbow">Two-bone elbow: solveElbow</a><a class="sub" data-doc="doc-teammate-avatar-rig" href="#doc-teammate-avatar-rig-recorded-elbows-ex-ey">Recorded elbows (ex, ey)</a><a class="sub" data-doc="doc-teammate-avatar-rig" href="#doc-teammate-avatar-rig-easing-holds-overshoot-blend-hand">Easing, holds, overshoot (blend, hand)</a><a class="sub" data-doc="doc-teammate-avatar-rig" href="#doc-teammate-avatar-rig-catmull-rom-for-recorded-keys-flows-flow">Catmull-Rom for recorded keys (flows, flow)</a><a class="sub" data-doc="doc-teammate-avatar-rig" href="#doc-teammate-avatar-rig-chain-and-picture-beat-holds">chain() and picture-beat holds</a><a class="sub" data-doc="doc-teammate-avatar-rig" href="#doc-teammate-avatar-rig-hand-shapes">Hand shapes</a><a class="sub" data-doc="doc-teammate-avatar-rig" href="#doc-teammate-avatar-rig-framing-avatar-kt">Framing (Avatar.kt)</a><a class="sub" data-doc="doc-teammate-avatar-rig" href="#doc-teammate-avatar-rig-parity-with-the-portal">Parity with the portal</a><a class="doc" data-doc="doc-teammate-ml" href="#doc-teammate-ml">Machine learning: sign reader, tracking and retargeting</a><a class="sub" data-doc="doc-teammate-ml" href="#doc-teammate-ml-1-components">1. Components</a><a class="sub" data-doc="doc-teammate-ml" href="#doc-teammate-ml-2-dataset">2. Dataset</a><a class="sub" data-doc="doc-teammate-ml" href="#doc-teammate-ml-3-features">3. Features</a><a class="sub" data-doc="doc-teammate-ml" href="#doc-teammate-ml-4-architecture-signnet-in-tools-ml-train-py">4. Architecture (SignNet in tools/ml/train.py)</a><a class="sub" data-doc="doc-teammate-ml" href="#doc-teammate-ml-5-metrics-official-test-split-from-sign_reader-json">5. Metrics (official test split, from sign_reader.json)</a><a class="sub" data-doc="doc-teammate-ml" href="#doc-teammate-ml-6-training-commands-run-from-tools-ml">6. Training commands (run from tools/ml)</a><a class="sub" data-doc="doc-teammate-ml" href="#doc-teammate-ml-7-mediapipe-holistic">7. MediaPipe Holistic</a><a class="sub" data-doc="doc-teammate-ml" href="#doc-teammate-ml-8-retarget-pipeline-tools-isl-retarget-py">8. Retarget pipeline (tools/isl/retarget.py)</a><a class="sub" data-doc="doc-teammate-ml" href="#doc-teammate-ml-9-known-limits">9. Known limits</a><a class="doc" data-doc="doc-teammate-security" href="#doc-teammate-security">Security</a><a class="sub" data-doc="doc-teammate-security" href="#doc-teammate-security-1-threat-summary">1. Threat summary</a><a class="sub" data-doc="doc-teammate-security" href="#doc-teammate-security-2-controls-by-area">2. Controls by area</a><a class="sub" data-doc="doc-teammate-security" href="#doc-teammate-security-3-key-management">3. Key management</a><a class="sub" data-doc="doc-teammate-security" href="#doc-teammate-security-4-pairing-protocol-sec-67">4. Pairing protocol (SEC-67)</a><a class="sub" data-doc="doc-teammate-security" href="#doc-teammate-security-5-permissions-per-flavor">5. Permissions per flavor</a><a class="sub" data-doc="doc-teammate-security" href="#doc-teammate-security-6-telemetry-stub-sec-72">6. Telemetry stub (SEC-72)</a><a class="sub" data-doc="doc-teammate-security" href="#doc-teammate-security-7-rules-for-changes">7. Rules for changes</a><a class="doc" data-doc="doc-teammate-testing" href="#doc-teammate-testing">Testing</a><a class="sub" data-doc="doc-teammate-testing" href="#doc-teammate-testing-1-inventory">1. Inventory</a><a class="sub" data-doc="doc-teammate-testing" href="#doc-teammate-testing-2-commands">2. Commands</a><a class="sub" data-doc="doc-teammate-testing" href="#doc-teammate-testing-3-device-test-procedure">3. Device test procedure</a><a class="sub" data-doc="doc-teammate-testing" href="#doc-teammate-testing-4-gaps">4. Gaps</a><a class="doc" data-doc="doc-teammate-ops" href="#doc-teammate-ops">Operations: build, release and content</a><a class="sub" data-doc="doc-teammate-ops" href="#doc-teammate-ops-1-variants">1. Variants</a><a class="sub" data-doc="doc-teammate-ops" href="#doc-teammate-ops-2-release-build-and-signing">2. Release build and signing</a><a class="sub" data-doc="doc-teammate-ops" href="#doc-teammate-ops-3-versioning">3. Versioning</a><a class="sub" data-doc="doc-teammate-ops" href="#doc-teammate-ops-4-content-pipeline">4. Content pipeline</a><a class="sub" data-doc="doc-teammate-ops" href="#doc-teammate-ops-5-isl-retarget-regeneration">5. ISL retarget regeneration</a><a class="sub" data-doc="doc-teammate-ops" href="#doc-teammate-ops-6-lockfiles-and-verification-metadata-sec-50">6. Lockfiles and verification metadata (SEC-50)</a><a class="sub" data-doc="doc-teammate-ops" href="#doc-teammate-ops-7-portal-portal-review-portal-vite-with-react-19-typescript-7">7. Portal (portal/: review portal, Vite+ with React 19, TypeScript 7)</a><div class="group">Repository</div><a class="doc" data-doc="doc-readme" href="#doc-readme">Sign Setu</a><a class="sub" data-doc="doc-readme" href="#doc-readme-build-and-test">Build and test</a><a class="sub" data-doc="doc-readme" href="#doc-readme-repository">Repository</a><div class="group">Reference</div><a class="doc" data-doc="doc-01-requirements" href="#doc-01-requirements">01. Requirements</a><a class="sub" data-doc="doc-01-requirements" href="#doc-01-requirements-1-purpose">1. Purpose</a><a class="sub" data-doc="doc-01-requirements" href="#doc-01-requirements-2-users">2. Users</a><a class="sub" data-doc="doc-01-requirements" href="#doc-01-requirements-3-constraints">3. Constraints</a><a class="sub" data-doc="doc-01-requirements" href="#doc-01-requirements-4-functional-requirements">4. Functional requirements</a><a class="sub" data-doc="doc-01-requirements" href="#doc-01-requirements-5-non-functional-requirements">5. Non-functional requirements</a><a class="sub" data-doc="doc-01-requirements" href="#doc-01-requirements-6-traceability">6. Traceability</a><a class="doc" data-doc="doc-07-decisions" href="#doc-07-decisions">07. Decision Log</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-01-native-android-with-kotlin-and-jetpack-compose">D-01 Native Android with Kotlin and Jetpack Compose</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-02-landmarks-on-device-only-landmarks-leave-the-phone">D-02 Landmarks on device; only landmarks leave the phone</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-03-recorded-isl-clips-for-the-triage-set-skeleton-avatar-only-for-free-text">D-03 Recorded ISL clips for the triage set; skeleton avatar only for free text</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-04-bhashini-for-speech-recognition-and-translation">D-04 Bhashini for speech recognition and translation</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-05-no-ai-image-generation-in-v1">D-05 No AI image generation in v1</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-06-session-data-stored-only-on-the-phone-encrypted-short-lived">D-06 Session data stored only on the phone, encrypted, short-lived</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-07-backend-in-india-behind-a-single-project-gateway">D-07 Backend in India, behind a single project gateway</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-08-no-officer-login-in-v1">D-08 No officer login in v1</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-09-no-third-party-analytics-or-crash-reporting-sdks">D-09 No third-party analytics or crash reporting SDKs</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-10-zero-licence-and-service-cost">D-10 Zero licence and service cost</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-11-national-scale">D-11 National scale</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-12-subject-profiles-decide-what-the-subject-sees-and-hears">D-12 Subject profiles decide what the subject sees and hears</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-13-two-original-characters-with-a-fixed-reviewed-lexicon-replace-the-skeleton-avatar">D-13 Two original characters with a fixed, reviewed lexicon replace the skeleton avatar</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-14-officer-gesture-lookup-replaces-camera-sign-recognition-in-v1">D-14 Officer gesture lookup replaces camera sign recognition in v1</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-15-v1-works-fully-offline-with-no-internet-permission">D-15 v1 works fully offline, with no INTERNET permission</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-16-call-an-interpreter">D-16 Call an interpreter</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-17-export-as-a-password-protected-pdf">D-17 Export as a password-protected PDF</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-18-language-finder-for-hearing-children-who-speak-another-language">D-18 Language finder for hearing children who speak another language</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-19-the-app-runs-on-officers-personal-phones">D-19 The app runs on officers' personal phones</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-20-the-stage-the-character-above-a-camera-mirror-below">D-20 The stage: the character above, a camera mirror below</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-21-characters-drawn-in-code-for-release-1">D-21 Characters drawn in code for release 1</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-22-typed-text-is-signed-word-by-word-with-the-officer-choosing-how">D-22 Typed text is signed word by word, with the officer choosing how</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-23-the-handle-alone-without-a-credential-leaves-the-stage">D-23 The handle alone, without a credential, leaves the stage</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-24-an-optional-on-device-model-translates-typed-text-with-a-back-translation">D-24 An optional on-device model translates typed text, with a back-translation</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-25-on-device-vision-engine-sign-reader-and-sign-windows">D-25 On-device vision engine, sign reader and sign windows</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-26-a-second-screen-over-bonded-bluetooth">D-26 A second screen over bonded Bluetooth</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-27-narrative-mode-the-subject-s-own-meaning-and-landmarks-kept-for-the-session">D-27 Narrative mode, the subject's own meaning, and landmarks kept for the session</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-28-victim-and-accused-roles">D-28 Victim and accused roles</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-29-typed-text-in-isl-order-as-a-draft">D-29 Typed text in ISL order, as a draft</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-30-manual-and-auto-conversation-modes">D-30 Manual and Auto conversation modes</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-31-a-static-reviewer-portal-for-content-sign-off">D-31 A static reviewer portal for content sign-off</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-32-pinned-stack-and-upgrade-rule">D-32 Pinned stack and upgrade rule</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-33-mediapipe-usage-statistics-are-blocked-at-build-time">D-33 MediaPipe usage statistics are blocked at build time</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-34-a-layered-graded-record-and-a-fairer-stage">D-34 A layered, graded record and a fairer stage</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-35-recorded-isl-signs-and-one-sign-lexicon">D-35 Recorded ISL signs and one sign lexicon</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-36-lesson-sheet-questions-with-stage-answer-inputs">D-36 Lesson-sheet questions with stage answer inputs</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-37-the-stage-in-two-halves-with-stop-as-the-only-pause">D-37 The stage in two halves, with Stop as the only pause</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-38-vision-engine-runtime-and-ranked-sign-guesses">D-38 Vision engine runtime and ranked sign guesses</a><a class="doc" data-doc="doc-09-open-source" href="#doc-09-open-source">09. Open-Source Reuse Map</a><a class="sub" data-doc="doc-09-open-source" href="#doc-09-open-source-1-per-module">1. Per module</a><a class="sub" data-doc="doc-09-open-source" href="#doc-09-open-source-2-considered-and-rejected">2. Considered and rejected</a><a class="sub" data-doc="doc-09-open-source" href="#doc-09-open-source-3-attribution">3. Attribution</a><a class="sub" data-doc="doc-09-open-source" href="#doc-09-open-source-sources">Sources</a></nav><main>
-<div class="cover"><p class="eyebrow">Sign Setu · Release 1</p><h1>Sign Setu Engineering Handoff</h1><p>Everything an engineer joining the project needs: requirements, data flows, architecture, data model, interfaces, flows and states, the character rig, the vision and sign models, security, testing and operations, with the decision log for context.</p><div class="groups"><a href="#doc-teammate-readme"><b>Handoff</b><span>13 documents · SRS, DFD, architecture, data, interfaces, flows, rig, ML, security, tests, ops</span></a><a href="#doc-readme"><b>Repository</b><span>1 documents · build, test and repository map</span></a><a href="#doc-01-requirements"><b>Reference</b><span>3 documents · full requirements, decision log, open-source register</span></a></div></div>
+<div class="wrap"><nav class="toc" aria-label="Contents"><div class="group">Handoff</div><a class="doc" data-doc="doc-teammate-readme" href="#doc-teammate-readme">Sign Setu engineering handbook</a><a class="sub" data-doc="doc-teammate-readme" href="#doc-teammate-readme-1-index">1. Index</a><a class="sub" data-doc="doc-teammate-readme" href="#doc-teammate-readme-2-quick-start">2. Quick start</a><a class="sub" data-doc="doc-teammate-readme" href="#doc-teammate-readme-3-repository-map">3. Repository map</a><a class="doc" data-doc="doc-teammate-srs" href="#doc-teammate-srs">Sign Setu: Software Requirements Specification</a><a class="sub" data-doc="doc-teammate-srs" href="#doc-teammate-srs-1-scope">1. Scope</a><a class="sub" data-doc="doc-teammate-srs" href="#doc-teammate-srs-2-actors">2. Actors</a><a class="sub" data-doc="doc-teammate-srs" href="#doc-teammate-srs-3-functional-requirements">3. Functional requirements</a><a class="sub" data-doc="doc-teammate-srs" href="#doc-teammate-srs-4-non-functional-requirements">4. Non-functional requirements</a><a class="sub" data-doc="doc-teammate-srs" href="#doc-teammate-srs-5-constraints">5. Constraints</a><a class="sub" data-doc="doc-teammate-srs" href="#doc-teammate-srs-6-external-interfaces">6. External interfaces</a><a class="sub" data-doc="doc-teammate-srs" href="#doc-teammate-srs-7-acceptance-criteria">7. Acceptance criteria</a><a class="doc" data-doc="doc-teammate-dfd" href="#doc-teammate-dfd">Sign Setu: Data Flow Diagrams</a><a class="sub" data-doc="doc-teammate-dfd" href="#doc-teammate-dfd-1-level-0-context">1. Level 0: context</a><a class="sub" data-doc="doc-teammate-dfd" href="#doc-teammate-dfd-2-level-1">2. Level 1</a><a class="sub" data-doc="doc-teammate-dfd" href="#doc-teammate-dfd-3-level-2-sign-capture-6-0">3. Level 2: sign capture (6.0)</a><a class="sub" data-doc="doc-teammate-dfd" href="#doc-teammate-dfd-4-data-stores">4. Data stores</a><a class="sub" data-doc="doc-teammate-dfd" href="#doc-teammate-dfd-5-trust-boundaries">5. Trust boundaries</a><a class="doc" data-doc="doc-teammate-architecture" href="#doc-teammate-architecture">Architecture</a><a class="sub" data-doc="doc-teammate-architecture" href="#doc-teammate-architecture-package-map">Package map</a><a class="sub" data-doc="doc-teammate-architecture" href="#doc-teammate-architecture-layering">Layering</a><a class="sub" data-doc="doc-teammate-architecture" href="#doc-teammate-architecture-appcontainer-wiring">AppContainer wiring</a><a class="sub" data-doc="doc-teammate-architecture" href="#doc-teammate-architecture-threading-and-coroutines">Threading and coroutines</a><a class="sub" data-doc="doc-teammate-architecture" href="#doc-teammate-architecture-lifecycle">Lifecycle</a><a class="sub" data-doc="doc-teammate-architecture" href="#doc-teammate-architecture-flavors-and-build-types">Flavors and build types</a><a class="sub" data-doc="doc-teammate-architecture" href="#doc-teammate-architecture-native-language-model">Native language model</a><a class="sub" data-doc="doc-teammate-architecture" href="#doc-teammate-architecture-mediapipe-pipeline">MediaPipe pipeline</a><a class="sub" data-doc="doc-teammate-architecture" href="#doc-teammate-architecture-dependencies">Dependencies</a><a class="doc" data-doc="doc-teammate-data-model" href="#doc-teammate-data-model">Data model</a><a class="sub" data-doc="doc-teammate-data-model" href="#doc-teammate-data-model-session-database">Session database</a><a class="sub" data-doc="doc-teammate-data-model" href="#doc-teammate-data-model-content-assets">Content assets</a><a class="sub" data-doc="doc-teammate-data-model" href="#doc-teammate-data-model-manifest-hashing">Manifest hashing</a><a class="doc" data-doc="doc-teammate-api" href="#doc-teammate-api">Internal interfaces</a><a class="sub" data-doc="doc-teammate-api" href="#doc-teammate-api-landmarktracker">LandmarkTracker</a><a class="sub" data-doc="doc-teammate-api" href="#doc-teammate-api-signreader">SignReader</a><a class="sub" data-doc="doc-teammate-api" href="#doc-teammate-api-stagetransport-pairing">StageTransport (pairing)</a><a class="sub" data-doc="doc-teammate-api" href="#doc-teammate-api-contentrepository">ContentRepository</a><a class="sub" data-doc="doc-teammate-api" href="#doc-teammate-api-motionfor-and-word-lookup">motionFor and word lookup</a><a class="sub" data-doc="doc-teammate-api" href="#doc-teammate-api-plantext">planText</a><a class="sub" data-doc="doc-teammate-api" href="#doc-teammate-api-sessionrepository-write-path">SessionRepository (write path)</a><a class="doc" data-doc="doc-teammate-sequences" href="#doc-teammate-sequences">Sequences</a><a class="sub" data-doc="doc-teammate-sequences" href="#doc-teammate-sequences-1-unlock">1. Unlock</a><a class="sub" data-doc="doc-teammate-sequences" href="#doc-teammate-sequences-2-show-item-local-stage-and-paired-stage">2. Show item (local stage and paired stage)</a><a class="sub" data-doc="doc-teammate-sequences" href="#doc-teammate-sequences-3-subject-answer">3. Subject answer</a><a class="sub" data-doc="doc-teammate-sequences" href="#doc-teammate-sequences-4-sign-window-read-and-subject-confirm">4. Sign window read and subject confirm</a><a class="sub" data-doc="doc-teammate-sequences" href="#doc-teammate-sequences-5-tell-me-narrative">5. Tell me narrative</a><a class="sub" data-doc="doc-teammate-sequences" href="#doc-teammate-sequences-6-pairing-handshake">6. Pairing handshake</a><a class="sub" data-doc="doc-teammate-sequences" href="#doc-teammate-sequences-7-export">7. Export</a><a class="doc" data-doc="doc-teammate-state-machines" href="#doc-teammate-state-machines">State machines</a><a class="sub" data-doc="doc-teammate-state-machines" href="#doc-teammate-state-machines-1-session-ui-session-sessionviewmodel-kt-mode">1. Session (ui/session/SessionViewModel.kt, Mode)</a><a class="sub" data-doc="doc-teammate-state-machines" href="#doc-teammate-state-machines-2-stage-modes-ui-session-stage-kt-stage-composable">2. Stage modes (ui/session/Stage.kt, Stage composable)</a><a class="sub" data-doc="doc-teammate-state-machines" href="#doc-teammate-state-machines-3-sign-window-sign-signcapture-kt-sessionviewmodel">3. Sign window (sign/SignCapture.kt, SessionViewModel)</a><a class="sub" data-doc="doc-teammate-state-machines" href="#doc-teammate-state-machines-4-pairing-link-pair-stagelink-kt-linkstate">4. Pairing link (pair/StageLink.kt, LinkState)</a><a class="sub" data-doc="doc-teammate-state-machines" href="#doc-teammate-state-machines-5-auto-mode-ui-session-autopilot-kt-conv">5. Auto mode (ui/session/AutoPilot.kt, Conv)</a><a class="sub" data-doc="doc-teammate-state-machines" href="#doc-teammate-state-machines-6-handover-ui-session-handover-kt">6. Handover (ui/session/Handover.kt)</a><a class="doc" data-doc="doc-teammate-avatar-rig" href="#doc-teammate-avatar-rig">Avatar rig</a><a class="sub" data-doc="doc-teammate-avatar-rig" href="#doc-teammate-avatar-rig-pipeline">Pipeline</a><a class="sub" data-doc="doc-teammate-avatar-rig" href="#doc-teammate-avatar-rig-space-and-builds">Space and builds</a><a class="sub" data-doc="doc-teammate-avatar-rig" href="#doc-teammate-avatar-rig-two-bone-elbow-solveelbow">Two-bone elbow: solveElbow</a><a class="sub" data-doc="doc-teammate-avatar-rig" href="#doc-teammate-avatar-rig-recorded-elbows-ex-ey">Recorded elbows (ex, ey)</a><a class="sub" data-doc="doc-teammate-avatar-rig" href="#doc-teammate-avatar-rig-easing-holds-overshoot-blend-hand">Easing, holds, overshoot (blend, hand)</a><a class="sub" data-doc="doc-teammate-avatar-rig" href="#doc-teammate-avatar-rig-catmull-rom-for-recorded-keys-flows-flow">Catmull-Rom for recorded keys (flows, flow)</a><a class="sub" data-doc="doc-teammate-avatar-rig" href="#doc-teammate-avatar-rig-chain-and-picture-beat-holds">chain() and picture-beat holds</a><a class="sub" data-doc="doc-teammate-avatar-rig" href="#doc-teammate-avatar-rig-hand-shapes">Hand shapes</a><a class="sub" data-doc="doc-teammate-avatar-rig" href="#doc-teammate-avatar-rig-framing-avatar-kt">Framing (Avatar.kt)</a><a class="sub" data-doc="doc-teammate-avatar-rig" href="#doc-teammate-avatar-rig-parity-with-the-portal">Parity with the portal</a><a class="doc" data-doc="doc-teammate-ml" href="#doc-teammate-ml">Machine learning: sign readers, tracking and retargeting</a><a class="sub" data-doc="doc-teammate-ml" href="#doc-teammate-ml-1-components">1. Components</a><a class="sub" data-doc="doc-teammate-ml" href="#doc-teammate-ml-2-dataset">2. Dataset</a><a class="sub" data-doc="doc-teammate-ml" href="#doc-teammate-ml-3-features">3. Features</a><a class="sub" data-doc="doc-teammate-ml" href="#doc-teammate-ml-4-architecture-signnet-in-tools-ml-train-py">4. Architecture (SignNet in tools/ml/train.py)</a><a class="sub" data-doc="doc-teammate-ml" href="#doc-teammate-ml-5-metrics-test-splits-from-each-model-json-and-tools-ml-eval-md">5. Metrics (test splits, from each model json and tools/ml/EVAL.md)</a><a class="sub" data-doc="doc-teammate-ml" href="#doc-teammate-ml-6-training-commands-run-from-tools-ml-the-added-readers-are-in-tools-ml-readme-md">6. Training commands (run from tools/ml; the added readers are in tools/ml/README.md)</a><a class="sub" data-doc="doc-teammate-ml" href="#doc-teammate-ml-7-mediapipe-holistic">7. MediaPipe Holistic</a><a class="sub" data-doc="doc-teammate-ml" href="#doc-teammate-ml-8-retarget-pipeline-tools-isl-retarget-py">8. Retarget pipeline (tools/isl/retarget.py)</a><a class="sub" data-doc="doc-teammate-ml" href="#doc-teammate-ml-9-known-limits">9. Known limits</a><a class="doc" data-doc="doc-teammate-security" href="#doc-teammate-security">Security</a><a class="sub" data-doc="doc-teammate-security" href="#doc-teammate-security-1-threat-summary">1. Threat summary</a><a class="sub" data-doc="doc-teammate-security" href="#doc-teammate-security-2-controls-by-area">2. Controls by area</a><a class="sub" data-doc="doc-teammate-security" href="#doc-teammate-security-3-key-management">3. Key management</a><a class="sub" data-doc="doc-teammate-security" href="#doc-teammate-security-4-pairing-protocol-sec-67">4. Pairing protocol (SEC-67)</a><a class="sub" data-doc="doc-teammate-security" href="#doc-teammate-security-5-permissions-per-flavor">5. Permissions per flavor</a><a class="sub" data-doc="doc-teammate-security" href="#doc-teammate-security-6-telemetry-stub-sec-72">6. Telemetry stub (SEC-72)</a><a class="sub" data-doc="doc-teammate-security" href="#doc-teammate-security-7-rules-for-changes">7. Rules for changes</a><a class="doc" data-doc="doc-teammate-testing" href="#doc-teammate-testing">Testing</a><a class="sub" data-doc="doc-teammate-testing" href="#doc-teammate-testing-1-inventory">1. Inventory</a><a class="sub" data-doc="doc-teammate-testing" href="#doc-teammate-testing-2-commands">2. Commands</a><a class="sub" data-doc="doc-teammate-testing" href="#doc-teammate-testing-3-device-test-procedure">3. Device test procedure</a><a class="sub" data-doc="doc-teammate-testing" href="#doc-teammate-testing-4-run-b-acceptance-checks">4. Run B acceptance checks</a><a class="sub" data-doc="doc-teammate-testing" href="#doc-teammate-testing-5-gaps">5. Gaps</a><a class="doc" data-doc="doc-teammate-ops" href="#doc-teammate-ops">Operations: build, release and content</a><a class="sub" data-doc="doc-teammate-ops" href="#doc-teammate-ops-1-variants">1. Variants</a><a class="sub" data-doc="doc-teammate-ops" href="#doc-teammate-ops-2-release-build-and-signing">2. Release build and signing</a><a class="sub" data-doc="doc-teammate-ops" href="#doc-teammate-ops-3-versioning">3. Versioning</a><a class="sub" data-doc="doc-teammate-ops" href="#doc-teammate-ops-4-content-pipeline">4. Content pipeline</a><a class="sub" data-doc="doc-teammate-ops" href="#doc-teammate-ops-5-isl-retarget-regeneration">5. ISL retarget regeneration</a><a class="sub" data-doc="doc-teammate-ops" href="#doc-teammate-ops-6-lockfiles-and-verification-metadata-sec-50">6. Lockfiles and verification metadata (SEC-50)</a><a class="sub" data-doc="doc-teammate-ops" href="#doc-teammate-ops-7-portal-portal-review-portal-vite-with-react-19-typescript-7">7. Portal (portal/: review portal, Vite+ with React 19, TypeScript 7)</a><a class="doc" data-doc="doc-teammate-back-yes-no" href="#doc-teammate-back-yes-no">Back, Yes, No and Stop: acceptance matrix</a><a class="sub" data-doc="doc-teammate-back-yes-no" href="#doc-teammate-back-yes-no-1-officer-screens-sheets-and-dialogs">1. Officer screens, sheets and dialogs</a><a class="sub" data-doc="doc-teammate-back-yes-no" href="#doc-teammate-back-yes-no-2-subject-stage-states-ui-session-stage-kt-shown-on-the-phone-or-the-second-screen">2. Subject stage states (ui/session/Stage.kt, shown on the phone or the second screen)</a><a class="sub" data-doc="doc-teammate-back-yes-no" href="#doc-teammate-back-yes-no-3-gaps-against-the-t1-rule">3. Gaps against the T1 rule</a><div class="group">Repository</div><a class="doc" data-doc="doc-readme" href="#doc-readme">Sign Setu</a><a class="sub" data-doc="doc-readme" href="#doc-readme-build-and-test">Build and test</a><a class="sub" data-doc="doc-readme" href="#doc-readme-repository">Repository</a><div class="group">Reference</div><a class="doc" data-doc="doc-01-requirements" href="#doc-01-requirements">01. Requirements</a><a class="sub" data-doc="doc-01-requirements" href="#doc-01-requirements-1-purpose">1. Purpose</a><a class="sub" data-doc="doc-01-requirements" href="#doc-01-requirements-2-users">2. Users</a><a class="sub" data-doc="doc-01-requirements" href="#doc-01-requirements-3-constraints">3. Constraints</a><a class="sub" data-doc="doc-01-requirements" href="#doc-01-requirements-4-functional-requirements">4. Functional requirements</a><a class="sub" data-doc="doc-01-requirements" href="#doc-01-requirements-5-non-functional-requirements">5. Non-functional requirements</a><a class="sub" data-doc="doc-01-requirements" href="#doc-01-requirements-6-traceability">6. Traceability</a><a class="sub" data-doc="doc-01-requirements" href="#doc-01-requirements-7-implementation-status">7. Implementation status</a><a class="doc" data-doc="doc-07-decisions" href="#doc-07-decisions">07. Decision Log</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-01-native-android-with-kotlin-and-jetpack-compose">D-01 Native Android with Kotlin and Jetpack Compose</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-02-landmarks-on-device-only-landmarks-leave-the-phone">D-02 Landmarks on device; only landmarks leave the phone</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-03-recorded-isl-clips-for-the-triage-set-skeleton-avatar-only-for-free-text">D-03 Recorded ISL clips for the triage set; skeleton avatar only for free text</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-04-bhashini-for-speech-recognition-and-translation">D-04 Bhashini for speech recognition and translation</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-05-no-ai-image-generation-in-v1">D-05 No AI image generation in v1</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-06-session-data-stored-only-on-the-phone-encrypted-short-lived">D-06 Session data stored only on the phone, encrypted, short-lived</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-07-backend-in-india-behind-a-single-project-gateway">D-07 Backend in India, behind a single project gateway</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-08-no-officer-login-in-v1">D-08 No officer login in v1</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-09-no-third-party-analytics-or-crash-reporting-sdks">D-09 No third-party analytics or crash reporting SDKs</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-10-zero-licence-and-service-cost">D-10 Zero licence and service cost</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-11-national-scale">D-11 National scale</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-12-subject-profiles-decide-what-the-subject-sees-and-hears">D-12 Subject profiles decide what the subject sees and hears</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-13-two-original-characters-with-a-fixed-reviewed-lexicon-replace-the-skeleton-avatar">D-13 Two original characters with a fixed, reviewed lexicon replace the skeleton avatar</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-14-officer-gesture-lookup-replaces-camera-sign-recognition-in-v1">D-14 Officer gesture lookup replaces camera sign recognition in v1</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-15-v1-works-fully-offline-with-no-internet-permission">D-15 v1 works fully offline, with no INTERNET permission</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-16-call-an-interpreter">D-16 Call an interpreter</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-17-export-as-a-password-protected-pdf">D-17 Export as a password-protected PDF</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-18-language-finder-for-hearing-children-who-speak-another-language">D-18 Language finder for hearing children who speak another language</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-19-the-app-runs-on-officers-personal-phones">D-19 The app runs on officers' personal phones</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-20-the-stage-the-character-above-a-camera-mirror-below">D-20 The stage: the character above, a camera mirror below</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-21-characters-drawn-in-code-for-release-1">D-21 Characters drawn in code for release 1</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-22-typed-text-is-signed-word-by-word-with-the-officer-choosing-how">D-22 Typed text is signed word by word, with the officer choosing how</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-23-the-handle-alone-without-a-credential-leaves-the-stage">D-23 The handle alone, without a credential, leaves the stage</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-24-an-optional-on-device-model-translates-typed-text-with-a-back-translation">D-24 An optional on-device model translates typed text, with a back-translation</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-25-on-device-vision-engine-sign-reader-and-sign-windows">D-25 On-device vision engine, sign reader and sign windows</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-26-a-second-screen-over-bonded-bluetooth">D-26 A second screen over bonded Bluetooth</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-27-narrative-mode-the-subject-s-own-meaning-and-landmarks-kept-for-the-session">D-27 Narrative mode, the subject's own meaning, and landmarks kept for the session</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-28-victim-and-accused-roles">D-28 Victim and accused roles</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-29-typed-text-in-isl-order-as-a-draft">D-29 Typed text in ISL order, as a draft</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-30-manual-and-auto-conversation-modes">D-30 Manual and Auto conversation modes</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-31-a-static-reviewer-portal-for-content-sign-off">D-31 A static reviewer portal for content sign-off</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-32-pinned-stack-and-upgrade-rule">D-32 Pinned stack and upgrade rule</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-33-mediapipe-usage-statistics-are-blocked-at-build-time">D-33 MediaPipe usage statistics are blocked at build time</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-34-a-layered-graded-record-and-a-fairer-stage">D-34 A layered, graded record and a fairer stage</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-35-recorded-isl-signs-and-one-sign-lexicon">D-35 Recorded ISL signs and one sign lexicon</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-36-lesson-sheet-questions-with-stage-answer-inputs">D-36 Lesson-sheet questions with stage answer inputs</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-37-the-stage-in-two-halves-with-stop-as-the-only-pause">D-37 The stage in two halves, with Stop as the only pause</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-38-vision-engine-runtime-and-ranked-sign-guesses">D-38 Vision engine runtime and ranked sign guesses</a><a class="sub" data-doc="doc-07-decisions" href="#doc-07-decisions-d-39-asl-as-a-second-sign-language-from-popsign-and-aslnow">D-39 ASL as a second sign language, from PopSign and ASLNow!</a><a class="doc" data-doc="doc-09-open-source" href="#doc-09-open-source">09. Open-Source Reuse Map</a><a class="sub" data-doc="doc-09-open-source" href="#doc-09-open-source-1-per-module">1. Per module</a><a class="sub" data-doc="doc-09-open-source" href="#doc-09-open-source-2-considered-and-rejected">2. Considered and rejected</a><a class="sub" data-doc="doc-09-open-source" href="#doc-09-open-source-3-attribution">3. Attribution</a><a class="sub" data-doc="doc-09-open-source" href="#doc-09-open-source-sources">Sources</a></nav><main>
+<div class="cover"><p class="eyebrow">Sign Setu · Release 1</p><h1>Sign Setu Engineering Handoff</h1><p>Everything an engineer joining the project needs: requirements, data flows, architecture, data model, interfaces, flows and states, the character rig, the vision and sign models, security, testing and operations, with the decision log for context.</p><div class="groups"><a href="#doc-teammate-readme"><b>Handoff</b><span>14 documents · SRS, DFD, architecture, data, interfaces, flows, rig, ML, security, tests, ops</span></a><a href="#doc-readme"><b>Repository</b><span>1 documents · build, test and repository map</span></a><a href="#doc-01-requirements"><b>Reference</b><span>3 documents · full requirements, decision log, open-source register</span></a></div></div>
 <section class="doc" id="doc-teammate-readme"><div class="path">docs/teammate/README.md</div><h1 id="doc-teammate-readme-sign-setu-engineering-handbook">Sign Setu engineering handbook</h1>
 <p>Offline Android app (Kotlin, Jetpack Compose) for communication between police officers and Deaf or hard-of-hearing people, plus a content review portal (<code>portal/</code>, Vite+ React).</p>
 <h2 id="doc-teammate-readme-1-index">1. Index</h2>
@@ -3819,7 +3819,7 @@ $$</p>
 <li>Port the change to <code>portal/src/rig.ts</code>.</li>
 <li><code>cd portal &amp;&amp; npx vp test run</code> (<code>vp test</code>) must pass.</li>
 </ol>
-</section><section class="doc" id="doc-teammate-ml"><div class="path">docs/teammate/ml.md</div><h1 id="doc-teammate-ml-machine-learning-sign-reader-tracking-and-retargeting">Machine learning: sign reader, tracking and retargeting</h1>
+</section><section class="doc" id="doc-teammate-ml"><div class="path">docs/teammate/ml.md</div><h1 id="doc-teammate-ml-machine-learning-sign-readers-tracking-and-retargeting">Machine learning: sign readers, tracking and retargeting</h1>
 <h2 id="doc-teammate-ml-1-components">1. Components</h2>
 <div class="scroll"><table>
 <thead>
@@ -3844,10 +3844,34 @@ $$</p>
 <td>Enabled by <code>adb shell run-as in.signsetu touch files/demo_hands</code></td>
 </tr>
 <tr>
-<td>Sign reader</td>
+<td>Sign reader (ISL words)</td>
 <td><code>app/src/main/java/app/signsetu/sign/LandmarkSignReader.kt</code></td>
-<td><code>models/sign_reader.bin</code>, <code>models/sign_reader.json</code></td>
+<td><code>models/sign_reader.{bin,json}</code></td>
 <td>Plain Kotlin forward pass, no inference library</td>
+</tr>
+<tr>
+<td>ISL letter and digit reader</td>
+<td><code>LandmarkSignReader.kt</code> (same class)</td>
+<td><code>models/isl_spell.{bin,json}</code></td>
+<td>Format 1, 36 classes; trained on synthetic landmarks (<code>&quot;synthetic&quot;: true</code>)</td>
+</tr>
+<tr>
+<td>ASL word reader</td>
+<td><code>LandmarkSignReader.kt</code></td>
+<td><code>models/asl_reader.{bin,json}</code></td>
+<td>Format 1, 250 classes, hidden width 320</td>
+</tr>
+<tr>
+<td>ASL fingerspelling reader</td>
+<td><code>sign/CtcSpellReader.kt</code></td>
+<td><code>models/asl_spell.{bin,json}</code></td>
+<td>Format 2 (CTC), greedy decoding; trained on synthetic sequences (<code>&quot;synthetic&quot;: true</code>)</td>
+</tr>
+<tr>
+<td>Reader selection and gate</td>
+<td><code>sign/SignReaders.kt</code> (<code>SignReaders.load</code>, <code>CombinedReader</code>)</td>
+<td>all of the above</td>
+<td>One reader per session sign language; a missing or damaged file leaves a word-only reader, or none, and never crashes</td>
 </tr>
 <tr>
 <td>Score floor</td>
@@ -3857,15 +3881,27 @@ $$</p>
 </tr>
 <tr>
 <td>Training</td>
-<td><code>tools/ml/{prepare,features,train,export}.py</code></td>
+<td><code>tools/ml/{prepare,features,train,export}.py</code>; <code>synth_isl.py</code>, <code>prepare_asl.py</code>, <code>spell_ctc.py</code> for the added readers</td>
 <td></td>
 <td>PyTorch (CUDA), NumPy, Python 3.12</td>
 </tr>
 <tr>
-<td>Retarget (recorded signs)</td>
+<td>Evaluation</td>
+<td><code>tools/ml/eval_isl.py</code>, <code>tools/ml/eval_asl.py</code>; results in <code>tools/ml/EVAL.md</code></td>
+<td></td>
+<td><code>runtime.py</code> runs the exported files in NumPy, so the scores are those of the shipped weights</td>
+</tr>
+<tr>
+<td>Retarget (recorded ISL signs)</td>
 <td><code>tools/isl/retarget.py</code>, <code>tools/isl/test_retarget.py</code></td>
 <td><code>assets/content/isl_signs.json</code></td>
 <td>NumPy</td>
+</tr>
+<tr>
+<td>Retarget (ASL signs)</td>
+<td><code>tools/isl/retarget_asl.py</code></td>
+<td><code>assets/content/asl_signs.json</code>, <code>asl_words.json</code></td>
+<td>NumPy; 250 words and 26 letters</td>
 </tr>
 </tbody>
 </table></div>
@@ -3984,30 +4020,52 @@ $$</p>
 </tbody>
 </table></div>
 <p>Export (<code>tools/ml/export.py</code>): batch norm folded into conv weights; tensors float32 little-endian, row-major, in order embed.w, embed.b, conv1.w, conv1.b, conv2.w, conv2.b, head.w, head.b; conv weight layout <code>[out][in][kernel]</code>. <code>sign_reader.json</code> holds dimensions, labels, feature spec, dataset and test metrics. The parity fixture is <code>app/src/test/resources/sign_reader_fixture.json</code>.</p>
-<h2 id="doc-teammate-ml-5-metrics-official-test-split-from-sign_reader-json">5. Metrics (official test split, from <code>sign_reader.json</code>)</h2>
+<h2 id="doc-teammate-ml-5-metrics-test-splits-from-each-model-json-and-tools-ml-eval-md">5. Metrics (test splits, from each model json and <code>tools/ml/EVAL.md</code>)</h2>
 <div class="scroll"><table>
 <thead>
 <tr>
-<th>Metric</th>
-<th>Value</th>
+<th>Reader</th>
+<th>Top-1</th>
+<th>Top-3</th>
+<th>Notes</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Top-1</td>
-<td>97.78 % (0.9779)</td>
+<td><code>sign_reader</code> (ISL words, n = 816)</td>
+<td>0.9779</td>
+<td>0.9939</td>
+<td>Official INCLUDE test split; <code>SignReaderTest</code> reproduces the Python logits on the fixture</td>
 </tr>
 <tr>
-<td>Top-3</td>
-<td>99.39 % (0.9939)</td>
+<td><code>isl_spell</code> letters (n = 2600)</td>
+<td>0.9812</td>
+<td>1.0000</td>
+<td>Synthetic landmarks posed from the app's keyframes: measures self-consistency, not real signers</td>
 </tr>
 <tr>
-<td>Parity</td>
-<td><code>SignReaderTest</code> reproduces the Python logits on the fixture</td>
+<td><code>isl_spell</code> digits (n = 1000)</td>
+<td>1.0000</td>
+<td>1.0000</td>
+<td>As above</td>
+</tr>
+<tr>
+<td><code>asl_reader</code> (ASL words, n = 5385)</td>
+<td>0.4020</td>
+<td>0.5428</td>
+<td>PopSign test signers, none in training; the acceptance target of 0.6 is not met (see section 9)</td>
+</tr>
+<tr>
+<td><code>asl_spell</code></td>
+<td>character error rate 0.0257</td>
+<td></td>
+<td>400 synthetic sequences from ASLNow! static letters</td>
 </tr>
 </tbody>
 </table></div>
-<h2 id="doc-teammate-ml-6-training-commands-run-from-tools-ml">6. Training commands (run from <code>tools/ml</code>)</h2>
+<p>Combined readers apply the sign-or-spell gate of <code>SignReaders.kt</code>: an ISL letter or digit wins only at twice the word reader's top score; an ASL spelling wins only with at least three letters, each at least 0.9 sure. Gated top-1 is 0.9596 for ISL words and 0.2782 for ASL words, against 0.9779 and 0.2836 word-only.</p>
+<p>Spelled guesses are marked <code>spelled</code> and the gloss text renders them as letters, so a fingerspelled name is not read as a word (<code>SignLanguageTest</code>).</p>
+<h2 id="doc-teammate-ml-6-training-commands-run-from-tools-ml-the-added-readers-are-in-tools-ml-readme-md">6. Training commands (run from <code>tools/ml</code>; the added readers are in <code>tools/ml/README.md</code>)</h2>
 <pre><code>uv venv --python 3.12 signsetu-ml
 uv pip install --python signsetu-ml/Scripts/python.exe torch --index-url https://download.pytorch.org/whl/cu128
 uv pip install --python signsetu-ml/Scripts/python.exe numpy
@@ -4040,7 +4098,7 @@ python ../content/build_content.py --manifest-only
 </tr>
 <tr>
 <td>Throughput</td>
-<td>CPU about 9 fps on a mid-range phone (comment in <code>HolisticTracker.kt</code>)</td>
+<td>CPU about 9 fps on a mid-range phone (comment in <code>HolisticTracker.kt</code>); frames are skipped while a frame is in analysis; the frame rate is logged in debug builds only</td>
 </tr>
 <tr>
 <td>Protobuf</td>
@@ -4123,8 +4181,20 @@ python ../content/build_content.py --manifest-only
 </thead>
 <tbody>
 <tr>
-<td>Isolated words, 262-word vocabulary</td>
-<td>No continuous signing or grammar; out-of-vocabulary signs map to the nearest class</td>
+<td>Isolated words, 262 ISL and 250 ASL words</td>
+<td>Continuous signing is split at pauses and read per segment (top 3 each, then a gloss sequence the subject confirms word by word); out-of-vocabulary signs map to the nearest class</td>
+</tr>
+<tr>
+<td>ISL letters and digits are synthetic</td>
+<td><code>isl_spell</code> has never seen a real signer; no redistributable ISL fingerspelling landmark set was found</td>
+</tr>
+<tr>
+<td>ASL words below target</td>
+<td>Top-1 0.402 against the 0.6 target; the limit is the 5 fps, 256 px PopSign frames' landmarks across signers, not data volume</td>
+</tr>
+<tr>
+<td>ASL alphabet is static</td>
+<td><code>asl_spell</code> is trained on static ASLNow! hands chained into sequences; no real fingerspelling motion was seen</td>
 </tr>
 <tr>
 <td>One dataset, few signers</td>
@@ -4156,7 +4226,7 @@ python ../content/build_content.py --manifest-only
 </tr>
 <tr>
 <td>Retargeted signs are drafts</td>
-<td>Deaf review needed before release (T-31)</td>
+<td>Deaf review needed before release (T-31, D-39); 14 moving ASL signs are retargeted to static keys</td>
 </tr>
 </tbody>
 </table></div>
@@ -4549,19 +4619,19 @@ python ../content/build_content.py --manifest-only
 <td>JVM unit</td>
 <td><code>app/src/test/java/app/signsetu/</code></td>
 <td>JUnit 4, kotlinx-coroutines-test; <code>unitTests.isReturnDefaultValues = true</code></td>
-<td>AutoPilotTest, AvatarTest, camera/AnalysisRateTest, camera/HolisticMappingTest, HandoverTest, InterviewTest, IslLexiconTest, LessonTest, LogicTest, MainPageTest, PairTest, PolicyTest, RigFixtureTest, RoleTest, SegmentTest, SignIngestionTest, SignReaderTest, StageLogicTest, SunModeTest</td>
+<td>AslDamageTest, AslSpellTest, AutoPilotTest, AvatarTest, camera/AnalysisRateTest, camera/HolisticMappingTest, camera/OverlayMappingTest, HandoverTest, InterviewTest, IslLexiconTest, LessonTest, LogicTest, MainPageTest, PairTest, PolicyTest, ReadBackTest, RigFixtureTest, RoleTest, SegmentTest, SignIngestionTest, SignLanguageTest, SignReaderTest, SpellGateTest, StageLogicTest, SunModeTest</td>
 </tr>
 <tr>
 <td>JVM fixture</td>
-<td><code>app/src/test/resources/sign_reader_fixture.json</code></td>
+<td><code>app/src/test/resources/*_fixture.json</code></td>
 <td></td>
-<td>Python-to-Kotlin logits parity, written by <code>tools/ml/export.py</code></td>
+<td>Python-to-Kotlin logits parity for each reader, written by <code>tools/ml/export.py</code> and <code>tools/ml/spell_ctc.py</code></td>
 </tr>
 <tr>
 <td>Instrumented</td>
 <td><code>app/src/androidTest/java/app/signsetu/</code></td>
 <td>AndroidJUnitRunner, Compose UI test, Accessibility Test Framework</td>
-<td>OverlayTouchTest, SessionMigrationTest, StageAccessibilityTest</td>
+<td>OverlayTouchTest, SessionMigrationTest, StageAccessibilityTest, StageDeviceAccessibilityTest</td>
 </tr>
 <tr>
 <td>Portal</td>
@@ -4574,6 +4644,18 @@ python ../content/build_content.py --manifest-only
 <td><code>tools/isl/test_retarget.py</code>, <code>tools/content/test_review_record.py</code></td>
 <td>Plain <code>python</code></td>
 <td>Retarget geometry; content review record</td>
+</tr>
+<tr>
+<td>Evaluation</td>
+<td><code>tools/ml/eval_isl.py</code>, <code>tools/ml/eval_asl.py</code></td>
+<td><code>python</code> in the ML environment</td>
+<td>Top-1 and top-3 per reader, fingerspelling error rate, ISL sentence demo</td>
+</tr>
+<tr>
+<td>CI</td>
+<td><code>.github/workflows/ci.yml</code></td>
+<td>GitHub Actions</td>
+<td>Unit tests, lint, release and flavor assembly, portal check, test and build, Python tool tests, content record check, Semgrep, OSV, gitleaks, SBOM, emulator job for the AT-07 classes</td>
 </tr>
 </tbody>
 </table></div>
@@ -4621,6 +4703,10 @@ python ../content/build_content.py --manifest-only
 <tr>
 <td>Dependency scan</td>
 <td><code>osv-scanner scan source --lockfile app/gradle.lockfile</code></td>
+</tr>
+<tr>
+<td>Reader evaluation</td>
+<td><code>python tools/ml/eval_isl.py</code>; <code>python tools/ml/eval_asl.py</code> (ML environment)</td>
 </tr>
 </tbody>
 </table></div>
@@ -4671,7 +4757,80 @@ python ../content/build_content.py --manifest-only
 </tr>
 </tbody>
 </table></div>
-<h2 id="doc-teammate-testing-4-gaps">4. Gaps</h2>
+<h2 id="doc-teammate-testing-4-run-b-acceptance-checks">4. Run B acceptance checks</h2>
+<p>Run A built the items below and compiled them; none of the checks has been run. Run B performs each check once and records the result in <code>docs/10-test-report.md</code>.</p>
+<div class="scroll"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Check</th>
+<th>Pass condition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>T1 Back, Yes, No</td>
+<td>Walk the matrix in <a href="#doc-teammate-back-yes-no">back-yes-no.md</a> on a phone and on a paired stage device: every officer sheet, every stage state S1 to S25</td>
+<td>Every cell behaves as written; Back never loses typed input; Read-back No reopens the input; Yes logs Confirmed</td>
+</tr>
+<tr>
+<td>T2 Skeleton</td>
+<td>Record a clip with the front camera and compare the drawn wrist with the true wrist, in portrait and landscape rotation</td>
+<td>Wrist overlay error under 3 % of frame width (<code>OverlayMappingTest</code> covers the mapping on the JVM); left and right hands labelled on the subject's own sides; &quot;Sign slower&quot; appears only after a failed read</td>
+</tr>
+<tr>
+<td>T2 Tracker</td>
+<td>Start a sign window on a phone with a GPU and on one without; read the debug frame-rate log</td>
+<td>GPU delegate opens first, CPU fallback keeps tracking; frames are skipped while busy; no frame-rate log in a release build</td>
+</tr>
+<tr>
+<td>T3 ISL transcription</td>
+<td><code>python tools/ml/eval_isl.py</code></td>
+<td>Prints top-1 and top-3 for words, letters and digits; the sentence demo passes; then a signed sentence on a phone gives top three per segment, a gloss sequence and English and Hindi text the subject confirms word by word</td>
+</tr>
+<tr>
+<td>T3 Tell me</td>
+<td>Sign an account of about a minute</td>
+<td>A timed gloss transcript is produced and confirmed word by word</td>
+</tr>
+<tr>
+<td>T4 ASL</td>
+<td><code>python tools/ml/eval_asl.py</code>; <code>SignLanguageTest</code>, <code>AslSpellTest</code>, <code>AslDamageTest</code>, <code>SpellGateTest</code></td>
+<td>Prints top-1, top-3 and fingerspelling error rate; the dictionary holds at least 250 signs; ASL word top-1 is currently 0.402 against the 0.6 target, so this check is expected to fail until better landmarks are trained on</td>
+</tr>
+<tr>
+<td>T4 Language setting</td>
+<td>Change the session sign language between ISL and ASL on a phone</td>
+<td>Reader, dictionary, alphabet, numbers and typed-text signing follow the setting; each change is logged; a damaged <code>asl_*</code> file turns off ASL only</td>
+</tr>
+<tr>
+<td>T5 Sign back</td>
+<td><code>IslLexiconTest</code> label check, in both languages</td>
+<td>Every ISL and ASL reader label resolves through <code>signBack</code> to a motion of its own language and is in that language's dictionary</td>
+</tr>
+<tr>
+<td>Model integrity (ST-19)</td>
+<td><code>SignReaderTest</code> altered-bytes cases for <code>sign_reader</code>, <code>isl_spell</code>, <code>asl_reader</code> and <code>asl_spell</code></td>
+<td>One changed byte disables that reader and leaves a plain mirror or the other language intact</td>
+</tr>
+<tr>
+<td>AT-07</td>
+<td><code>StageDeviceAccessibilityTest</code> on an emulator or phone, light and dark</td>
+<td>Zero accessibility findings on the waiting, code, check value, hold, lost, break and ended screens</td>
+</tr>
+<tr>
+<td>K1 Glance strip</td>
+<td><code>StageLogicTest</code></td>
+<td>Personal-detail answers are never shown on the glance strip</td>
+</tr>
+<tr>
+<td>K6 CI</td>
+<td>Push to a branch with CI enabled</td>
+<td>Every job passes: tools job installs the packages the scripts import; Gradle wrapper is executable</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="doc-teammate-testing-5-gaps">5. Gaps</h2>
 <div class="scroll"><table>
 <thead>
 <tr>
@@ -4682,7 +4841,7 @@ python ../content/build_content.py --manifest-only
 <tbody>
 <tr>
 <td>Few instrumented tests</td>
-<td>Three classes; no automated end-to-end session, export or unlock flow</td>
+<td>Four classes; no automated end-to-end session, export or unlock flow</td>
 </tr>
 <tr>
 <td>No camera or MediaPipe test on a device</td>
@@ -4690,7 +4849,7 @@ python ../content/build_content.py --manifest-only
 </tr>
 <tr>
 <td>Reader accuracy in the field</td>
-<td>Only the INCLUDE test split; no officer-phone or child-signer data</td>
+<td>Only the INCLUDE and PopSign test splits; ISL letters and digits and ASL spelling are scored on synthetic data; no officer-phone or child-signer data</td>
 </tr>
 <tr>
 <td>Pairing over real Bluetooth</td>
@@ -4702,7 +4861,7 @@ python ../content/build_content.py --manifest-only
 </tr>
 <tr>
 <td>Python tools</td>
-<td>No runner wiring; scripts run by hand</td>
+<td>CI runs the retarget and review-record tests only; evaluations run by hand</td>
 </tr>
 <tr>
 <td>Native assistant (<code>app/src/main/cpp</code>)</td>
@@ -4940,6 +5099,441 @@ osv-scanner scan source --lockfile app/gradle.lockfile
 </tbody>
 </table></div>
 <p>The portal reads app content (<code>portal/src/content.ts</code>) and shares rig math with the app through <code>portal/src/rig-fixtures.json</code>, checked by <code>RigFixtureTest</code> and <code>rig.test.ts</code>.</p>
+</section><section class="doc" id="doc-teammate-back-yes-no"><div class="path">docs/teammate/back-yes-no.md</div><h1 id="doc-teammate-back-yes-no-back-yes-no-and-stop-acceptance-matrix">Back, Yes, No and Stop: acceptance matrix</h1>
+<p>Scope: every officer screen, sheet and dialog, and every subject stage state, in <code>app/src/main/java/app/signsetu/</code>.
+Basis: the code at main commit ff3e893. Each cell is either the control that
+does the job, or the written reason it is not offered. A cell marked <strong>gap</strong> is a known departure from the T1 rule and
+is listed again in the last section.</p>
+<p>Columns:</p>
+<ul>
+<li><strong>Back</strong>: system Back and any visible back control.</li>
+<li><strong>Yes</strong>: the affirmative answer, or the control that stands for it.</li>
+<li><strong>No</strong>: the negative answer, or the control that stands for it.</li>
+<li><strong>Stop</strong>: the Stop control. Stop logs <code>stop</code> and ends the run.</li>
+</ul>
+<h2 id="doc-teammate-back-yes-no-1-officer-screens-sheets-and-dialogs">1. Officer screens, sheets and dialogs</h2>
+<p>Officer surfaces have no subject-facing answer, so Yes, No and Stop are &quot;not applicable&quot; there, with the reason stated.</p>
+<div class="scroll"><table>
+<thead>
+<tr>
+<th>Surface (code)</th>
+<th>Back</th>
+<th>Yes</th>
+<th>No</th>
+<th>Stop</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Start screen (<code>ui/start/StartScreen.kt</code>, root of <code>AppRoot.kt</code>)</td>
+<td>System Back leaves the app (root entry).</td>
+<td>n/a: start list has no subject answer.</td>
+<td>n/a: as Yes.</td>
+<td>n/a: no subject stage here.</td>
+</tr>
+<tr>
+<td>Start: resume card (<code>ResumeCard</code>)</td>
+<td>Not a screen; its Resume and End actions are the way in and out.</td>
+<td>n/a: officer action.</td>
+<td>n/a: officer action.</td>
+<td>n/a: no stage.</td>
+</tr>
+<tr>
+<td>Session screen, officer mode (<code>OfficerPane.kt</code>, <code>SessionRoute</code>)</td>
+<td>System Back returns to the main page (tab 0) from any other tab; on tab 0 it opens the End confirm (Export and end, End without export, Cancel). The session is left only through that confirm, so a paired link is not ended by a stray Back.</td>
+<td>n/a: officer screen.</td>
+<td>n/a: officer screen.</td>
+<td>n/a: Stop for the subject is in the stage (section 2).</td>
+</tr>
+<tr>
+<td>Officer dock, More page, composer, auto panel, ready card (<code>OfficerPane.kt</code>, <code>AutoPanel.kt</code>)</td>
+<td>Inline; the screen's Back applies.</td>
+<td>n/a: officer controls.</td>
+<td>n/a: officer controls.</td>
+<td>n/a: officer controls.</td>
+</tr>
+<tr>
+<td>Stop banner (<code>OfficerPane.kt</code> <code>StopBanner</code>)</td>
+<td>Inline; dismissed by its OK.</td>
+<td>n/a: OK acknowledges the subject's Stop.</td>
+<td>n/a: no negative choice.</td>
+<td>n/a: the banner reports a Stop, it does not send one.</td>
+</tr>
+<tr>
+<td>Phrase sheet (<code>Sheets.kt</code> <code>PhraseSheet</code>)</td>
+<td>Modal sheet with a visible Back button (<code>OfficerSheet</code>); system Back and drag also dismiss it.</td>
+<td>n/a: picking a slot prepares the phrase.</td>
+<td>n/a: as Yes.</td>
+<td>n/a: nothing sent to the subject until a slot is picked.</td>
+</tr>
+<tr>
+<td>Board sheets, show and attach (<code>Sheets.kt</code> <code>BoardSheet</code>)</td>
+<td>Modal sheet with a visible Back button and system Back; the card selection is kept as a draft on every dismiss path.</td>
+<td>n/a: Use prepares or attaches cards.</td>
+<td>n/a: as Yes.</td>
+<td>n/a: officer selection only.</td>
+</tr>
+<tr>
+<td>Gesture sheet (<code>GestureSheet</code>)</td>
+<td>Modal sheet with a visible Back button and system Back.</td>
+<td>n/a: picking a sign prepares the show-back.</td>
+<td>n/a: as Yes.</td>
+<td>n/a: officer selection only.</td>
+</tr>
+<tr>
+<td>Log sheet (<code>LogSheet</code>)</td>
+<td>Modal sheet with a visible Back button and system Back; a note being typed is kept as a draft on every dismiss path.</td>
+<td>n/a: read-only record, add note.</td>
+<td>n/a: as Yes.</td>
+<td>n/a: record only.</td>
+</tr>
+<tr>
+<td>Change sheet (<code>ChangeSheet</code>)</td>
+<td>Modal sheet with a visible Back button and system Back; not opened while an item is on the second screen.</td>
+<td>n/a: profile, language and role choices are officer settings.</td>
+<td>n/a: as Yes.</td>
+<td>n/a: no subject answer.</td>
+</tr>
+<tr>
+<td>Signed sheet (<code>SignedSheet</code>)</td>
+<td>Modal sheet with a visible Back button and system Back.</td>
+<td>n/a: Accept records the officer's reading beside the app's.</td>
+<td>n/a: Ask the subject is a separate action.</td>
+<td>n/a: reading review only.</td>
+</tr>
+<tr>
+<td>ISL dictionary sheet (<code>IslDictionarySheet.kt</code>, More page)</td>
+<td>Modal <code>OfficerSheet</code>: visible Back button, system Back and drag dismiss it; the search text and selection survive rotation.</td>
+<td>n/a: Show puts the sign on the stage, tapping a word only plays it here.</td>
+<td>n/a: as Yes.</td>
+<td>n/a: officer reference only; nothing reaches the subject until Show.</td>
+</tr>
+<tr>
+<td>Say-back dialog (<code>SayBackDialog</code>, <code>MainPageParts.kt</code>)</td>
+<td>Dialog dismissed by system Back (cancels the say-back).</td>
+<td>n/a: Send prepares the say-back; the subject's Yes or No follows (stage, section 2).</td>
+<td>n/a: cancel dismisses.</td>
+<td>n/a: no stage action.</td>
+</tr>
+<tr>
+<td>Sensitive-question dialog (<code>OfficerPane.kt</code> <code>askSensitive</code>)</td>
+<td>Dismissed by system Back (Cancel).</td>
+<td>n/a: confirm unlocks sensitive questions.</td>
+<td>n/a: Cancel is the negative.</td>
+<td>n/a: officer confirmation only.</td>
+</tr>
+<tr>
+<td>End-session dialog (<code>OfficerPane.kt</code> <code>askEnd</code>)</td>
+<td>Dismissed by system Back (Cancel).</td>
+<td>n/a: Export and end is the affirmative.</td>
+<td>n/a: End without export is the alternative; Cancel keeps the session.</td>
+<td>n/a: no stage action.</td>
+</tr>
+<tr>
+<td>Export dialog, working (<code>ExportDialog</code>)</td>
+<td>Blocked on purpose (<code>onDismissRequest = {}</code>) while the report is written; a Back press here does nothing.</td>
+<td>n/a: no choice while working.</td>
+<td>n/a: no choice while working.</td>
+<td>n/a: no stage action.</td>
+</tr>
+<tr>
+<td>Export dialog, ready (<code>ExportDialog</code>)</td>
+<td>Blocked on purpose (<code>onDismissRequest = {}</code>); Share or Finish leaves it.</td>
+<td>n/a: Share hands the file to another app.</td>
+<td>n/a: Finish ends the session after the file is deleted.</td>
+<td>n/a: no stage action.</td>
+</tr>
+<tr>
+<td>Export dialog, failed (<code>ExportDialog</code>)</td>
+<td>Dismissed by system Back.</td>
+<td>n/a: no affirmative choice.</td>
+<td>n/a: Close only.</td>
+<td>n/a: no stage action.</td>
+</tr>
+<tr>
+<td>Second screen sheet (<code>pair/SecondScreenSheet.kt</code>)</td>
+<td>Modal sheet with a visible Back button and system Back.</td>
+<td>n/a: choosing a peer starts pairing.</td>
+<td>n/a: as Yes.</td>
+<td>n/a: pairing only; Stop is on the stage device.</td>
+</tr>
+<tr>
+<td>Paired bar alerts (<code>pair/PairedBar.kt</code> <code>Alert</code>)</td>
+<td>Inline; actions are the choices.</td>
+<td>n/a: alert action is officer-side.</td>
+<td>n/a: alert action is officer-side.</td>
+<td>n/a: link status only.</td>
+</tr>
+<tr>
+<td>Lock screen (<code>ui/LockScreen.kt</code>)</td>
+<td>System Back leaves the app (device credential not granted).</td>
+<td>n/a: unlock is by device credential.</td>
+<td>n/a: as Yes.</td>
+<td>n/a: no subject stage.</td>
+</tr>
+<tr>
+<td>Use-as-stage checklist (<code>pair/StageDevice.kt</code> <code>UseAsStageButton</code>)</td>
+<td>Dismissed by system Back.</td>
+<td>n/a: Continue starts the permission steps.</td>
+<td>n/a: the dismiss button opens security settings; it is not an answer.</td>
+<td>n/a: no stage action.</td>
+</tr>
+<tr>
+<td>Sign language setting (<code>OfficerPane.kt</code> menu row, ISL or ASL)</td>
+<td>Inline menu row; the menu closes on Back.</td>
+<td>n/a: tapping cycles to the next language, which selects the reader, dictionary and text-to-sign.</td>
+<td>n/a: as Yes; tap again to return.</td>
+<td>n/a: disabled while an item is on the second screen, so it cannot change under the subject.</td>
+</tr>
+<tr>
+<td>Settings (<code>settings/SettingsScreen.kt</code>)</td>
+<td>Visible back arrow and system Back pop the screen.</td>
+<td>n/a: settings toggles.</td>
+<td>n/a: settings toggles.</td>
+<td>n/a: no stage.</td>
+</tr>
+<tr>
+<td>Settings choice dialogs, interpreter app, retention, language (<code>ChoiceDialog</code>)</td>
+<td>Dismissed by system Back.</td>
+<td>n/a: choosing an option saves it.</td>
+<td>n/a: Cancel closes without saving.</td>
+<td>n/a: no stage.</td>
+</tr>
+<tr>
+<td>Settings contact dialog (<code>ContactDialog</code>)</td>
+<td>Dismissed by system Back.</td>
+<td>n/a: Save stores the number.</td>
+<td>n/a: Cancel.</td>
+<td>n/a: no stage.</td>
+</tr>
+<tr>
+<td>Settings clear-all dialog (<code>Dialog.CLEAR</code>)</td>
+<td>Dismissed by system Back (keeps data).</td>
+<td>n/a: confirm clears all data.</td>
+<td>n/a: Cancel keeps data.</td>
+<td>n/a: no stage.</td>
+</tr>
+<tr>
+<td>Settings licences dialog (<code>LicencesDialog</code>)</td>
+<td>Dismissed by system Back.</td>
+<td>n/a: read-only.</td>
+<td>n/a: Close.</td>
+<td>n/a: no stage.</td>
+</tr>
+<tr>
+<td>First-run walkthrough (<code>start/FirstRunScreen.kt</code>)</td>
+<td>System Back goes to the previous page; on page one it leaves.</td>
+<td>n/a: Next and Done move on.</td>
+<td>Skip (on every page but the last) leaves the walkthrough.</td>
+<td>n/a: no subject answer.</td>
+</tr>
+<tr>
+<td>Key-reset notice (<code>AppRoot.kt</code> <code>GuardedAlertDialog</code>)</td>
+<td>Dismissed by system Back, which acknowledges the notice.</td>
+<td>n/a: acknowledge only.</td>
+<td>n/a: as Yes.</td>
+<td>n/a: no stage.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="doc-teammate-back-yes-no-2-subject-stage-states-ui-session-stage-kt-shown-on-the-phone-or-the-second-screen">2. Subject stage states (<code>ui/session/Stage.kt</code>, shown on the phone or the second screen)</h2>
+<p>The stage is the same composable on the subject's phone and on a paired stage device (<code>pair/StageDevice.kt</code> <code>LiveStage</code>).
+System Back on the stage (<code>BackHandler</code> in <code>AppRoot.kt</code>) asks for the device credential and returns to the officer when pin-to-leave is on;
+otherwise it shows the toast &quot;Back is off here. Hold the handle to hand the phone back.&quot; The officer handle (a small corner
+control) is the other way back, and it confirms with the device credential when pinning is on. The &quot;Back&quot; cells below
+therefore give the subject's own back control where one exists.</p>
+<p>Yes and No on the answer bar (<code>AnswerBar</code>) are shown for every pending item except a rights question and the drawing
+asked for by the officer. Break and Stop (<code>PauseRow</code>) are shown under the answer bar and on most other states.</p>
+<div class="scroll"><table>
+<thead>
+<tr>
+<th>State (code)</th>
+<th>Back</th>
+<th>Yes</th>
+<th>No</th>
+<th>Stop</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S1 Question, plain (<code>Pending.Ask</code>)</td>
+<td>Reason: the subject has no back on a question; the officer handle returns to the officer.</td>
+<td>Yes button, logs <code>yes</code> and advances (<code>answerYesNo</code>).</td>
+<td>No button, logs <code>no</code> and advances.</td>
+<td>Stop in <code>PauseRow</code>, logs <code>stop</code> and ends the run.</td>
+</tr>
+<tr>
+<td>S2 Rights notice (<code>Pending.Ask</code> with <code>rights_interpreter</code>)</td>
+<td>Reason: as S1.</td>
+<td>Reason: no Yes is shown; a Yes under a right would read as a waiver.</td>
+<td>Reason: no No is shown; the subject's answer is &quot;Don't understand&quot;, which does not waive.</td>
+<td>Break and Stop in <code>PauseRow</code>.</td>
+</tr>
+<tr>
+<td>S3 Question with picture choices (<code>MirrorWindow</code> tiles)</td>
+<td>Reason: as S1.</td>
+<td>Yes button on the answer bar (S1 rule).</td>
+<td>No button on the answer bar; a picture tile is logged as the subject's pick.</td>
+<td>Stop in <code>PauseRow</code>.</td>
+</tr>
+<tr>
+<td>S4 Show-back, reading check (<code>Pending.ShowBack</code>)</td>
+<td>Reason: as S1.</td>
+<td>Yes logs the subject's Yes to the reading.</td>
+<td>No logs <code>ANSWER_UNCLEAR</code> with the reading. Picking one of two or more pictures logs the choice (<code>logChecked</code>).</td>
+<td>Stop in <code>PauseRow</code>.</td>
+</tr>
+<tr>
+<td>S5 Say-back read-back (<code>Pending.FreeText</code> with <code>ref</code>)</td>
+<td>Reason: as S1.</td>
+<td>Yes logs <code>ANSWER_CARD</code> with <code>yes</code>, linked to the officer's line (Confirmed in the record).</td>
+<td>No logs <code>ANSWER_UNCLEAR</code> and reopens the subject's own input (writing pad, or drawing where writing is not offered) through <code>reopensInput</code>; the reading is never taken as confirmed.</td>
+<td>Stop in <code>PauseRow</code>.</td>
+</tr>
+<tr>
+<td>S6 Officer card set (<code>Pending.Cards</code>)</td>
+<td>Reason: as S1.</td>
+<td>Yes button, or the picture tile the subject taps.</td>
+<td>No button on the answer bar.</td>
+<td>Stop in <code>PauseRow</code>.</td>
+</tr>
+<tr>
+<td>S7 Phrase slot (<code>Pending.PhraseAsk</code>)</td>
+<td>Reason: as S1.</td>
+<td>Yes button on the answer bar.</td>
+<td>No button on the answer bar.</td>
+<td>Stop in <code>PauseRow</code>.</td>
+</tr>
+<tr>
+<td>S8 Sign choice, &quot;which sign&quot; (<code>SignChoicePanel</code>, <code>choices != null</code>)</td>
+<td>Reason: the panel's choices are the answer; no back.</td>
+<td>Reason: each candidate is a pick; the Yes is the chosen sign tile.</td>
+<td>&quot;None of these&quot; button (<code>onChoose(null)</code>).</td>
+<td>Stop in <code>PauseRow</code> under the panel.</td>
+</tr>
+<tr>
+<td>S9 Sign window, subject signs (<code>SigningPanel</code>, <code>ui.reading != null</code>)</td>
+<td>Reason: the window is ended by Done or Stop, not by back.</td>
+<td>Reason: Done ends the window and sends the reading; there is no yes or no on the window.</td>
+<td>Reason: as Yes; a reading is judged afterwards by read-back (S5), not here.</td>
+<td>Stop button, logs <code>stop</code> and ends the window.</td>
+</tr>
+<tr>
+<td>S10 Language finder (<code>Pending.LanguageFinder</code>)</td>
+<td>Reason: no back; a wrong language is changed by tapping another one.</td>
+<td>Reason: the choice is a language tile, not a yes or no; the tile logs <code>LANGUAGE_CHOSEN</code>.</td>
+<td>Reason: as Yes.</td>
+<td>Break and Stop in <code>PauseRow</code>.</td>
+</tr>
+<tr>
+<td>S11 Drawing, asked by the officer (<code>Pending.Drawing</code>)</td>
+<td>Reason: no back, because the picture is the answer (code comment in <code>Stage.kt</code>).</td>
+<td>Reason: Done submits the drawing; there is no yes.</td>
+<td>&quot;Something else&quot; routes to this drawing pad from the picture choices; no direct No here.</td>
+<td>Break and Stop in <code>PauseRow</code>.</td>
+</tr>
+<tr>
+<td>S12 Drawing, opened by the subject (<code>drawing</code> from <code>PillButton</code> Draw)</td>
+<td>Back button returns to the picture answers.</td>
+<td>Reason: Done submits the drawing; not a yes or no.</td>
+<td>Reason: as Yes.</td>
+<td>Break and Stop in <code>PauseRow</code>.</td>
+</tr>
+<tr>
+<td>S13 Writing (<code>WritingPanel</code>)</td>
+<td>Back button returns to the picture answers.</td>
+<td>Done (green) submits the typed text, logged unread (<code>ANSWER_TEXT</code>).</td>
+<td>Reason: typed text is the answer; there is no no.</td>
+<td>Stop in compact <code>PauseRow</code>.</td>
+</tr>
+<tr>
+<td>S14 Ground rules, steps and practice (<code>Pending.GroundRules</code>)</td>
+<td>Reason: the rules are read in order; no back.</td>
+<td>Yes button on the answer bar; Next advances the step.</td>
+<td>No button on the answer bar.</td>
+<td>Break and Stop in <code>PauseRow</code>.</td>
+</tr>
+<tr>
+<td>S15 Idle stage, nothing asked (<code>pending == null</code>)</td>
+<td>Reason: nothing to go back to; the officer handle returns to the officer.</td>
+<td>Reason: nothing is asked, so there is no answer bar.</td>
+<td>Reason: as Yes.</td>
+<td>Break and Stop in <code>PauseRow</code>.</td>
+</tr>
+<tr>
+<td>S16 Pause layer (<code>PauseLayer</code>, after Break or Stop)</td>
+<td>Reason: the pause has one exit, Ready.</td>
+<td>Ready button (<code>endPause</code>) resumes; logs the pause length.</td>
+<td>Reason: no question is asked during a pause.</td>
+<td>After a Break, a Stop button sits on the layer (<code>stopInPause</code>) and logs <code>stop</code>; after a Stop the run has already ended and the layer offers Ready.</td>
+</tr>
+<tr>
+<td>S18 Lesson answer inputs (<code>AnswerPanel</code>, <code>LessonInputs.kt</code>; name, age, phone, place, class, siblings, pictures)</td>
+<td>Reason: the ways-out row sits below the input and the officer handle returns to the officer; Change in the read-back (S19) is the way to re-enter.</td>
+<td>Reason: the answer is written, typed, picked or drawn; Done opens the read-back (S19) and Yes there confirms. Pictures: Done on the selection confirms.</td>
+<td>Reason: as Yes; &quot;Don't know&quot; and, for phone questions, &quot;No phone&quot; are offered among the ways out.</td>
+<td>Stop in the ways-out row under the input.</td>
+</tr>
+<tr>
+<td>S19 Read-back of a lesson answer (<code>ReadBack</code>)</td>
+<td>Reason: Change is the back; it discards the entry and returns to the input.</td>
+<td>Yes logs the answer as Confirmed and, on a run, moves on.</td>
+<td>Change is the No: it reopens the input and nothing is logged as confirmed; an entry left open when the item closes is logged unconfirmed.</td>
+<td>Stop in the ways-out row.</td>
+</tr>
+<tr>
+<td>S20 Phrase board (<code>PhraseBoard</code>, Say button on the stage)</td>
+<td>Back button (round, bottom left) returns to the stage.</td>
+<td>Reason: each phrase tile is one thing the subject chose and is logged as Confirmed; there is no yes or no.</td>
+<td>Reason: as Yes.</td>
+<td>Stop beside Back.</td>
+</tr>
+<tr>
+<td>S21 Tell me (<code>SigningPanel</code> with <code>SignWindow.NARRATIVE</code>, started from the More page)</td>
+<td>Reason: as S9; Done ends the account and Stop cancels it.</td>
+<td>Done ends the account; the timed gloss transcript is then confirmed word by word.</td>
+<td>Reason: an account is not a yes or no; a wrong word is rejected in the word-by-word confirm (S8, &quot;None of these&quot;).</td>
+<td>Stop button on the rail, logs <code>stop</code> and ends the window.</td>
+</tr>
+<tr>
+<td>S22 Stage device, waiting (<code>LinkState.Idle</code>, <code>Connecting</code>, <code>Failed</code>)</td>
+<td>Cancel button leaves the pairing (<code>endLink</code>); system Back is not blocked before the first live frame.</td>
+<td>Reason: nothing is asked yet.</td>
+<td>Reason: as Yes.</td>
+<td>Reason: no item is shown; Cancel is the way out.</td>
+</tr>
+<tr>
+<td>S23 Stage device, code (<code>LinkState.Code</code>)</td>
+<td>Cancel button (<code>cancelCode</code>); system Back is not blocked before the first live frame.</td>
+<td>Match button, enabled only once the check value is shown.</td>
+<td>Cancel button.</td>
+<td>Reason: no item is shown; Cancel is the way out.</td>
+</tr>
+<tr>
+<td>S24 Stage device, break (<code>breakFor</code> in <code>LiveStage</code>)</td>
+<td>Reason: the break ends only when the officer shows something new; system Back is swallowed once live.</td>
+<td>Reason: no question is asked during the break.</td>
+<td>Reason: as Yes.</td>
+<td>Reason: the break begins only after the subject's own Stop (<code>onCard</code>), which is already sent and logged; a second Stop would add nothing.</td>
+</tr>
+<tr>
+<td>S25 Stage device, ended (<code>LinkState.Ended</code>)</td>
+<td>System Back is swallowed; the officer's unlock button leaves (<code>exit</code>, device credential).</td>
+<td>Reason: the session is over.</td>
+<td>Reason: as Yes.</td>
+<td>Reason: the session is over.</td>
+</tr>
+<tr>
+<td>S17 Lost or held link, cover (<code>Cover</code>, <code>pair/StageDevice.kt</code>)</td>
+<td>Reason: the link is down; the officer handle is not shown.</td>
+<td>Reason: the item is hidden until the link is back.</td>
+<td>Reason: as Yes.</td>
+<td>Stop and &quot;I don't know&quot; are queued and sent when the link is back.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="doc-teammate-back-yes-no-3-gaps-against-the-t1-rule">3. Gaps against the T1 rule</h2>
+<p>None. Every cell in this file is a control or a written reason; no cell is blank.</p>
 </section><section class="doc" id="doc-readme"><div class="path">README.md</div><h1 id="doc-readme-sign-setu">Sign Setu</h1>
 <p>An offline Android app that helps a police officer communicate with a person who cannot communicate in words: deaf, non-verbal, traumatised or speaking another language. A code-drawn character signs and gestures, pictures and captions carry the question, typed text is played in draft Indian Sign Language order, and signed answers are read on the phone inside explicit sign windows. The app is a communication aid, not an interpreter, and never records statements.</p>
 <ul>
@@ -5519,7 +6113,7 @@ python tools/content/build_content.py --manifest-only   # after any content chan
 </tr>
 <tr>
 <td>FR-97</td>
-<td>An officer glance strip shows the last question and answer upside down at the edge facing the officer; it is hidden for sensitive questions and while the subject draws or writes, can be hidden for the session, and never shows machine readings.</td>
+<td>An officer glance strip shows the last question and answer upside down at the edge facing the officer; it is hidden for sensitive questions, for personal-detail answers and while the subject draws or writes, can be hidden for the session, and never shows machine readings.</td>
 <td>SHOULD</td>
 </tr>
 <tr>
@@ -5583,6 +6177,11 @@ python tools/content/build_content.py --manifest-only   # after any content chan
 <td>FR-107</td>
 <td>The stage shows the camera at its own 9:16 shape without cropping, between two rails of answers; Stop is the only pause control on the phone's stage (D-37).</td>
 <td>MUST</td>
+</tr>
+<tr>
+<td>FR-108</td>
+<td>The officer sets the sign language of a session, ISL or ASL, and can change it during the session; each change is logged. The setting selects the sign reader, the dictionary, the fingerspelling alphabet and numbers, and the character's signs for typed text. ASL text keeps the order typed; the ISL reordering of time, negation and question words applies to ISL only. Every ASL sign and pairing is a draft until reviewed by Deaf ASL signers (D-39).</td>
+<td>SHOULD</td>
 </tr>
 </tbody>
 </table></div>
@@ -5767,7 +6366,7 @@ python tools/content/build_content.py --manifest-only   # after any content chan
 <td><a href="sign-setu-docs.html#doc-06-test-plan">test plan</a> §2</td>
 </tr>
 <tr>
-<td>FR-102 to FR-107</td>
+<td>FR-102 to FR-108</td>
 <td><a href="#doc-07-decisions">decisions</a> D-35 to D-37, <a href="sign-setu-docs.html#doc-03-ux">UX</a> §2, §4</td>
 <td><a href="sign-setu-docs.html#doc-06-test-plan">test plan</a> §2</td>
 </tr>
@@ -5790,6 +6389,69 @@ python tools/content/build_content.py --manifest-only   # after any content chan
 <td>NFR-30 to NFR-37</td>
 <td><a href="sign-setu-docs.html#doc-04-security">security</a></td>
 <td><a href="sign-setu-docs.html#doc-06-test-plan">test plan</a> §5</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="doc-01-requirements-7-implementation-status">7. Implementation status</h2>
+<p>Status of the requirements added or changed in the current build. Built means the code and its tests are written and compile; verified means the check has been run, which no item below yet is.</p>
+<div class="scroll"><table>
+<thead>
+<tr>
+<th>Requirement</th>
+<th>Status</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FR-84 to FR-87</td>
+<td>Built</td>
+<td>Segmentation, top-three proposals per segment, a gloss sequence with English and Hindi text, a timed gloss transcript for Tell me, and word-by-word confirmation. ISL letters and digits are read by a synthetic-trained model</td>
+</tr>
+<tr>
+<td>FR-88</td>
+<td>Built</td>
+<td>Role gating unchanged</td>
+</tr>
+<tr>
+<td>FR-92, FR-103</td>
+<td>Built</td>
+<td>Read-back Yes logs Confirmed; No reopens the subject's input</td>
+</tr>
+<tr>
+<td>FR-97</td>
+<td>Built</td>
+<td>The glance strip hides personal-detail answers by the rule used for the personal-details report</td>
+</tr>
+<tr>
+<td>FR-102 to FR-104</td>
+<td>Built</td>
+<td>Every lesson-sheet question is reachable from the personal question carousel</td>
+</tr>
+<tr>
+<td>FR-106</td>
+<td>Built</td>
+<td>Dictionary covers 262 recorded ISL signs and 250 ASL words and 26 letters; all drafts until Deaf review</td>
+</tr>
+<tr>
+<td>FR-107</td>
+<td>Built</td>
+<td>The camera window clips to the picture rectangle</td>
+</tr>
+<tr>
+<td>FR-108</td>
+<td>Partly met</td>
+<td>Setting, reader, dictionary, alphabet, numbers and typed-text signing follow the language. ASL word reader top-1 is 0.402 against the 0.6 target; 14 moving ASL signs are retargeted to static keys; all ASL content awaits review (D-39)</td>
+</tr>
+<tr>
+<td>NFR-20, NFR-21</td>
+<td>Built, not run</td>
+<td>Stage and stage device accessibility tests are written for both themes</td>
+</tr>
+<tr>
+<td>NFR-34</td>
+<td>Met</td>
+<td>The permission gate in <code>app/build.gradle.kts</code> is unchanged; the standard flavor declares no INTERNET, RECORD_AUDIO or location</td>
 </tr>
 </tbody>
 </table></div>
@@ -6182,6 +6844,19 @@ python tools/content/build_content.py --manifest-only   # after any content chan
 <li>Guesses whose concept answers the item on screen are ranked first; the others stay, each group by score (<code>inContext</code>). The officer sees the top three.</li>
 </ul>
 <p><strong>Consequences.</strong> Frame rate depends on the phone's GPU. Context ranking no longer guarantees that every guess fits the question, so the subject's pick (FR-86) remains the only way a meaning becomes theirs.</p>
+<hr />
+<h2 id="doc-07-decisions-d-39-asl-as-a-second-sign-language-from-popsign-and-aslnow">D-39 ASL as a second sign language, from PopSign and ASLNow!</h2>
+<p><strong>Status:</strong> Draft; every ASL sign, pairing and model needs review by Deaf ASL signers before use with a person</p>
+<p><strong>Context.</strong> The officer may meet a signer who uses ASL, which is used in some Indian schools. ISL and ASL differ in vocabulary, grammar and fingerspelling. Google's Kaggle sets for ASL may not be redistributed; PopSign ASL v1.0 (CC BY 4.0, the same 250 signs) and ASLNow! (MIT, static letters) may.</p>
+<p><strong>Decision.</strong></p>
+<ul>
+<li>The sign language is a per-session setting, ISL or ASL (FR-108). It selects the reader, word list, fingerspelling reader and sign set (<code>SignLanguage</code>); the bundle is rebuilt for it, so ASL never plays an ISL motion.</li>
+<li><code>asl_signs.json</code> holds 250 signs retargeted from PopSign signers by <code>tools/isl/retarget_asl.py</code>, plus the one-hand alphabet and the digits 0 to 9, authored as keyframes. Letters and digits are fingerspelling keys and are not dictionary entries.</li>
+<li>ASL text is signed and glossed in subject-verb-object order; the ISL time-first, verb-last ordering applies to ISL only.</li>
+<li>Missing ASL files degrade one by one (architecture §5); the ISL reader and signs are unaffected.</li>
+</ul>
+<p><strong>Alternatives.</strong> Kaggle <code>asl-signs</code> and <code>asl-fingerspelling</code> (redistribution barred, credentials needed); one merged lexicon (ASL and ISL words would collide).</p>
+<p><strong>Consequences.</strong> A reading, in either language, still becomes the subject's answer only through their pick (FR-86). Sources and licences are in the <a href="#doc-09-open-source">open-source register</a>.</p>
 </section><section class="doc" id="doc-09-open-source"><div class="path">docs/09-open-source.md</div><h1 id="doc-09-open-source-09-open-source-reuse-map">09. Open-Source Reuse Map</h1>
 <p>What to reuse for each independent part of the app (licence as reported by the project's repository). Every entry still goes through the <a href="sign-setu-docs.html#doc-governance-policies-copyright-licensing-policy">copyright and licensing policy</a> and into the SBOM before use.</p>
 <p><strong>How to use a component:</strong></p>
@@ -6367,6 +7042,27 @@ python tools/content/build_content.py --manifest-only   # after any content chan
 </tr>
 <tr>
 <td></td>
+<td>ISL letter and digit reader (<code>isl_spell</code>, format 1)</td>
+<td>Project code; trained on synthetic landmarks from the app's own keyframes</td>
+<td>Ship</td>
+<td>No redistributable ISL fingerspelling landmark set found (Hugging Face ISL-Fingerspelling sets are CC BY-NC 4.0); marked <code>synthetic</code></td>
+</tr>
+<tr>
+<td></td>
+<td>ASL word reader (<code>asl_reader</code>, format 1)</td>
+<td>Project code; weights derived from PopSign ASL v1.0 (CC BY 4.0)</td>
+<td>Ship</td>
+<td>Landmarks extracted with the app's Holistic model from the <code>sign/popsign-images</code> frames</td>
+</tr>
+<tr>
+<td></td>
+<td>ASL fingerspelling reader (<code>asl_spell</code>, format 2, <code>CtcSpellReader</code>)</td>
+<td>Project code; weights derived from ASLNow! (MIT)</td>
+<td>Ship</td>
+<td>Small CTC model under 5 MB; trained on synthetic sequences of real static letters; marked <code>synthetic</code></td>
+</tr>
+<tr>
+<td></td>
 <td>LiteRT</td>
 <td>Apache-2.0</td>
 <td>Not chosen</td>
@@ -6402,10 +7098,45 @@ python tools/content/build_content.py --manifest-only   # after any content chan
 </tr>
 <tr>
 <td></td>
+<td>PopSign ASL v1.0 (Georgia Tech, NTID)</td>
+<td>CC BY 4.0</td>
+<td>Data</td>
+<td>The 250 ASL signs of Google's Isolated Sign Language Recognition, frames via huggingface.co/datasets/sign/popsign-images; its signers are retargeted into <code>asl_signs.json</code> (<code>tools/isl/retarget_asl.py</code>); attribution required (§3)</td>
+</tr>
+<tr>
+<td></td>
 <td>CISLR, iSign</td>
 <td>Per dataset</td>
 <td>Data</td>
 <td>Evaluation candidates; CISLR download is gated</td>
+</tr>
+<tr>
+<td>ASL data</td>
+<td>PopSign ASL v1.0 (Georgia Tech, NTID)</td>
+<td>CC BY 4.0</td>
+<td>Data</td>
+<td>250 isolated ASL signs, 47 Deaf signers; trains <code>asl_reader</code> and is retargeted into <code>asl_signs.json</code>; attribution required (§3)</td>
+</tr>
+<tr>
+<td></td>
+<td>Google &quot;Isolated Sign Language Recognition&quot; (Kaggle <code>asl-signs</code>)</td>
+<td>CC BY 4.0, plus Kaggle rules</td>
+<td>Not used</td>
+<td>Rules: &quot;Competition Use and Commercial ... any purpose&quot;, data &quot;subject to ... CC-BY 4.0&quot;, but participants must not redistribute the data itself; download needs Kaggle credentials. Same corpus as PopSign, which is used instead</td>
+</tr>
+<tr>
+<td></td>
+<td>Google &quot;ASL Fingerspelling&quot; (Kaggle <code>asl-fingerspelling</code>)</td>
+<td>CC BY 4.0, plus Kaggle rules</td>
+<td>Not used</td>
+<td>Same rule text as above; needs Kaggle credentials and about 170 GB. FSboard (CC BY 4.0) is video only. ASLNow! is used instead</td>
+</tr>
+<tr>
+<td></td>
+<td>ASLNow! fingerspelling landmarks (<code>sid220/asl-now-fingerspelling</code>)</td>
+<td>MIT</td>
+<td>Data</td>
+<td>About 2,100 static MediaPipe hands, A to Z; trains <code>asl_spell</code> through synthetic sequences and gives the one-handed ASL alphabet keyframes</td>
 </tr>
 <tr>
 <td></td>
@@ -6448,6 +7179,13 @@ python tools/content/build_content.py --manifest-only   # after any content chan
 <td>Apache-2.0</td>
 <td>Ship</td>
 <td>AES-256 password-protected PDF export (D-17); no recent release, so watch advisories. Its BouncyCastle is held at 1.86 by a build constraint because 1.72 has known critical vulnerabilities</td>
+</tr>
+<tr>
+<td></td>
+<td>BouncyCastle (bcprov, bcpkix, bcutil) 1.86</td>
+<td>MIT-style Bouncy Castle licence</td>
+<td>Ship</td>
+<td>Pulled in for PdfBox-Android; pinned to 1.86 for the vulnerability fix above</td>
 </tr>
 <tr>
 <td></td>
@@ -6630,10 +7368,12 @@ python tools/content/build_content.py --manifest-only   # after any content chan
 </tbody>
 </table></div>
 <h2 id="doc-09-open-source-3-attribution">3. Attribution</h2>
-<p>The INCLUDE, OpenHands and MediaPipe notices appear in the app's <strong>Settings &gt; Open-source licences</strong>, the ISL dictionary carries the INCLUDE notice for recorded signs, and all travel with any redistribution of the models or motions.</p>
+<p>The INCLUDE, OpenHands, PopSign ASL, ASLNow! and MediaPipe notices appear in the app's <strong>Settings &gt; Open-source licences</strong>, the ISL dictionary carries the INCLUDE notice for recorded signs, and all travel with any redistribution of the models or motions.</p>
 <ul>
 <li><strong>INCLUDE</strong>: &quot;INCLUDE: A Large Scale Dataset for Indian Sign Language Recognition&quot; by Advaith Sridhar, Rohith Gandhi Ganesan, Pratyush Kumar and Mitesh Khapra (IIT Madras, AI4Bharat), ACM Multimedia 2020, Zenodo doi:10.5281/zenodo.4010759, licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). Changes: a sign classifier was trained on its landmarks, and the signers' landmarks for each word were retargeted onto the app's characters as keyframes.</li>
 <li><strong>OpenHands</strong>: &quot;OpenHands v1: Labelled ISLR datasets, Poses&quot; (AI4Bharat), Zenodo record 6674324, licensed under CC BY 4.0. Changes: poses resampled and normalised as reader input.</li>
+<li><strong>PopSign ASL v1.0</strong>: &quot;PopSign ASL v1.0: An Isolated American Sign Language Dataset Collected via Smartphones&quot;, T. Starner et al. (Georgia Tech, NTID), NeurIPS 2023 Datasets and Benchmarks, signdata.cc.gatech.edu, licensed under CC BY 4.0. Frames taken from huggingface.co/datasets/sign/popsign-images (CC BY 4.0). Changes: MediaPipe Holistic landmarks extracted, a sign classifier trained on them, and the signers' landmarks retargeted onto the app's characters as keyframes.</li>
+<li><strong>ASLNow!</strong>: fingerspelling hand landmarks by sid220, huggingface.co/datasets/sid220/asl-now-fingerspelling, MIT licence. Changes: static letters chained into synthetic spelling sequences to train a reader, and one typical hand per letter posed as the ASL alphabet.</li>
 <li><strong>MediaPipe</strong>: Google LLC, Apache License 2.0; the Holistic landmarker model is distributed under the same licence.</li>
 <li><strong>Ping</strong>: Yash Awasthi, MIT licence; the pairing design is adapted from its CryptoUtils and transport interface.</li>
 </ul>

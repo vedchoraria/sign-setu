@@ -1,7 +1,7 @@
 {
  "files": {
-  "asl_signs.json": "ca211df9cebc292aac4c1e2c397c44dc2b2ce848043a4bc65b35b7a46916662c",
-  "asl_words.json": "2db642b0c910cb1be729abdbc3d61193543a5826423b2fba3a4cb0f77b2873a2",
+  "asl_signs.json": "747117365a5b31eaaef07786e514f53aabc9b37ca131f58a0377f74944957186",
+  "asl_words.json": "b8bc8a427d4eca4b0a99a8e049792d851554c9320579a4099ffc0686458d14ee",
   "audio/en/f1.ogg": "58468e9d9b4c70115b3c2773768a022a428fab72eb0adcb16f7aff882bbafd24",
   "audio/en/f2.ogg": "65fa67f331874f22f00cb31295e60d8fa1ffb84ccfcfa87b024355de238a9d0d",
   "audio/en/f3.ogg": "5a35e85f1f248b1f40ee7fd622386b68356214016c7e88d2f5f04ea643f68b2a",
@@ -197,8 +197,8 @@
   "isl_signs.json": "6b3da114a436f55e3276074e89edfa872dd21875e9ac1036819ed715ea28eff4",
   "languages.json": "632f4960a11ef1d02e67e328e48ea12da644894897788239b18c652f4a762b14",
   "lexicon.json": "3a38f1fa5bb67d5a4b7fe824b6b62cb56c64f3366434d49ab8051df1451d3558",
-  "models/asl_reader.bin": "07cdd2c948d01bd908d0d23c428529381769e73fbdfeb46b4162821d4533db0e",
-  "models/asl_reader.json": "4931eeadff83218ad016dacef11b38f732b3b4b3420353b801857dc5fe8d9ca4",
+  "models/asl_reader.bin": "d17a0344bdcfe8ea282b68a32f381c544575a6cf14b482ff1174c1a5fa00a163",
+  "models/asl_reader.json": "77e3c7f7872e0ffc1b2e395394e2ff56ed71789f35bd9f16eadc4dae35d2825d",
   "models/asl_spell.bin": "6de0685105812e4c9d5ad0f62c4445ea206f824e328ca62113fb400d962a92ce",
   "models/asl_spell.json": "ebca97a9ba2467b18804993477e68f3c2d4695c7f330df92bba1514b0ac94e8e",
   "models/holistic_landmarker.task": "e2dab61191e2dcd0a15f943d8e3ed1dce13c82dfa597b9dd39f562975a50c3f8",

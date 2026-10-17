@@ -4,6 +4,9 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   android:
     runs-on: ubuntu-latest
@@ -20,6 +23,8 @@ jobs:
         run: ./gradlew --console=plain :app:lintStandardRelease
       - name: Assemble
         run: ./gradlew --console=plain :app:assembleStandardRelease
+      - name: Assemble other variants
+        run: ./gradlew --console=plain :app:assembleStandardDebug :app:assembleNearbyRelease
 
   portal:
     runs-on: ubuntu-latest
@@ -45,12 +50,17 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install numpy
+      - run: pip install numpy resvg-py pillow
       - name: Python tool tests
         run: |
-          for d in tools/isl tools/content; do
+          for d in tools/isl tools/content tools/security; do
             if [ -d "$d" ]; then python -m unittest discover -s "$d" -p 'test_*.py' -v; fi
           done
+      - name: Content review record and manifest are current
+        run: |
+          python tools/content/review_record.py
+          python tools/content/build_content.py --manifest-only
+          git diff --exit-code
 
   semgrep:
     runs-on: ubuntu-latest
@@ -67,14 +77,41 @@ jobs:
         run: |
           curl -sSfL -o osv-scanner https://github.com/google/osv-scanner/releases/download/v2.0.2/osv-scanner_linux_amd64
           chmod +x osv-scanner
-          ./osv-scanner scan source --lockfile app/gradle.lockfile --format json --output osv.json || true
+          # Lint and test tooling never ships, so scan only the release runtime lines.
+          mkdir shipped
+          grep -i 'releaseRuntimeClasspath' app/gradle.lockfile > shipped/gradle.lockfile
+          ./osv-scanner scan source --lockfile shipped/gradle.lockfile --format json --output osv.json || true
           # max_severity is a CVSS base score; 7.0 and above is high or critical.
           worst=$(jq '[.results[]?.packages[]?.groups[]?.max_severity | select(. != null and . != "") | tonumber] | max // 0' osv.json)
           echo "worst CVSS: $worst"
           jq -e ". < 7" <<< "$worst" > /dev/null
 
+  instrumented:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          script: ./gradlew --console=plain :app:connectedStandardDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=app.signsetu.StageAccessibilityTest,app.signsetu.StageDeviceAccessibilityTest
+
   gitleaks:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - uses: actions/checkout@v4
         with:
@@ -98,3 +135,35 @@ jobs:
         with:
           name: sbom
           path: app/build/sbom/sign-setu-release.cdx.json
+
+  release-record:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: ./gradlew --console=plain :app:assembleStandardRelease :app:bundleStandardRelease
+      - id: syft
+        uses: anchore/sbom-action/download-syft@v0
+      - run: python tools/security/sbom.py "${{ steps.syft.outputs.cmd }}"
+      - name: Scan and record checksums
+        run: |
+          mkdir record
+          cp app/build/outputs/apk/standard/release/*.apk app/build/outputs/bundle/standardRelease/*.aab app/build/sbom/sign-setu-release.cdx.json record/
+          curl -sSfL -o osv-scanner https://github.com/google/osv-scanner/releases/download/v2.0.2/osv-scanner_linux_amd64
+          chmod +x osv-scanner
+          mkdir shipped
+          grep -i 'releaseRuntimeClasspath' app/gradle.lockfile > shipped/gradle.lockfile
+          ./osv-scanner scan source --lockfile shipped/gradle.lockfile --format json --output record/osv.json || true
+          (cd record && sha256sum *.apk *.aab > SHA256SUMS)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-record
+          path: record/

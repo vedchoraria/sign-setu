@@ -66,6 +66,7 @@ Logic with branches (retention, show-back, build expiry, export) is written test
 | TC-44 | Recorded keys closer than 0.35 s pass through without stopping; both hands stay inside the body view; questions get their face (`AvatarTest`) | D-35, D-37 |
 | TC-45 | Holistic results map to the subject's own sides in order with the timestamp, and empty lists mean not seen (`HolisticMappingTest`) | FR-84 |
 | TC-46 | Stage layout on a phone: the camera window keeps the 9:16 frame uncropped between the rails; Stop is the only pause control on the phone's stage; a second screen still shows its break screen after Stop | FR-107, FR-76 |
+| TC-47 | Sign back in both languages: every ISL and ASL reader label resolves through `signBack` to a motion of its own language and is in that language's dictionary; ASL spelling of '9876543210' gives ten `asl.digit.*` motions and the dictionary omits them; ASL gloss 'me want water' gives 'I want water.' (`IslLexiconTest`, `SignLanguageTest`) | FR-86, FR-106, FR-108 |
 
 ## 3. Performance
 

@@ -66,13 +66,19 @@ class SignReaderTest {
     @Test
     fun alteredModelBytesGiveNoReader() {
         val content = File("src/main/assets/content")
-        fun load(altered: String?) = SignReaders.load(SignLanguage.ISL) { path ->
-            if (path.startsWith("models/isl_spell")) null
-            else File(content, path).readBytes().let { if (path == altered) it.also { b -> b[0] = (b[0] + 1).toByte() } else it }
+        fun load(lang: SignLanguage, altered: String?) = SignReaders.load(lang) { path ->
+            File(content, path).readBytes().let { if (path == altered) it.also { b -> b[0] = (b[0] + 1).toByte() } else it }
         }
-        assertTrue(load(null) != null)
-        assertTrue(load("models/sign_reader.bin") == null)
-        assertTrue(load("models/sign_reader.json") == null)
+        for (lang in SignLanguage.entries) {
+            val full = load(lang, null)!!
+            assertTrue("$lang reads words and spelling", full !is LandmarkSignReader)
+            for (ext in listOf("bin", "json")) {
+                assertTrue("${lang.reader}.$ext", load(lang, "${lang.reader}.$ext") == null)
+                // A tampered spelling model leaves the word reader alone.
+                val words = load(lang, "${lang.spell}.$ext")
+                assertTrue("${lang.spell}.$ext", words is LandmarkSignReader && words.labels.size < full.labels.size)
+            }
+        }
     }
 
     @Test

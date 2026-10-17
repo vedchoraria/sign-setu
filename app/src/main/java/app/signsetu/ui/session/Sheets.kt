@@ -63,6 +63,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -144,7 +145,7 @@ fun BoardSheet(
     var query by rememberSaveable { mutableStateOf("") }
     // Favourites open first once the officer has starred any (FR-19).
     var category by rememberSaveable { mutableStateOf(if (favourites.isNotEmpty()) FAVOURITES else null) }
-    val chosen = remember { mutableStateListOf<String>().apply { addAll(initial) } }
+    val chosen = rememberSaveable(saver = listSaver(save = { l -> l.toList() }, restore = { l -> l.toMutableStateList() })) { initial.toMutableStateList() }
     val cards = content.cards.values.filter { c ->
         (category == null || c.category == category || (category == FAVOURITES && c.id in favourites)) &&
             (query.isBlank() || c.label.values.any { it.contains(query.trim(), ignoreCase = true) })
@@ -507,11 +508,15 @@ fun SignedSheet(
     onDismiss: () -> Unit,
     onAsk: ((List<String>) -> Unit)? = null,
     canAsk: (List<String>) -> Boolean = { true },
+    draft: List<String>? = null,
+    onDraft: (List<String>) -> Unit = {},
 ) {
     val replay = rememberReplayState(segments)
-    val words = remember(segments) { segments.map { s -> s.word?.takeIf { it != "?" }.orEmpty() }.toMutableStateList() }
+    val words = rememberSaveable(segments, saver = listSaver(save = { l -> l.toList() }, restore = { l -> l.toMutableStateList() })) {
+        (draft?.takeIf { it.size == segments.size } ?: segments.map { s -> s.word?.takeIf { it != "?" }.orEmpty() }).toMutableStateList()
+    }
     val colors = MaterialTheme.colorScheme
-    OfficerSheet(onDismiss) {
+    OfficerSheet({ onDraft(words.toList()); onDismiss() }) {
         LazyColumn(
             Modifier.fillMaxHeight(0.92f).imePadding(),
             contentPadding = PaddingValues(start = Spacing.lg, end = Spacing.lg, bottom = Spacing.xxl),

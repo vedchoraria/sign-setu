@@ -539,3 +539,21 @@ Status: Proposed, Accepted, Superseded.
 - Guesses whose concept answers the item on screen are ranked first; the others stay, each group by score (`inContext`). The officer sees the top three.
 
 **Consequences.** Frame rate depends on the phone's GPU. Context ranking no longer guarantees that every guess fits the question, so the subject's pick (FR-86) remains the only way a meaning becomes theirs.
+
+---
+
+## D-39 ASL as a second sign language, from PopSign and ASLNow!
+
+**Status:** Draft; every ASL sign, pairing and model needs review by Deaf ASL signers before use with a person
+
+**Context.** The officer may meet a signer who uses ASL, which is used in some Indian schools. ISL and ASL differ in vocabulary, grammar and fingerspelling. Google's Kaggle sets for ASL may not be redistributed; PopSign ASL v1.0 (CC BY 4.0, the same 250 signs) and ASLNow! (MIT, static letters) may.
+
+**Decision.**
+- The sign language is a per-session setting, ISL or ASL (FR-108). It selects the reader, word list, fingerspelling reader and sign set (`SignLanguage`); the bundle is rebuilt for it, so ASL never plays an ISL motion.
+- `asl_signs.json` holds 250 signs retargeted from PopSign signers by `tools/isl/retarget_asl.py`, plus the one-hand alphabet and the digits 0 to 9, authored as keyframes. Letters and digits are fingerspelling keys and are not dictionary entries.
+- ASL text is signed and glossed in subject-verb-object order; the ISL time-first, verb-last ordering applies to ISL only.
+- Missing ASL files degrade one by one (architecture §5); the ISL reader and signs are unaffected.
+
+**Alternatives.** Kaggle `asl-signs` and `asl-fingerspelling` (redistribution barred, credentials needed); one merged lexicon (ASL and ISL words would collide).
+
+**Consequences.** A reading, in either language, still becomes the subject's answer only through their pick (FR-86). Sources and licences are in the [open-source register](09-open-source.md).

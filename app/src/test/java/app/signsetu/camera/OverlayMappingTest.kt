@@ -33,26 +33,25 @@ class OverlayMappingTest {
     }
 
     /**
-     * A recorded INCLUDE clip: the hand model's wrist goes through [overlayPoint] from the sensor's frame, and must land
-     * on the body model's wrist where the mirrored, letterboxed preview draws that pixel.
+     * A recorded INCLUDE clip: the hand model's wrist goes through [overlayPoint], upright and from a sensor buffer, and
+     * must land within 3% of the shown frame's width of the hand-labelled wrist pixel on the mirrored, letterboxed preview.
      */
-    @Test fun recordedClipWristLandsOnThePreview() {
+    @Test fun recordedClipWristLandsOnTheLabelledPixel() {
         val rows = javaClass.classLoader!!.getResource("include_hello_wrists.csv")!!.readText().lines()
-            .filter { it.isNotBlank() && !it.startsWith("#") }.map { it.split(",") }
-        assertTrue(rows.size > 100)
-        val (fw, fh) = 1080f to 1920f
+            .filter { it.isNotBlank() && !it.startsWith("#") }.drop(1).map { it.split(",") }
+        assertEquals(22, rows.size)
+        assertEquals(setOf("L", "R"), rows.map { it[1] }.toSet())
+        val (fw, fh) = 1920f to 1080f
         for ((w, h) in listOf(1000f to 800f, 720f to 1280f, 400f to 900f)) {
             val scale = minOf(w / fw, h / fh)
-            for (side in listOf("L", "R")) {
-                val errors = rows.filter { it[1] == side }.map { r ->
-                    val (hx, hy, px, py) = r.drop(2).map(String::toFloat)
-                    val label = Offset((w - fw * scale) / 2f + (fw - px) * scale, (h - fh * scale) / 2f + py * scale)
-                    val upright = overlayPoint(Offset(hx / fw, hy / fh), fw / fh, w, h, mirrored = true)
-                    val sensor = overlayPoint(Offset(1f - hy / fh, hx / fw), fh / fw, w, h, mirrored = true, rotation = 270)
-                    assertTrue(abs(upright.x - sensor.x) < 0.5f && abs(upright.y - sensor.y) < 0.5f)
-                    (upright - label).getDistance() / (fw * scale)
-                }
-                assertTrue("$side in $w x $h: ${errors.average()}", errors.average() < 0.03)
+            for (r in rows) {
+                val (lx, ly, hx, hy) = r.drop(2).map(String::toFloat)
+                val label = Offset((w - fw * scale) / 2f + (fw - lx) * scale, (h - fh * scale) / 2f + ly * scale)
+                val upright = overlayPoint(Offset(hx / fw, hy / fh), fw / fh, w, h, mirrored = true)
+                val sensor = overlayPoint(Offset(1f - hy / fh, hx / fw), fh / fw, w, h, mirrored = true, rotation = 270)
+                assertTrue(abs(upright.x - sensor.x) < 0.5f && abs(upright.y - sensor.y) < 0.5f)
+                val error = (upright - label).getDistance() / (fw * scale)
+                assertTrue("frame ${r[0]} ${r[1]} in $w x $h: $error", error < 0.03f)
             }
         }
     }

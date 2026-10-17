@@ -342,7 +342,7 @@ private fun LiveStage(link: StageLink, baseContent: ContentBundle, state: LinkSt
                     onDoneSigning = {},
                     onOfficer = null,
                     onNextRule = { send(AnswerBody.Next) },
-                    onGiven = { g -> if (g != null) send(AnswerBody.Given(g.question, g.method.name, g.confirmed, g.value, g.picks)) },
+                    onGiven = { g -> send(if (g != null) AnswerBody.Given(g.question, g.method.name, g.confirmed, g.value, g.picks) else AnswerBody.Change) },
                 )
             }
         }

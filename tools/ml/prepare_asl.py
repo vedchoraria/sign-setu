@@ -3,11 +3,15 @@
 PopSign ASL v1.0 (Georgia Tech, NTID; 250 signs, 47 Deaf signers) is CC BY 4.0. Google's Kaggle "Isolated Sign
 Language Recognition" set is the same corpus as landmarks, also CC BY 4.0, but needs Kaggle credentials; the
 huggingface.co/datasets/sign/popsign-images release holds the clips as 256x256 frames at about 5 a second instead.
-Its validation signers train and its test signers test (signer-independent). Each shard is deleted once read.
+Its train and validation signers train and its test signers test (signer-independent). Each shard is deleted once
+read, so the 14.5 GB train split passes through the disk 500 MB at a time.
+The non-game split misses some of the 250 signs; the game split's validation and test signers fill them in, read
+by HTTP range so only the row groups holding a missing sign are fetched.
 Runs in a venv with mediapipe, pyarrow and pillow (not the torch one):
     python -I tools/ml/prepare_asl.py [data_dir] [workers] [limit]   # default C:/Users/Yash/dev/ml-data/popsign
 """
 import io
+import json
 import pathlib
 import pickle
 import sys
@@ -19,22 +23,59 @@ import numpy as np
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 MODEL = ROOT / "app" / "src" / "main" / "assets" / "content" / "models" / "holistic_landmarker.task"
 BASE = "https://huggingface.co/datasets/sign/popsign-images/resolve/main/data/non-game/"
-# ponytail: the 14.5 GB train split is over the download cap; add its 28 shards when disk allows.
-SHARDS = [(f"validation-{i:05d}-of-00009.parquet", "train") for i in range(9)] + \
+GAME = "https://huggingface.co/datasets/sign/popsign-images/resolve/main/data/game/"
+GAME_SHARDS = [(f"validation-{i:05d}-of-00030.parquet", "train") for i in range(30)] + \
+              [(f"test-{i:05d}-of-00034.parquet", "test") for i in range(34)]
+CAP = {"train": 60, "test": 15}  # clips per missing sign per game shard
+SHARDS = [(f"train-{i:05d}-of-00028.parquet", "train") for i in range(28)] +          [(f"validation-{i:05d}-of-00009.parquet", "train") for i in range(9)] + \
          [(f"test-{i:05d}-of-00004.parquet", "test") for i in range(4)]
 FPS_IN, FPS_OUT = 5, 15
+LABELS = pathlib.Path(__file__).with_name("popsign_labels.json")
+
+
+def request(url: str, **headers) -> urllib.request.Request:
+    req = urllib.request.Request(url, headers=headers)
+    token = pathlib.Path.home() / ".cache" / "huggingface" / "token"
+    if token.exists():
+        req.add_header("Authorization", "Bearer " + token.read_text().strip())
+    return req
+
+
+class Ranged(io.RawIOBase):
+    """A remote file read by HTTP range requests, so pyarrow fetches only the column chunks it needs."""
+
+    def __init__(self, url: str):
+        with urllib.request.urlopen(request(url, Range="bytes=0-0")) as r:
+            self.url, self.size = r.url, int(r.headers["Content-Range"].split("/")[1])
+        self.pos = 0
+
+    def seekable(self): return True
+    def readable(self): return True
+    def tell(self): return self.pos
+
+    def seek(self, off, whence=0):
+        self.pos = off if whence == 0 else self.pos + off if whence == 1 else self.size + off
+        return self.pos
+
+    def readinto(self, buf):
+        end = min(self.size, self.pos + len(buf))
+        if end <= self.pos:
+            return 0
+        with urllib.request.urlopen(urllib.request.Request(self.url, headers={"Range": f"bytes={self.pos}-{end - 1}"})) as r:
+            b = r.read()
+        buf[:len(b)] = b
+        self.pos += len(b)
+        return len(b)
 
 
 def fetch(name: str, out: pathlib.Path) -> pathlib.Path:
     path = out / name
     if not path.exists():
-        req = urllib.request.Request(BASE + name)
-        token = pathlib.Path.home() / ".cache" / "huggingface" / "token"
-        if token.exists():
-            req.add_header("Authorization", "Bearer " + token.read_text().strip())
-        with urllib.request.urlopen(req) as r, open(path.with_suffix(".part"), "wb") as f:
+        with urllib.request.urlopen(request(BASE + name)) as r, open(path.with_suffix(".part"), "wb") as f:
             while chunk := r.read(1 << 20):
                 f.write(chunk)
+            if f.tell() != int(r.headers["Content-Length"]):
+                raise IOError(name + ": truncated download")
         path.with_suffix(".part").rename(path)
     return path
 
@@ -94,7 +135,8 @@ def shard(args) -> pathlib.Path:
                         break
                     if len(row["images"]) < 2:
                         continue
-                    samples.append({"split": split, "label": row["text"].strip().lower(), "rec": row["file"],
+                    # Glosses keep their case (TV): asl_signs.json ids and asl_words.json keys use it.
+                    samples.append({"split": split, "label": row["text"].strip(), "rec": row["file"],
                                     **clip(lm, row["images"])})
     out.parent.mkdir(parents=True, exist_ok=True)
     with open(out, "wb") as fo:
@@ -105,12 +147,49 @@ def shard(args) -> pathlib.Path:
     return out
 
 
+def game_shard(args) -> pathlib.Path:
+    """Clips of the [want] signs from one game shard, at most CAP per sign."""
+    name, split, data, want = args
+    out = data / "landmarks" / ("game-" + name + ".pkl")
+    if out.exists():
+        return out
+    import pyarrow.parquet as pq
+    from mediapipe.tasks.python import BaseOptions, vision
+    opts = vision.HolisticLandmarkerOptions(base_options=BaseOptions(model_asset_path=str(MODEL)),
+                                            running_mode=vision.RunningMode.IMAGE)
+    f = pq.ParquetFile(io.BufferedReader(Ranged(GAME + name), 1 << 20))
+    taken: dict[str, int] = {}
+    samples = []
+    with vision.HolisticLandmarker.create_from_options(opts) as lm:
+        for g in range(f.num_row_groups):
+            texts = [t.strip() for t in f.read_row_group(g, columns=["text"]).column("text").to_pylist()]
+            if not any(t in want and taken.get(t, 0) < CAP[split] for t in texts):
+                continue
+            for row in f.read_row_group(g, columns=["file", "text", "images"]).to_pylist():
+                label = row["text"].strip()
+                if label not in want or taken.get(label, 0) >= CAP[split] or len(row["images"]) < 2:
+                    continue
+                taken[label] = taken.get(label, 0) + 1
+                samples.append({"split": split, "label": label, "rec": "game/" + row["file"], **clip(lm, row["images"])})
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with open(out, "wb") as fo:
+        pickle.dump(samples, fo)
+    print(f"game {name}: {len(samples)} clips", flush=True)
+    return out
+
+
 def main(data: pathlib.Path, workers: int = 6, limit: int = 0, shards=SHARDS) -> None:
     data.mkdir(parents=True, exist_ok=True)
     jobs = [(n, s, data, limit) for n, s in shards]
     with ProcessPoolExecutor(workers) as ex:
         parts = list(ex.map(shard, jobs))
     samples = [s for p in parts for s in pickle.load(open(p, "rb"))]
+    if not limit:
+        signs = set(json.loads(LABELS.read_text(encoding="utf-8"))["labels"])
+        have = {sp: {s["label"] for s in samples if s["split"] == sp} for sp in CAP}
+        jobs = [(n, sp, data, signs - have[sp]) for n, sp in GAME_SHARDS]
+        with ProcessPoolExecutor(workers) as ex:
+            samples += [s for p in ex.map(game_shard, jobs) for s in pickle.load(open(p, "rb"))]
     with open(data / "asl.pkl", "wb") as f:
         pickle.dump({"aspect": 1.0, "fps": FPS_OUT, "samples": samples}, f)
     labels = sorted({s["label"] for s in samples})

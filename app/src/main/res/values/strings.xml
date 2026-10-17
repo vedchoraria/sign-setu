@@ -198,7 +198,6 @@
     <string name="action_board">Pictures</string>
     <string name="action_draw">Draw</string>
     <string name="action_language">Language</string>
-    <string name="officer_ask_another">Ask another way</string>
     <string name="officer_stop_title">They asked to stop</string>
     <string name="officer_stop_body">Pause. Check they are comfortable, offer water or a rest, and go on only when they are ready.</string>
     <string name="officer_has_gesture">Character shows a gesture</string>
@@ -232,6 +231,7 @@
     <string name="start_damaged_title">Content check failed</string>
     <string name="start_damaged_body">The questions or pictures in this copy of the app do not match the approved content, so no new session can start. Install the current version from your department.</string>
     <string name="start_media_rejected">Some pictures, sounds or gestures failed a check and are left out.</string>
+    <string name="start_asl_off">ASL is off: its signs or words failed a check. ISL is not affected.</string>
     <string name="officer_phrases">Phrases</string>
     <string name="quick_hint">Type anything to show them</string>
     <string name="mode_signs">Signs</string>
@@ -420,6 +420,11 @@
     <string name="glance_hide">Hide officer strip</string>
     <string name="officer_rules">Ground rules and practice</string>
     <string name="isl_dictionary">ISL dictionary</string>
+    <string name="asl_dictionary">ASL dictionary</string>
+    <string name="asl_dictionary_recorded">From recorded signers (PopSign). Draft until Deaf review.</string>
+    <string name="asl_dictionary_attribution">Recorded signs are adapted from the PopSign ASL dataset (Georgia Tech and NTID), licensed CC BY 4.0.</string>
+    <string name="dictionary_held_pose">Held pose.</string>
+    <string name="dictionary_right_hand_only">Right hand only.</string>
     <string name="isl_dictionary_search">Search in English or Hindi</string>
     <string name="isl_dictionary_all">All</string>
     <string name="isl_dictionary_pick">Tap a word to see its sign.</string>
@@ -435,7 +440,6 @@
     <string name="stage_dont_know">I don\'t know</string>
     <string name="stage_dont_understand">I don\'t understand</string>
     <string name="stage_wrong">That\'s wrong</string>
-    <string name="stage_break_name">Break</string>
     <string name="stage_stop">Stop</string>
     <string name="stage_done">Done</string>
     <string name="stage_clear">Clear</string>

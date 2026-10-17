@@ -135,6 +135,9 @@ internal fun eagerlyChecked(path: String) = !path.startsWith("models/")
 /** Motion files: a failed one only loses the character's motions, never the words a subject is shown. */
 private val MOTION_FILES = setOf("gestures.json", "isl_signs.json") + SignLanguage.entries.map { it.signs }
 
+/** A failure here turns that sign language off (see [ContentBundle.aslDisabled]); the other language still starts. */
+private val LANGUAGE_FILES = setOf(SignLanguage.ASL.words, SignLanguage.ASL.signs)
+
 @Immutable
 data class ContentBundle(
     val groups: List<Group>,
@@ -166,6 +169,8 @@ data class ContentBundle(
     val everyday: Map<String, Gesture> = emptyMap(),
     /** Signs retargeted from recorded ASL signers plus the one-hand alphabet (asl_signs.json). */
     val aslSigns: IslSigns = IslSigns(),
+    /** The language this bundle's character signs in ([forSignLanguage]); ASL text keeps typed order. */
+    val language: SignLanguage = SignLanguage.ISL,
     /** ASL reader labels to a written form in [words] (asl_words.json). */
     val aslWords: Map<String, String> = emptyMap(),
 ) {
@@ -204,7 +209,10 @@ data class ContentBundle(
     fun hasCardImage(id: String) = "cards/$id.webp" in files
 
     /** A text file failed its check, so the subject could be shown wrong words: no session may start (SEC-54). */
-    val damaged: Boolean get() = rejected.any { it.endsWith(".json") && it !in MOTION_FILES }
+    val damaged: Boolean get() = rejected.any { it.endsWith(".json") && it !in MOTION_FILES && it !in LANGUAGE_FILES }
+
+    /** ASL's files failed their check, so ASL is off: its signs and words are dropped, ISL still starts. */
+    val aslDisabled: Boolean get() = rejected.any { it in LANGUAGE_FILES }
 
     /** Gesture lookup: both location and action match first, then location only, then action only. */
     fun lookup(location: BodyLocation?, action: HandAction?): List<LexiconEntry> {
@@ -239,8 +247,9 @@ class ContentRepository(private val assets: AssetManager) {
         val isl = verified<IslSigns>("isl_signs.json", rejected) ?: IslSigns()
         val everyday = verified<GesturesFile>("gestures.json", rejected)?.gestures.orEmpty()
         val gestures = everyday + verified<GesturesFile>("signs.json", rejected)?.gestures.orEmpty() + isl.gestures.map { it.gesture }
-        val asl = SignLanguage.ASL.signs.takeIf { it in manifest.files }?.let { verified<IslSigns>(it, rejected) } ?: IslSigns()
-        val aslWords = SignLanguage.ASL.words.takeIf { it in manifest.files }?.let { verified<SignWordsFile>(it, rejected) }?.words.orEmpty()
+        val aslOff = rejected.any { it in LANGUAGE_FILES }
+        val asl = SignLanguage.ASL.signs.takeIf { it in manifest.files && !aslOff }?.let { verified<IslSigns>(it, rejected) } ?: IslSigns()
+        val aslWords = SignLanguage.ASL.words.takeIf { it in manifest.files && !aslOff }?.let { verified<SignWordsFile>(it, rejected) }?.words.orEmpty()
         val words = verified<WordsFile>("words.json", rejected)?.words.orEmpty()
         val phrases = verified<PhrasesFile>("phrases.json", rejected)?.phrases.orEmpty()
         val states = verified<PlacesFile>("places.json", rejected)?.states.orEmpty()

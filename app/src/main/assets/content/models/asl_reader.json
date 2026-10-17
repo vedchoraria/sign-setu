@@ -3,64 +3,65 @@
  "architecture": "per-frame linear+relu; conv1d+relu x2 (same padding, batch norm folded); global average and max pooling concatenated; linear to logits",
  "frames": 32,
  "features": 98,
- "hidden": 160,
+ "hidden": 320,
  "kernel": 5,
- "classes": 216,
+ "classes": 250,
  "tensors": [
   {
    "shape": [
-    160,
+    320,
     98
    ]
   },
   {
    "shape": [
-    160
-   ]
-  },
-  {
-   "shape": [
-    160,
-    160,
-    5
-   ]
-  },
-  {
-   "shape": [
-    160
-   ]
-  },
-  {
-   "shape": [
-    160,
-    160,
-    5
-   ]
-  },
-  {
-   "shape": [
-    160
-   ]
-  },
-  {
-   "shape": [
-    216,
     320
    ]
   },
   {
    "shape": [
-    216
+    320,
+    320,
+    5
+   ]
+  },
+  {
+   "shape": [
+    320
+   ]
+  },
+  {
+   "shape": [
+    320,
+    320,
+    5
+   ]
+  },
+  {
+   "shape": [
+    320
+   ]
+  },
+  {
+   "shape": [
+    250,
+    640
+   ]
+  },
+  {
+   "shape": [
+    250
    ]
   }
  ],
  "weights": "float32 little-endian, tensors in the order above, row-major; conv weight is [out][in][kernel]",
  "feature_spec": "MediaPipe Holistic normalised image points, unmirrored; y scaled by height/width; centre = mean shoulder midpoint (pose 11, 12) over the segment, scale = mean shoulder width; per frame: left hand 21x(x,y), right hand 21x(x,y), pose 11..16 (x,y), left and right presence flags; a missing part is zeros; segment resampled to `frames` by nearest index (i*(n-1)*2 + frames-1) div (2*(frames-1))",
  "dataset": "PopSign ASL v1.0 (Georgia Tech, NTID), signdata.cc.gatech.edu, CC BY 4.0; frames from huggingface.co/datasets/sign/popsign-images, landmarks by MediaPipe Holistic",
- "epochs": 300,
- "test_top1": 0.3912,
- "test_top3": 0.5427,
+ "epochs": 60,
+ "test_top1": 0.402,
+ "test_top3": 0.5428,
  "labels": [
+  "TV",
   "after",
   "airplane",
   "all",
@@ -71,7 +72,9 @@
   "apple",
   "arm",
   "aunt",
+  "awake",
   "backyard",
+  "bad",
   "balloon",
   "bath",
   "because",
@@ -80,10 +83,13 @@
   "bee",
   "before",
   "beside",
+  "better",
+  "bird",
   "black",
   "blow",
   "blue",
   "boat",
+  "book",
   "boy",
   "brother",
   "brown",
@@ -120,6 +126,7 @@
   "drawer",
   "drink",
   "drop",
+  "dry",
   "dryer",
   "duck",
   "ear",
@@ -140,6 +147,10 @@
   "first",
   "fish",
   "flag",
+  "flower",
+  "food",
+  "for",
+  "frenchfries",
   "frog",
   "garbage",
   "gift",
@@ -168,9 +179,11 @@
   "hesheit",
   "hide",
   "high",
+  "home",
   "horse",
   "hot",
   "hungry",
+  "icecream",
   "if",
   "into",
   "jacket",
@@ -181,13 +194,17 @@
   "lamp",
   "later",
   "like",
+  "lion",
   "lips",
   "listen",
   "look",
   "loud",
   "mad",
+  "make",
   "man",
+  "many",
   "milk",
+  "minemy",
   "mitten",
   "mom",
   "moon",
@@ -197,12 +214,16 @@
   "nap",
   "napkin",
   "night",
+  "no",
   "noisy",
   "nose",
+  "not",
+  "now",
   "nuts",
   "old",
   "on",
   "open",
+  "orange",
   "outside",
   "owie",
   "owl",
@@ -213,10 +234,12 @@
   "person",
   "pig",
   "pizza",
+  "please",
   "police",
   "pool",
   "potty",
   "pretend",
+  "pretty",
   "puppy",
   "puzzle",
   "quiet",
@@ -225,13 +248,16 @@
   "read",
   "red",
   "refrigerator",
+  "ride",
   "room",
   "sad",
   "same",
   "say",
+  "scissors",
   "see",
   "shhh",
   "shirt",
+  "shoe",
   "shower",
   "sick",
   "sleep",
@@ -240,23 +266,29 @@
   "snack",
   "snow",
   "stairs",
+  "stay",
   "sticky",
   "store",
   "story",
   "stuck",
   "sun",
+  "table",
   "talk",
   "taste",
   "thankyou",
+  "that",
   "there",
   "think",
+  "thirsty",
+  "tiger",
   "time",
+  "tomorrow",
   "tongue",
   "tooth",
   "toothbrush",
   "touch",
   "toy",
-  "tv",
+  "tree",
   "uncle",
   "underwear",
   "up",
@@ -271,9 +303,11 @@
   "who",
   "why",
   "will",
+  "wolf",
   "yellow",
   "yes",
   "yesterday",
+  "yourself",
   "yucky",
   "zebra",
   "zipper"

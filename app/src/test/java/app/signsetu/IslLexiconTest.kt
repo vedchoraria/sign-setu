@@ -10,6 +10,7 @@ import app.signsetu.data.content.SignMode
 import app.signsetu.data.content.WordEntry
 import app.signsetu.data.content.dictionary
 import app.signsetu.data.content.forSignLanguage
+import app.signsetu.data.content.glossToText
 import app.signsetu.data.content.motionFor
 import app.signsetu.data.content.planText
 import app.signsetu.data.content.search
@@ -163,7 +164,9 @@ class IslLexiconTest {
         if (path !in manifest) return emptyList()
         val f = File(content, path)
         assertTrue("$path is in the manifest but missing", f.isFile)
-        return json.parseToJsonElement(f.readText()).jsonObject["labels"]!!.jsonArray.map { it.jsonPrimitive.content }
+        val spec = json.parseToJsonElement(f.readText()).jsonObject
+        // Format 2 (CTC) names its classes by an alphabet string instead of a label list.
+        return spec["labels"]?.jsonArray?.map { it.jsonPrimitive.content } ?: spec["alphabet"]!!.jsonPrimitive.content.map(Char::toString)
     }
 
     @Test
@@ -190,9 +193,22 @@ class IslLexiconTest {
     }
 
     @Test
+    fun aSpelledReadingSignsBackAsLetters() {
+        val spell = setOf(SignMode.SIGNS, SignMode.SPELL)
+        assertEquals(listOf("letter.r"), bundle.planText("r", spell).motions)
+        assertNotNull(bundle.signBack("r"))
+        assertEquals(listOf("r", "a", "v", "i").map { "asl.letter.$it" }, asl.planText("ravi", spell).motions)
+        assertNotNull(asl.signBack("ravi"))
+    }
+
+    @Test
     fun anAslSessionSignsAslAndNeverIsl() {
+        assertEquals(SignLanguage.ASL, asl.language)
+        assertEquals("I want water.", glossToText(listOf("me", "want", "water"), asl.words, asl.language).en)
         assertTrue(asl.planText("water please", signs).motions.let { m -> m.isNotEmpty() && m.all { it.startsWith("asl.") } })
         assertEquals(listOf("r", "a", "v", "i").map { "asl.letter.$it" }, asl.planText("ravi", setOf(SignMode.SPELL)).motions)
+        assertEquals((9 downTo 0).map { "asl.digit.$it" }, asl.planText("9876543210", setOf(SignMode.SPELL)).motions)
+        assertTrue(asl.dictionary().none { it.gestureId.startsWith("asl.digit.") })
         assertEquals("asl.water", asl.motionFor("water", asl.words["water"], signs)?.id)
         val signed = asl.questions.filter { it.signed && it.lexicon == null }
         assertTrue(signed.isNotEmpty())
@@ -202,6 +218,13 @@ class IslLexiconTest {
             assertEquals(q.id, plan.gesture?.keys, asl.gestureFor(q)?.keys)
         }
         assertTrue(signed.any { q -> asl.planText(q.text["en"]!!, signs).motions.any { it.startsWith("asl.") } })
+    }
+
+    @Test
+    fun movingAslSignsKeepTheirMovement() {
+        val keys = json.decodeFromString<IslSigns>(File(content, "asl_signs.json").readText()).gestures.associate { it.id to it.keys.size }
+        val moving = "finish fish scissors zipper balloon every into morning pen pencil puzzle farm bedroom have".split(" ")
+        for (w in moving) assertTrue("asl.$w has ${keys["asl.$w"]} keys", (keys["asl.$w"] ?: 0) >= 2)
     }
 
     @Test

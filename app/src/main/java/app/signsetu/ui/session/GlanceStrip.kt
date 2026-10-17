@@ -45,10 +45,18 @@ private val AttentionCards = setOf("stop", "break", "dont_know", "dont_understan
 internal fun glanceText(events: List<SessionEvent>, isPersonal: (String) -> Boolean): String? {
     val shown = events.indexOfLast { it.type == EventType.QUESTION_SHOWN }
     if (shown < 0) return null
-    // A say-back carries the reading itself in its text, so one about a personal detail hides the whole strip.
-    val checked = refOf(events[shown])?.let { ref -> events.firstOrNull { it.id == ref } }
-    val askedFor = (checked?.let { c -> events.firstOrNull { it.id == c.shownId } } ?: events[shown]).itemId
-    if (askedFor != null && isPersonal(askedFor)) return if (checked != null) null else questionLine(events[shown])
+    if (refOf(events[shown]) != null) {
+        // A say-back line is the reading itself, so walk back to the real question; a broken or looping chain hides the strip.
+        var original = events[shown]
+        repeat(events.size) {
+            val ref = refOf(original) ?: return if (original.itemId?.let(isPersonal) == true) null else questionLine(original)
+            val answer = events.firstOrNull { it.id == ref } ?: return null
+            original = events.firstOrNull { it.id == answer.shownId } ?: return null
+        }
+        return null
+    }
+    val askedFor = events[shown].itemId
+    if (askedFor != null && isPersonal(askedFor)) return questionLine(events[shown])
     val question = questionLine(events[shown])
     val answer = events.drop(shown + 1).lastOrNull { it.type in GlanceAnswers && givenOf(it.reason) == null }?.text ?: return question
     return "$question → ${answer.take(GLANCE_MAX).uppercase()}"

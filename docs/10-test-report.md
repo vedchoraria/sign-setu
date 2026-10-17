@@ -1,6 +1,6 @@
 # 10. Test Report
 
-Results of the [test plan](06-test-plan.md) for release 1, version 0.1.0. Section 2 is the automated suite on the current build. Sections 3 to 6 give the manual and device evidence; a result marked *earlier build* was observed on an emulator build of 0.1.0 that predates the recorded signs, lesson-sheet questions, stage split and GPU delegate (D-35 to D-38), and is repeated on the current build before release.
+Results of the [test plan](06-test-plan.md) for release 1, version 0.1.0. Section 2 lists the automated suite on the current build: it is built and compiled (Run A) and not yet run (Run B), so it carries no results. Sections 3 to 6 give the manual and device evidence; a result marked *earlier build* was observed on an emulator build of 0.1.0 that predates the recorded signs, lesson-sheet questions, stage split and GPU delegate (D-35 to D-38), and is repeated on the current build before release.
 
 ## 1. Build
 
@@ -8,24 +8,27 @@ Results of the [test plan](06-test-plan.md) for release 1, version 0.1.0. Sectio
 | --- | --- |
 | Application | `in.signsetu` 0.1.0, version code 1; `in.signsetu.nearby` 0.1.0-nearby for the nearby flavor |
 | Variants | `standardDebug`, `standardRelease`, `nearbyDebug`, `nearbyRelease` |
-| Release APK (unsigned) | `standard` 47,579,538 bytes (45.4 MiB); `nearby` 47,697,078 bytes (45.5 MiB); arm64-v8a and armeabi-v7a, with MediaPipe and the assistant for arm64-v8a only; under the 50 MB limit of NFR-05 |
+| Release APK (unsigned) | `standard` 47,579,538 bytes (45.4 MiB); `nearby` 47,697,078 bytes (45.5 MiB); arm64-v8a and armeabi-v7a, with MediaPipe and the assistant for arm64-v8a only; under the 50 MB limit of NFR-05 on that build. The three readers added since (`isl_spell`, `asl_reader`, `asl_spell`, about 9 MB of models) are not yet measured |
 | Toolchain | AGP 9.4.1, Gradle 9.8.1, Kotlin 2.4.21, KSP 2.3.12, JDK 21, NDK r30, CMake 4.1.1 |
 | Devices used | Android 10 (API 29) emulator, x86_64, 3 GB RAM; Android 14 (API 34) emulator, x86_64, 3 GB RAM, with the virtual camera and the debug stand-in hand; a 5-inch screen (360 by 640 dp) simulated on the Android 14 emulator for NFR-11 |
 | Not yet used | A real Android 10 phone; a recent phone; two phones and a tablet for the second screen |
 
 ## 2. Automated suite on the current build
 
-| Suite | Command | Result |
-| --- | --- | --- |
-| Unit, standard flavor | `./gradlew testStandardDebugUnitTest` | 147 tests in 19 classes pass |
-| Unit, nearby flavor | `./gradlew testNearbyDebugUnitTest` | 147 tests in 19 classes pass |
-| Portal | `cd portal && npx vp test` | 918 tests in 3 files pass (912 rig-fixture samples, rig coverage, 3 review-flag and 2 missing-caption tests) |
-| Review record | `python tools/content/test_review_record.py` | 1 test passes |
-| Retarget maths | `python tools/isl/test_retarget.py` | 12 tests; needs NumPy, run in the tools environment; open on this build |
-| Instrumented | `./gradlew connectedStandardDebugAndroidTest` | 28 test methods (overlay 2, migration 2, stage accessibility 24, the last run in light and dark): open on this build |
-| Android Lint | `./gradlew lintStandardRelease` | Open on this build |
+Run A built and compiled every suite below; none has been run on this build. The counts are the test methods written. Results from earlier builds (147 unit tests, 918 portal tests) are not carried over.
 
-Unit tests by class: `AutoPilotTest` 10, `AvatarTest` 13, `HandoverTest` 6, `InterviewTest` 17, `IslLexiconTest` 10, `LessonTest` 11, `LogicTest` 7, `MainPageTest` 9, `PairTest` 29, `PolicyTest` 2, `RigFixtureTest` 1, `RoleTest` 4, `SegmentTest` 5, `SignIngestionTest` 7, `SignReaderTest` 3, `StageLogicTest` 6, `SunModeTest` 2, `camera.AnalysisRateTest` 2, `camera.HolisticMappingTest` 2.
+| Suite | Command | Status |
+| --- | --- | --- |
+| Unit, standard flavor | `./gradlew testStandardDebugUnitTest` | 176 test methods in 25 classes written; not yet run |
+| Unit, nearby flavor | `./gradlew testNearbyDebugUnitTest` | Same classes; not yet run |
+| Portal | `cd portal && npx vp test` | 3 files; not yet run on this build |
+| Review record | `python tools/content/test_review_record.py` | Not yet run on this build |
+| Retarget maths | `python tools/isl/test_retarget.py` | 13 tests; needs NumPy, run in the tools environment; not yet run |
+| Reader evaluation | `python tools/ml/eval_isl.py`; `python tools/ml/eval_asl.py` | Scores in `tools/ml/EVAL.md` were produced on the shipped models; ASL words top-1 0.402 against the 0.6 target |
+| Instrumented | `./gradlew connectedStandardDebugAndroidTest` | 38 test methods written (overlay 2, migration 2, stage accessibility 24, stage device accessibility 10, the accessibility classes run in light and dark); not yet run |
+| Android Lint | `./gradlew lintStandardRelease` | Not yet run on this build |
+
+Unit tests by class (methods written): `AslDamageTest` 3, `AslSpellTest` 2, `AutoPilotTest` 10, `AvatarTest` 14, `HandoverTest` 6, `InterviewTest` 17, `IslLexiconTest` 13, `LessonTest` 12, `LogicTest` 7, `MainPageTest` 10, `PairTest` 29, `PolicyTest` 2, `ReadBackTest` 3, `RigFixtureTest` 1, `RoleTest` 4, `SegmentTest` 5, `SignIngestionTest` 7, `SignLanguageTest` 5, `SignReaderTest` 4, `SpellGateTest` 2, `StageLogicTest` 9, `SunModeTest` 2, `camera.AnalysisRateTest` 2, `camera.HolisticMappingTest` 2, `camera.OverlayMappingTest` 5.
 
 ## 3. Functional scenarios
 
@@ -70,13 +73,14 @@ Unit tests by class: `AutoPilotTest` 10, `AvatarTest` 13, `HandoverTest` 6, `Int
 | TC-37 | Pass in unit tests (`HandoverTest`) | Tilt and both-keys chord; tilt and volume keys on a phone are open |
 | TC-38 | Open | `stage_live` logic reviewed in code; a captured restart after a kill on the stage is open |
 | TC-39 | Open | `SessionMigrationTest` compiles; run open on this build |
-| TC-40 | Pass | `RigFixtureTest` passes; `vp test` 918 tests pass |
+| TC-40 | Written, run open | `RigFixtureTest` and `vp test` not yet run on this build; earlier run passed 918 portal tests |
 | TC-41 | Open | Needs two phones and a tablet (UAT-18) |
-| TC-42 | Pass in unit tests (`LessonTest`) | 11 tests |
-| TC-43 | Pass in unit tests (`IslLexiconTest`) | 10 tests |
+| TC-42 | Written, run open (`LessonTest`) | 12 tests written; earlier run 11 tests passed |
+| TC-43 | Written, run open (`IslLexiconTest`) | 13 tests written; earlier run 10 tests passed |
 | TC-44 | Pass in unit tests (`AvatarTest`) | Catmull-Rom pass-through, hands in the body view, question faces |
 | TC-45 | Pass in unit tests (`HolisticMappingTest`) | 2 tests |
 | TC-46 | Open | Device check on the current build |
+| TC-47 | Written, run open | `IslLexiconTest` and `SignLanguageTest` check that every ISL and ASL reader label resolves and that ASL digits and gloss text come out as specified; not yet run on this build |
 
 ## 4. Performance
 
@@ -107,7 +111,7 @@ Unit tests by class: `AutoPilotTest` 10, `AvatarTest` 13, `HandoverTest` 6, `Int
 | ST-16 | Pass | `transport-backend-cct` excluded in the build script; the stub destination is in the APK; no INTERNET |
 | ST-17 | Open | Needs a stage device |
 | ST-18 | Partial | Pairing logs exception class names only (code review); a logcat capture during a sign window on a phone is open |
-| ST-19 | Pass by design | Both models listed in the manifest and checked before loading (`HolisticTracker`, `SignReaders`); a tampered-model run is open |
+| ST-19 | Written, run open | The holistic model and the four readers (`sign_reader`, `isl_spell`, `asl_reader`, `asl_spell`) are listed in the manifest and checked before loading; `SignReaderTest` alters the bytes of each and expects no reader; not yet run on this build |
 
 ## 6. Accessibility
 
@@ -119,7 +123,7 @@ Unit tests by class: `AutoPilotTest` 10, `AvatarTest` 13, `HandoverTest` 6, `Int
 | AT-04 | Pass, earlier build | All language names and Hindi interface text render without clipping |
 | AT-05 | Pass by design | Yes and No differ by icon, word and position as well as colour |
 | AT-06 | Open | Lesson-input and phrase-board cases are in `StageAccessibilityTest`; run open on this build |
-| AT-07 | Open | Stage device screens are not in the instrumented suite |
+| AT-07 | Written, run open | `StageDeviceAccessibilityTest` covers the stage device waiting, code, check value, hold, lost, break and ended screens in both themes; not yet run on this build |
 
 ## 7. Security controls self-check
 
@@ -152,10 +156,10 @@ Each control in [security](04-security.md) checked against the code.
 ## 8. Open items before production
 
 - Reviewer sign-off on the [content review record](governance/forms/content-review-record.md): every gesture, authored and recorded sign and both characters (05 §8), the phrase-bank sentences, the placeholder recordings, the draft ISL word order and sign-word map, the lesson-sheet wording, and the rights wording in English and Hindi.
-- The instrumented suite, Android Lint and the retarget tests on the current build; the device scenarios marked *earlier build* repeated on it.
+- The unit, instrumented and portal suites, Android Lint and the retarget tests on the current build (Run B); the device scenarios marked *earlier build* repeated on it.
 - TC-05, PT-01 to PT-03 and PT-05 on a real Android 10 phone, and the vision engine's frame rate on the GPU delegate, memory and hand sides on a real 64-bit phone.
 - The two-phone and tablet script (TC-41, UAT-18), ST-17, and an accessibility pass over the stage device screens (AT-07).
 - A spoken TalkBack pass on a phone, and the formal MASVS review.
-- Sign reader accuracy with phone cameras and children; data for the core answer words the reader cannot read (yes, no, water, pain, help, stop, don't know).
+- ASL word reader accuracy: top-1 0.402 against the 0.6 target; ISL letters, digits and ASL spelling measured on synthetic data only; sign reader accuracy with phone cameras and children; data for the core answer words the reader cannot read (yes, no, water, pain, help, stop, don't know).
 - Assistant speed on an arm64 phone (TC-23) and language reviewers' spot-check of its output.
 - A live device-to-device transfer (ST-01) on two phones with a Google account.

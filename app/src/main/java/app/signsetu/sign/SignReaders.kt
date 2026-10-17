@@ -25,17 +25,16 @@ object SignReaders {
         }.getOrNull()
         // Without the word map the reader still works; it just cannot narrow guesses to the item on screen.
         val signWords = verified(lang.words)?.let { runCatching { parseSignWords(it.decodeToString()) }.getOrNull() }.orEmpty()
-        val words = model(lang.reader, signWords)
+        // Spelling alone is not the language's reader: no word reader, no reader.
+        val words = model(lang.reader, signWords) ?: return null
         val spell = lang.spell?.let { base ->
             val spec = verified("$base.json")?.decodeToString()
             if (spec != null && Json.parseToJsonElement(spec).jsonObject["format"]?.jsonPrimitive?.content == "2") {
                 runCatching { CtcSpell(CtcSpellReader(spec, verified("$base.bin")!!)) }.getOrNull()
             } else model(base, emptyMap())?.let(::SpellReader)
         }
-        when {
-            words != null && spell != null -> CombinedReader(words, spell)
-            else -> words ?: spell
-        }
+        // The CTC reader gates itself and has no softmax over words to weigh against, so any read it gives wins.
+        if (spell != null) CombinedReader(words, spell, if (spell is CtcSpell) 0f else SPELL_ODDS) else words
     }.getOrNull()
 }
 
@@ -45,27 +44,56 @@ private class SpellReader(private val inner: SignReader) : SignReader by inner {
     override fun read(frames: List<LandmarkFrame>) = inner.read(frames).map { SignGuess(letterOf(it.word), it.score) }
 }
 
-/** The format 2 CTC reader as a [SignReader]: one guess, the letters read, scored by the mean peak probability. */
+/** A fingerspelled read needs this many letters, each at least this sure at its best frame (tools/ml/eval_asl.py). */
+const val SPELL_MIN_LETTERS = 3
+const val SPELL_MIN_PEAK = 0.9f
+
+/** A letter or digit reader's top guess beats the word reader's only when this many times surer (tools/ml/eval_isl.py). */
+const val SPELL_ODDS = 2f
+
+/**
+ * The format 2 CTC reader as a [SignReader]: one guess, the letters read, scored by its least sure letter. Reads with
+ * fewer or weaker letters are left to the word reader, which also lets a failed read ask for slower signing.
+ */
 private class CtcSpell(private val ctc: CtcSpellReader) : SignReader {
     override val labels = ctc.alphabet.map { it.lowercaseChar().toString() }
     override fun read(frames: List<LandmarkFrame>): List<SignGuess> {
         val logits = ctc.logits(frames) ?: return emptyList()
-        val text = ctc.decode(logits).lowercase()
-        if (text.isEmpty()) return emptyList()
-        val peaks = logits.map { row -> val m = row.max(); 1f / row.sumOf { exp((it - m).toDouble()) }.toFloat() }
-        return listOf(SignGuess(text, peaks.average().toFloat()))
+        // Per letter, not per frame: blank frames alone score about 0.9 on any segment, word signs included.
+        val peaks = ArrayList<Float>()
+        var last = 0
+        for (row in logits) {
+            var best = 0
+            for (c in 1 until row.size) if (row[c] > row[best]) best = c
+            val p = 1f / row.sumOf { exp((it - row[best]).toDouble()) }.toFloat()
+            if (best != 0 && best != last) peaks += p else if (best != 0) peaks[peaks.lastIndex] = maxOf(peaks.last(), p)
+            last = best
+        }
+        if (peaks.size < SPELL_MIN_LETTERS || peaks.min() < SPELL_MIN_PEAK) return emptyList()
+        return listOf(SignGuess(ctc.decode(logits).lowercase(), peaks.min(), spelled = true))
     }
+}
+
+/** A guess as the gloss for [glossToText]: a spelled guess is its letters, so it renders as a name. */
+fun glossOf(guess: SignGuess?, signWords: Map<String, String>): List<String> = when {
+    guess == null -> listOf("?")
+    guess.spelled -> guess.word.map { it.toString() }
+    else -> listOf(signWords[guess.word] ?: guess.word)
 }
 
 internal fun letterOf(label: String) = label.lowercase().removePrefix("letter.").removePrefix("digit.")
 
 /**
- * Word and fingerspelling readers over one segment, best first. A single letter or digit in the result is spelled.
- * ponytail: compares two softmaxes directly; a sign-or-spell gate if letters crowd out words in practice.
+ * Word and fingerspelling readers over one segment: the spelling's guesses when its top is more than [odds] times the
+ * word top, else the words'. Only one side is returned, since callers re-sort by score and the scales differ.
  */
-private class CombinedReader(private val signs: SignReader, private val spell: SignReader) : SignReader {
+internal class CombinedReader(private val signs: SignReader, private val spell: SignReader, private val odds: Float) : SignReader {
     override val labels = signs.labels + spell.labels
     override val words = signs.words
-    override fun read(frames: List<LandmarkFrame>) = (signs.read(frames) + spell.read(frames)).sortedByDescending { it.score }
+    override fun read(frames: List<LandmarkFrame>): List<SignGuess> {
+        val w = signs.read(frames)
+        val s = spell.read(frames)
+        return if (s.isNotEmpty() && s[0].score > odds * (w.firstOrNull()?.score ?: 0f)) s else w
+    }
     override fun close() { signs.close(); spell.close() }
 }

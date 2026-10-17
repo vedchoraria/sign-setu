@@ -181,6 +181,7 @@ fun StartScreen(
                     } else if (content.rejected.isNotEmpty()) {
                         Notice(null, stringResource(R.string.start_media_rejected), MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onTertiaryContainer)
                     }
+                    if (content.aslDisabled) Notice(null, stringResource(R.string.start_asl_off), MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onTertiaryContainer)
                     if (rooted) Notice(null, stringResource(R.string.start_rooted), MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onTertiaryContainer)
                     open?.let { session ->
                         ResumeCard(

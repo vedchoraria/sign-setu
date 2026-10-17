@@ -78,6 +78,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -467,6 +468,48 @@ class PairTest {
         vm.logRemote(item, 4, AnswerBody.Text("my house"))
         vm.logRemote(item, 4, AnswerBody.Text("my house"), late = true)
         assertEquals(1, dao.rows.value.count { it.type == EventType.ANSWER_TEXT.name })
+    }
+
+    @Test
+    fun aPairedGivenIsCommittedWithStageProvenance() = vmTest { vm, dao ->
+        vm.prepare(Pending.Ask(question))
+        vm.show()
+        val first = vm.ui.value!!.itemId!!
+        // Nothing the view model launches may run before the row is checked.
+        Dispatchers.setMain(StandardTestDispatcher())
+        vm.logRemote(first, 0, AnswerBody.Given("q1", "WRITTEN", confirmed = true, value = "home"))
+        vm.logRemote(first, 1, AnswerBody.Given("q1", "WRITTEN", confirmed = true, value = "again"), late = true)
+        val given = dao.rows.value.filter { it.type == EventType.ANSWER_TEXT.name }
+        assertEquals(listOf("stage", VIA_STAGE_LATE), given.map { it.via })
+        assertTrue(given.all { it.shownId == first })
+    }
+
+    @Test
+    fun aLateUnconfirmedGivenForAClosedItemIsLogged() = vmTest { vm, dao ->
+        vm.prepare(Pending.Ask(question))
+        vm.show()
+        val first = vm.ui.value!!.itemId!!
+        vm.prepare(Pending.Cards(listOf("water")))
+        vm.show()
+        vm.logRemote(first, 0, AnswerBody.Given("q1", "WRITTEN", confirmed = false, value = "home"))
+        val row = dao.rows.value.last { it.type == EventType.ANSWER_TEXT.name }
+        assertEquals(VIA_STAGE_LATE, row.via)
+        assertEquals(first, row.shownId)
+        assertEquals("given:WRITTEN:0", row.reason)
+    }
+
+    @Test
+    fun aHeldUnconfirmedGivenKeepsItsProvenanceWhenTheItemCloses() = vmTest { vm, dao ->
+        vm.prepare(Pending.Ask(question))
+        vm.show()
+        val first = vm.ui.value!!.itemId!!
+        vm.logRemote(first, 0, AnswerBody.Given("q1", "WRITTEN", confirmed = false, value = "home"))
+        assertTrue(dao.rows.value.none { it.type == EventType.ANSWER_TEXT.name })
+        vm.prepare(Pending.Cards(listOf("water")))
+        vm.show()
+        val row = dao.rows.value.single { it.type == EventType.ANSWER_TEXT.name }
+        assertEquals("stage", row.via)
+        assertEquals("given:WRITTEN:0", row.reason)
     }
 
     // 18

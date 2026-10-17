@@ -1,7 +1,7 @@
 # Back, Yes, No and Stop: acceptance matrix
 
 Scope: every officer screen, sheet and dialog, and every subject stage state, in `app/src/main/java/app/signsetu/`.
-Basis: the code at main commit 9922a19. Each cell is either the control that
+Basis: the code at main commit ff3e893. Each cell is either the control that
 does the job, or the written reason it is not offered. A cell marked **gap** is a known departure from the T1 rule and
 is listed again in the last section.
 
@@ -24,9 +24,9 @@ Officer surfaces have no subject-facing answer, so Yes, No and Stop are "not app
 | Officer dock, More page, composer, auto panel, ready card (`OfficerPane.kt`, `AutoPanel.kt`) | Inline; the screen's Back applies. | n/a: officer controls. | n/a: officer controls. | n/a: officer controls. |
 | Stop banner (`OfficerPane.kt` `StopBanner`) | Inline; dismissed by its OK. | n/a: OK acknowledges the subject's Stop. | n/a: no negative choice. | n/a: the banner reports a Stop, it does not send one. |
 | Phrase sheet (`Sheets.kt` `PhraseSheet`) | Modal sheet with a visible Back button (`OfficerSheet`); system Back and drag also dismiss it. | n/a: picking a slot prepares the phrase. | n/a: as Yes. | n/a: nothing sent to the subject until a slot is picked. |
-| Board sheets, show and attach (`Sheets.kt` `BoardSheet`) | Modal sheet with a visible Back button and system Back. | n/a: Use prepares or attaches cards. | n/a: as Yes. | n/a: officer selection only. |
+| Board sheets, show and attach (`Sheets.kt` `BoardSheet`) | Modal sheet with a visible Back button and system Back; the card selection is kept as a draft on every dismiss path. | n/a: Use prepares or attaches cards. | n/a: as Yes. | n/a: officer selection only. |
 | Gesture sheet (`GestureSheet`) | Modal sheet with a visible Back button and system Back. | n/a: picking a sign prepares the show-back. | n/a: as Yes. | n/a: officer selection only. |
-| Log sheet (`LogSheet`) | Modal sheet with a visible Back button and system Back. | n/a: read-only record, add note. | n/a: as Yes. | n/a: record only. |
+| Log sheet (`LogSheet`) | Modal sheet with a visible Back button and system Back; a note being typed is kept as a draft on every dismiss path. | n/a: read-only record, add note. | n/a: as Yes. | n/a: record only. |
 | Change sheet (`ChangeSheet`) | Modal sheet with a visible Back button and system Back; not opened while an item is on the second screen. | n/a: profile, language and role choices are officer settings. | n/a: as Yes. | n/a: no subject answer. |
 | Signed sheet (`SignedSheet`) | Modal sheet with a visible Back button and system Back. | n/a: Accept records the officer's reading beside the app's. | n/a: Ask the subject is a separate action. | n/a: reading review only. |
 | ISL dictionary sheet (`IslDictionarySheet.kt`, More page) | Modal `OfficerSheet`: visible Back button, system Back and drag dismiss it; the search text and selection survive rotation. | n/a: Show puts the sign on the stage, tapping a word only plays it here. | n/a: as Yes. | n/a: officer reference only; nothing reaches the subject until Show. |
@@ -84,14 +84,10 @@ asked for by the officer. Break and Stop (`PauseRow`) are shown under the answer
 | S21 Tell me (`SigningPanel` with `SignWindow.NARRATIVE`, started from the More page) | Reason: as S9; Done ends the account and Stop cancels it. | Done ends the account; the timed gloss transcript is then confirmed word by word. | Reason: an account is not a yes or no; a wrong word is rejected in the word-by-word confirm (S8, "None of these"). | Stop button on the rail, logs `stop` and ends the window. |
 | S22 Stage device, waiting (`LinkState.Idle`, `Connecting`, `Failed`) | Cancel button leaves the pairing (`endLink`); system Back is not blocked before the first live frame. | Reason: nothing is asked yet. | Reason: as Yes. | Reason: no item is shown; Cancel is the way out. |
 | S23 Stage device, code (`LinkState.Code`) | Cancel button (`cancelCode`); system Back is not blocked before the first live frame. | Match button, enabled only once the check value is shown. | Cancel button. | Reason: no item is shown; Cancel is the way out. |
-| S24 Stage device, break (`breakFor` in `LiveStage`) | Reason: the break ends only when the officer shows something new; system Back is swallowed once live. | Reason: no question is asked during the break. | Reason: as Yes. | **Gap.** The break text has no control; the officer's phone ends the break. |
+| S24 Stage device, break (`breakFor` in `LiveStage`) | Reason: the break ends only when the officer shows something new; system Back is swallowed once live. | Reason: no question is asked during the break. | Reason: as Yes. | Reason: the break begins only after the subject's own Stop (`onCard`), which is already sent and logged; a second Stop would add nothing. |
 | S25 Stage device, ended (`LinkState.Ended`) | System Back is swallowed; the officer's unlock button leaves (`exit`, device credential). | Reason: the session is over. | Reason: as Yes. | Reason: the session is over. |
 | S17 Lost or held link, cover (`Cover`, `pair/StageDevice.kt`) | Reason: the link is down; the officer handle is not shown. | Reason: the item is hidden until the link is back. | Reason: as Yes. | Stop and "I don't know" are queued and sent when the link is back. |
 
 ## 3. Gaps against the T1 rule
 
-These cells do not yet meet the rule "yes or written reason".
-
-- S24, break on the stage device: the break text has no Stop control, so the subject cannot Stop from it; the officer's phone ends the break.
-
-Every other cell is a control or a written reason; no cell in this file is blank.
+None. Every cell in this file is a control or a written reason; no cell is blank.

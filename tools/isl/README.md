@@ -37,10 +37,13 @@ hands (MIT). It also writes `asl_words.json`, the ASL reader's labels that are w
 
 `retarget_asl.py` does the same for ASL: PopSign ASL v1.0 (Georgia Tech and NTID, the 250 signs of Google's Isolated
 Sign Language Recognition, CC BY 4.0), frames from huggingface.co/datasets/sign/popsign-images, landmarked with the
-app's MediaPipe Holistic model and retargeted with `retarget.py`'s maths into `asl_signs.json`, ids `asl.<gloss>`.
-Recordings led by the left hand are mirrored so the rig's right hand leads. The one-hand ASL alphabet is authored in
-the script as keyframes (`asl.letter.a` to `asl.letter.z`). `asl_words.json` pairs reader labels with words.json.
+app's MediaPipe Holistic model by `tools/ml/prepare_asl.py` and retargeted with `retarget.py`'s maths into
+`asl_signs.json`, ids `asl.<gloss>`. Recordings led by the left hand are mirrored so the rig's right hand leads. Most
+PopSign signers hold the phone in one hand, so a two-handed gloss (`TWO_HANDED`) takes a clip where both hands sign;
+where no clip has one it is drawn with the right hand alone and marked `one_hand_source`. The one-hand ASL alphabet is
+authored in the script as keyframes (`asl.letter.a` to `asl.letter.z`). `asl_words.json` pairs reader labels with
+words.json.
 
-    C:/Users/Yash/dev/venvs/signsetu-mp/Scripts/python tools/isl/retarget_asl.py fetch   # data in C:/Users/Yash/dev/ml-data/popsign
+    C:/Users/Yash/dev/venvs/signsetu-mp/Scripts/python -I tools/ml/prepare_asl.py   # landmarks in C:/Users/Yash/dev/ml-data/popsign/landmarks
     C:/Users/Yash/dev/venvs/signsetu-mp/Scripts/python tools/isl/retarget_asl.py
     python tools/content/build_content.py --manifest-only

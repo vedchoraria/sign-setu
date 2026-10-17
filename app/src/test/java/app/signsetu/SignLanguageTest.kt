@@ -10,7 +10,9 @@ import app.signsetu.data.content.forSignLanguage
 import app.signsetu.data.content.glossToText
 import app.signsetu.data.content.planText
 import app.signsetu.sign.LandmarkSignReader
+import app.signsetu.sign.SignGuess
 import app.signsetu.sign.SignReaders
+import app.signsetu.sign.glossOf
 import app.signsetu.ui.avatar.Gesture
 import app.signsetu.ui.avatar.Key
 import org.junit.Assert.assertEquals
@@ -45,6 +47,20 @@ class SignLanguageTest {
             val text = glossToText(gloss, words)
             assertEquals(gloss.toString(), expected, text.en to text.hi)
         }
+    }
+
+    @Test
+    fun spelledGuessRendersAsName() {
+        val spelled = glossOf(SignGuess("ram", 0.9f, spelled = true), emptyMap())
+        assertEquals(listOf("r", "a", "m"), spelled)
+        assertEquals("Ram.", glossToText(spelled, words).en)
+        assertEquals(listOf("ram"), glossOf(SignGuess("ram", 0.9f), emptyMap()))
+    }
+
+    @Test
+    fun aslGlossKeepsSubjectVerbObject() {
+        val i = glossToText(listOf("me", "want", "water"), words, SignLanguage.ASL)
+        assertEquals("I want water.", i.en)
     }
 
     private val assets = File("src/main/assets/content")

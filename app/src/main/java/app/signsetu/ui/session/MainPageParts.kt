@@ -186,8 +186,8 @@ fun trailBorder(trail: Trail?): BorderStroke? = if (trail?.unsteady == true) Bor
 
 /** The officer edits their reading of an answer line; the subject's own words are pre-filled as written. */
 @Composable
-fun SayBackDialog(e: SessionEvent, onSend: (String) -> Unit, onDismiss: () -> Unit) {
-    var words by rememberSaveable(e.id) { mutableStateOf(e.text.orEmpty()) }
+fun SayBackDialog(e: SessionEvent, draft: String, onDraft: (String) -> Unit, onSend: (String) -> Unit, onDismiss: () -> Unit) {
+    var words by rememberSaveable(e.id) { mutableStateOf(draft) }
     GuardedAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.say_back_title)) },
@@ -196,7 +196,7 @@ fun SayBackDialog(e: SessionEvent, onSend: (String) -> Unit, onDismiss: () -> Un
                 Text(stringResource(R.string.say_back_body), style = MaterialTheme.typography.bodyMedium)
                 OutlinedTextField(
                     value = words,
-                    onValueChange = { words = it },
+                    onValueChange = { words = it; onDraft(it) },
                     singleLine = true,
                     // SEC-05: the keyboard should not learn from what is typed about a subject.
                     keyboardOptions = KeyboardOptions(autoCorrectEnabled = false),

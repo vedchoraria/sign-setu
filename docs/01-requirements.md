@@ -153,7 +153,7 @@ Priority: **MUST** (release 1 cannot ship without it), **SHOULD** (release 1 if 
 | --- | --- | --- |
 | FR-95 | A session opens with the officer's introduction, four pictured and signed ground rules and a practice round, moved on by the subject's Next; each step is logged, and taking the phone back before the practice round logs "Officer skipped the rest of the ground rules". | MUST |
 | FR-96 | After Stop a calm pause layer covers the whole stage, so no answer can be tapped; only the subject's "I'm ready" ends it, and its length is logged. The officer's lock stays reachable. | MUST |
-| FR-97 | An officer glance strip shows the last question and answer upside down at the edge facing the officer; it is hidden for sensitive questions and while the subject draws or writes, can be hidden for the session, and never shows machine readings. | SHOULD |
+| FR-97 | An officer glance strip shows the last question and answer upside down at the edge facing the officer; it is hidden for sensitive questions, for personal-detail answers and while the subject draws or writes, can be hidden for the session, and never shows machine readings. | SHOULD |
 | FR-98 | Vibration codes for whoever holds the phone: Yes one long buzz, No two buzzes, Stop, Break, "I don't know", "I don't understand" or "That's wrong" three short pulses, a picture a tick; never for the young-child profile. | SHOULD |
 | FR-99 | Sun mode: in glare the stage turns black, white and yellow, on after 3 s above 10,000 lux and off after 10 s below 2,000 lux; the light sensor is read only while the stage shows; the officer can force it on. | SHOULD |
 | FR-100 | Tilt to show (tipping the phone over its top edge for about 0.6 s) and Volume Up show what is prepared; on the stage single volume presses do nothing and holding both keys for 1.5 s returns to the officer. Both can be turned off and stand aside when TalkBack is on. | SHOULD |
@@ -169,6 +169,7 @@ Priority: **MUST** (release 1 cannot ship without it), **SHOULD** (release 1 if 
 | FR-105 | A phrase board on the stage offers the everyday phrases as pictures with words; a tap is logged as the subject's own. | SHOULD |
 | FR-106 | The officer can search an ISL dictionary of every recorded and authored sign in English or Hindi, play a sign, and prepare it for the stage (D-35). | SHOULD |
 | FR-107 | The stage shows the camera at its own 9:16 shape without cropping, between two rails of answers; Stop is the only pause control on the phone's stage (D-37). | MUST |
+| FR-108 | The officer sets the sign language of a session, ISL or ASL, and can change it during the session; each change is logged. The setting selects the sign reader, the dictionary, the fingerspelling alphabet and numbers, and the character's signs for typed text. ASL text keeps the order typed; the ISL reordering of time, negation and question words applies to ISL only. Every ASL sign and pairing is a draft until reviewed by Deaf ASL signers (D-39). | SHOULD |
 
 ### 4.13 Later releases
 
@@ -215,8 +216,25 @@ Delivered early: FR-22 (on-device sign recognition) as FR-84 to FR-87 (D-25). Wi
 | FR-77 to FR-83 | [decisions](07-decisions.md) D-30, [UX](03-ux.md) §4 | [test plan](06-test-plan.md) §2 |
 | FR-84 to FR-88 | [decisions](07-decisions.md) D-25, D-27, D-28, [hand model integration](11-hand-model-integration.md) | [test plan](06-test-plan.md) §2 |
 | FR-89 to FR-101 | [decisions](07-decisions.md) D-34, [UX](03-ux.md) §2, §4 | [test plan](06-test-plan.md) §2 |
-| FR-102 to FR-107 | [decisions](07-decisions.md) D-35 to D-37, [UX](03-ux.md) §2, §4 | [test plan](06-test-plan.md) §2 |
+| FR-102 to FR-108 | [decisions](07-decisions.md) D-35 to D-37, [UX](03-ux.md) §2, §4 | [test plan](06-test-plan.md) §2 |
 | FR-30 to FR-34, FR-67 | [architecture](02-architecture.md) §6-8, [security](04-security.md) | [test plan](06-test-plan.md) §2, §5 |
 | NFR-01 to NFR-11 | [architecture](02-architecture.md) §10 | [test plan](06-test-plan.md) §3 |
 | NFR-20 to NFR-25 | [UX](03-ux.md) §5 | [test plan](06-test-plan.md) §6 |
 | NFR-30 to NFR-37 | [security](04-security.md) | [test plan](06-test-plan.md) §5 |
+
+## 7. Implementation status
+
+Status of the requirements added or changed in the current build. Built means the code and its tests are written and compile; verified means the check has been run, which no item below yet is.
+
+| Requirement | Status | Note |
+| --- | --- | --- |
+| FR-84 to FR-87 | Built | Segmentation, top-three proposals per segment, a gloss sequence with English and Hindi text, a timed gloss transcript for Tell me, and word-by-word confirmation. ISL letters and digits are read by a synthetic-trained model |
+| FR-88 | Built | Role gating unchanged |
+| FR-92, FR-103 | Built | Read-back Yes logs Confirmed; No reopens the subject's input |
+| FR-97 | Built | The glance strip hides personal-detail answers by the rule used for the personal-details report |
+| FR-102 to FR-104 | Built | Every lesson-sheet question is reachable from the personal question carousel |
+| FR-106 | Built | Dictionary covers 262 recorded ISL signs and 250 ASL words and 26 letters; all drafts until Deaf review |
+| FR-107 | Built | The camera window clips to the picture rectangle |
+| FR-108 | Partly met | Setting, reader, dictionary, alphabet, numbers and typed-text signing follow the language. ASL word reader top-1 is 0.402 against the 0.6 target; 14 moving ASL signs are retargeted to static keys; all ASL content awaits review (D-39) |
+| NFR-20, NFR-21 | Built, not run | Stage and stage device accessibility tests are written for both themes |
+| NFR-34 | Met | The permission gate in `app/build.gradle.kts` is unchanged; the standard flavor declares no INTERNET, RECORD_AUDIO or location |

@@ -1,4 +1,4 @@
-# Machine learning: sign reader, tracking and retargeting
+# Machine learning: sign readers, tracking and retargeting
 
 ## 1. Components
 
@@ -6,10 +6,16 @@
 | --- | --- | --- | --- |
 | Landmark tracker | `app/src/main/java/app/signsetu/camera/HolisticTracker.kt` | `assets/content/models/holistic_landmarker.task` | MediaPipe Tasks Vision `HolisticLandmarker`, video mode |
 | Debug stand-in tracker | `app/src/debug/java/app/signsetu/camera/LandmarkTrackers.kt` | none | Enabled by `adb shell run-as in.signsetu touch files/demo_hands` |
-| Sign reader | `app/src/main/java/app/signsetu/sign/LandmarkSignReader.kt` | `models/sign_reader.bin`, `models/sign_reader.json` | Plain Kotlin forward pass, no inference library |
+| Sign reader (ISL words) | `app/src/main/java/app/signsetu/sign/LandmarkSignReader.kt` | `models/sign_reader.{bin,json}` | Plain Kotlin forward pass, no inference library |
+| ISL letter and digit reader | `LandmarkSignReader.kt` (same class) | `models/isl_spell.{bin,json}` | Format 1, 36 classes; trained on synthetic landmarks (`"synthetic": true`) |
+| ASL word reader | `LandmarkSignReader.kt` | `models/asl_reader.{bin,json}` | Format 1, 250 classes, hidden width 320 |
+| ASL fingerspelling reader | `sign/CtcSpellReader.kt` | `models/asl_spell.{bin,json}` | Format 2 (CTC), greedy decoding; trained on synthetic sequences (`"synthetic": true`) |
+| Reader selection and gate | `sign/SignReaders.kt` (`SignReaders.load`, `CombinedReader`) | all of the above | One reader per session sign language; a missing or damaged file leaves a word-only reader, or none, and never crashes |
 | Score floor | `app/src/main/java/app/signsetu/sign/SignChoices.kt` (`READ_MIN_SCORE = 0.4`, `LOST_SHARE = 0.3`) | | |
-| Training | `tools/ml/{prepare,features,train,export}.py` | | PyTorch (CUDA), NumPy, Python 3.12 |
-| Retarget (recorded signs) | `tools/isl/retarget.py`, `tools/isl/test_retarget.py` | `assets/content/isl_signs.json` | NumPy |
+| Training | `tools/ml/{prepare,features,train,export}.py`; `synth_isl.py`, `prepare_asl.py`, `spell_ctc.py` for the added readers | | PyTorch (CUDA), NumPy, Python 3.12 |
+| Evaluation | `tools/ml/eval_isl.py`, `tools/ml/eval_asl.py`; results in `tools/ml/EVAL.md` | | `runtime.py` runs the exported files in NumPy, so the scores are those of the shipped weights |
+| Retarget (recorded ISL signs) | `tools/isl/retarget.py`, `tools/isl/test_retarget.py` | `assets/content/isl_signs.json` | NumPy |
+| Retarget (ASL signs) | `tools/isl/retarget_asl.py` | `assets/content/asl_signs.json`, `asl_words.json` | NumPy; 250 words and 26 letters |
 
 ## 2. Dataset
 
@@ -50,15 +56,21 @@
 
 Export (`tools/ml/export.py`): batch norm folded into conv weights; tensors float32 little-endian, row-major, in order embed.w, embed.b, conv1.w, conv1.b, conv2.w, conv2.b, head.w, head.b; conv weight layout `[out][in][kernel]`. `sign_reader.json` holds dimensions, labels, feature spec, dataset and test metrics. The parity fixture is `app/src/test/resources/sign_reader_fixture.json`.
 
-## 5. Metrics (official test split, from `sign_reader.json`)
+## 5. Metrics (test splits, from each model json and `tools/ml/EVAL.md`)
 
-| Metric | Value |
-| --- | --- |
-| Top-1 | 97.78 % (0.9779) |
-| Top-3 | 99.39 % (0.9939) |
-| Parity | `SignReaderTest` reproduces the Python logits on the fixture |
+| Reader | Top-1 | Top-3 | Notes |
+| --- | --- | --- | --- |
+| `sign_reader` (ISL words, n = 816) | 0.9779 | 0.9939 | Official INCLUDE test split; `SignReaderTest` reproduces the Python logits on the fixture |
+| `isl_spell` letters (n = 2600) | 0.9812 | 1.0000 | Synthetic landmarks posed from the app's keyframes: measures self-consistency, not real signers |
+| `isl_spell` digits (n = 1000) | 1.0000 | 1.0000 | As above |
+| `asl_reader` (ASL words, n = 5385) | 0.4020 | 0.5428 | PopSign test signers, none in training; the acceptance target of 0.6 is not met (see section 9) |
+| `asl_spell` | character error rate 0.0257 | | 400 synthetic sequences from ASLNow! static letters |
 
-## 6. Training commands (run from `tools/ml`)
+Combined readers apply the sign-or-spell gate of `SignReaders.kt`: an ISL letter or digit wins only at twice the word reader's top score; an ASL spelling wins only with at least three letters, each at least 0.9 sure. Gated top-1 is 0.9596 for ISL words and 0.2782 for ASL words, against 0.9779 and 0.2836 word-only.
+
+Spelled guesses are marked `spelled` and the gloss text renders them as letters, so a fingerspelled name is not read as a word (`SignLanguageTest`).
+
+## 6. Training commands (run from `tools/ml`; the added readers are in `tools/ml/README.md`)
 
 ```
 uv venv --python 3.12 signsetu-ml
@@ -79,7 +91,7 @@ The app loads the model only when both files match `assets/content/manifest.json
 | Gate | `holisticTracker()` returns null unless the device has a 64-bit ABI and the `.task` asset exists; the stage then keeps a plain mirror |
 | Integrity | `verifiedModel()` maps the uncompressed asset (`noCompress += "task"`) and compares its SHA-256 with the manifest |
 | Delegate | GPU first; if opening fails, CPU. If the GPU opens but a frame throws, the delegate flips to CPU and the next frame reopens; a CPU failure rethrows |
-| Throughput | CPU about 9 fps on a mid-range phone (comment in `HolisticTracker.kt`) |
+| Throughput | CPU about 9 fps on a mid-range phone (comment in `HolisticTracker.kt`); frames are skipped while a frame is in analysis; the frame rate is logged in debug builds only |
 | Protobuf | `protobuf-javalite` excluded; full `com.google.protobuf:protobuf-java` 4.26.1 added, because MediaPipe classes are compiled against full protobuf (`Any.Builder.build()`) |
 | Telemetry | `transport-backend-cct` excluded; stub in `app/src/main/java/com/google/android/datatransport/cct/CCTDestination.kt` (SEC-72) |
 | ABI | armeabi-v7a `libmediapipe_tasks_jni.so` excluded from packaging; 32-bit phones get the mirror only (D-25) |
@@ -104,7 +116,10 @@ Commands: `tools/isl/README.md` and [ops.md](ops.md). Checks: `test_retarget.py`
 
 | Limit | Effect |
 | --- | --- |
-| Isolated words, 262-word vocabulary | No continuous signing or grammar; out-of-vocabulary signs map to the nearest class |
+| Isolated words, 262 ISL and 250 ASL words | Continuous signing is split at pauses and read per segment (top 3 each, then a gloss sequence the subject confirms word by word); out-of-vocabulary signs map to the nearest class |
+| ISL letters and digits are synthetic | `isl_spell` has never seen a real signer; no redistributable ISL fingerspelling landmark set was found |
+| ASL words below target | Top-1 0.402 against the 0.6 target; the limit is the 5 fps, 256 px PopSign frames' landmarks across signers, not data volume |
+| ASL alphabet is static | `asl_spell` is trained on static ASLNow! hands chained into sequences; no real fingerspelling motion was seen |
 | One dataset, few signers | Accuracy on officers' phones, lighting and child signers unmeasured; test metric is in-distribution |
 | 2D features (x, y) only | Depth-ambiguous signs; fingers pointing at the camera read as bent on the flat rig |
 | No face features | Non-manual markers ignored by design (SEC-71) |
@@ -112,4 +127,4 @@ Commands: `tools/isl/README.md` and [ops.md](ops.md). Checks: `test_retarget.py`
 | CPU fallback about 9 fps | Fast signs may be undersampled |
 | 64-bit only | 32-bit phones have no tracking or reader |
 | Readings are not facts | Shown to the officer as graded guesses; the subject picks among alternatives (T-30, FR-66, FR-86) |
-| Retargeted signs are drafts | Deaf review needed before release (T-31) |
+| Retargeted signs are drafts | Deaf review needed before release (T-31, D-39); 14 moving ASL signs are retargeted to static keys |

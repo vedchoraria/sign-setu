@@ -191,7 +191,6 @@
     <string name="action_board">तस्वीरें</string>
     <string name="action_draw">चित्र बनवाएँ</string>
     <string name="action_language">भाषा</string>
-    <string name="officer_ask_another">दूसरे तरीके से पूछें</string>
     <string name="officer_stop_title">उन्होंने रुकने को कहा</string>
     <string name="officer_stop_body">रुकिए। देखिए कि वे सहज हैं, पानी या आराम दीजिए, और तैयार होने पर ही आगे बढ़िए।</string>
     <string name="officer_has_gesture">पात्र इशारा दिखाता है</string>
@@ -225,6 +224,7 @@
     <string name="start_damaged_title">सामग्री की जाँच विफल</string>
     <string name="start_damaged_body">ऐप की इस कॉपी के सवाल या चित्र स्वीकृत सामग्री से मेल नहीं खाते, इसलिए नया सत्र शुरू नहीं हो सकता। अपने विभाग से नया संस्करण इंस्टॉल करें।</string>
     <string name="start_media_rejected">कुछ चित्र, आवाज़ें या इशारे जाँच में विफल रहे और हटा दिए गए हैं।</string>
+    <string name="start_asl_off">ASL बंद है: उसके इशारे या शब्द जाँच में विफल रहे। ISL पर कोई असर नहीं है।</string>
     <string name="officer_phrases">वाक्य</string>
     <string name="quick_hint">कुछ भी लिखें और दिखाएँ</string>
     <string name="mode_signs">संकेत</string>
@@ -413,6 +413,11 @@
     <string name="glance_hide">अधिकारी पट्टी छिपाएँ</string>
     <string name="officer_rules">शुरुआती नियम और अभ्यास</string>
     <string name="isl_dictionary">ISL शब्दकोश</string>
+    <string name="asl_dictionary">ASL शब्दकोश</string>
+    <string name="asl_dictionary_recorded">रिकॉर्ड किए गए साइनर से (PopSign)। बधिर समीक्षा तक मसौदा।</string>
+    <string name="asl_dictionary_attribution">रिकॉर्ड किए गए साइन PopSign ASL डेटासेट (Georgia Tech और NTID) से लिए गए हैं, लाइसेंस CC BY 4.0।</string>
+    <string name="dictionary_held_pose">स्थिर मुद्रा।</string>
+    <string name="dictionary_right_hand_only">केवल दायाँ हाथ।</string>
     <string name="isl_dictionary_search">अंग्रेज़ी या हिंदी में खोजिए</string>
     <string name="isl_dictionary_all">सभी</string>
     <string name="isl_dictionary_pick">संकेत देखने के लिए किसी शब्द पर टैप कीजिए।</string>
@@ -428,7 +433,6 @@
     <string name="stage_dont_know">मुझे नहीं पता</string>
     <string name="stage_dont_understand">मुझे समझ नहीं आया</string>
     <string name="stage_wrong">यह ग़लत है</string>
-    <string name="stage_break_name">आराम</string>
     <string name="stage_stop">रुको</string>
     <string name="stage_done">हो गया</string>
     <string name="stage_clear">मिटाएँ</string>

@@ -431,20 +431,20 @@ Reviewers: child-welfare reviewer for every gesture; ISL reviewer as well for en
 | `asl.after` | "after" |  |  |  |  |
 | `asl.airplane` | "airplane" |  |  |  |  |
 | `asl.all` | "all" |  |  |  |  |
-| `asl.alligator` | "alligator" |  |  |  |  |
+| `asl.alligator` | "alligator" | two-handed sign drawn with the right hand only |  |  |  |
 | `asl.animal` | "animal" |  |  |  |  |
 | `asl.another` | "another" |  |  |  |  |
-| `asl.any` | "any" | one held keyframe |  |  |  |
+| `asl.any` | "any" |  |  |  |  |
 | `asl.apple` | "apple" |  |  |  |  |
-| `asl.arm` | "arm" | one held keyframe |  |  |  |
+| `asl.arm` | "arm" |  |  |  |  |
 | `asl.aunt` | "aunt" |  |  |  |  |
 | `asl.awake` | "awake" |  |  |  |  |
 | `asl.backyard` | "backyard" |  |  |  |  |
 | `asl.bad` | "bad" |  |  |  |  |
 | `asl.balloon` | "balloon" |  |  |  |  |
-| `asl.bath` | "bath" | two-handed sign drawn with the right hand only |  |  |  |
+| `asl.bath` | "bath" |  |  |  |  |
 | `asl.because` | "because" |  |  |  |  |
-| `asl.bed` | "bed" | one held keyframe |  |  |  |
+| `asl.bed` | "bed" |  |  |  |  |
 | `asl.bedroom` | "bedroom" |  |  |  |  |
 | `asl.bee` | "bee" |  |  |  |  |
 | `asl.before` | "before" |  |  |  |  |
@@ -454,8 +454,8 @@ Reviewers: child-welfare reviewer for every gesture; ISL reviewer as well for en
 | `asl.black` | "black" |  |  |  |  |
 | `asl.blow` | "blow" |  |  |  |  |
 | `asl.blue` | "blue" |  |  |  |  |
-| `asl.boat` | "boat" | one held keyframe; two-handed sign drawn with the right hand only |  |  |  |
-| `asl.book` | "book" | one held keyframe; two-handed sign drawn with the right hand only |  |  |  |
+| `asl.boat` | "boat" |  |  |  |  |
+| `asl.book` | "book" |  |  |  |  |
 | `asl.boy` | "boy" |  |  |  |  |
 | `asl.brother` | "brother" |  |  |  |  |
 | `asl.brown` | "brown" |  |  |  |  |
@@ -463,25 +463,25 @@ Reviewers: child-welfare reviewer for every gesture; ISL reviewer as well for en
 | `asl.bye` | "bye" |  |  |  |  |
 | `asl.callonphone` | "call" |  |  |  |  |
 | `asl.can` | "can" |  |  |  |  |
-| `asl.car` | "car" | two-handed sign drawn with the right hand only |  |  |  |
+| `asl.car` | "car" |  |  |  |  |
 | `asl.carrot` | "carrot" |  |  |  |  |
 | `asl.cat` | "cat" |  |  |  |  |
 | `asl.cereal` | "cereal" |  |  |  |  |
-| `asl.chair` | "chair" | two-handed sign drawn with the right hand only |  |  |  |
+| `asl.chair` | "chair" |  |  |  |  |
 | `asl.cheek` | "cheek" |  |  |  |  |
 | `asl.child` | "child" |  |  |  |  |
 | `asl.chin` | "chin" |  |  |  |  |
 | `asl.chocolate` | "chocolate" |  |  |  |  |
-| `asl.clean` | "clean" |  |  |  |  |
+| `asl.clean` | "clean" | two-handed sign drawn with the right hand only |  |  |  |
 | `asl.close` | "close" |  |  |  |  |
-| `asl.closet` | "closet" | two-handed sign drawn with the right hand only |  |  |  |
+| `asl.closet` | "closet" |  |  |  |  |
 | `asl.cloud` | "cloud" |  |  |  |  |
 | `asl.clown` | "clown" |  |  |  |  |
 | `asl.cow` | "cow" |  |  |  |  |
 | `asl.cowboy` | "cowboy" |  |  |  |  |
 | `asl.cry` | "cry" |  |  |  |  |
 | `asl.cut` | "cut" |  |  |  |  |
-| `asl.cute` | "cute" | one held keyframe |  |  |  |
+| `asl.cute` | "cute" |  |  |  |  |
 | `asl.dad` | "dad" |  |  |  |  |
 | `asl.dance` | "dance" | two-handed sign drawn with the right hand only |  |  |  |
 | `asl.dirty` | "dirty" |  |  |  |  |
@@ -489,20 +489,20 @@ Reviewers: child-welfare reviewer for every gesture; ISL reviewer as well for en
 | `asl.doll` | "doll" |  |  |  |  |
 | `asl.donkey` | "donkey" |  |  |  |  |
 | `asl.down` | "down" |  |  |  |  |
-| `asl.drawer` | "drawer" | two-handed sign drawn with the right hand only |  |  |  |
-| `asl.drink` | "drink" | one held keyframe |  |  |  |
+| `asl.drawer` | "drawer" |  |  |  |  |
+| `asl.drink` | "drink" |  |  |  |  |
 | `asl.drop` | "drop" |  |  |  |  |
 | `asl.dry` | "dry" |  |  |  |  |
 | `asl.dryer` | "dryer" |  |  |  |  |
 | `asl.duck` | "duck" |  |  |  |  |
 | `asl.ear` | "ear" |  |  |  |  |
 | `asl.elephant` | "elephant" |  |  |  |  |
-| `asl.empty` | "empty" | one held keyframe |  |  |  |
+| `asl.empty` | "empty" |  |  |  |  |
 | `asl.every` | "every" |  |  |  |  |
 | `asl.eye` | "eye" |  |  |  |  |
 | `asl.face` | "face" |  |  |  |  |
 | `asl.fall` | "fall" |  |  |  |  |
-| `asl.farm` | "farm" | two-handed sign drawn with the right hand only |  |  |  |
+| `asl.farm` | "farm" |  |  |  |  |
 | `asl.fast` | "fast" |  |  |  |  |
 | `asl.feet` | "feet" |  |  |  |  |
 | `asl.find` | "find" |  |  |  |  |
@@ -510,9 +510,9 @@ Reviewers: child-welfare reviewer for every gesture; ISL reviewer as well for en
 | `asl.finger` | "finger" |  |  |  |  |
 | `asl.finish` | "finish" |  |  |  |  |
 | `asl.fireman` | "fireman" |  |  |  |  |
-| `asl.first` | "first" | one held keyframe |  |  |  |
+| `asl.first` | "first" | two-handed sign drawn with the right hand only |  |  |  |
 | `asl.fish` | "fish" |  |  |  |  |
-| `asl.flag` | "flag" |  |  |  |  |
+| `asl.flag` | "flag" | two-handed sign drawn with the right hand only |  |  |  |
 | `asl.flower` | "flower" |  |  |  |  |
 | `asl.food` | "food" |  |  |  |  |
 | `asl.for` | "for" |  |  |  |  |
@@ -539,22 +539,22 @@ Reviewers: child-welfare reviewer for every gesture; ISL reviewer as well for en
 | `asl.haveto` | "have to" |  |  |  |  |
 | `asl.head` | "head" |  |  |  |  |
 | `asl.hear` | "hear" |  |  |  |  |
-| `asl.helicopter` | "helicopter" | two-handed sign drawn with the right hand only |  |  |  |
+| `asl.helicopter` | "helicopter" |  |  |  |  |
 | `asl.hello` | "hello" |  |  |  |  |
 | `asl.hen` | "hen" |  |  |  |  |
 | `asl.hesheit` | "he" |  |  |  |  |
 | `asl.hide` | "hide" |  |  |  |  |
 | `asl.high` | "high" |  |  |  |  |
-| `asl.home` | "home" | one held keyframe |  |  |  |
+| `asl.home` | "home" |  |  |  |  |
 | `asl.horse` | "horse" |  |  |  |  |
 | `asl.hot` | "hot" |  |  |  |  |
-| `asl.hungry` | "hungry" | one held keyframe |  |  |  |
+| `asl.hungry` | "hungry" |  |  |  |  |
 | `asl.icecream` | "ice cream" |  |  |  |  |
 | `asl.if` | "if" |  |  |  |  |
 | `asl.into` | "into" |  |  |  |  |
-| `asl.jacket` | "jacket" | one held keyframe |  |  |  |
+| `asl.jacket` | "jacket" |  |  |  |  |
 | `asl.jeans` | "jeans" |  |  |  |  |
-| `asl.jump` | "jump" |  |  |  |  |
+| `asl.jump` | "jump" | two-handed sign drawn with the right hand only |  |  |  |
 | `asl.kiss` | "kiss" |  |  |  |  |
 | `asl.kitty` | "kitty" |  |  |  |  |
 | `asl.lamp` | "lamp" |  |  |  |  |
@@ -570,27 +570,27 @@ Reviewers: child-welfare reviewer for every gesture; ISL reviewer as well for en
 | `asl.man` | "man" |  |  |  |  |
 | `asl.many` | "many" |  |  |  |  |
 | `asl.milk` | "milk" |  |  |  |  |
-| `asl.minemy` | "my" | one held keyframe |  |  |  |
+| `asl.minemy` | "my" |  |  |  |  |
 | `asl.mitten` | "mitten" |  |  |  |  |
 | `asl.mom` | "mom" |  |  |  |  |
 | `asl.moon` | "moon" |  |  |  |  |
-| `asl.morning` | "morning" |  |  |  |  |
+| `asl.morning` | "morning" | two-handed sign drawn with the right hand only |  |  |  |
 | `asl.mouse` | "mouse" |  |  |  |  |
 | `asl.mouth` | "mouth" |  |  |  |  |
 | `asl.nap` | "nap" |  |  |  |  |
 | `asl.napkin` | "napkin" |  |  |  |  |
-| `asl.night` | "night" |  |  |  |  |
+| `asl.night` | "night" | two-handed sign drawn with the right hand only |  |  |  |
 | `asl.no` | "no" |  |  |  |  |
 | `asl.noisy` | "noisy" |  |  |  |  |
 | `asl.nose` | "nose" |  |  |  |  |
-| `asl.not` | "not" | one held keyframe |  |  |  |
+| `asl.not` | "not" |  |  |  |  |
 | `asl.now` | "now" |  |  |  |  |
 | `asl.nuts` | "nuts" |  |  |  |  |
-| `asl.old` | "old" | one held keyframe |  |  |  |
-| `asl.on` | "on" |  |  |  |  |
-| `asl.open` | "open" | one held keyframe; two-handed sign drawn with the right hand only |  |  |  |
+| `asl.old` | "old" |  |  |  |  |
+| `asl.on` | "on" | two-handed sign drawn with the right hand only |  |  |  |
+| `asl.open` | "open" |  |  |  |  |
 | `asl.orange` | "orange" |  |  |  |  |
-| `asl.outside` | "outside" | one held keyframe |  |  |  |
+| `asl.outside` | "outside" |  |  |  |  |
 | `asl.owie` | "hurt" |  |  |  |  |
 | `asl.owl` | "owl" |  |  |  |  |
 | `asl.pajamas` | "pajamas" |  |  |  |  |
@@ -607,25 +607,25 @@ Reviewers: child-welfare reviewer for every gesture; ISL reviewer as well for en
 | `asl.pretend` | "pretend" |  |  |  |  |
 | `asl.pretty` | "pretty" |  |  |  |  |
 | `asl.puppy` | "puppy" |  |  |  |  |
-| `asl.puzzle` | "puzzle" | one held keyframe; two-handed sign drawn with the right hand only |  |  |  |
-| `asl.quiet` | "quiet" | one held keyframe |  |  |  |
-| `asl.radio` | "radio" |  |  |  |  |
+| `asl.puzzle` | "puzzle" |  |  |  |  |
+| `asl.quiet` | "quiet" |  |  |  |  |
+| `asl.radio` | "radio" | two-handed sign drawn with the right hand only |  |  |  |
 | `asl.rain` | "rain" |  |  |  |  |
-| `asl.read` | "read" | one held keyframe; two-handed sign drawn with the right hand only |  |  |  |
-| `asl.red` | "red" | one held keyframe |  |  |  |
-| `asl.refrigerator` | "refrigerator" | two-handed sign drawn with the right hand only |  |  |  |
-| `asl.ride` | "ride" | one held keyframe; two-handed sign drawn with the right hand only |  |  |  |
-| `asl.room` | "room" | one held keyframe |  |  |  |
+| `asl.read` | "read" |  |  |  |  |
+| `asl.red` | "red" |  |  |  |  |
+| `asl.refrigerator` | "refrigerator" |  |  |  |  |
+| `asl.ride` | "ride" |  |  |  |  |
+| `asl.room` | "room" |  |  |  |  |
 | `asl.sad` | "sad" |  |  |  |  |
-| `asl.same` | "same" | two-handed sign drawn with the right hand only |  |  |  |
+| `asl.same` | "same" |  |  |  |  |
 | `asl.say` | "say" |  |  |  |  |
 | `asl.scissors` | "scissors" | two-handed sign drawn with the right hand only |  |  |  |
 | `asl.see` | "see" |  |  |  |  |
-| `asl.shhh` | "hush" | one held keyframe |  |  |  |
+| `asl.shhh` | "hush" |  |  |  |  |
 | `asl.shirt` | "shirt" |  |  |  |  |
 | `asl.shoe` | "shoe" |  |  |  |  |
 | `asl.shower` | "shower" |  |  |  |  |
-| `asl.sick` | "sick" |  |  |  |  |
+| `asl.sick` | "sick" | two-handed sign drawn with the right hand only |  |  |  |
 | `asl.sleep` | "sleep" |  |  |  |  |
 | `asl.sleepy` | "sleepy" |  |  |  |  |
 | `asl.smile` | "smile" |  |  |  |  |
@@ -635,10 +635,10 @@ Reviewers: child-welfare reviewer for every gesture; ISL reviewer as well for en
 | `asl.stay` | "stay" |  |  |  |  |
 | `asl.sticky` | "sticky" |  |  |  |  |
 | `asl.store` | "store" |  |  |  |  |
-| `asl.story` | "story" | two-handed sign drawn with the right hand only |  |  |  |
+| `asl.story` | "story" |  |  |  |  |
 | `asl.stuck` | "stuck" |  |  |  |  |
 | `asl.sun` | "sun" |  |  |  |  |
-| `asl.table` | "table" | two-handed sign drawn with the right hand only |  |  |  |
+| `asl.table` | "table" |  |  |  |  |
 | `asl.talk` | "talk" |  |  |  |  |
 | `asl.taste` | "taste" |  |  |  |  |
 | `asl.thankyou` | "thank you" |  |  |  |  |
@@ -654,21 +654,21 @@ Reviewers: child-welfare reviewer for every gesture; ISL reviewer as well for en
 | `asl.toothbrush` | "toothbrush" |  |  |  |  |
 | `asl.touch` | "touch" |  |  |  |  |
 | `asl.toy` | "toy" |  |  |  |  |
-| `asl.tree` | "tree" |  |  |  |  |
+| `asl.tree` | "tree" | two-handed sign drawn with the right hand only |  |  |  |
 | `asl.TV` | "tv" |  |  |  |  |
-| `asl.uncle` | "uncle" | one held keyframe |  |  |  |
+| `asl.uncle` | "uncle" |  |  |  |  |
 | `asl.underwear` | "underwear" |  |  |  |  |
-| `asl.up` | "up" | one held keyframe |  |  |  |
-| `asl.vacuum` | "vacuum" | two-handed sign drawn with the right hand only |  |  |  |
+| `asl.up` | "up" |  |  |  |  |
+| `asl.vacuum` | "vacuum" |  |  |  |  |
 | `asl.wait` | "wait" |  |  |  |  |
 | `asl.wake` | "wake" |  |  |  |  |
 | `asl.water` | "water" |  |  |  |  |
-| `asl.wet` | "wet" |  |  |  |  |
+| `asl.wet` | "wet" | two-handed sign drawn with the right hand only |  |  |  |
 | `asl.weus` | "we" |  |  |  |  |
 | `asl.where` | "where" |  |  |  |  |
-| `asl.white` | "white" | one held keyframe |  |  |  |
+| `asl.white` | "white" |  |  |  |  |
 | `asl.who` | "who" |  |  |  |  |
-| `asl.why` | "why" | one held keyframe |  |  |  |
+| `asl.why` | "why" |  |  |  |  |
 | `asl.will` | "will" |  |  |  |  |
 | `asl.wolf` | "wolf" |  |  |  |  |
 | `asl.yellow` | "yellow" |  |  |  |  |
@@ -676,8 +676,8 @@ Reviewers: child-welfare reviewer for every gesture; ISL reviewer as well for en
 | `asl.yesterday` | "yesterday" |  |  |  |  |
 | `asl.yourself` | "yourself" |  |  |  |  |
 | `asl.yucky` | "yuck" |  |  |  |  |
-| `asl.zebra` | "zebra" | one held keyframe |  |  |  |
-| `asl.zipper` | "zipper" |  |  |  |  |
+| `asl.zebra` | "zebra" |  |  |  |  |
+| `asl.zipper` | "zipper" | two-handed sign drawn with the right hand only |  |  |  |
 | `asl.letter.a` | "a" |  |  |  |  |
 | `asl.letter.b` | "b" |  |  |  |  |
 | `asl.letter.c` | "c" |  |  |  |  |
@@ -704,6 +704,16 @@ Reviewers: child-welfare reviewer for every gesture; ISL reviewer as well for en
 | `asl.letter.x` | "x" |  |  |  |  |
 | `asl.letter.y` | "y" |  |  |  |  |
 | `asl.letter.z` | "z" |  |  |  |  |
+| `asl.digit.0` | "0" |  |  |  |  |
+| `asl.digit.1` | "1" |  |  |  |  |
+| `asl.digit.2` | "2" |  |  |  |  |
+| `asl.digit.3` | "3" |  |  |  |  |
+| `asl.digit.4` | "4" |  |  |  |  |
+| `asl.digit.5` | "5" |  |  |  |  |
+| `asl.digit.6` | "6" |  |  |  |  |
+| `asl.digit.7` | "7" |  |  |  |  |
+| `asl.digit.8` | "8" |  |  |  |  |
+| `asl.digit.9` | "9" |  |  |  |  |
 
 ## 2. Phrase-bank sentences
 

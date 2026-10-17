@@ -40,7 +40,8 @@ const val DRAFT_CATEGORY = "Draft"
 /** The one-hand letters in asl_signs.json: fingerspelling keys, never a typed word's sign or a dictionary entry. */
 const val ALPHABET = "Alphabet"
 
-private fun ContentBundle.signFor(label: String): Gesture? = isl.gestures.firstOrNull { it.label == label }?.gesture
+private fun ContentBundle.signFor(label: String): Gesture? = (isl.gestures.firstOrNull { it.label == label }
+    ?: isl.gestures.firstOrNull { it.label.equals(label, ignoreCase = true) })?.gesture
 
 /**
  * The sign recorded from a signer for a typed or read word: the word itself, else its concept's reader label
@@ -69,9 +70,9 @@ fun ContentBundle.motionFor(word: String, entry: WordEntry?, modes: Set<SignMode
 fun ContentBundle.isPhrase(words: String, modes: Set<SignMode>): Boolean =
     words in this.words || (SignMode.SIGNS in modes && isl.gestures.any { it.word == words && !it.homonym && !it.isLetter })
 
-/** A reader label signed back for the subject to confirm (FR-86): its own recorded sign, else the lexicon's. */
+/** A reader label signed back for the subject to confirm (FR-86): its recorded sign, else the lexicon's, else spelled. */
 fun ContentBundle.signBack(label: String): Gesture? =
-    signFor(label) ?: planText(signWords[label] ?: label, setOf(SignMode.SIGNS)).gesture
+    signFor(label) ?: planText(signWords[label] ?: label, setOf(SignMode.SIGNS, SignMode.SPELL)).gesture
 
 /** One sign in the officer's ISL dictionary. [forms] are every written form it is found by. */
 @Immutable
@@ -83,6 +84,8 @@ data class DictionaryEntry(
     /** Retargeted from a recorded signer, as opposed to a hand-authored draft. */
     val recorded: Boolean,
     val rec: String? = null,
+    val static: Boolean = false,
+    val oneHand: Boolean = false,
     val forms: List<String> = emptyList(),
 )
 
@@ -93,7 +96,7 @@ fun ContentBundle.dictionary(): List<DictionaryEntry> {
     val byForm = words
     val recorded = isl.gestures.filterNot { it.isLetter }.map { s ->
         val concept = signWords[s.label]?.let(byForm::get)?.w.orEmpty()
-        DictionaryEntry(s.id, s.word, s.hi, s.category, true, s.rec, listOf(s.word, s.hi) + concept)
+        DictionaryEntry(s.id, s.word, s.hi, s.category, true, s.rec, s.static, s.oneHandSource, listOf(s.word, s.hi) + concept)
     }
     val authored = words.values.distinct().filter { it.sign?.startsWith("sign.") == true && it.sign in gestures }
         .groupBy { it.sign!! }
@@ -126,7 +129,7 @@ enum class SignLanguage(val reader: String, val spell: String?, val words: Strin
 fun ContentBundle.forSignLanguage(lang: SignLanguage): ContentBundle {
     if (lang == SignLanguage.ISL) return this
     val signs = aslSigns.gestures.map { it.gesture }
-    // Spelling looks letters up as letter.x; the motion keeps its asl. id.
-    val letters = signs.filter { it.id.startsWith("asl.letter.") }.associateBy { it.id.removePrefix("asl.") }
-    return copy(gestures = everyday + signs.associateBy { it.id } + letters, isl = aslSigns, signWords = aslWords).withSignedQuestions()
+    // Spelling looks letters and digits up as letter.x, digit.n; the motion keeps its asl. id.
+    val letters = signs.filter { it.id.startsWith("asl.letter.") || it.id.startsWith("asl.digit.") }.associateBy { it.id.removePrefix("asl.") }
+    return copy(gestures = everyday + signs.associateBy { it.id } + letters, isl = aslSigns, signWords = aslWords, language = lang).withSignedQuestions()
 }

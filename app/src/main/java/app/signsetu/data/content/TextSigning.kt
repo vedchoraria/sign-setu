@@ -64,7 +64,7 @@ fun ContentBundle.planText(text: String, modes: Set<SignMode>): TextPlan {
     // Hindi "do" (give) ends its sentence; anywhere else it is the English helper word.
     fun grammar(i: Int) = tokens[i].second in FILLER && i != tokens.lastIndex
     fun entryOf(i: Int) = tokens[i].second.let { w -> words[w]?.takeIf { !grammar(i) } }
-    val order = tokens.indices.let { all -> if (SignMode.SIGNS in modes && SignMode.TYPED_ORDER !in modes) all.sortedBy { islRank(tokens[it].second, entryOf(it)) } else all }
+    val order = tokens.indices.let { all -> if (language == SignLanguage.ISL && SignMode.SIGNS in modes && SignMode.TYPED_ORDER !in modes) all.sortedBy { islRank(tokens[it].second, entryOf(it)) } else all }
     for (i in order) {
         val (range, word) = tokens[i]
         val entry = entryOf(i)
@@ -110,17 +110,18 @@ private val HINDI = mapOf(
 
 /**
  * The inverse of [planText]'s ISL order. [gloss] is the written word of each sign, in signed order; a run of single
- * letters or digits is one fingerspelled word. ISL signs time first, the verb last and negation and question after it;
+ * letters or digits is one fingerspelled word. [lang] ASL keeps the gloss order. ISL signs time first, the verb last and negation and question after it;
  * English moves the verb after the subject, Hindi keeps it last with the question word and नहीं just before it.
  */
-fun glossToText(gloss: List<String>, words: Map<String, WordEntry>): SignedText {
+fun glossToText(gloss: List<String>, words: Map<String, WordEntry>, lang: SignLanguage = SignLanguage.ISL): SignedText {
     val tokens = mutableListOf<Pair<String, Boolean>>()
     for (g in gloss.map { it.lowercase() }.filter { it.isNotBlank() && it != "?" }) {
         val letter = g.length == 1 && g[0].isLetterOrDigit()
         val last = tokens.lastOrNull()
         if (letter && last?.second == true) tokens[tokens.lastIndex] = last.first + g to true else tokens += g to letter
     }
-    fun rank(w: String, spelled: Boolean) = if (spelled) 1 else islRank(w, words[w])
+    // ASL is already subject-verb-object as signed: no reordering, no verb move.
+    fun rank(w: String, spelled: Boolean) = if (spelled || lang == SignLanguage.ASL) 1 else islRank(w, words[w])
     val time = tokens.filter { rank(it.first, it.second) == 0 }
     val rest = tokens.filter { rank(it.first, it.second) == 1 }
     val negated = tokens.any { rank(it.first, it.second) == 2 }
@@ -129,7 +130,7 @@ fun glossToText(gloss: List<String>, words: Map<String, WordEntry>): SignedText 
 
     fun en(t: Pair<String, Boolean>) = if (t.second) t.first.replaceFirstChar { it.uppercase() } else words[t.first]?.w?.firstOrNull() ?: t.first
     val verbLast = rest.map(::en).toMutableList()
-    if (verbLast.size >= 3) verbLast.add(1, verbLast.removeAt(verbLast.lastIndex))
+    if (lang == SignLanguage.ISL && verbLast.size >= 3) verbLast.add(1, verbLast.removeAt(verbLast.lastIndex))
     val svo = verbLast.mapIndexed { i, w -> if (i == 0 && w in setOf("i", "me")) "I" else if (w == "i") "me" else w }.toMutableList()
     val aux = if (time.any { it.first == "yesterday" }) "did" else "do"
     if (negated) svo.add(minOf(1, svo.size), "$aux not")

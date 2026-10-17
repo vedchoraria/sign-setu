@@ -42,15 +42,17 @@ Kotlin forward pass reproduces the Python logits on the fixture.
 
 No redistributable ISL fingerspelling landmark set was found (public ones are CC BY-NC). Google's Kaggle ASL sets are
 CC BY 4.0 but need Kaggle credentials; PopSign is the same isolated-sign corpus. `prepare_asl.py` needs a second venv
-(`signsetu-mp`: mediapipe, pyarrow, pillow) and reads the PopSign validation signers for training and test signers for
-testing (4.6 GB; the 14.5 GB train split is left out to stay within the download budget).
+(`signsetu-mp`: mediapipe, pyarrow, pillow) and reads the PopSign train and validation signers for training and test signers for
+testing (about 19 GB streamed, one 500 MB shard on disk at a time). The non-game split
+holds 216 of the 250 signs; the rest, and test clips for signs its test signers lack, come from the game split by HTTP
+range reads of only the row groups that hold them (`popsign_labels.json` lists the 250).
 
     python synth_isl.py                               # isl_spell.pkl
     python train.py <cache.pkl> <out.pt> [epochs]     # any format 1 reader
     python export.py <name> <out.pt> <cache.pkl>      # models/<name>.{bin,json} + <name>_fixture.json
     signsetu-mp/python -I prepare_asl.py              # asl.pkl
     python spell_ctc.py prepare | train | export      # asl_spell, format 2
-    python eval_isl.py                                # top-1/top-3: ISL words, letters, digits
+    python eval_isl.py                                # top-1/top-3: ISL words, letters, digits; sentence demo
     python eval_asl.py                                # top-1/top-3: ASL words; fingerspelling CER
     python ../isl/retarget_asl.py                     # asl_signs.json, asl_words.json
 

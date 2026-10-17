@@ -14,10 +14,14 @@ LOCK = ROOT / "app" / "gradle.lockfile"
 OUT = ROOT / "app" / "build" / "sbom"
 
 
+def shipped_lines(lines):
+    """Lockfile lines on any flavor's release runtime classpath."""
+    return [line for line in lines if "=" in line and "releaseruntimeclasspath" in line.split("=", 1)[1].lower()]
+
+
 def main(syft: str) -> None:
     OUT.mkdir(parents=True, exist_ok=True)
-    shipped = [line for line in LOCK.read_text(encoding="utf-8").splitlines()
-               if "=" in line and "releaseRuntimeClasspath" in line.split("=", 1)[1]]
+    shipped = shipped_lines(LOCK.read_text(encoding="utf-8").splitlines())
     staging = OUT / "release-runtime"
     staging.mkdir(exist_ok=True)
     (staging / "gradle.lockfile").write_text("\n".join(shipped) + "\n", encoding="utf-8")

@@ -1,6 +1,7 @@
 """Trains a format 1 reader on a landmark cache (INCLUDE, synthetic ISL letters, ASL) and reports test-split accuracy.
 
     python tools/ml/train.py [cache.pkl] [out.pt] [epochs]   # default INCLUDE: include.pkl -> sign_reader.pt, 400
+SIGN_HIDDEN and SIGN_DROPOUT override the width and dropout; export.py needs the same SIGN_HIDDEN (asl_reader: 320).
 """
 import os
 import pathlib
@@ -16,7 +17,8 @@ from torch import nn
 
 from features import ARMS, ARMS_FLIPPED, FEATURES, FRAMES, featurize, isotropic
 
-HIDDEN, KERNEL = 160, 5
+HIDDEN, KERNEL = int(os.environ.get("SIGN_HIDDEN", 160)), 5
+DROPOUT = float(os.environ.get("SIGN_DROPOUT", 0.4))
 
 
 class SignNet(nn.Module):
@@ -29,7 +31,7 @@ class SignNet(nn.Module):
         self.bn1 = nn.BatchNorm1d(HIDDEN)
         self.conv2 = nn.Conv1d(HIDDEN, HIDDEN, KERNEL, padding=KERNEL // 2)
         self.bn2 = nn.BatchNorm1d(HIDDEN)
-        self.drop = nn.Dropout(0.4)
+        self.drop = nn.Dropout(DROPOUT)
         self.head = nn.Linear(2 * HIDDEN, classes)
 
     def forward(self, x):  # x: (B, FRAMES, FEATURES)

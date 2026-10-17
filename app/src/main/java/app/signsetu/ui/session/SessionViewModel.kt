@@ -28,6 +28,7 @@ import app.signsetu.sign.SignSegment
 import app.signsetu.pair.AnswerBody
 import app.signsetu.pair.reencodeRemotePng
 import app.signsetu.sign.SignWindow
+import app.signsetu.sign.glossOf
 import app.signsetu.sign.glossTranscript
 import app.signsetu.sign.inContext
 import app.signsetu.sign.needsSlower
@@ -326,8 +327,8 @@ class SessionViewModel(
             if (segments.isEmpty()) return@launch
             logSigned(segments, segments.map { it.word ?: "?" }, EventSource.MACHINE, "en")
             val signWords = reader?.words.orEmpty()
-            val gloss = segments.map { s -> s.word?.let { signWords[it] ?: it } ?: "?" }
-            val draft = glossToText(gloss, content.words).takeIf { gloss.any { it != "?" } }?.let { "${it.en} / ${it.hi}" }
+            val gloss = segments.flatMap { s -> glossOf(s.guesses?.firstOrNull(), signWords) }
+            val draft = glossToText(gloss, content.words, ui.value?.signLanguage ?: SignLanguage.ISL).takeIf { gloss.any { it != "?" } }?.let { "${it.en} / ${it.hi}" }
             val note = listOfNotNull(glossTranscript(segments).takeIf { narrative }, draft).joinToString("\n")
             if (note.isNotEmpty()) repo.log(sessionId, EventType.NOTE, EventSource.MACHINE, "en", text = note)
         }
@@ -501,9 +502,11 @@ class SessionViewModel(
                 val method = Method.entries.firstOrNull { it.name == body.method }
                 if (method != null) {
                     val g = Given(body.question, method, body.confirmed, body.value.take(TEXT_MAX), body.picks)
-                    if (current) give(g) else if (g.confirmed) logGiven(g)
+                    if (!current || !hold(g, via)) logGiven(g, q, via)
+                    if (current && g.confirmed) advanceRun()
                 }
             }
+            AnswerBody.Change -> if (current) hold(null, via)
             is AnswerBody.Text -> repo.log(sessionId, EventType.ANSWER_TEXT, EventSource.SUBJECT, ui.value?.session?.subjectLang, text = body.text.trim(), shownId = q, via = via)
             is AnswerBody.Drawing -> {
                 // Only a bitmap this phone re-encoded itself reaches the database and the report.
@@ -634,22 +637,30 @@ class SessionViewModel(
 
     // An answer the subject entered but has not yet confirmed on its read-back.
     private var unconfirmed: Given? = null
+    private var unconfirmedVia: String? = null
 
     /** A lesson-sheet answer: a confirmed one is logged now; an unconfirmed one is logged as such if the item closes first. */
     fun give(g: Given?) {
-        if (g == null || !g.confirmed) { unconfirmed = g; return }
-        unconfirmed = null
-        viewModelScope.launch { logGiven(g); advanceRun() }
+        if (hold(g, null)) return
+        viewModelScope.launch { logGiven(g!!); advanceRun() }
+    }
+
+    /** Keeps [g] for the item's close unless it is confirmed; true when there is nothing to log now. */
+    private fun hold(g: Given?, via: String?): Boolean {
+        val held = g == null || !g.confirmed
+        unconfirmed = g.takeIf { held }
+        unconfirmedVia = via
+        return held
     }
 
     private suspend fun flushGiven() {
-        unconfirmed?.let { logGiven(it) }
+        unconfirmed?.let { logGiven(it, via = unconfirmedVia) }
         unconfirmed = null
     }
 
-    private suspend fun logGiven(g: Given) {
+    private suspend fun logGiven(g: Given, shownId: Long? = local.value.itemId, via: String? = null) {
         val text = content.answerText(content.question(g.question)?.answer, g, officerLang)
-        repo.log(sessionId, EventType.ANSWER_TEXT, EventSource.SUBJECT, officerLang, text = text, itemId = g.question, reason = g.reason(), shownId = local.value.itemId)
+        repo.log(sessionId, EventType.ANSWER_TEXT, EventSource.SUBJECT, officerLang, text = text, itemId = g.question, reason = g.reason(), shownId = shownId, via = via)
     }
 
     fun submitDrawing(png: ByteArray) {

@@ -44,6 +44,7 @@ import app.signsetu.R
 import app.signsetu.data.content.ContentBundle
 import app.signsetu.data.content.DRAFT_CATEGORY
 import app.signsetu.data.content.DictionaryEntry
+import app.signsetu.data.content.SignLanguage
 import app.signsetu.data.content.Question
 import app.signsetu.data.content.dictionary
 import app.signsetu.data.content.pick
@@ -62,7 +63,7 @@ fun DictionaryEntry.asQuestion(): Question =
  * Tapping a word plays it here; only Show puts it on the stage, so the subject reaches it through the officer.
  */
 @Composable
-fun IslDictionarySheet(content: ContentBundle, lang: String, onShow: (Question) -> Unit, onDismiss: () -> Unit) {
+fun IslDictionarySheet(content: ContentBundle, lang: String, signLanguage: SignLanguage, onShow: (Question) -> Unit, onDismiss: () -> Unit) {
     val all = remember(content) { content.dictionary() }
     val categories = remember(all) { all.map { it.category }.distinct() }
     var query by rememberSaveable { mutableStateOf("") }
@@ -75,7 +76,7 @@ fun IslDictionarySheet(content: ContentBundle, lang: String, onShow: (Question) 
 
     OfficerSheet(onDismiss) {
         Column(Modifier.padding(horizontal = Spacing.lg).navigationBarsPadding()) {
-            SheetTitle(stringResource(R.string.isl_dictionary))
+            SheetTitle(stringResource(if (signLanguage == SignLanguage.ASL) R.string.asl_dictionary else R.string.isl_dictionary))
             Surface(shape = RoundedCornerShape(16.dp), color = LocalStageColors.current.skyTop, modifier = Modifier.fillMaxWidth().height(180.dp)) {
                 Box {
                     Avatar(Character.ADULT, selected?.let { content.gestures[it.gestureId] }, selectedId to plays, Modifier.align(Alignment.Center).size(180.dp))
@@ -92,8 +93,13 @@ fun IslDictionarySheet(content: ContentBundle, lang: String, onShow: (Question) 
                 Row(Modifier.fillMaxWidth().padding(vertical = Spacing.sm), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text(listOf(selected.en, selected.hi).filter { it.isNotEmpty() }.joinToString("  ·  "), style = MaterialTheme.typography.titleMedium)
+                        val note = listOfNotNull(
+                            stringResource(if (!selected.recorded) R.string.isl_dictionary_draft else if (signLanguage == SignLanguage.ASL) R.string.asl_dictionary_recorded else R.string.isl_dictionary_recorded),
+                            if (selected.static) stringResource(R.string.dictionary_held_pose) else null,
+                            if (selected.oneHand) stringResource(R.string.dictionary_right_hand_only) else null,
+                        ).joinToString(" ")
                         Text(
-                            stringResource(if (selected.recorded) R.string.isl_dictionary_recorded else R.string.isl_dictionary_draft),
+                            note,
                             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
@@ -125,7 +131,7 @@ fun IslDictionarySheet(content: ContentBundle, lang: String, onShow: (Question) 
                 }
             }
             Text(
-                stringResource(R.string.isl_dictionary_attribution),
+                stringResource(if (signLanguage == SignLanguage.ASL) R.string.asl_dictionary_attribution else R.string.isl_dictionary_attribution),
                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(vertical = Spacing.sm),
             )
