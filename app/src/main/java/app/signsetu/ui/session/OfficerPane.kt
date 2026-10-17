@@ -1,6 +1,7 @@
 package app.signsetu.ui.session
 
 import androidx.compose.material.icons.filled.Star
+import app.signsetu.camera.SkeletonOnly
 import app.signsetu.assistant.Suggestion
 import app.signsetu.assistant.Assistant
 import android.app.Activity
@@ -124,6 +125,7 @@ import app.signsetu.data.content.SignLanguage
 import app.signsetu.data.content.SignMode
 import app.signsetu.data.content.forSignLanguage
 import app.signsetu.data.content.pick
+import app.signsetu.data.session.EventSource
 import app.signsetu.data.session.EventType
 import app.signsetu.data.session.Profile
 import app.signsetu.data.session.SessionEvent
@@ -355,6 +357,13 @@ fun OfficerPane(
                             trailingIcon = { Switch(checked = SunMode.forced.value, onCheckedChange = null) },
                             onClick = { SunMode.forced.value = !SunMode.forced.value },
                             modifier = Modifier.toggleState(SunMode.forced.value, Role.Switch),
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.officer_skeleton_only)) },
+                            leadingIcon = { Icon(painterResource(R.drawable.ic_videocam), contentDescription = null) },
+                            trailingIcon = { Switch(checked = SkeletonOnly.on.value, onCheckedChange = null) },
+                            onClick = { SkeletonOnly.on.value = !SkeletonOnly.on.value },
+                            modifier = Modifier.toggleState(SkeletonOnly.on.value, Role.Switch),
                         )
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.officer_camera)) },
@@ -1252,6 +1261,24 @@ private sealed interface ExportState {
     data object Failed : ExportState
 }
 
+/** How the subject answered, by kind, for the report header: what a reader of the record should weigh first. */
+private fun answerSummary(res: Resources, events: List<SessionEvent>): Pair<String, String>? {
+    val subject = events.filter { it.source == EventSource.SUBJECT }
+    fun n(vararg t: EventType) = subject.count { it.type in t }
+    val parts = listOfNotNull(
+        n(EventType.ANSWER_CARD).takeIf { it > 0 }?.let { taps ->
+            val cued = subject.count { it.type == EventType.ANSWER_CARD && it.reason?.startsWith("cue:") == true }
+            if (cued > 0) res.getString(R.string.summary_taps_cued, taps, cued) else res.getString(R.string.summary_taps, taps)
+        },
+        // A signed answer is logged as the app's reading of it, one per sign window.
+        events.count { it.type == EventType.ANSWER_SIGNED && it.source == EventSource.MACHINE }.takeIf { it > 0 }?.let { res.getString(R.string.summary_signed, it) },
+        n(EventType.ANSWER_DRAWING).takeIf { it > 0 }?.let { res.getString(R.string.summary_drawn, it) },
+        n(EventType.ANSWER_TEXT).takeIf { it > 0 }?.let { res.getString(R.string.summary_written, it) },
+        n(EventType.ANSWER_GESTURE).takeIf { it > 0 }?.let { res.getString(R.string.summary_gestured, it) },
+    )
+    return parts.takeIf { it.isNotEmpty() }?.let { res.getString(R.string.report_answers) to it.joinToString(", ") }
+}
+
 private fun reportText(res: Resources, ui: SessionUi, content: ContentBundle): ReportText {
     val time = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
     val language = content.language(ui.session.subjectLang)
@@ -1268,7 +1295,7 @@ private fun reportText(res: Resources, ui: SessionUi, content: ContentBundle): R
         ) + ui.events.filter { it.via != null }.let { remote ->
             val clock = DateFormat.getTimeInstance(DateFormat.SHORT)
             if (remote.isEmpty()) emptyList() else listOf(res.getString(R.string.report_second_screen) to res.getString(R.string.report_via_header, clock.format(Date(remote.first().ts)), clock.format(Date(remote.last().ts))))
-        } + autoHeader(res, ui.events),
+        } + autoHeader(res, ui.events) + listOfNotNull(answerSummary(res, ui.events)),
         time = res.getString(R.string.report_time),
         event = res.getString(R.string.report_event),
         detail = res.getString(R.string.report_detail),

@@ -72,9 +72,20 @@ fun recordDetail(res: Resources, content: ContentBundle, lang: String, events: L
                 grades[e.id]?.let { "[${res.getString(it.label())}]" },
                 base(e),
                 givenText(res, e),
+                cueText(res, e),
                 positions[e.id]?.let { (n, of) -> "(${res.getString(R.string.choice_position, n, of)})" },
                 trails[e.id]?.let { "· ${trailText(res, it)}" },
             ).joinToString(" ")
         }
     }
 }
+
+/** How a tapped answer followed a gesture the app proposed (D-40), e.g. "(after a nod or thumbs up)". */
+fun cueText(res: Resources, e: SessionEvent): String? = when (e.reason?.takeIf { e.type == EventType.ANSWER_CARD }) {
+    "cue:nod" -> R.string.cue_nod
+    "cue:shake" -> R.string.cue_shake
+    "cue:point" -> R.string.cue_point
+    "cue:palm" -> R.string.cue_palm
+    "cue:shrug" -> R.string.cue_shrug
+    else -> null
+}?.let { "(" + res.getString(it) + ")" }

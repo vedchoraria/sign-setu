@@ -1,7 +1,7 @@
 # Back, Yes, No and Stop: acceptance matrix
 
 Scope: every officer screen, sheet and dialog, and every subject stage state, in `app/src/main/java/app/signsetu/`.
-Basis: the code at main commit ff3e893. Each cell is either the control that
+Basis: the code at main commit 9989811. Each cell is either the control that
 does the job, or the written reason it is not offered. A cell marked **gap** is a known departure from the T1 rule and
 is listed again in the last section.
 
@@ -60,9 +60,11 @@ therefore give the subject's own back control where one exists.
 Yes and No on the answer bar (`AnswerBar`) are shown for every pending item except a rights question and the drawing
 asked for by the officer. Break and Stop (`PauseRow`) are shown under the answer bar and on most other states.
 
+The camera on the stage can propose Yes or No (`LandmarkTracker.kt`, `CameraMirror.kt`): a nod or a held thumbs up pulses the Yes button, and a head shake or a held thumbs down pulses the No button (`RailButton`, `proposed`). The pulse is a highlight only. Nothing is logged until the subject taps the button, so every Yes and No cell below keeps its tap rule, and the proposal is cleared whenever the pending item changes.
+
 | State (code) | Back | Yes | No | Stop |
 |---|---|---|---|---|
-| S1 Question, plain (`Pending.Ask`) | Reason: the subject has no back on a question; the officer handle returns to the officer. | Yes button, logs `yes` and advances (`answerYesNo`). | No button, logs `no` and advances. | Stop in `PauseRow`, logs `stop` and ends the run. |
+| S1 Question, plain (`Pending.Ask`) | Reason: the subject has no back on a question; the officer handle returns to the officer. | Yes button, logs `yes` and advances (`answerYesNo`); pulses on a nod or thumbs up, and the tap is still the answer. | No button, logs `no` and advances; pulses on a head shake or thumbs down, and the tap is still the answer. | Stop in `PauseRow`, logs `stop` and ends the run. |
 | S2 Rights notice (`Pending.Ask` with `rights_interpreter`) | Reason: as S1. | Reason: no Yes is shown; a Yes under a right would read as a waiver. | Reason: no No is shown; the subject's answer is "Don't understand", which does not waive. | Break and Stop in `PauseRow`. |
 | S3 Question with picture choices (`MirrorWindow` tiles) | Reason: as S1. | Yes button on the answer bar (S1 rule). | No button on the answer bar; a picture tile is logged as the subject's pick. | Stop in `PauseRow`. |
 | S4 Show-back, reading check (`Pending.ShowBack`) | Reason: as S1. | Yes logs the subject's Yes to the reading. | No logs `ANSWER_UNCLEAR` with the reading. Picking one of two or more pictures logs the choice (`logChecked`). | Stop in `PauseRow`. |

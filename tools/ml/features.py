@@ -46,6 +46,30 @@ def featurize(left, right, pose, has_left, has_right, has_pose):
     return out
 
 
+def featurize_hands(left, right, pose, has_left, has_right, has_pose):
+    """Like featurize, but centred on the mean of all hand points and scaled by the mean wrist to middle-knuckle length
+    (points 0, 9), so close-ups without shoulders read the same; arm features stay zero. For the letter reader ("norm":
+    "hands" in its json)."""
+    present = [h[m] for h, m in ((left, has_left), (right, has_right)) if m.any()]
+    if not present:
+        return None
+    pts = np.concatenate(present)
+    center = pts.reshape(-1, 2).mean(0)
+    scale = np.linalg.norm(pts[:, 0] - pts[:, 9], axis=1).mean()
+    if scale < 1e-6:
+        return None
+    idx = resample_index(len(left))
+    out = np.zeros((FRAMES, FEATURES), np.float32)
+    for t, j in enumerate(idx):
+        if has_left[j]:
+            out[t, 0:42] = ((left[j] - center) / scale).reshape(-1)
+            out[t, 96] = 1
+        if has_right[j]:
+            out[t, 42:84] = ((right[j] - center) / scale).reshape(-1)
+            out[t, 97] = 1
+    return out
+
+
 # Format 2, the fingerspelling reader (CtcSpellReader.kt must match): one hand per frame at a fixed rate.
 SPELL_FPS = 15
 SPELL_MAX = 300  # 20 s, the sign window's limit

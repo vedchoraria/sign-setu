@@ -83,6 +83,8 @@ class HolisticTracker(private val context: Context) : LandmarkTracker {
         HolisticLandmarker.HolisticLandmarkerOptions.builder()
             .setBaseOptions(BaseOptions.builder().setModelAssetBuffer(model).setDelegate(delegate).build())
             .setRunningMode(RunningMode.VIDEO)
+            // 0.5 by default drops small or fast hands; the reader's own scores filter the weak ones.
+            .setMinHandLandmarksConfidence(0.3f)
             .build(),
     )
 

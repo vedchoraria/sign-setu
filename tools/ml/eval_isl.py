@@ -2,7 +2,8 @@
 and digits (synthetic test split, isl_spell; synthetic scores flatter real signers). Then a sentence demo: held-out
 segments read one by one, top-1 each, written out as English and Hindi by glossToText's rules (TextSigning.kt).
 The combined rows read each held-out segment through both models and the app's sign-or-spell gate (SignReaders.kt).
-    python tools/ml/eval_isl.py [include.pkl] [isl_spell.pkl]
+The real rows read ISLRTC dictionary signers (prepare_islrtc.py, evaluation only).
+    python tools/ml/eval_isl.py [include.pkl] [isl_spell.pkl] [islrtc.pkl]
 """
 import json
 import pathlib
@@ -11,11 +12,13 @@ import sys
 
 import numpy as np
 
+from prepare_islrtc import ACRONYMS, DIGITS
 from runtime import reader, topk
 from train import features
 
 INCLUDE = "C:/Users/Yash/dev/ml-data/include_pose/include.pkl"
 SPELL = "C:/Users/Yash/dev/ml-data/isl_spell/isl_spell.pkl"
+ISLRTC = "C:/Users/Yash/dev/ml-data/islrtc/islrtc.pkl"
 CONTENT = pathlib.Path(__file__).resolve().parents[2] / "app" / "src" / "main" / "assets" / "content"
 
 # Mirrors TextSigning.kt; keep the two in step.
@@ -78,7 +81,7 @@ def sentence_demo(include: str, spell: str) -> None:
         cache = caches[path]
         s = next(s for s in cache["samples"] if s["split"] == "test" and s["label"] == label)
         spec, logits = models[path]
-        top = spec["labels"][int(np.argmax(logits(features(s, cache["aspect"])[None].astype(np.float64))))]
+        top = spec["labels"][int(np.argmax(logits(featured(s, cache["aspect"], spec.get("norm"))[None].astype(np.float64))))]
         gloss.append(sign_words.get(top, top) if path == include else top.lower().removeprefix("letter.").removeprefix("digit."))
     got = gloss_to_text(gloss, words)
     expected = ("Yesterday Ram hospital.", "कल ram अस्पताल।")
@@ -89,15 +92,23 @@ def sentence_demo(include: str, spell: str) -> None:
 SPELL_ODDS = 2.0  # SignReaders.kt
 
 
-def held_out(cache_path: str, labels: list[str], keep=lambda label: True):
-    """Feature batch and label indices of the test split, skipping labels outside [labels] and unreadable samples."""
+def held_out(cache_path: str, labels: list[str], keep=lambda label: True, norms=(None,)):
+    """Feature batches (one per entry of [norms], each model's feature mode) and label indices of the test split,
+    skipping labels outside [labels] and samples any mode cannot read."""
     with open(cache_path, "rb") as f:
         cache = pickle.load(f)
     index = {l: i for i, l in enumerate(labels)}
     test = [s for s in cache["samples"] if s["split"] == "test" and keep(s["label"]) and s["label"] in index]
-    xs = [features(s, cache["aspect"]) for s in test]
-    ok = [i for i, x in enumerate(xs) if x is not None]
-    return np.stack([xs[i] for i in ok]).astype(np.float64), np.array([index[test[i]["label"]] for i in ok])
+    xs = [[featured(s, cache["aspect"], n) for s in test] for n in norms]
+    ok = [i for i in range(len(test)) if all(x[i] is not None for x in xs)]
+    y = np.array([index[test[i]["label"]] for i in ok])
+    batches = [np.stack([x[i] for i in ok]).astype(np.float64) for x in xs]
+    return (*batches, y)
+
+
+def featured(s, aspect, norm):
+    """A sample's features in a model's mode: "hands" for a hand-normalised reader, else the cache's own."""
+    return features({**s, "norm": norm} if norm else s, aspect)
 
 
 def probs(logits, x):
@@ -108,7 +119,7 @@ def probs(logits, x):
 
 def score(model: str, cache_path: str, keep=lambda label: True):
     spec, logits = reader(model)
-    x, y = held_out(cache_path, spec["labels"], keep)
+    x, y = held_out(cache_path, spec["labels"], keep, (spec.get("norm"),))
     return (*topk(probs(logits, x), y), len(y))
 
 
@@ -116,8 +127,8 @@ def combined(include: str, spell: str) -> None:
     """Word top-1 through the gate against word-only, and how often held-out letters and digits still read as spelled."""
     (ws, wl), (ss, sl) = reader("sign_reader"), reader("isl_spell")
     for what, path, labels in (("words", include, ws["labels"]), ("spelled", spell, ss["labels"])):
-        x, y = held_out(path, labels)
-        pw, ps = probs(wl, x), probs(sl, x)
+        xw, xs, y = held_out(path, labels, norms=(ws.get("norm"), ss.get("norm")))
+        pw, ps = probs(wl, xw), probs(sl, xs)
         spelled = ps.max(1) > SPELL_ODDS * pw.max(1)
         if what == "words":
             alone, gated = (pw.argmax(1) == y).mean(), ((pw.argmax(1) == y) & ~spelled).mean()
@@ -128,7 +139,62 @@ def combined(include: str, spell: str) -> None:
                   f"correctly {(spelled & (ps.argmax(1) == y)).mean():.4f}  (n={len(y)})")
 
 
-def main(include: str, spell: str) -> None:
+def real_segments(path: str):
+    """(label, sample, aspect) per letter or digit of the ISLRTC clips (prepare_islrtc.py). A take is a run of frames
+    with a wrist above the chest; an acronym's take is split evenly among its letters, transitions included."""
+    with open(path, "rb") as f:
+        clips = pickle.load(f)
+    out = []
+    for c in clips:
+        takes = 1 if c["name"] in DIGITS else ACRONYMS.get(c["name"])
+        if not takes:
+            continue
+        k = np.array([1.0, 1.0 / c["aspect"]])
+        pose = c["pose"] * k
+        chest = (pose[:, 11, 1] + pose[:, 12, 1]) / 2 + 0.9 * np.linalg.norm(pose[:, 11] - pose[:, 12], axis=1)
+        up = lambda hand, has: has & (c[hand][:, 0, 1] / c["aspect"] < chest)
+        active = up("left", c["has_left"]) | up("right", c["has_right"])
+        runs, start, gap = [], None, 0
+        for t, a in enumerate(list(active) + [False] * 4):
+            if a:
+                start, gap = t if start is None else start, 0
+            elif start is not None:
+                gap += 1
+                if gap > 3:
+                    runs += [(start, t - gap + 1)] if t - gap + 1 - start >= 15 else []
+                    start = None
+        for a, b in runs[:takes]:
+            cut = np.linspace(a, b, len(c["letters"]) + 1).round().astype(int)
+            for ch, i, j in zip(c["letters"], cut, cut[1:]):
+                out.append((ch, {key: c[key][i:j] for key in ("left", "right", "pose", "has_left", "has_right", "has_pose")},
+                            c["aspect"]))
+    return out
+
+
+def real(islrtc: str, include: str) -> None:
+    """isl_spell on real signers, and how the sign-or-spell gate treats them at a few odds against the word cost."""
+    (ws, wl), (ss, sl) = reader("sign_reader"), reader("isl_spell")
+    segs = real_segments(islrtc)
+    index = {l: i for i, l in enumerate(ss["labels"])}
+    segs = [g for g in segs if featured(g[1], g[2], ss.get("norm")) is not None and featured(g[1], g[2], ws.get("norm")) is not None]
+    x = np.stack([featured(s, a, ss.get("norm")) for _, s, a in segs]).astype(np.float64)
+    xr = np.stack([featured(s, a, ws.get("norm")) for _, s, a in segs]).astype(np.float64)
+    y = np.array([index[l] for l, _, _ in segs])
+    ps, pw = probs(sl, x), probs(wl, xr)
+    xw, xws, yw = held_out(include, ws["labels"], norms=(ws.get("norm"), ss.get("norm")))
+    pww, psw = probs(wl, xw), probs(sl, xws)
+    for what, keep in (("letters", str.isalpha), ("digits", str.isdigit)):
+        m = np.array([keep(l) for l, _, _ in segs])
+        top1, top3 = topk(ps[m], y[m])
+        print(f"ISL real {what:8s} top-1 {top1:.4f}  top-3 {top3:.4f}  (n={m.sum()}, ISLRTC signers, isl_spell)")
+    for odds in (1.5, SPELL_ODDS, 3.0, 4.0):
+        spelled = ps.max(1) > odds * pw.max(1)
+        cost = ((pww.argmax(1) == yw) & (psw.max(1) > odds * pww.max(1))).mean()
+        print(f"ISL real gate odds {odds:.1f}: spelled {spelled.mean():.4f}, correctly {(spelled & (ps.argmax(1) == y)).mean():.4f}"
+              f"  (n={len(y)}); INCLUDE words lost {cost:.4f}")
+
+
+def main(include: str, spell: str, islrtc: str = ISLRTC) -> None:
     rows = [("words", "sign_reader", include, lambda l: True),
             ("letters", "isl_spell", spell, str.isalpha),
             ("digits", "isl_spell", spell, str.isdigit)]
@@ -143,10 +209,14 @@ def main(include: str, spell: str) -> None:
         combined(include, spell)
     except FileNotFoundError as e:
         print(f"ISL combined skipped: {e.filename} missing")
-    sentence_demo(include, spell)
+    try:
+        real(islrtc, include)
+    except FileNotFoundError as e:
+        print(f"ISL real skipped: {e.filename} missing")
+    sentence_demo(include, SPELL)  # the wiring, on synthetic letters; real accuracy is the rows above
 
 
 if __name__ == "__main__":
     sys.stdout.reconfigure(encoding="utf-8")  # the Hindi line fails on a cp1252 console
     a = sys.argv[1:]
-    main(a[0] if a else INCLUDE, a[1] if len(a) > 1 else SPELL)
+    main(a[0] if a else INCLUDE, a[1] if len(a) > 1 else SPELL, a[2] if len(a) > 2 else ISLRTC)

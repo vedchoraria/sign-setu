@@ -1,5 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { audioUrl, cardUrl, cards, gestures, groups, languages, meaning, phrases, questions, uiTexts, type Text } from "./content";
+import {
+  audioUrl,
+  cardUrl,
+  cards,
+  gestures as allGestures,
+  groups,
+  languages,
+  meaning,
+  phrases,
+  questions,
+  sourceClip,
+  uiTexts,
+  type Text,
+} from "./content";
 import { AdultLook, ChildLook, drawCharacter } from "./draw";
 import { flags } from "./flags";
 import { isMissing, reviewerLang } from "./missing";
@@ -133,7 +146,8 @@ function Player({ gesture, start }: { gesture: Gesture; start?: number }) {
   );
 }
 
-export function IslReview(props: ReviewProps) {
+export function IslReview(props: ReviewProps & { items?: Gesture[] }) {
+  const gestures = props.items ?? allGestures;
   const [filter, setFilter] = useState("");
   // A link ending in #<gesture id> opens that gesture, and #<gesture id>@<seconds> holds it at that moment.
   const [linkId, linkAt] = decodeURIComponent(location.hash.slice(1)).split("@");
@@ -164,6 +178,13 @@ export function IslReview(props: ReviewProps) {
           <code>{selected}</code> {m.label}
         </h2>
         {m.how && <p>{m.how}</p>}
+        {sourceClip(selected) && (
+          <p>
+            <a href={sourceClip(selected)} target="_blank" rel="noreferrer">
+              Watch the original ISLRTC clip
+            </a>
+          </p>
+        )}
         <Player key={selected} gesture={gesture} start={selected === linkId && linkAt ? Number(linkAt) : undefined} />
         <ReviewBox {...props} section="gesture" id={selected} />
       </section>

@@ -20,6 +20,7 @@ import app.signsetu.data.session.Session
 import app.signsetu.data.session.SessionEvent
 import app.signsetu.data.session.SessionRepository
 import app.signsetu.camera.LandmarkFrame
+import app.signsetu.sign.HomeSigns
 import app.signsetu.sign.SignCapture
 import app.signsetu.sign.SignChoice
 import app.signsetu.sign.SignConfirm
@@ -187,6 +188,7 @@ class SessionViewModel(
 
     /** Set once the reader is built off the main thread; reads before then get no machine guesses. */
     @Volatile var reader: SignReader? = reader
+    private val homeSigns = HomeSigns()
 
     private val local = MutableStateFlow(Local())
     @Volatile private var capture: SignCapture? = null
@@ -305,7 +307,8 @@ class SessionViewModel(
         local.update { it.copy(reading = it.reading?.plus(segment)) }
         reads += viewModelScope.launch(readDispatcher) {
             val all = reader?.let { r -> runCatching { r.read(frames) }.getOrNull() }.orEmpty().sortedByDescending { it.score }
-            val guesses = inContext(all, cards, reader?.words.orEmpty(), content.words).take(3)
+            val home = homeSigns.match(frames)
+            val guesses = (listOfNotNull(home) + inContext(all, cards, reader?.words.orEmpty(), content.words)).distinctBy { it.word }.take(3)
             val read = SignSegment(frames, guesses, needsSlower(frames, all), cards)
             local.update { l -> l.copy(reading = l.reading?.map { if (it === segment) read else it }) }
         }
@@ -328,7 +331,7 @@ class SessionViewModel(
             logSigned(segments, segments.map { it.word ?: "?" }, EventSource.MACHINE, "en")
             val signWords = reader?.words.orEmpty()
             val gloss = segments.flatMap { s -> glossOf(s.guesses?.firstOrNull(), signWords) }
-            val draft = glossToText(gloss, content.words, ui.value?.signLanguage ?: SignLanguage.ISL).takeIf { gloss.any { it != "?" } }?.let { "${it.en} / ${it.hi}" }
+            val draft = glossToText(gloss, content.words, ui.value?.signLanguage ?: SignLanguage.ISL, segments.count { it.browsUp } * 2 >= segments.size).takeIf { gloss.any { it != "?" } }?.let { "${it.en} / ${it.hi}" }
             val note = listOfNotNull(glossTranscript(segments).takeIf { narrative }, draft).joinToString("\n")
             if (note.isNotEmpty()) repo.log(sessionId, EventType.NOTE, EventSource.MACHINE, "en", text = note)
         }
@@ -337,6 +340,7 @@ class SessionViewModel(
     /** The officer's reading of a signed answer, logged beside the app's so the record shows both. */
     fun acceptSigned(eventId: Long, words: List<String>) {
         val segments = local.value.signed[eventId] ?: return
+        segments.zip(words).forEach { (s, w) -> if (w.isNotBlank() && w != "?" && w != s.word) homeSigns.teach(s.frames, w) }
         val shownId = ui.value?.events?.firstOrNull { it.id == eventId }?.shownId
         viewModelScope.launch { logSigned(segments, words, EventSource.OFFICER, officerLang, shownId) }
     }
@@ -543,7 +547,13 @@ class SessionViewModel(
         local.update { it.copy(mode = Mode.OFFICER, onStage = null, itemId = null) }
     }
 
+    // A proposal the subject's next tap matched (D-40), for the record; used once.
+    private var cue: String? = null
+
+    fun noteCue(c: String) { cue = c }
+
     fun answerCard(cardId: String) {
+        val cue = cue.also { cue = null }
         local.update { it.copy(answeredCard = cardId, answeredYes = null) }
         val item = local.value.pending
         viewModelScope.launch {
@@ -551,6 +561,7 @@ class SessionViewModel(
                 repo.log(
                     sessionId, EventType.ANSWER_CARD, EventSource.SUBJECT, officerLang,
                     text = content.cards[cardId]?.label?.pick(officerLang), cardId = cardId, shownId = local.value.itemId,
+                    reason = cue?.let { "cue:$it" },
                 )
             }
             when (cardId) {
@@ -564,11 +575,12 @@ class SessionViewModel(
 
     fun answerYesNo(yes: Boolean) {
         val pending = local.value.pending
+        val cue = cue.also { cue = null }
         local.update { it.copy(answeredYes = yes, answeredCard = null) }
         viewModelScope.launch {
             if (!logChecked(pending, null, yes, local.value.itemId)) {
                 val id = if (yes) "yes" else "no"
-                repo.log(sessionId, EventType.ANSWER_CARD, EventSource.SUBJECT, officerLang, text = content.cards[id]?.label?.pick(officerLang), cardId = id, shownId = local.value.itemId)
+                repo.log(sessionId, EventType.ANSWER_CARD, EventSource.SUBJECT, officerLang, text = content.cards[id]?.label?.pick(officerLang), cardId = id, shownId = local.value.itemId, reason = cue?.let { "cue:$it" })
             }
             if (advancesRun(pending, yes)) advanceRun()
         }

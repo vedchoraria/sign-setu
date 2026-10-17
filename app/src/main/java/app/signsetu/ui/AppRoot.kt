@@ -332,6 +332,7 @@ private fun SessionRoute(
                     gestureSpeed = if (settings.slowGestures) 0.75f else 1f,
                     onCard = vm::answerCard,
                     onYesNo = vm::answerYesNo,
+                    onCue = vm::noteCue,
                     onLanguage = vm::chooseLanguage,
                     onDrawing = vm::submitDrawing,
                     onWritten = vm::answerText,

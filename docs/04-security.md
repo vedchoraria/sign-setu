@@ -31,6 +31,7 @@ Target: OWASP MASVS v2 with the MAS-L2 testing profile, plus the CERT-In require
 | SEC-10 | Platform and SQLCipher cryptography only; no custom algorithms. |
 | SEC-11 | Keys never hard-coded or stored in plain text; Keystore keys non-exportable. |
 | SEC-12 | Export is a PDF encrypted with AES-256 under a one-time 80-bit random passphrase (16 characters), shown once and shared out of band. |
+| SEC-76 | Every report page carries a record digest: the first 64 bits of a SHA-256 over the exported rows (`SessionReport.recordDigest`). Re-exporting the session on the phone gives the same digest, so an edited copy shows. |
 
 ### 2.3 Authentication
 
@@ -96,7 +97,7 @@ Target: OWASP MASVS v2 with the MAS-L2 testing profile, plus the CERT-In require
 
 | ID | Control | Source |
 | --- | --- | --- |
-| SEC-71 | Landmarks are biometric data. Frames are analysed only inside an explicit sign window (FR-84). Landmarks live only in view-model memory, for the session, and are wiped when the session ends, the app locks or the view model is cleared; they are never written to disk, logged, exported or sent over the second-screen link. A narrative keeps hands and pose only. The subject's stage draws hands and arms, never face points. | D-25, D-27; DPDP s.8 |
+| SEC-71 | Landmarks are biometric data. Frames are analysed for the stage overlay while the camera shows, at most 10 a second outside a sign window, and reach sign capture only inside an explicit sign window (FR-84, D-40). Landmarks live only in view-model memory, for the session, and are wiped when the session ends, the app locks or the view model is cleared; they are never written to disk, logged, exported or sent over the second-screen link. A narrative keeps hands and pose only. Signs learned in a session (D-40) are feature sequences held under the same rules. The subject's stage draws hands, arms, brows and lips, never the face oval or eyes. | D-25, D-27; DPDP s.8 |
 | SEC-72 | MediaPipe's usage-statistics upload backend is excluded from the build and replaced by a stub destination that drops every event on the device (D-33). | SEC-30 |
 | SEC-73 | Build flavors: `standard` is the reference build and keeps every rule; `nearby` adds only the Nearby Connections permissions of D-26, uses its own application ID, and is offered only to departments whose phones have Play services. The permission gate runs for every variant before packaging (`check<Variant>Permissions`). | CERT-In 6.2.6 |
 | SEC-74 | The holistic model, the sign reader and its word map are verified against the content manifest before they load (`HolisticTracker.verifiedModel`, `SignReaders.create`); a failed model is not used and the stage keeps a plain mirror. | SEC-54 |

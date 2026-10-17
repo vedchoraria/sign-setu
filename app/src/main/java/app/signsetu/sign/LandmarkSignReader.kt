@@ -15,7 +15,7 @@ import kotlin.math.max
  */
 class LandmarkSignReader(spec: String, weights: ByteArray, override val words: Map<String, String> = emptyMap()) : SignReader {
     @Serializable
-    private class Spec(val frames: Int, val features: Int, val hidden: Int, val kernel: Int, val labels: List<String>)
+    private class Spec(val frames: Int, val features: Int, val hidden: Int, val kernel: Int, val labels: List<String>, val norm: String = "shoulders")
 
     private val s = Json { ignoreUnknownKeys = true }.decodeFromString<Spec>(spec)
     override val labels: List<String> = s.labels
@@ -90,8 +90,13 @@ class LandmarkSignReader(spec: String, weights: ByteArray, override val words: M
         return out
     }
 
-    /** Shoulder-centred, shoulder-width-scaled landmarks, resampled to the model's frame count. */
-    fun features(frames: List<LandmarkFrame>): FloatArray? {
+    fun features(frames: List<LandmarkFrame>): FloatArray? = if (s.norm == "hands") handFeatures(frames, t) else signFeatures(frames, t)
+}
+
+private const val FEATURES = 98
+
+/** Shoulder-centred, shoulder-width-scaled landmarks, resampled to [t] frames of 98 values. */
+fun signFeatures(frames: List<LandmarkFrame>, t: Int): FloatArray? {
         if (frames.isEmpty()) return null
         val ky = 1f / frames.first().aspect
         var cx = 0f; var cy = 0f; var scale = 0f; var n = 0
@@ -113,9 +118,27 @@ class LandmarkSignReader(spec: String, weights: ByteArray, override val words: M
             f.pose?.takeIf { it.size > 16 }?.let { p -> for (i in 0 until 6) put(84 + 2 * i, p[11 + i].x, p[11 + i].y) }
         }
         return out
-    }
+}
 
-    private companion object {
-        const val FEATURES = 98
+/** As tools/ml/features.py featurize_hands: centred on all hand points, scaled by mean wrist to middle-knuckle length. */
+fun handFeatures(frames: List<LandmarkFrame>, t: Int): FloatArray? {
+    if (frames.isEmpty()) return null
+    val ky = 1f / frames.first().aspect
+    var cx = 0f; var cy = 0f; var points = 0; var scale = 0f; var hands = 0
+    for (f in frames) for (h in listOfNotNull(f.leftHand?.takeIf { it.size == 21 }, f.rightHand?.takeIf { it.size == 21 })) {
+        for (p in h) { cx += p.x; cy += p.y * ky; points++ }
+        scale += hypot(h[0].x - h[9].x, (h[0].y - h[9].y) * ky); hands++
     }
+    if (hands == 0 || scale / hands < 1e-6f) return null
+    cx /= points; cy /= points; scale /= hands
+    val out = FloatArray(t * FEATURES)
+    val last = frames.size - 1
+    for (j in 0 until t) {
+        val f = frames[(j * last * 2 + (t - 1)) / (2 * (t - 1))]
+        val row = j * FEATURES
+        fun put(at: Int, x: Float, y: Float) { out[row + at] = (x - cx) / scale; out[row + at + 1] = (y * ky - cy) / scale }
+        f.leftHand?.takeIf { it.size == 21 }?.let { hand -> hand.forEachIndexed { i, p -> put(2 * i, p.x, p.y) }; out[row + 96] = 1f }
+        f.rightHand?.takeIf { it.size == 21 }?.let { hand -> hand.forEachIndexed { i, p -> put(42 + 2 * i, p.x, p.y) }; out[row + 97] = 1f }
+    }
+    return out
 }

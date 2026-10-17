@@ -1,6 +1,8 @@
 """Scores the shipped ASL readers: word top-1 and top-3 (PopSign test signers, asl_reader) and fingerspelling
 character error rate (sequences from held-out ASLNow! letters, asl_spell; synthetic, so it flatters real signing).
-The combined rows read the same segments through both models and the app's sign-or-spell gate (SignReaders.kt).
+No real-signer fingerspelling set is open without Kaggle credentials (FSboard, Google's ASL Fingerspelling).
+The combined rows read the same segments through both models and the app's sign-or-spell gate (SignReaders.kt);
+the gate rows weigh SPELL_MIN_PEAK by the real PopSign word reads it costs against the spelled reads it keeps.
     python tools/ml/eval_asl.py [asl.pkl] [asl_spell_dir]
 """
 import pathlib
@@ -19,7 +21,7 @@ ASL = "C:/Users/Yash/dev/ml-data/popsign/asl.pkl"
 SPELL_MIN_LETTERS, SPELL_MIN_PEAK = 3, 0.9  # SignReaders.kt
 
 
-def spelled(logits: np.ndarray) -> bool:
+def spelled(logits: np.ndarray, peak: float = SPELL_MIN_PEAK) -> bool:
     """CtcSpell's gate: enough letters, each sure at its best frame. A read that passes wins over the word reader."""
     z = np.exp(logits - logits.max(1, keepdims=True))
     p = (z / z.sum(1, keepdims=True)).max(1)
@@ -30,7 +32,7 @@ def spelled(logits: np.ndarray) -> bool:
         elif b != 0:
             peaks[-1] = max(peaks[-1], q)
         last = b
-    return len(peaks) >= SPELL_MIN_LETTERS and min(peaks) >= SPELL_MIN_PEAK
+    return len(peaks) >= SPELL_MIN_LETTERS and min(peaks) >= peak
 
 
 def combined(asl: str, spell_dir: pathlib.Path) -> None:
@@ -38,7 +40,9 @@ def combined(asl: str, spell_dir: pathlib.Path) -> None:
         cache = pickle.load(f)
     spec, words = reader("asl_reader")
     _, ctc = speller()
-    alone = gated = n = 0
+    peaks = (0.8, SPELL_MIN_PEAK, 0.95)
+    alone = n = 0
+    gated = dict.fromkeys(peaks, 0)
     for s in cache["samples"]:
         x = features(s, cache["aspect"]) if s["split"] == "test" and s["label"] in spec["labels"] else None
         if x is None:
@@ -47,14 +51,20 @@ def combined(asl: str, spell_dir: pathlib.Path) -> None:
         ts = (np.arange(len(s["pose"])) * 1000 / cache["fps"]).astype(np.int64)
         f = spell_features(ts, s["left"], s["right"], s["has_left"], s["has_right"], cache["aspect"])
         n, alone = n + 1, alone + right
-        gated += right and not (f[:, -1].any() and spelled(ctc(f)))
-    print(f"ASL combined words   top-1 {gated / n:.4f}  word-only {alone / n:.4f}  (n={n}, gate costs {(alone - gated) / n:.4f})")
-    assert (alone - gated) / n <= 0.02, "the sign-or-spell gate costs word reading more than 0.02 top-1"
+        z = ctc(f) if right and f[:, -1].any() else None
+        for p in peaks:
+            gated[p] += right and not (z is not None and spelled(z, p))
+    g = gated[SPELL_MIN_PEAK]
+    print(f"ASL combined words   top-1 {g / n:.4f}  word-only {alone / n:.4f}  (n={n}, gate costs {(alone - g) / n:.4f})")
+    assert (alone - g) / n <= 0.02, "the sign-or-spell gate costs word reading more than 0.02 top-1"
     letters, aspect = load(spell_dir)
     rng = np.random.default_rng(99)
     seqs = [sequence(t, letters, "test", aspect, rng) for t in texts(rng, word_list(), 400)]
-    read = np.mean([spelled(ctc(spell_features(ts, l, r, hl, hr, aspect))) for ts, l, r, hl, hr in seqs])
-    print(f"ASL combined spelled read as spelling {read:.4f}  (400 sequences)")
+    z = [ctc(spell_features(ts, l, r, hl, hr, aspect)) for ts, l, r, hl, hr in seqs]
+    print(f"ASL combined spelled read as spelling {np.mean([spelled(q) for q in z]):.4f}  (400 sequences)")
+    for p in peaks:
+        print(f"ASL gate peak {p:.2f}: real PopSign words lost {(alone - gated[p]) / n:.4f}, "
+              f"spelled sequences passed {np.mean([spelled(q, p) for q in z]):.4f}")
 
 
 def main(asl: str, spell_dir: pathlib.Path) -> None:

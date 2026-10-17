@@ -110,10 +110,11 @@ private val HINDI = mapOf(
 
 /**
  * The inverse of [planText]'s ISL order. [gloss] is the written word of each sign, in signed order; a run of single
- * letters or digits is one fingerspelled word. [lang] ASL keeps the gloss order. ISL signs time first, the verb last and negation and question after it;
+ * letters or digits is one fingerspelled word. [lang] ASL keeps the gloss order. [browsUp]: raised brows, the non-manual
+ * mark of a yes/no question in ISL and ASL, make it a question without a question sign. ISL signs time first, the verb last and negation and question after it;
  * English moves the verb after the subject, Hindi keeps it last with the question word and नहीं just before it.
  */
-fun glossToText(gloss: List<String>, words: Map<String, WordEntry>, lang: SignLanguage = SignLanguage.ISL): SignedText {
+fun glossToText(gloss: List<String>, words: Map<String, WordEntry>, lang: SignLanguage = SignLanguage.ISL, browsUp: Boolean = false): SignedText {
     val tokens = mutableListOf<Pair<String, Boolean>>()
     for (g in gloss.map { it.lowercase() }.filter { it.isNotBlank() && it != "?" }) {
         val letter = g.length == 1 && g[0].isLetterOrDigit()
@@ -126,7 +127,7 @@ fun glossToText(gloss: List<String>, words: Map<String, WordEntry>, lang: SignLa
     val rest = tokens.filter { rank(it.first, it.second) == 1 }
     val negated = tokens.any { rank(it.first, it.second) == 2 }
     val ask = tokens.filter { rank(it.first, it.second) == 3 }.map { it.first }
-    val question = ask.isNotEmpty()
+    val question = ask.isNotEmpty() || browsUp
 
     fun en(t: Pair<String, Boolean>) = if (t.second) t.first.replaceFirstChar { it.uppercase() } else words[t.first]?.w?.firstOrNull() ?: t.first
     val verbLast = rest.map(::en).toMutableList()

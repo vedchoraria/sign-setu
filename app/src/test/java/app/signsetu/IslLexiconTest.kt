@@ -137,12 +137,16 @@ class IslLexiconTest {
     fun everyIncludeWordIsRetargetedWithAttribution() {
         val labels = json.parseToJsonElement(File(content, "models/sign_reader.json").readText()).jsonObject["labels"]!!.jsonArray.map { it.jsonPrimitive.content }
         assertTrue(islFile.source.contains("CC BY 4.0"))
-        assertEquals(labels.toSet(), islFile.gestures.map { it.word }.toSet())
-        for (s in islFile.gestures) {
+        // Words INCLUDE lacks come from the ISLRTC dictionary (retarget_islrtc.py) and are credited there.
+        val (dictionary, include) = islFile.gestures.partition { it.rec.startsWith("ISLRTC/") }
+        assertEquals(labels.toSet(), include.map { it.word }.toSet())
+        for (s in include) {
             assertTrue("${s.id}: no recording", s.rec.count { it == '/' } == 2)
             assertTrue("${s.id}: no category name", s.category in islFile.categories)
             assertTrue("${s.id}: no Hindi", s.hi.isNotBlank())
         }
+        assertTrue(dictionary.isEmpty() || islFile.source.contains("Government Open Data License"))
+        for (s in dictionary) assertTrue("${s.id}: no category name", s.category in islFile.categories)
         // A word read from the camera can be signed back for the subject to confirm.
         for (label in labels) assertNotNull("cannot sign back $label", bundle.signBack(label))
     }

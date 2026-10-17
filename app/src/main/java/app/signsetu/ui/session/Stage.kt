@@ -1,5 +1,9 @@
 package app.signsetu.ui.session
 
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.focus.focusRequester
@@ -151,6 +155,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import app.signsetu.camera.CAMERA_ASPECT
+import app.signsetu.camera.Head
 import app.signsetu.camera.LandmarkFrame
 import app.signsetu.sign.SIGN_LIMIT_MS
 import app.signsetu.sign.SignChoice
@@ -218,6 +223,8 @@ fun Stage(
     onPauseEnd: () -> Unit = {},
     /** Lesson-sheet answers and phrases (LessonInputs.kt); null hides them. */
     onGiven: ((Given?) -> Unit)? = null,
+    /** Called just before a tap that matches a gesture proposal (D-40): nod, shake, point or palm. */
+    onCue: (String) -> Unit = {},
 ) {
     val stage = LocalStageColors.current
     val lang = ui.session.subjectLang
@@ -261,8 +268,18 @@ fun Stage(
     // A show-back or say-back with pictures asks which one; the character must not act out the officer's reading.
     val checking = pending.asksChoice
     // One camera for the stage: a sign window adds analysis to it instead of restarting the preview.
+    // A nod or shake only highlights Yes or No; the subject's tap is the answer.
+    // One state object: the remembered camera keeps the first one it captured.
+    val nod = remember { mutableStateOf<Boolean?>(null) }
+    val point = remember { mutableStateOf<String?>(null) }
+    val palm = remember { mutableStateOf(false) }
+    val shrugged = remember { mutableStateOf(false) }
+    LaunchedEffect(pending) { nod.value = null; point.value = null; palm.value = false; shrugged.value = false }
+    val nodded = nod.value
     val camera = remember(tracker) {
-        movableContentOf { frames: ((LandmarkFrame) -> Unit)? -> CameraMirror(tracker, Modifier.fillMaxSize(), onFrame = frames) { MirrorPlaceholder() } }
+        movableContentOf { frames: ((LandmarkFrame) -> Unit)? ->
+            CameraMirror(tracker, Modifier.fillMaxSize(), onFrame = frames, onHead = { nod.value = it == Head.Nod }, onPoint = { point.value = it }, onStopPalm = { palm.value = true }, onShrug = { shrugged.value = true }) { MirrorPlaceholder() }
+        }
     }
     val gestureId = when {
         reacting -> "okay"
@@ -511,8 +528,8 @@ fun Stage(
                                     // A Yes under a right would read as the person accepting or waiving it; it is only shown.
                                     rightsNotice != null -> RailCard(DONT_UNDERSTAND, content.subjectText(DONT_UNDERSTAND, lang), stringResource(R.string.stage_dont_understand), answer.unsure, answer.onUnsure, chosen == DONT_UNDERSTAND) { onCard(DONT_UNDERSTAND) }
                                     asks -> {
-                                        RailIcon(Icons.Filled.Check, content.subjectText("yes", lang), stringResource(R.string.show_yes), answer.yes, answer.onYes, ui.answeredYes == true) { onYesNo(true) }
-                                        RailCard("dont_know", content.subjectText("dont_know", lang), stringResource(R.string.stage_dont_know), answer.unsure, answer.onUnsure, chosen == "dont_know") { onCard("dont_know") }
+                                        RailIcon(Icons.Filled.Check, content.subjectText("yes", lang), stringResource(R.string.show_yes), answer.yes, answer.onYes, ui.answeredYes == true, proposed = nodded == true) { if (nodded == true) onCue("nod"); onYesNo(true) }
+                                        RailCard("dont_know", content.subjectText("dont_know", lang), stringResource(R.string.stage_dont_know), answer.unsure, answer.onUnsure, chosen == "dont_know", proposed = shrugged.value) { if (shrugged.value) onCue("shrug"); onCard("dont_know") }
                                         RailCard(DONT_UNDERSTAND, content.subjectText(DONT_UNDERSTAND, lang), stringResource(R.string.stage_dont_understand), answer.unsure, answer.onUnsure, chosen == DONT_UNDERSTAND) { onCard(DONT_UNDERSTAND) }
                                     }
                                 }
@@ -522,7 +539,7 @@ fun Stage(
                             Box(Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.Center) {
                                 val window = Modifier.aspectRatio(CAMERA_ASPECT)
                                 if (signing) SigningPanel(camera, ui.reading.orEmpty(), content, lang, narrative, onFrame = onSignFrame, modifier = window)
-                                else MirrorWindow(camera, cameraOn, item.choices, item.numbers, chosen, content, lang, onCard, window)
+                                else MirrorWindow(camera, cameraOn, item.choices, item.numbers, chosen, content, lang, { id -> if (id == point.value) onCue("point"); onCard(id) }, window, proposedCard = point.value)
                                 rightsNotice?.let {
                                     Text(
                                         it, style = MaterialTheme.typography.labelLarge, color = Color.White, textAlign = TextAlign.Center, maxLines = 3,
@@ -538,7 +555,8 @@ fun Stage(
                                     val next = if (rule != null) onNextRule else onNext
                                     next?.let { RailIcon(Icons.AutoMirrored.Filled.ArrowForward, content.subjectText("next", lang), stringResource(R.string.stage_next), answer.yes, answer.onYes, onClick = it) }
                                     if (asks) {
-                                        RailIcon(Icons.Filled.Close, content.subjectText("no", lang), stringResource(R.string.show_no), answer.no, answer.onNo, ui.answeredYes == false) {
+                                        RailIcon(Icons.Filled.Close, content.subjectText("no", lang), stringResource(R.string.show_no), answer.no, answer.onNo, ui.answeredYes == false, proposed = nodded == false) {
+                                            if (nodded == false) onCue("shake")
                                             onYesNo(false)
                                             if (reopensInput(pending, false)) { if (canWrite) writing = true else drawing = true }
                                         }
@@ -546,7 +564,7 @@ fun Stage(
                                     }
                                     // A camera, not an open palm, so nothing beside Stop looks like a stop sign.
                                     if (canWrite && tracker != null) RailIcon(painterResource(R.drawable.ic_videocam), null, stringResource(R.string.officer_read_signs), stage.tool, stage.onTool, tool = true, onClick = onStartSigning)
-                                    RailCard("stop", content.subjectText("stop", lang), stringResource(R.string.stage_stop), answer.pause, answer.onPause, chosen == "stop") { onCard("stop") }
+                                    RailCard("stop", content.subjectText("stop", lang), stringResource(R.string.stage_stop), answer.pause, answer.onPause, chosen == "stop", proposed = palm.value) { if (palm.value) onCue("palm"); onCard("stop") }
                                 }
                             }
                         }
@@ -790,6 +808,7 @@ private fun MirrorWindow(
     lang: String,
     onCard: (String) -> Unit,
     modifier: Modifier,
+    proposedCard: String? = null,
 ) {
     Box(modifier.mirrorFrame()) {
         if (cameraOn) {
@@ -821,7 +840,7 @@ private fun MirrorWindow(
                         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.fillMaxWidth()) {
                             row.forEach { id ->
                                 val delay = 70 * choices.indexOf(id)
-                                ChoiceTile(id, content.cards[id]?.label?.pick(lang), chosenCard == id, { onCard(id) }, Modifier.weight(1f).popIn(rememberPopIn(delay)), name = content.cards[id]?.label?.pick("en"))
+                                ChoiceTile(id, content.cards[id]?.label?.pick(lang), chosenCard == id, { onCard(id) }, Modifier.weight(1f).popIn(rememberPopIn(delay)), name = content.cards[id]?.label?.pick("en"), proposed = proposedCard == id)
                             }
                             repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
                         }
@@ -907,13 +926,14 @@ private fun MirrorPlaceholder() {
 }
 
 @Composable
-internal fun ChoiceTile(cardId: String, label: String?, chosen: Boolean, onClick: () -> Unit, modifier: Modifier, name: String? = label) {
+internal fun ChoiceTile(cardId: String, label: String?, chosen: Boolean, onClick: () -> Unit, modifier: Modifier, name: String? = label, proposed: Boolean = false) {
     val answer = LocalAnswerColors.current
+    val pulse = if (proposed && !chosen) rememberInfiniteTransition(label = "proposed").animateFloat(0.25f, 1f, infiniteRepeatable(tween(600), RepeatMode.Reverse), label = "ring").value else 0f
     PressableSurface(
         onClick = onClick,
         shape = RoundedCornerShape(20.dp),
         color = Color.White,
-        border = if (chosen) BorderStroke(4.dp, answer.selection) else TileEdge,
+        border = if (chosen) BorderStroke(4.dp, answer.selection) else if (pulse > 0f) BorderStroke(4.dp, answer.selection.copy(alpha = pulse)) else TileEdge,
         modifier = modifier.heightIn(min = 96.dp).semantics { (label ?: name)?.let { contentDescription = it }; selected = chosen },
     ) {
         Column(Modifier.padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -956,25 +976,27 @@ private fun Rail(content: @Composable ColumnScope.() -> Unit) =
     Column(Modifier.width(60.dp).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(Spacing.sm, Alignment.CenterVertically), content = content)
 
 @Composable
-private fun ColumnScope.RailCard(cardId: String, label: String?, name: String, color: Color, onColor: Color, chosen: Boolean, onClick: () -> Unit) =
-    RailButton(label, name, color, onColor, chosen, false, onClick) { CardImage(cardId, Modifier.size(if (label != null) 24.dp else 32.dp)) }
+private fun ColumnScope.RailCard(cardId: String, label: String?, name: String, color: Color, onColor: Color, chosen: Boolean, proposed: Boolean = false, onClick: () -> Unit) =
+    RailButton(label, name, color, onColor, chosen, false, onClick, proposed) { CardImage(cardId, Modifier.size(if (label != null) 24.dp else 32.dp)) }
 
 @Composable
-private fun ColumnScope.RailIcon(icon: ImageVector, label: String?, name: String, color: Color, onColor: Color, chosen: Boolean = false, tool: Boolean = false, onClick: () -> Unit) =
-    RailIcon(rememberVectorPainter(icon), label, name, color, onColor, chosen, tool, onClick)
+private fun ColumnScope.RailIcon(icon: ImageVector, label: String?, name: String, color: Color, onColor: Color, chosen: Boolean = false, tool: Boolean = false, proposed: Boolean = false, onClick: () -> Unit) =
+    RailIcon(rememberVectorPainter(icon), label, name, color, onColor, chosen, tool, proposed, onClick)
 
 @Composable
-private fun ColumnScope.RailIcon(icon: Painter, label: String?, name: String, color: Color, onColor: Color, chosen: Boolean = false, tool: Boolean = false, onClick: () -> Unit) =
-    RailButton(label, name, color, onColor, chosen, tool, onClick) { Icon(icon, contentDescription = null, tint = onColor, modifier = Modifier.size(24.dp)) }
+private fun ColumnScope.RailIcon(icon: Painter, label: String?, name: String, color: Color, onColor: Color, chosen: Boolean = false, tool: Boolean = false, proposed: Boolean = false, onClick: () -> Unit) =
+    RailButton(label, name, color, onColor, chosen, tool, onClick, proposed) { Icon(icon, contentDescription = null, tint = onColor, modifier = Modifier.size(24.dp)) }
 
 @Composable
-private fun ColumnScope.RailButton(label: String?, name: String, color: Color, onColor: Color, chosen: Boolean, tool: Boolean, onClick: () -> Unit, icon: @Composable () -> Unit) {
+private fun ColumnScope.RailButton(label: String?, name: String, color: Color, onColor: Color, chosen: Boolean, tool: Boolean, onClick: () -> Unit, proposed: Boolean = false, icon: @Composable () -> Unit) {
+    val pulse = if (proposed && !chosen) rememberInfiniteTransition(label = "proposed").animateFloat(0.25f, 1f, infiniteRepeatable(tween(600), RepeatMode.Reverse), label = "ring").value else 0f
     PressableSurface(
         onClick = onClick,
         shape = RoundedCornerShape(16.dp),
         color = color,
         border = when {
             chosen -> BorderStroke(3.dp, onColor)
+            pulse > 0f -> BorderStroke(4.dp, onColor.copy(alpha = pulse))
             tool -> BorderStroke(1.dp, onColor.copy(alpha = 0.16f))
             else -> null
         },

@@ -52,7 +52,8 @@ fun ContentBundle.recordedSign(word: String, entry: WordEntry?): Gesture? {
     entry ?: return null
     val labels = signWords.filterValues { it in entry.w }
     val label = labels.entries.firstOrNull { it.value == word }?.key ?: labels.keys.firstOrNull()
-    return label?.let(::signFor)
+    // Else any written form of the word that has a recorded sign: Hindi "यहाँ" finds the sign recorded as "here".
+    return label?.let(::signFor) ?: entry.w.firstNotNullOfOrNull { w -> isl.gestures.firstOrNull { it.word == w && !it.homonym && !it.isLetter } }?.gesture
 }
 
 /**
@@ -95,8 +96,10 @@ private fun String.isDevanagari() = any { it in 'ऀ'..'ॿ' }
 fun ContentBundle.dictionary(): List<DictionaryEntry> {
     val byForm = words
     val recorded = isl.gestures.filterNot { it.isLetter }.map { s ->
-        val concept = signWords[s.label]?.let(byForm::get)?.w.orEmpty()
-        DictionaryEntry(s.id, s.word, s.hi, s.category, true, s.rec, s.static, s.oneHandSource, listOf(s.word, s.hi) + concept)
+        // A sign with no reader label (ISLRTC words) takes its forms, and its Hindi, from the word's own entry.
+        val concept = (signWords[s.label] ?: s.word).let(byForm::get)?.w.orEmpty()
+        val hi = s.hi.ifEmpty { concept.firstOrNull { it.isDevanagari() }.orEmpty() }
+        DictionaryEntry(s.id, s.word, hi, s.category, true, s.rec, s.static, s.oneHandSource, listOf(s.word, hi) + concept)
     }
     val authored = words.values.distinct().filter { it.sign?.startsWith("sign.") == true && it.sign in gestures }
         .groupBy { it.sign!! }

@@ -434,6 +434,11 @@ private val LICENCES = listOf(
     "PopSign ASL v1.0 (ASL reader training data, ASL signs)" to "CC BY 4.0. Starner, Forbes, So, Martin, Sridhar, Deshpande et al. (Georgia Tech, NTID), " +
         "NeurIPS 2023 Datasets and Benchmarks, signdata.cc.gatech.edu; frames from huggingface.co/datasets/sign/popsign-images. " +
         "Changed: landmarks extracted, a sign classifier trained, signers retargeted as keyframes on the app's characters, mirrored to right-hand dominant where the left hand led.",
+    "Multimodal ISL alphabet dataset (ISL letter reader training data)" to "CC BY 4.0. Hambir, Khandagale, Cherian, Gaikwad " +
+        "(Vishwakarma Institute of Information Technology, Pune), Mendeley Data, doi:10.17632/2tj6c7pzfk.1. " +
+        "Changed: hand landmarks extracted from the English and number photographs, a letter classifier trained.",
+    "ISLAN (ISL letter reader test data)" to "CC BY 4.0. Mendeley Data, doi:10.17632/rc349j45m5.1. " +
+        "Changed: photographs turned upright and hand landmarks extracted to measure the letter reader; not shipped.",
     "ASLNow! fingerspelling landmarks" to "MIT. sid220, huggingface.co/datasets/sid220/asl-now-fingerspelling. " +
         "Changed: letters chained into synthetic spelling to train a reader, and posed as the ASL alphabet.",
     "MediaPipe and the Holistic landmarker model" to "Apache 2.0. Google LLC",
@@ -448,6 +453,8 @@ private val LICENCES = listOf(
     "llama.cpp" to "MIT. Georgi Gerganov and contributors, ggml-org/llama.cpp",
     "Baloo 2 font" to "SIL Open Font Licence 1.1. Ek Type",
     "INCLUDE sign retargeting" to "CC BY 4.0. Motions retargeted from the INCLUDE landmark samples; see INCLUDE above.",
+    "ISLRTC Indian Sign Language Dictionary" to "Government Open Data License - India. Indian Sign Language Research and Training Centre, " +
+        "Government of India, data.gov.in. Changed: motions of words missing from INCLUDE retargeted onto the app's characters; no video is included.",
 )
 
 @Composable

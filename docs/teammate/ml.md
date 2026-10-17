@@ -63,10 +63,12 @@ Export (`tools/ml/export.py`): batch norm folded into conv weights; tensors floa
 | `sign_reader` (ISL words, n = 816) | 0.9779 | 0.9939 | Official INCLUDE test split; `SignReaderTest` reproduces the Python logits on the fixture |
 | `isl_spell` letters (n = 2600) | 0.9812 | 1.0000 | Synthetic landmarks posed from the app's keyframes: measures self-consistency, not real signers |
 | `isl_spell` digits (n = 1000) | 1.0000 | 1.0000 | As above |
-| `asl_reader` (ASL words, n = 5385) | 0.4020 | 0.5428 | PopSign test signers, none in training; the acceptance target of 0.6 is not met (see section 9) |
+| `isl_spell` real letters (n = 23) | 0.0435 | 0.0870 | ISLRTC dictionary signers, evaluation only (`prepare_islrtc.py`); near chance |
+| `isl_spell` real digits (n = 10) | 0.1000 | 0.3000 | As above |
+| `asl_reader` (ASL words, n = 5385) | 0.4020 | 0.5428 | PopSign test signers, none in training; 0.40 is the release-1 ceiling against the 0.6 target (see section 9) |
 | `asl_spell` | character error rate 0.0257 | | 400 synthetic sequences from ASLNow! static letters |
 
-Combined readers apply the sign-or-spell gate of `SignReaders.kt`: an ISL letter or digit wins only at twice the word reader's top score; an ASL spelling wins only with at least three letters, each at least 0.9 sure. Gated top-1 is 0.9596 for ISL words and 0.2782 for ASL words, against 0.9779 and 0.2836 word-only.
+Combined readers apply the sign-or-spell gate of `SignReaders.kt`: an ISL letter or digit wins only at three times the word reader's top score; an ASL spelling wins only with at least three letters, each at least 0.9 sure. Gated top-1 is 0.9718 for ISL words and 0.3935 for ASL words, against 0.9779 and 0.4020 word-only. Both constants are set from the real-signer rows in `tools/ml/EVAL.md`.
 
 Spelled guesses are marked `spelled` and the gloss text renders them as letters, so a fingerspelled name is not read as a word (`SignLanguageTest`).
 
@@ -95,7 +97,11 @@ The app loads the model only when both files match `assets/content/manifest.json
 | Protobuf | `protobuf-javalite` excluded; full `com.google.protobuf:protobuf-java` 4.26.1 added, because MediaPipe classes are compiled against full protobuf (`Any.Builder.build()`) |
 | Telemetry | `transport-backend-cct` excluded; stub in `app/src/main/java/com/google/android/datatransport/cct/CCTDestination.kt` (SEC-72) |
 | ABI | armeabi-v7a `libmediapipe_tasks_jni.so` excluded from packaging; 32-bit phones get the mirror only (D-25) |
-| Data handling | Frames analysed only inside a sign window; landmarks in view-model memory only (SEC-47, SEC-71) |
+| Overlay outside sign windows | While the stage camera is on, hands, brows and lips are tracked at about 10 fps for the overlay (hand threshold 0.3); a raised brow or open mouth lights its mark, and a wrist leaving the frame lights the camera edge during a sign window |
+| Head and thumb cues | `HeadGestures` reads a nod or shake from the nose tip over 1.5 s in eye spans; `ThumbGestures` reads a held thumbs up or down. Either only highlights Yes or No on the stage; the subject's tap is the answer |
+| Brows in signed text | Raised brows over most of a sign turn the gloss draft into a yes/no question when no question sign is present (`TextSigning.kt`) |
+| Home signs | `HomeSigns` keeps a sign the officer read differently, as a 32-step feature sequence matched by dynamic time warping, and offers it first when signed again; memory only, gone with the session |
+| Data handling | Landmarks are held in view-model memory only and never stored or sent (SEC-47, SEC-71); face landmarks drive the overlay and the cues above, not the sign reader |
 
 ## 8. Retarget pipeline (`tools/isl/retarget.py`)
 
@@ -117,14 +123,14 @@ Commands: `tools/isl/README.md` and [ops.md](ops.md). Checks: `test_retarget.py`
 | Limit | Effect |
 | --- | --- |
 | Isolated words, 262 ISL and 250 ASL words | Continuous signing is split at pauses and read per segment (top 3 each, then a gloss sequence the subject confirms word by word); out-of-vocabulary signs map to the nearest class |
-| ISL letters and digits are synthetic | `isl_spell` has never seen a real signer; no redistributable ISL fingerspelling landmark set was found |
-| ASL words below target | Top-1 0.402 against the 0.6 target; the limit is the 5 fps, 256 px PopSign frames' landmarks across signers, not data volume |
-| ASL alphabet is static | `asl_spell` is trained on static ASLNow! hands chained into sequences; no real fingerspelling motion was seen |
+| ISL letters and digits are synthetic | `isl_spell` has never been trained on a real signer; on ISLRTC dictionary signers it reads letters at 0.04 and digits at 0.10 top-1 |
+| ASL words below target | Top-1 0.402 against the 0.6 target, the release-1 ceiling; wider nets, mixup and a three-model ensemble all land at 0.40 on the 5 fps, 256 px PopSign frames' landmarks |
+| ASL alphabet is static | `asl_spell` is trained on static ASLNow! hands chained into sequences; no real fingerspelling motion was seen, and no real-signer set is open without Kaggle credentials |
 | One dataset, few signers | Accuracy on officers' phones, lighting and child signers unmeasured; test metric is in-distribution |
 | 2D features (x, y) only | Depth-ambiguous signs; fingers pointing at the camera read as bent on the flat rig |
-| No face features | Non-manual markers ignored by design (SEC-71) |
+| Face cues are limited | The sign readers use no face features; brows, nod, shake and mouth open drive only the overlay, the Yes and No highlight and question marking (SEC-71) |
 | Shoulders required | No logits when the pose shoulders are absent |
 | CPU fallback about 9 fps | Fast signs may be undersampled |
 | 64-bit only | 32-bit phones have no tracking or reader |
 | Readings are not facts | Shown to the officer as graded guesses; the subject picks among alternatives (T-30, FR-66, FR-86) |
-| Retargeted signs are drafts | Deaf review needed before release (T-31, D-39); 14 moving ASL signs are retargeted to static keys |
+| Retargeted signs are drafts | Deaf review needed before release (T-31, D-39); 14 moving ASL signs are retargeted to 2 to 12 keys each |

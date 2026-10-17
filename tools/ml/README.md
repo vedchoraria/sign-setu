@@ -51,6 +51,8 @@ range reads of only the row groups that hold them (`popsign_labels.json` lists t
     python train.py <cache.pkl> <out.pt> [epochs]     # any format 1 reader
     python export.py <name> <out.pt> <cache.pkl>      # models/<name>.{bin,json} + <name>_fixture.json
     signsetu-mp/python -I prepare_asl.py              # asl.pkl
+    python train_asl.py <asl.pkl> <out.pt> <epochs> [teacher.pt ...]   # asl_reader, augmentation on the GPU
+    signsetu-mp/python -I prepare_islrtc.py           # islrtc.pkl: real ISL signers for eval_isl.py only
     python spell_ctc.py prepare | train | export      # asl_spell, format 2
     python eval_isl.py                                # top-1/top-3: ISL words, letters, digits; sentence demo
     python eval_asl.py                                # top-1/top-3: ASL words; fingerspelling CER

@@ -428,6 +428,130 @@ Reviewers: child-welfare reviewer for every gesture; ISL reviewer as well for en
 | `isl.you` | "you" |  |  |  |  |
 | `isl.you (plural)` | "you (plural)" |  |  |  |  |
 | `isl.young` | "young" |  |  |  |  |
+| `isl.account` | "account" |  |  |  |  |
+| `isl.address` | "address" |  |  |  |  |
+| `isl.after` | "after" |  |  |  |  |
+| `isl.alone` | "alone" |  |  |  |  |
+| `isl.angry` | "angry" |  |  |  |  |
+| `isl.answers` | "answers" |  |  |  |  |
+| `isl.arrest` | "arrest" |  |  |  |  |
+| `isl.arrested` | "arrested" |  |  |  |  |
+| `isl.art` | "art" |  |  |  |  |
+| `isl.ask` | "ask" |  |  |  |  |
+| `isl.aunt` | "aunt" |  |  |  |  |
+| `isl.authority` | "authority" |  |  |  |  |
+| `isl.bail` | "bail" |  |  |  |  |
+| `isl.before` | "before" |  |  |  |  |
+| `isl.big` | "big" |  |  |  |  |
+| `isl.blood` | "blood" |  |  |  |  |
+| `isl.board` | "board" |  |  |  |  |
+| `isl.body` | "body" |  |  |  |  |
+| `isl.boss` | "boss" |  |  |  |  |
+| `isl.break` | "break" |  |  |  |  |
+| `isl.change` | "change" |  |  |  |  |
+| `isl.college` | "college" |  |  |  |  |
+| `isl.details` | "details" |  |  |  |  |
+| `isl.disability` | "disability" |  |  |  |  |
+| `isl.down` | "down" |  |  |  |  |
+| `isl.during` | "during" |  |  |  |  |
+| `isl.english` | "english" |  |  |  |  |
+| `isl.explain` | "explain" |  |  |  |  |
+| `isl.false` | "false" |  |  |  |  |
+| `isl.far` | "far" |  |  |  |  |
+| `isl.feelings` | "feelings" |  |  |  |  |
+| `isl.fight` | "fight" |  |  |  |  |
+| `isl.foot` | "foot" |  |  |  |  |
+| `isl.force` | "force" |  |  |  |  |
+| `isl.forest` | "forest" |  |  |  |  |
+| `isl.forget` | "forget" |  |  |  |  |
+| `isl.free` | "free" |  |  |  |  |
+| `isl.from` | "from" |  |  |  |  |
+| `isl.get` | "get" |  |  |  |  |
+| `isl.government` | "government" |  |  |  |  |
+| `isl.group` | "group" |  |  |  |  |
+| `isl.handcuffs` | "handcuffs" |  |  |  |  |
+| `isl.happen` | "happen" |  |  |  |  |
+| `isl.happened` | "happened" |  |  |  |  |
+| `isl.have` | "have" |  |  |  |  |
+| `isl.health` | "health" |  |  |  |  |
+| `isl.hear` | "hear" |  |  |  |  |
+| `isl.helps` | "helps" |  |  |  |  |
+| `isl.here` | "here" |  |  |  |  |
+| `isl.hindi` | "hindi" |  |  |  |  |
+| `isl.hours` | "hours" |  |  |  |  |
+| `isl.judge` | "judge" |  |  |  |  |
+| `isl.juvenile` | "juvenile" |  |  |  |  |
+| `isl.kill` | "kill" |  |  |  |  |
+| `isl.knife` | "knife" |  |  |  |  |
+| `isl.left` | "left" |  |  |  |  |
+| `isl.legal` | "legal" |  |  |  |  |
+| `isl.less` | "less" |  |  |  |  |
+| `isl.lie` | "lie" |  |  |  |  |
+| `isl.lunch` | "lunch" |  |  |  |  |
+| `isl.make` | "make" |  |  |  |  |
+| `isl.many` | "many" |  |  |  |  |
+| `isl.marry` | "marry" |  |  |  |  |
+| `isl.maths` | "maths" |  |  |  |  |
+| `isl.meet` | "meet" |  |  |  |  |
+| `isl.mistake` | "mistake" |  |  |  |  |
+| `isl.more` | "more" |  |  |  |  |
+| `isl.mosque` | "mosque" |  |  |  |  |
+| `isl.music` | "music" |  |  |  |  |
+| `isl.must` | "must" |  |  |  |  |
+| `isl.next` | "next" |  |  |  |  |
+| `isl.none` | "none" |  |  |  |  |
+| `isl.offence` | "offence" |  |  |  |  |
+| `isl.once` | "once" |  |  |  |  |
+| `isl.open` | "open" |  |  |  |  |
+| `isl.other` | "other" |  |  |  |  |
+| `isl.owner` | "owner" |  |  |  |  |
+| `isl.parents` | "parents" |  |  |  |  |
+| `isl.pay` | "pay" |  |  |  |  |
+| `isl.people` | "people" |  |  |  |  |
+| `isl.personal` | "personal" |  |  |  |  |
+| `isl.place` | "place" |  |  |  |  |
+| `isl.places` | "places" |  |  |  |  |
+| `isl.pond` | "pond" |  |  |  |  |
+| `isl.pull` | "pull" |  |  |  |  |
+| `isl.push` | "push" |  |  |  |  |
+| `isl.put` | "put" |  |  |  |  |
+| `isl.rape` | "rape" |  |  |  |  |
+| `isl.read` | "read" |  |  |  |  |
+| `isl.ready` | "ready" |  |  |  |  |
+| `isl.relatives` | "relatives" |  |  |  |  |
+| `isl.remember` | "remember" |  |  |  |  |
+| `isl.right` | "right" |  |  |  |  |
+| `isl.rights` | "rights" |  |  |  |  |
+| `isl.river` | "river" |  |  |  |  |
+| `isl.room` | "room" |  |  |  |  |
+| `isl.sell` | "sell" |  |  |  |  |
+| `isl.send` | "send" |  |  |  |  |
+| `isl.sensitive` | "sensitive" |  |  |  |  |
+| `isl.services` | "services" |  |  |  |  |
+| `isl.slowly` | "slowly" |  |  |  |  |
+| `isl.small` | "small" |  |  |  |  |
+| `isl.social` | "social" |  |  |  |  |
+| `isl.something` | "something" |  |  |  |  |
+| `isl.soon` | "soon" |  |  |  |  |
+| `isl.speak` | "speak" |  |  |  |  |
+| `isl.sports` | "sports" |  |  |  |  |
+| `isl.stand` | "stand" |  |  |  |  |
+| `isl.start` | "start" |  |  |  |  |
+| `isl.steal` | "steal" |  |  |  |  |
+| `isl.stick` | "stick" |  |  |  |  |
+| `isl.talk` | "talk" |  |  |  |  |
+| `isl.tap` | "tap" |  |  |  |  |
+| `isl.things` | "things" |  |  |  |  |
+| `isl.threat` | "threat" |  |  |  |  |
+| `isl.throat` | "throat" |  |  |  |  |
+| `isl.travel` | "travel" |  |  |  |  |
+| `isl.true` | "true" |  |  |  |  |
+| `isl.truth` | "truth" |  |  |  |  |
+| `isl.uncle` | "uncle" |  |  |  |  |
+| `isl.up` | "up" |  |  |  |  |
+| `isl.want` | "want" |  |  |  |  |
+| `isl.welfare` | "welfare" |  |  |  |  |
+| `isl.work` | "work" |  |  |  |  |
 | `asl.after` | "after" |  |  |  |  |
 | `asl.airplane` | "airplane" |  |  |  |  |
 | `asl.all` | "all" |  |  |  |  |
@@ -801,6 +925,7 @@ Typed words the character signs, gestures or pictures (`words.json`, D-22). Revi
 | phone, call, mobile, फ़ोन, फोन, मोबाइल, कॉल, bulao, bulaya, बुलाओ, बुलाया | `phone.ear` | `phone.ear` | `phone` |  |  |  |
 | money, rupees, rupee, paisa, paise, पैसा, पैसे, रुपये, रुपया | `money.rub` | `money.rub` | `money` |  |  |  |
 | school, study, padhai, padhna, स्कूल, पढ़ाई, पढ़ना, विद्यालय |  | `school.write` | `school` |  |  |  |
+| write, wrote, writing, draw, drew, drawing, likho, likhna, likhiye, banao, लिखो, लिखिए, लिखना, बनाओ |  | `school.write` |  |  |  |  |
 | shop, market, dukaan, bazaar, दुकान, बाज़ार, बाजार |  | `money.rub` | `shop` |  |  |  |
 | police, policeman, officer, cop, पुलिस, अधिकारी | `police.salute` | `police.salute` | `police` |  |  |  |
 | head, sar, सिर | `sign.body.head` |  | `head` |  |  |  |
@@ -861,6 +986,85 @@ Typed words the character signs, gestures or pictures (`words.json`, D-22). Revi
 | eight, aath, आठ | `digit.8` |  | `n8` |  |  |  |
 | nine, nau, नौ | `digit.9` |  | `n9` |  |  |  |
 | ten, das, दस | `sign.ten` |  | `n10` |  |  |  |
+| want, chahiye, chahta, chahti, चाहिए, चाहता, चाहती |  |  |  |  |  |  |
+| here, yahan, yaha, यहाँ, यहां |  |  |  |  |  |  |
+| there, wahan, waha, वहाँ, वहां |  |  |  |  |  |  |
+| happen, happened, hua, hui, हुआ, हुई |  |  |  |  |  |  |
+| ask, asked, poocho, poochho, puchna, पूछो, पूछना |  |  |  |  |  |  |
+| many, bahut, kai, बहुत, कई |  |  |  |  |  |  |
+| before, pehle, pahle, पहले |  |  |  |  |  |  |
+| after, baad, बाद |  |  |  |  |  |  |
+| place, places, jagah, जगह |  |  |  |  |  |  |
+| far, door, दूर |  |  |  |  |  |  |
+| remember, yaad, याद |  |  |  |  |  |  |
+| forget, bhool, bhoolna, भूल, भूलना |  |  |  |  |  |  |
+| speak, bolo, bolna, बोलो, बोलना, tell, told, say, said, batao, bataiye, kaho, बताओ, बताइए, कहो, कहिए |  |  |  |  |  |  |
+| talk, baat, baatcheet, बात, बातचीत |  |  |  |  |  |  |
+| truth, sach, सच |  |  |  |  |  |  |
+| lie, jhooth, jhoot, झूठ |  |  |  |  |  |  |
+| mistake, galti, गलती, ग़लती |  |  |  |  |  |  |
+| big, bada, badi, बड़ा, बड़ी |  |  |  |  |  |  |
+| small, chhota, chhoti, छोटा, छोटी |  |  |  |  |  |  |
+| more, zyada, jyada, ज़्यादा, ज्यादा |  |  |  |  |  |  |
+| less, kam, कम |  |  |  |  |  |  |
+| room, kamra, कमरा |  |  |  |  |  |  |
+| knife, chaku, chaaku, चाकू |  |  |  |  |  |  |
+| stick, danda, lathi, डंडा, लाठी |  |  |  |  |  |  |
+| blood, khoon, खून, ख़ून |  |  |  |  |  |  |
+| kill, killed, hatya, हत्या |  |  |  |  |  |  |
+| steal, stole, stolen, churaya, चुराया |  |  |  |  |  |  |
+| fight, ladai, jhagda, लड़ाई, झगड़ा |  |  |  |  |  |  |
+| threat, threatened, dhamki, धमकी |  |  |  |  |  |  |
+| rape, balatkar, बलात्कार |  |  |  |  |  |  |
+| marry, married, shaadi, vivah, शादी, विवाह |  |  |  |  |  |  |
+| uncle, chacha, mama, tau, चाचा, मामा, ताऊ |  |  |  |  |  |  |
+| aunt, chachi, mausi, bua, चाची, मौसी, बुआ |  |  |  |  |  |  |
+| down, neeche, नीचे |  |  |  |  |  |  |
+| up, upar, ऊपर |  |  |  |  |  |  |
+| open, kholo, खोलो |  |  |  |  |  |  |
+| send, sent, bhejo, bhejna, भेजो, भेजना |  |  |  |  |  |  |
+| sell, sold, becho, bechna, बेचो, बेचना |  |  |  |  |  |  |
+| work, kaam, काम |  |  |  |  |  |  |
+| owner, maalik, malik, मालिक |  |  |  |  |  |  |
+| people, log, लोग |  |  |  |  |  |  |
+| alone, akela, akeli, अकेला, अकेली |  |  |  |  |  |  |
+| parents, mata-pita, माता-पिता |  |  |  |  |  |  |
+| judge, jaj, nyayadhish, जज, न्यायाधीश |  |  |  |  |  |  |
+| arrest, arrested, giraftar, गिरफ्तार, गिरफ़्तार |  |  |  |  |  |  |
+| bail, zamanat, jamanat, ज़मानत, जमानत |  |  |  |  |  |  |
+| rights, adhikar, अधिकार |  |  |  |  |  |  |
+| legal, kanooni, kanuni, कानूनी, क़ानूनी |  |  |  |  |  |  |
+| government, sarkar, सरकार |  |  |  |  |  |  |
+| free, muft, मुफ़्त, मुफ्त |  |  |  |  |  |  |
+| ready, taiyaar, taiyar, तैयार |  |  |  |  |  |  |
+| next, agla, agli, अगला, अगली |  |  |  |  |  |  |
+| change, badlo, badalna, बदलो, बदलना |  |  |  |  |  |  |
+| explain, samjhao, समझाओ |  |  |  |  |  |  |
+| health, sehat, सेहत, स्वास्थ्य |  |  |  |  |  |  |
+| body, shareer, sharir, शरीर |  |  |  |  |  |  |
+| river, nadi, नदी |  |  |  |  |  |  |
+| forest, jangal, जंगल |  |  |  |  |  |  |
+| pond, talab, तालाब |  |  |  |  |  |  |
+| mosque, masjid, मस्जिद |  |  |  |  |  |  |
+| music, sangeet, संगीत |  |  |  |  |  |  |
+| push, pushed, dhakka, धक्का |  |  |  |  |  |  |
+| pull, kheencho, खींचो |  |  |  |  |  |  |
+| angry, gussa, गुस्सा |  |  |  |  |  |  |
+| hear, suno, sunna, सुनो, सुनना |  |  |  |  |  |  |
+| stand, khade, khada, खड़े, खड़ा |  |  |  |  |  |  |
+| travel, safar, yatra, सफ़र, यात्रा |  |  |  |  |  |  |
+| disability, viklang, विकलांग |  |  |  |  |  |  |
+| personal, niji, निजी |  |  |  |  |  |  |
+| offence, apradh, अपराध |  |  |  |  |  |  |
+| force, zabardasti, ज़बरदस्ती |  |  |  |  |  |  |
+| handcuffs, hathkadi, हथकड़ी |  |  |  |  |  |  |
+| juvenile, kishor, किशोर |  |  |  |  |  |  |
+| group, samooh, समूह |  |  |  |  |  |  |
+| things, cheezein, saman, चीज़ें, सामान |  |  |  |  |  |  |
+| feelings, bhavna, भावना |  |  |  |  |  |  |
+| other, doosra, dusra, दूसरा |  |  |  |  |  |  |
+| relatives, rishtedar, रिश्तेदार |  |  |  |  |  |  |
+| something, kuch, कुछ |  |  |  |  |  |  |
 
 ## 4. Placeholder recordings
 

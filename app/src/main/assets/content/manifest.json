@@ -194,7 +194,7 @@
   "cards/wrong.webp": "91c197f6b4397e2ebde599d28758b0a96a64729a7b74981987c7cd155d9bb42e",
   "cards/yes.webp": "9be469993d15ed6990e7efcf64dd167891bb10ac55a8f5a0682adb3d32bb2975",
   "gestures.json": "201d0c127b99df226c92e5aebbb35b288eee85c7ef152cd5902632a9bf11e802",
-  "isl_signs.json": "6b3da114a436f55e3276074e89edfa872dd21875e9ac1036819ed715ea28eff4",
+  "isl_signs.json": "acf730410c7688c463ea77072d5c039db372c92de00c2c0f8fceda2e18dbbbea",
   "languages.json": "632f4960a11ef1d02e67e328e48ea12da644894897788239b18c652f4a762b14",
   "lexicon.json": "3a38f1fa5bb67d5a4b7fe824b6b62cb56c64f3366434d49ab8051df1451d3558",
   "models/asl_reader.bin": "d17a0344bdcfe8ea282b68a32f381c544575a6cf14b482ff1174c1a5fa00a163",
@@ -202,8 +202,8 @@
   "models/asl_spell.bin": "6de0685105812e4c9d5ad0f62c4445ea206f824e328ca62113fb400d962a92ce",
   "models/asl_spell.json": "ebca97a9ba2467b18804993477e68f3c2d4695c7f330df92bba1514b0ac94e8e",
   "models/holistic_landmarker.task": "e2dab61191e2dcd0a15f943d8e3ed1dce13c82dfa597b9dd39f562975a50c3f8",
-  "models/isl_spell.bin": "b7e3c5e77fbaec8404df4e42d468c82c4b75e90d304fd187867ae9e233de5533",
-  "models/isl_spell.json": "6b3c0555eb32a1a66d76a85d868318a43ef08ebb3f976b1ce4f0d5d647d2c760",
+  "models/isl_spell.bin": "424b6430bd6b030b75c332ba5b673a1af9fa81bb87fb87d7397f3904d6f691e8",
+  "models/isl_spell.json": "13ca49c857df0300dcc94f63f82a1994a425bf509eb67ac6c8f4b18c0565191a",
   "models/sign_reader.bin": "a32cb6577fb01a04f0ffb795aa1ea928bf8286ca4b025966c66a75452f00b96d",
   "models/sign_reader.json": "1af97257ccea77cb2d23906190f6a22e7d5b13c4be6341b5c061e712fe40ce25",
   "phrases.json": "285951f11affebfd93d47ed33976aa5625257b0ce3b5e6407166ed40f2b26a71",
@@ -212,7 +212,7 @@
   "signs.json": "9ad5124a4fdfe74d2a104075870964308a82046536e787b171a923e5802f1c37",
   "subject_ui.json": "847e1994472f3c410cb5e5f6a8ef3fbd55132bee509c2a6edb3ea76a2bbf645a",
   "triage.json": "a916982b29ebda033df0eeb97cdbe280eaca1eb0904c9952f72bd763c5a9416f",
-  "words.json": "b1a44e7316b0b9c2b2d25cb2784aa03ee48fa4d1cdc1850f6e86616bd30e98fb"
+  "words.json": "41b4fa74af8e7efcbdb588f93984d269fd085f57763b31548fda12476f2303eb"
  },
  "version": 1
 }

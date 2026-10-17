@@ -33,14 +33,17 @@ class SignSegment(
     val context: Set<String> = emptySet(),
 ) {
     val word: String? get() = guesses?.let { it.firstOrNull()?.word ?: "?" }
+    /** Brows raised over most of the sign's face frames. */
+    val browsUp: Boolean get() = frames.filter { it.face != null }.let { f -> f.isNotEmpty() && f.count { it.browsUp } * 2 > f.size }
 }
 
-/** A "Tell me" account as read: each sign's word at its m:ss from the first sign. */
+/** A "Tell me" account as read: each sign's word at its m:ss from the first sign, "?" after one asked with raised brows. */
 fun glossTranscript(segments: List<SignSegment>): String {
     val t0 = segments.firstOrNull()?.frames?.firstOrNull()?.timestampMs ?: return ""
     return segments.joinToString(" ") { s ->
         val sec = ((s.frames.firstOrNull()?.timestampMs ?: t0) - t0) / 1000
-        "[%d:%02d] %s".format(sec / 60, sec % 60, s.word ?: "?")
+        // A sign made with raised brows was asked, not told.
+        "[%d:%02d] %s%s".format(sec / 60, sec % 60, s.word ?: "?", if (s.browsUp && s.word != "?") "?" else "")
     }
 }
 

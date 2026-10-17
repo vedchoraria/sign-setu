@@ -527,6 +527,7 @@ fun SignedSheet(
             if (segments.all { it.guesses.isNullOrEmpty() }) {
                 item { Text(stringResource(R.string.signed_manual), style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant) }
             }
+            item { Text(stringResource(R.string.signed_teach), style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant) }
             itemsIndexed(segments) { i, s ->
                 val current = replay.segment == i
                 Surface(

@@ -169,6 +169,10 @@ Priority: **MUST** (release 1 cannot ship without it), **SHOULD** (release 1 if 
 | FR-105 | A phrase board on the stage offers the everyday phrases as pictures with words; a tap is logged as the subject's own. | SHOULD |
 | FR-106 | The officer can search an ISL dictionary of every recorded and authored sign in English or Hindi, play a sign, and prepare it for the stage (D-35). | SHOULD |
 | FR-107 | The stage shows the camera at its own 9:16 shape without cropping, between two rails of answers; Stop is the only pause control on the phone's stage (D-37). | MUST |
+| FR-109 | While the stage camera shows, the subject sees their hands, arms, brows and lips traced live; a wrist leaving the frame lights that edge during a sign window. | SHOULD |
+| FR-110 | A nod, head shake, thumbs up or down, raised open palm, shrug, or a finger held on a body part makes the matching Yes, No, Stop, "I don't know" or picture pulse as a proposal; only the subject's tap answers. | SHOULD |
+| FR-111 | A sign the officer reads as a word the reader did not offer is recognised for the rest of the session and offered first. | SHOULD |
+| FR-112 | Raised brows over most signs of an answer make its written draft a question. | SHOULD |
 | FR-108 | The officer sets the sign language of a session, ISL or ASL, and can change it during the session; each change is logged. The setting selects the sign reader, the dictionary, the fingerspelling alphabet and numbers, and the character's signs for typed text. ASL text keeps the order typed; the ISL reordering of time, negation and question words applies to ISL only. Every ASL sign and pairing is a draft until reviewed by Deaf ASL signers (D-39). | SHOULD |
 
 ### 4.13 Later releases
@@ -233,8 +237,9 @@ Status of the requirements added or changed in the current build. Built means th
 | FR-92, FR-103 | Built | Read-back Yes logs Confirmed; No reopens the subject's input |
 | FR-97 | Built | The glance strip hides personal-detail answers by the rule used for the personal-details report |
 | FR-102 to FR-104 | Built | Every lesson-sheet question is reachable from the personal question carousel |
-| FR-106 | Built | Dictionary covers 262 recorded ISL signs and 250 ASL words and 26 letters; all drafts until Deaf review |
+| FR-106 | Built | Dictionary covers 262 recorded ISL signs from INCLUDE, 124 retargeted from the ISLRTC dictionary, and 250 ASL words and 26 letters; all drafts until Deaf review. Typed question-bank words signed rather than spelled rose from 63% to 82% |
 | FR-107 | Built | The camera window clips to the picture rectangle |
-| FR-108 | Partly met | Setting, reader, dictionary, alphabet, numbers and typed-text signing follow the language. ASL word reader top-1 is 0.402 against the 0.6 target; 14 moving ASL signs are retargeted to static keys; all ASL content awaits review (D-39) |
+| FR-109 to FR-112 | Built | Live overlay, gesture proposals, session-learned signs and brow questions (D-40); calibration values to be set on devices |
+| FR-108 | Partly met | Setting, reader, dictionary, alphabet, numbers and typed-text signing follow the language. ASL word reader top-1 is 0.402 against the 0.6 target, accepted as the release-1 ceiling; 14 moving ASL signs are retargeted to 2 to 12 keys each; ASL digits and spelled readings sign back in ASL; all ASL content awaits review (D-39) |
 | NFR-20, NFR-21 | Built, not run | Stage and stage device accessibility tests are written for both themes |
 | NFR-34 | Met | The permission gate in `app/build.gradle.kts` is unchanged; the standard flavor declares no INTERNET, RECORD_AUDIO or location |

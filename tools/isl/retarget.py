@@ -260,7 +260,7 @@ def pick(recs: list[tuple[str, dict]]) -> tuple[str, dict, list[str]]:
 
 # ---- One sign ---------------------------------------------------------------------------------------------------
 
-def prepare(rec: dict, hands: list[str], fps: float = FPS) -> dict:
+def prepare(rec: dict, hands: list[str], fps: float = FPS, first: bool = False, visible: bool = False) -> dict:
     """Gap-filled, smoothed hands in source pixels and wrists in rig units, cut to the signing, with key frames."""
     present = np.logical_or.reduce([rec[f"has_{h}"] for h in hands])
     idx = np.flatnonzero(present)
@@ -272,17 +272,24 @@ def prepare(rec: dict, hands: list[str], fps: float = FPS) -> dict:
         tracks[h] = smooth(fill_gaps(rec[h][lo:hi], rec[f"has_{h}"][lo:hi]))
         elbows[h] = elbow_offsets(pose, h)
         rig[h] = np.array([clamp_reach(to_rig(p[0, :2], body, face), h) for p in tracks[h]])
-    # The rig eases in from its own rest, so the signer's raising and lowering of the hands is cut.
-    up = np.logical_or.reduce([rig[h][:, 1] < SHOULDER_Y + RAISED * 2 * SHOULDER_HALF for h in hands])
+    # The rig eases in from its own rest, so the signer's raising and lowering of the hands is cut. Dictionary signers
+    # rest out of frame and sign low, so for them a visible hand marks the signing.
+    up = (np.logical_or.reduce([rec[f"has_{h}"][lo:hi] for h in hands]) if visible
+          else np.logical_or.reduce([rig[h][:, 1] < SHOULDER_Y + RAISED * 2 * SHOULDER_HALF for h in hands]))
     raised = np.flatnonzero(up)
     a, b = (raised[0], raised[-1] + 1) if len(raised) else (0, len(up))
+    if first and len(raised):
+        # Dictionary clips may go on to an example or a repeat: keep the first raise, up to a drop of over half a second.
+        gaps = np.flatnonzero(np.diff(raised) > fps / 2)
+        if len(gaps):
+            b = raised[gaps[0]] + 1
     path = np.concatenate([rig[h][a:b] for h in hands], axis=1)
     frames = [a + i for i in key_frames(path, fps)]
     return {"tracks": tracks, "rig": rig, "elbows": elbows, "frames": frames, "start": a, "pose": pose, "body": body, "face": face}
 
 
-def retarget(rec: dict, hands: list[str], fps: float = FPS) -> list[dict]:
-    p = prepare(rec, hands, fps)
+def retarget(rec: dict, hands: list[str], fps: float = FPS, first: bool = False, visible: bool = False) -> list[dict]:
+    p = prepare(rec, hands, fps, first, visible)
     tracks, rig = p["tracks"], p["rig"]
     keys, prev_angle = [], {}
     for i in p["frames"]:
@@ -325,13 +332,24 @@ def main(data: pathlib.Path) -> None:
     note = ("Retargeted by tools/isl/retarget.py from INCLUDE signers' landmarks; edit the script, not this file. "
             "Draft: every sign needs Deaf ISL review on both characters.")
     source = "INCLUDE (AI4Bharat, Sridhar et al. 2020), OpenHands pose release, CC BY 4.0"
-    lines = ",\n".join("  " + json.dumps(g, ensure_ascii=False, separators=(",", ":")) for g in made)
+    # Words added by retarget_islrtc.py survive a rebuild unless INCLUDE now has them.
+    old = json.loads(OUT.read_text(encoding="utf-8")) if OUT.exists() else {}
+    words = {g["word"] for g in made}
+    kept = [g for g in old.get("gestures", []) if g.get("rec", "").startswith("ISLRTC/") and g["word"] not in words]
+    if kept:
+        source = old["source"]
+        cats.update({k: v for k, v in old["categories"].items() if k not in cats})
+    write({"note": note, "source": source, "categories": cats, "gestures": made + kept})
+    print(f"isl signs: {len(made)} words, {OUT.stat().st_size // 1024} KB")
+
+
+def write(signs: dict) -> None:
+    lines = ",\n".join("  " + json.dumps(g, ensure_ascii=False, separators=(",", ":")) for g in signs["gestures"])
     OUT.write_text(
-        f'{{"note": {json.dumps(note)},\n "source": {json.dumps(source)},\n "review": "draft",\n'
-        f' "categories": {json.dumps(cats, ensure_ascii=False)},\n "gestures": [\n{lines}\n]}}\n',
+        f'{{"note": {json.dumps(signs["note"])},\n "source": {json.dumps(signs["source"])},\n "review": "draft",\n'
+        f' "categories": {json.dumps(signs["categories"], ensure_ascii=False)},\n "gestures": [\n{lines}\n]}}\n',
         encoding="utf-8", newline="\n",
     )
-    print(f"isl signs: {len(made)} words, {OUT.stat().st_size // 1024} KB")
 
 
 if __name__ == "__main__":

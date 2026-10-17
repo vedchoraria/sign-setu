@@ -317,7 +317,6 @@ Status: Proposed, Accepted, Superseded.
 
 **Consequences.** The release APK grows by 5.9 MB; with the model loaded a session exceeds the 300 MB memory target, so it loads on first use and is freed when the app locks. The Gemma licence is not OSI open source; a fully open model can replace it by hash. Language reviewers spot-check output per pilot language. Asking the model to put sentences in ISL order was tried and dropped: it produced wrong output, and the rule-based word matching of D-22 stays.
 
-
 ---
 
 ## D-25 On-device vision engine, sign reader and sign windows
@@ -557,3 +556,24 @@ Status: Proposed, Accepted, Superseded.
 **Alternatives.** Kaggle `asl-signs` and `asl-fingerspelling` (redistribution barred, credentials needed); one merged lexicon (ASL and ISL words would collide).
 
 **Consequences.** A reading, in either language, still becomes the subject's answer only through their pick (FR-86). Sources and licences are in the [open-source register](09-open-source.md).
+
+---
+
+## D-40 Live landmarks on the stage, everyday gestures as proposals, and signs learned in the session
+
+**Status:** Accepted; adds FR-109 to FR-112; amends D-25 and SEC-71
+
+**Context.** Officers saw a plain mirror outside sign windows and read it as hand detection not working. Many subjects do not sign: children, people with intellectual disability, and frightened adults answer with a nod, a thumbs up, a raised palm or a pointing finger. Some Deaf subjects use home signs that no dataset holds. ISL marks yes/no questions with raised brows, not a sign.
+
+**Decision.**
+- While the stage camera shows, frames are analysed for the overlay at up to 10 frames a second, and at up to 30 inside a sign window. Only inside a sign window do landmarks go to sign capture. The overlay draws hands, arms, brows and lips; the face oval and eyes stay off.
+- Brows raised above the subject's own running baseline, over most signs of an answer, make its written draft a question. Mouth opening is marked per frame for later use.
+- A nod or head shake, a thumbs up or down held 0.5 s, a raised open palm held 0.8 s, a shrug (both hands open, low and wide) held 0.6 s, and a finger held 0.6 s on the head, mouth, stomach, arm or leg only make the matching Yes, No, Stop, "I don't know" or picture pulse. Nothing is logged until the subject taps; inside a sign window these proposals are muted, because open hands and pointing are signs there. When the tap matches the proposal, the answer's record line says so, for example "(after a nod or thumbs up)".
+- A wrist at the frame edge lights that edge of the camera window during a sign window.
+- When the officer reads a sign as a word the reader did not offer, the sign's feature sequence is kept for the session and offered first when signed again (dynamic time warping). It lives in view-model memory only.
+- With no one in view for 10 s outside a sign window, the overlay slows to about 3 frames a second.
+- The tuning values (brow raise, mouth opening, head swing, home-sign distance, pointing regions) are calibration settings to be set on devices.
+
+**Alternatives.** Reading words INCLUDE lacks from one ISLRTC signer each by dynamic time warping (measured: 0.07 top-1 across 60 words on INCLUDE signers, too often wrong to offer); analysis only inside sign windows (the overlay looked broken); treating a nod or point as an answer (would put words in the subject's mouth); a per-subject trained model for home signs (needs storage and training on the phone).
+
+**Consequences.** More frames are analysed, bounded at 10 a second outside sign windows. Landmarks and home-sign templates remain memory-only biometric data under SEC-71. Every proposal still needs the subject's tap, so FR-66 holds.

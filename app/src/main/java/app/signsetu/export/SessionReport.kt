@@ -21,6 +21,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.security.MessageDigest
 import java.security.SecureRandom
 
 /** Officer-language text for the report, resolved by the caller from string resources. */
@@ -192,16 +193,16 @@ class SessionReport(private val context: Context) {
 
         // Page numbers need the final count, so they are written after the PDF is laid out, by PdfBox.
         val bytes = ByteArrayOutputStream().use { out -> pdf.writeTo(out); pdf.close(); out.toByteArray() }
-        return numberPages(bytes, text)
+        return numberPages(bytes, text, recordDigest(rows))
     }
 
-    private fun numberPages(bytes: ByteArray, text: ReportText): ByteArray {
+    private fun numberPages(bytes: ByteArray, text: ReportText, digest: String): ByteArray {
         PDFBoxResourceLoader.init(context)
         return PDDocument.load(bytes).use { doc ->
             val total = doc.numberOfPages
             val font = com.tom_roush.pdfbox.pdmodel.font.PDType1Font.HELVETICA
             for (i in 0 until total) {
-                val label = text.page(i + 1, total).filter { it.code < 128 }.ifBlank { "${i + 1} / $total" }
+                val label = text.page(i + 1, total).filter { it.code < 128 }.ifBlank { "${i + 1} / $total" } + "   record $digest"
                 com.tom_roush.pdfbox.pdmodel.PDPageContentStream(
                     doc, doc.getPage(i), com.tom_roush.pdfbox.pdmodel.PDPageContentStream.AppendMode.APPEND, true, true,
                 ).use { cs ->
@@ -230,4 +231,14 @@ class SessionReport(private val context: Context) {
             return (1..16).map { ALPHABET[random.nextInt(ALPHABET.length)] }.chunked(4).joinToString("-") { it.joinToString("") }
         }
     }
+}
+
+/** Re-exporting the same session on the device gives the same digest, so an edited copy of the PDF shows. */
+fun recordDigest(rows: List<ReportRow>): String {
+    val md = MessageDigest.getInstance("SHA-256")
+    for (r in rows) with(r.event) {
+        md.update(listOf(id, ts, type, source, lang, text, cardId, lexiconId, drawingId, itemId, reason, shownId, via, r.detail).joinToString("").toByteArray())
+        md.update(byteArrayOf(0x1e))
+    }
+    return md.digest().take(8).joinToString("") { "%02x".format(it) }.chunked(4).joinToString("-")
 }

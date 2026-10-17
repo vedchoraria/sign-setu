@@ -1,5 +1,6 @@
 package app.signsetu.ui.start
 
+import app.signsetu.ui.components.GuardedAlertDialog
 import app.signsetu.ui.components.BrandButton
 import app.signsetu.ui.components.ChoiceTile
 import app.signsetu.ui.components.OfficerCard
@@ -184,11 +185,24 @@ fun StartScreen(
                     if (content.aslDisabled) Notice(null, stringResource(R.string.start_asl_off), MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onTertiaryContainer)
                     if (rooted) Notice(null, stringResource(R.string.start_rooted), MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onTertiaryContainer)
                     open?.let { session ->
+                        var ending by remember(session.id) { mutableStateOf(false) }
                         ResumeCard(
                             session = session,
                             languageName = content.language(session.subjectLang)?.name ?: session.subjectLang,
                             onResume = { onOpenSession(session.id) },
-                            onEnd = { scope.launch { repo.purge(session.id); refresh++ } },
+                            onEnd = { ending = true },
+                        )
+                        // Ending erases the record, so one stray tap must not do it; Continue leads to the export.
+                        if (ending) GuardedAlertDialog(
+                            onDismissRequest = { ending = false },
+                            title = { Text(stringResource(R.string.end_title)) },
+                            text = { Text(stringResource(R.string.end_body)) },
+                            confirmButton = {
+                                TextButton(onClick = { ending = false; scope.launch { repo.purge(session.id); refresh++ } }) {
+                                    Text(stringResource(R.string.end_no_export), color = MaterialTheme.colorScheme.error)
+                                }
+                            },
+                            dismissButton = { TextButton(onClick = { ending = false }) { Text(stringResource(R.string.cancel)) } },
                         )
                     }
                     // Profile, language and role are one decision, so they share one card.

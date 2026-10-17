@@ -48,7 +48,9 @@ private class SpellReader(private val inner: SignReader) : SignReader by inner {
 const val SPELL_MIN_LETTERS = 3
 const val SPELL_MIN_PEAK = 0.9f
 
-/** A letter or digit reader's top guess beats the word reader's only when this many times surer (tools/ml/eval_isl.py). */
+/**
+ * With the real-trained letter reader, 2 lets through 0.24 correct spelled reads against 0.09 at 3, losing no INCLUDE words.
+ */
 const val SPELL_ODDS = 2f
 
 /**
