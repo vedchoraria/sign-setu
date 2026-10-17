@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -54,7 +55,7 @@ internal fun pauseSeconds(events: List<SessionEvent>, now: Long): Long? =
  * No score and no sound. The subject ends it with the big Ready button; the officer's lock stays above it.
  */
 @Composable
-internal fun PauseLayer(label: String?, onReady: () -> Unit, modifier: Modifier = Modifier) {
+internal fun PauseLayer(label: String?, onReady: () -> Unit, stop: (@Composable (Modifier) -> Unit)? = null, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val still = remember { Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f }
     val motion = rememberInfiniteTransition(label = "pause")
@@ -99,5 +100,6 @@ internal fun PauseLayer(label: String?, onReady: () -> Unit, modifier: Modifier 
                 label?.let { Text(it, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(start = 12.dp)) }
             }
         }
+        stop?.invoke(Modifier.align(Alignment.BottomCenter).padding(bottom = 128.dp).width(180.dp))
     }
 }

@@ -159,6 +159,13 @@ fun SettingsScreen(store: SettingsStore, models: ModelStore, onBack: () -> Unit,
                     modifier = Modifier.toggleable(s.slowGestures, role = Role.Switch) { on -> scope.launch { store.setSlowGestures(on) } },
                 )
                 ListItem(
+                    headlineContent = { Text(stringResource(R.string.settings_isl_reorder)) },
+                    supportingContent = { Text(stringResource(R.string.settings_isl_reorder_summary)) },
+                    colors = ItemColors,
+                    trailingContent = { Switch(checked = s.islReorder, onCheckedChange = null) },
+                    modifier = Modifier.toggleable(s.islReorder, role = Role.Switch) { on -> scope.launch { store.setIslReorder(on) } },
+                )
+                ListItem(
                     headlineContent = { Text(stringResource(R.string.settings_pin_to_leave)) },
                     supportingContent = { Text(stringResource(R.string.settings_pin_to_leave_summary)) },
                     colors = ItemColors,
@@ -424,12 +431,23 @@ private val LICENCES = listOf(
         "Changed: a sign classifier was trained on its landmarks.",
     "OpenHands pose release" to "CC BY 4.0. AI4Bharat, \"OpenHands v1: Labelled ISLR datasets, Poses\", zenodo.org/records/6674324. " +
         "Changed: poses resampled and normalised.",
+    "PopSign ASL v1.0 (ASL reader training data, ASL signs)" to "CC BY 4.0. T. Starner et al., Georgia Tech and NTID, " +
+        "signdata.cc.gatech.edu. Changed: landmarks extracted, a sign classifier trained, signers retargeted as keyframes.",
+    "ASLNow! fingerspelling landmarks" to "MIT. sid220, huggingface.co/datasets/sid220/asl-now-fingerspelling. " +
+        "Changed: letters chained into synthetic spelling to train a reader, and posed as the ASL alphabet.",
     "MediaPipe and the Holistic landmarker model" to "Apache 2.0. Google LLC",
     "Sign Setu symbols (original drawings)" to "CC BY-SA 4.0. Drawn in OpenMoji style for this app",
     "SQLCipher for Android" to "BSD 3-Clause. Zetetic LLC",
     "PdfBox-Android" to "Apache 2.0. Tom Roush; Apache PDFBox",
     "AndroidX, Jetpack Compose, Media3" to "Apache 2.0. The Android Open Source Project",
     "Kotlin, kotlinx.coroutines, kotlinx.serialization" to "Apache 2.0. JetBrains",
+    "CameraX" to "Apache 2.0. The Android Open Source Project",
+    "Protocol Buffers for Java (protobuf-java)" to "BSD 3-Clause. Google LLC",
+    "BouncyCastle" to "MIT-style Bouncy Castle licence. The Legion of the Bouncy Castle Inc.",
+    "llama.cpp" to "MIT. Georgi Gerganov and contributors, ggml-org/llama.cpp",
+    "Baloo 2 font" to "SIL Open Font Licence 1.1. Ek Type",
+    "INCLUDE sign retargeting" to "CC BY 4.0. Motions retargeted from the INCLUDE landmark samples; see INCLUDE above.",
+    "PopSign ASL v1.0" to "CC BY 4.0. Starner, Forbes, So, Martin, Sridhar, Deshpande et al. (Georgia Tech, NTID), NeurIPS 2023 Datasets and Benchmarks. Changes: landmarks retargeted to keyframes on the app's characters, mirrored to right-hand dominant where the left hand led.",
 )
 
 @Composable

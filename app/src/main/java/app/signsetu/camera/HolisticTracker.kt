@@ -27,7 +27,7 @@ fun holisticTracker(context: Context): LandmarkTracker? =
     } else null
 
 /**
- * MediaPipe Holistic on the CPU in video mode (D-25). The model is mapped from the uncompressed asset, checked against
+ * MediaPipe Holistic on the CPU in video mode (D-25); no GPU delegate is wired yet. The model is mapped from the uncompressed asset, checked against
  * the content manifest and opened by [warm] or the first frame; if the check fails the tracker reports nothing (SEC-54).
  * [close] frees the graph, and the next use opens it again.
  */

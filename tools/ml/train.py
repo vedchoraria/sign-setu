@@ -1,6 +1,6 @@
-"""Trains the sign reader on the cached INCLUDE landmarks and reports test-split accuracy.
+"""Trains a format 1 reader on a landmark cache (INCLUDE, synthetic ISL letters, ASL) and reports test-split accuracy.
 
-    python tools/ml/train.py [data_dir]   # writes sign_reader.pt into data_dir
+    python tools/ml/train.py [cache.pkl] [out.pt] [epochs]   # default INCLUDE: include.pkl -> sign_reader.pt, 400
 """
 import os
 import pathlib
@@ -74,8 +74,8 @@ def evaluate(model, x, y):
     return (top[:, 0] == y).float().mean().item(), (top == y[:, None]).any(1).float().mean().item()
 
 
-def main(data: pathlib.Path, epochs: int = 400) -> None:
-    with open(data / "include.pkl", "rb") as f:
+def main(cache: pathlib.Path, out: pathlib.Path, epochs: int = 400) -> None:
+    with open(cache, "rb") as f:
         cache = pickle.load(f)
     aspect, samples = cache["aspect"], cache["samples"]
     labels = sorted({s["label"] for s in samples})
@@ -108,8 +108,11 @@ def main(data: pathlib.Path, epochs: int = 400) -> None:
         if epoch % 25 == 24 or epoch == epochs - 1:
             top1, top3 = evaluate(model, xt, yt)
             print(f"epoch {epoch + 1}: loss {loss.item():.3f} test top-1 {top1:.4f} top-3 {top3:.4f}", flush=True)
-    torch.save({"state": model.cpu().state_dict(), "labels": labels, "top1": top1, "top3": top3}, data / "sign_reader.pt")
+    torch.save({"state": model.cpu().state_dict(), "labels": labels, "top1": top1, "top3": top3, "epochs": epochs}, out)
 
 
 if __name__ == "__main__":
-    main(pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else "C:/Users/Yash/dev/ml-data/include_pose"))
+    data = pathlib.Path("C:/Users/Yash/dev/ml-data/include_pose")
+    a = sys.argv[1:]
+    main(pathlib.Path(a[0]) if a else data / "include.pkl", pathlib.Path(a[1]) if len(a) > 1 else data / "sign_reader.pt",
+         int(a[2]) if len(a) > 2 else 400)

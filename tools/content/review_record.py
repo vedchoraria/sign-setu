@@ -83,12 +83,21 @@ def main():
     parser.add_argument("--out", type=pathlib.Path, default=OUT, help="where to write the record")
     args = parser.parse_args()
     reviews = Reviews(args.reviews)
+    # Recorded sign files are optional: asl_signs.json only exists once ASL content is built.
+    sign_files = [name for name in ("isl_signs.json", "asl_signs.json") if (ASSETS / name).exists()]
     gestures = [g["id"] for name in ("gestures.json", "signs.json") for g in load(name)["gestures"]]
+    gestures += [g["id"] for name in sign_files for g in load(name)["gestures"]]
+    caveats = {g["id"]: "; ".join(t for f, t in (("static", "one held keyframe"),
+               ("one_hand_source", "two-handed sign drawn with the right hand only")) if g.get(f))
+               for name in sign_files for g in load(name)["gestures"]}
     words = load("words.json")["words"]
     meanings = {}
     for w in words:
         for gid in {w.get("sign"), w.get("gesture")} - {None}:
             meanings.setdefault(gid, w["w"][0])
+    for name in sign_files:
+        for g in load(name)["gestures"]:
+            meanings.setdefault(g["id"], g["word"])
     lexicon = {e["id"]: e for e in load("lexicon.json")["entries"]}
     phrases = load("phrases.json")["phrases"]
     audio_files = sorted((ASSETS / "audio").rglob("*.ogg"))
@@ -113,7 +122,7 @@ def main():
     for gid in gestures:
         entry = lexicon.get(gid)
         meaning = entry["label"]["en"] if entry else ROLES.get(gid) or role(gid, meanings)
-        how = entry["how"]["en"] if entry else ""
+        how = entry["how"]["en"] if entry else caveats.get(gid, "")
         # The portal plays each gesture on both characters at once, so one verdict fills both columns.
         v = reviews.verdict("gesture", gid)
         out.append(f"| `{gid}` | {cell(meaning)} | {cell(how)} | {v} | {v} | {reviews.notes('gesture', gid)} |")

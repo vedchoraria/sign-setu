@@ -1,6 +1,7 @@
 # Sign reader training
 
-Trains the on-device isolated sign classifier that `LandmarkSignReader` runs in the app.
+Trains the on-device sign readers: the isolated sign classifiers `LandmarkSignReader` runs (format 1) and the ASL
+fingerspelling reader `CtcSpellReader` runs (format 2).
 
 ## Data
 
@@ -29,6 +30,36 @@ Run from `tools/ml`:
 
 The app loads the model only when both files match the content manifest. `SignReaderTest` checks that the
 Kotlin forward pass reproduces the Python logits on the fixture.
+
+## More readers
+
+| Model | Format | Data | Licence |
+|---|---|---|---|
+| `sign_reader` | 1 | INCLUDE, 262 ISL words | CC BY 4.0 |
+| `isl_spell` | 1 | Synthetic: the app's ISL letter and digit keyframes (`signs.json`) posed on a copy of the rig, jittered (`synthetic` in its json) | Project |
+| `asl_reader` | 1 | PopSign ASL v1.0, 250 signs, frames from `sign/popsign-images`, landmarks by the app's Holistic model | CC BY 4.0 |
+| `asl_spell` | 2 (CTC) | Synthetic sequences of real static ASLNow! letters (`synthetic` in its json) | MIT |
+
+No redistributable ISL fingerspelling landmark set was found (public ones are CC BY-NC). Google's Kaggle ASL sets are
+CC BY 4.0 but need Kaggle credentials; PopSign is the same isolated-sign corpus. `prepare_asl.py` needs a second venv
+(`signsetu-mp`: mediapipe, pyarrow, pillow) and reads the PopSign validation signers for training and test signers for
+testing (4.6 GB; the 14.5 GB train split is left out to stay within the download budget).
+
+    python synth_isl.py                               # isl_spell.pkl
+    python train.py <cache.pkl> <out.pt> [epochs]     # any format 1 reader
+    python export.py <name> <out.pt> <cache.pkl>      # models/<name>.{bin,json} + <name>_fixture.json
+    signsetu-mp/python -I prepare_asl.py              # asl.pkl
+    python spell_ctc.py prepare | train | export      # asl_spell, format 2
+    python eval_isl.py                                # top-1/top-3: ISL words, letters, digits
+    python eval_asl.py                                # top-1/top-3: ASL words; fingerspelling CER
+    python ../isl/retarget_asl.py                     # asl_signs.json, asl_words.json
+
+`runtime.py` runs the exported files in NumPy, so the evaluations score what ships.
+
+Format 2 (`CtcSpellReader.kt`, `spell_features` in `features.py`): frames resampled to 15 a second by timestamp; the
+hand seen more often signs, a left hand mirrored; 21 points from the wrist in wrist to middle-knuckle lengths, the
+wrist's step since the last frame, a presence flag. Per-frame linear layer, four residual dilated convolutions, per-frame
+logits over blank and a to z, greedy CTC decoding. `AslSpellTest` checks logits and letters against the fixture.
 
 ## Features
 

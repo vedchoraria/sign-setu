@@ -106,6 +106,7 @@ fun FirstRunScreen(gestures: Map<String, Gesture>, onDone: () -> Unit) {
                     }
                 }
                 if (index > 0) TextButton(onClick = { index-- }) { Text(stringResource(R.string.back)) }
+                if (!last) TextButton(onClick = onDone) { Text(stringResource(R.string.skip)) }
                 BrandButton(
                     onClick = { if (last) onDone() else index++ },
                     modifier = Modifier.padding(start = Spacing.sm).height(48.dp),

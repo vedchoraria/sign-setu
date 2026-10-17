@@ -133,7 +133,7 @@ internal fun eagerlyChecked(path: String) = !path.startsWith("models/")
 @Serializable private data class SignWordsFile(val words: Map<String, String>)
 
 /** Motion files: a failed one only loses the character's motions, never the words a subject is shown. */
-private val MOTION_FILES = setOf("gestures.json", "signs.json", "isl_signs.json")
+private val MOTION_FILES = setOf("gestures.json", "isl_signs.json") + SignLanguage.entries.map { it.signs }
 
 @Immutable
 data class ContentBundle(
@@ -162,6 +162,12 @@ data class ContentBundle(
     val signWords: Map<String, String> = emptyMap(),
     /** States and union territories for the place picker, Chhattisgarh first. */
     val states: List<State> = emptyList(),
+    /** Everyday gestures alone (gestures.json): what an ASL session keeps of ISL's motions ([forSignLanguage]). */
+    val everyday: Map<String, Gesture> = emptyMap(),
+    /** Signs retargeted from recorded ASL signers plus the one-hand alphabet (asl_signs.json). */
+    val aslSigns: IslSigns = IslSigns(),
+    /** ASL reader labels to a written form in [words] (asl_words.json). */
+    val aslWords: Map<String, String> = emptyMap(),
 ) {
     /** A group with no roles listed is for everyone. */
     fun groupsFor(role: Role, child: Boolean = false): List<Group> =
@@ -169,6 +175,10 @@ data class ContentBundle(
 
     fun questionsIn(group: String, role: Role, profile: Profile): List<Question> =
         questions.filter { it.group == group && askable(it, role, profile) }
+
+    /** Every question the group carousel reaches for this person: each shown group's askable questions. */
+    fun carouselQuestions(role: Role, child: Boolean, profile: Profile): List<Question> =
+        groupsFor(role, child).flatMap { questionsIn(it.id, role, profile) }
 
     fun group(id: String): Group? = groups.firstOrNull { it.id == id }
     fun question(id: String): Question? = questions.firstOrNull { it.id == id }
@@ -227,8 +237,10 @@ class ContentRepository(private val assets: AssetManager) {
         val languages = verified("languages.json", rejected) ?: LanguagesFile(emptyList())
         val subjectUi = verified<Map<String, Localized>>("subject_ui.json", rejected).orEmpty()
         val isl = verified<IslSigns>("isl_signs.json", rejected) ?: IslSigns()
-        val gestures = verified<GesturesFile>("gestures.json", rejected)?.gestures.orEmpty() +
-            verified<GesturesFile>("signs.json", rejected)?.gestures.orEmpty() + isl.gestures.map { it.gesture }
+        val everyday = verified<GesturesFile>("gestures.json", rejected)?.gestures.orEmpty()
+        val gestures = everyday + verified<GesturesFile>("signs.json", rejected)?.gestures.orEmpty() + isl.gestures.map { it.gesture }
+        val asl = SignLanguage.ASL.signs.takeIf { it in manifest.files }?.let { verified<IslSigns>(it, rejected) } ?: IslSigns()
+        val aslWords = SignLanguage.ASL.words.takeIf { it in manifest.files }?.let { verified<SignWordsFile>(it, rejected) }?.words.orEmpty()
         val words = verified<WordsFile>("words.json", rejected)?.words.orEmpty()
         val phrases = verified<PhrasesFile>("phrases.json", rejected)?.phrases.orEmpty()
         val states = verified<PlacesFile>("places.json", rejected)?.states.orEmpty()
@@ -243,6 +255,9 @@ class ContentRepository(private val assets: AssetManager) {
             rejected = rejected,
             files = manifest.files.keys - rejected,
             gestures = gestures.associateBy { it.id },
+            everyday = everyday.associateBy { it.id },
+            aslSigns = asl,
+            aslWords = aslWords,
             phrases = phrases,
             words = words.flatMap { e -> e.w.map { it to e } }.toMap(),
             manifestHash = sha256("manifest.json").orEmpty(),

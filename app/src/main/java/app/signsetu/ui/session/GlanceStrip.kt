@@ -26,25 +26,36 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.signsetu.R
+import app.signsetu.data.content.givenOf
 import app.signsetu.data.session.EventType
 import app.signsetu.data.session.SessionEvent
 
 private const val GLANCE_MAX = 32
 
-/** Answers the officer may read at a glance; a machine sign reading is left out because nobody has confirmed it. */
-private val GlanceAnswers = setOf(EventType.ANSWER_CARD, EventType.ANSWER_GESTURE, EventType.ANSWER_TEXT)
+/** Picked answers only: a machine reading is unconfirmed, and free writing may hold a name whatever was asked. */
+private val GlanceAnswers = setOf(EventType.ANSWER_CARD, EventType.ANSWER_GESTURE)
 
 /** Answers that ask the officer to stop and look: three short pulses. */
 private val AttentionCards = setOf("stop", "break", "dont_know", "dont_understand", "wrong")
 
-/** "<last question> → <latest answer to it>", in the officer's language, or null before anything was shown. */
-internal fun glanceText(events: List<SessionEvent>): String? {
+/**
+ * "<last question> → <latest answer to it>", in the officer's language, or null before anything was shown.
+ * Bystanders can read the strip, so a personal detail ([isPersonal] item id) never appears on it.
+ */
+internal fun glanceText(events: List<SessionEvent>, isPersonal: (String) -> Boolean): String? {
     val shown = events.indexOfLast { it.type == EventType.QUESTION_SHOWN }
     if (shown < 0) return null
-    val question = events[shown].text.orEmpty().lineSequence().first().let { if (it.length > GLANCE_MAX) it.take(GLANCE_MAX - 1) + "…" else it }
-    val answer = events.drop(shown + 1).lastOrNull { it.type in GlanceAnswers }?.text ?: return question
+    // A say-back carries the reading itself in its text, so one about a personal detail hides the whole strip.
+    val checked = refOf(events[shown])?.let { ref -> events.firstOrNull { it.id == ref } }
+    val askedFor = (checked?.let { c -> events.firstOrNull { it.id == c.shownId } } ?: events[shown]).itemId
+    if (askedFor != null && isPersonal(askedFor)) return if (checked != null) null else questionLine(events[shown])
+    val question = questionLine(events[shown])
+    val answer = events.drop(shown + 1).lastOrNull { it.type in GlanceAnswers && givenOf(it.reason) == null }?.text ?: return question
     return "$question → ${answer.take(GLANCE_MAX).uppercase()}"
 }
+
+private fun questionLine(e: SessionEvent) =
+    e.text.orEmpty().lineSequence().first().let { if (it.length > GLANCE_MAX) it.take(GLANCE_MAX - 1) + "…" else it }
 
 /** Vibration felt by whoever holds the phone: one long for Yes, two for No, three short for a request, a tick otherwise. */
 internal fun buzzPattern(answeredYes: Boolean?, answeredCard: String?): LongArray? = when {

@@ -44,6 +44,8 @@ data class AppSettings(
     val stageDevice: Boolean = false,
     /** Auto mode proposes welfare items in rule order; off unless a department allows it. */
     val allowAuto: Boolean = false,
+    /** Signs reorders typed words into ISL order; off keeps them as typed, until Deaf reviewers confirm the rules. */
+    val islReorder: Boolean = true,
 ) {
     val interpreterConfigured get() = interpreterApp != InterpreterApp.NONE && interpreterContact.isNotBlank()
 
@@ -71,6 +73,7 @@ class SettingsStore(private val context: Context) {
         val favourites = stringSetPreferencesKey("favourites")
         val stageDevice = booleanPreferencesKey("stage_device")
         val allowAuto = booleanPreferencesKey("allow_auto")
+        val islReorder = booleanPreferencesKey("isl_reorder")
     }
 
     val settings: Flow<AppSettings> = context.store.data.map { it.toSettings() }
@@ -90,6 +93,7 @@ class SettingsStore(private val context: Context) {
     suspend fun setPinToLeaveStage(on: Boolean) = context.store.edit { it[Keys.pinToLeave] = on }
     suspend fun setStageDevice() = context.store.edit { it[Keys.stageDevice] = true }
     suspend fun setAllowAuto(on: Boolean) = context.store.edit { it[Keys.allowAuto] = on }
+    suspend fun setIslReorder(on: Boolean) = context.store.edit { it[Keys.islReorder] = on }
     suspend fun setTiltToShow(on: Boolean) = context.store.edit { it[Keys.tiltToShow] = on }
     suspend fun setVolumeKeys(on: Boolean) = context.store.edit { it[Keys.volumeKeys] = on }
     suspend fun toggleFavourite(cardId: String) = context.store.edit {
@@ -112,6 +116,7 @@ class SettingsStore(private val context: Context) {
         favourites = this[Keys.favourites].orEmpty(),
         stageDevice = this[Keys.stageDevice] ?: false,
         allowAuto = this[Keys.allowAuto] ?: false,
+        islReorder = this[Keys.islReorder] ?: true,
     )
 }
 

@@ -143,6 +143,8 @@
     <string name="report_page">Page %1$d of %2$d</string>
     <string name="report_drawing">Drawing</string>
     <string name="back">Back</string>
+    <string name="skip">Skip</string>
+    <string name="stage_back_blocked">Back is off here. Hold the handle to hand the phone back.</string>
     <string name="save">Save</string>
     <string name="close">Close</string>
 
@@ -203,6 +205,8 @@
     <string name="officer_has_audio">Recorded speech in their language</string>
     <string name="officer_media_missing">Picture and caption only</string>
     <string name="officer_camera">Camera mirror</string>
+    <string name="officer_sign_language">Sign language</string>
+    <string name="log_sign_language">Sign language set to %1$s</string>
     <string name="settings_stage">Stage</string>
     <string name="settings_camera">Camera mirror</string>
     <string name="settings_camera_summary">Shows the person their own hands on the stage. Nothing is recorded or saved.</string>
@@ -214,6 +218,8 @@
     <string name="settings_large_captions_summary">Bigger words on the stage for people who read slowly</string>
     <string name="settings_slow_gestures">Slower gestures</string>
     <string name="settings_slow_gestures_summary">The character signs at three-quarter speed</string>
+    <string name="settings_isl_reorder">ISL word order</string>
+    <string name="settings_isl_reorder_summary">Signs puts time first and the question word last; off signs words as typed</string>
     <string name="settings_lang_system">Same as the phone</string>
     <string name="lang_english">English</string>
     <string name="lang_hindi">हिन्दी</string>

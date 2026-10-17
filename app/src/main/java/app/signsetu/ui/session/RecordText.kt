@@ -50,6 +50,7 @@ fun systemText(res: Resources, text: String?): String = when {
     text == SYSTEM_JJ_NOTICE -> res.getString(R.string.log_jj_notice)
     text == SYSTEM_JUVENILE -> res.getString(R.string.log_juvenile)
     text == SYSTEM_JUVENILE_OFF -> res.getString(R.string.log_juvenile_off)
+    text != null && text.startsWith(SYSTEM_SIGN_LANGUAGE) -> res.getString(R.string.log_sign_language, text.removePrefix(SYSTEM_SIGN_LANGUAGE))
     text != null && text.startsWith(SYSTEM_RUN_ENDED) -> text.removePrefix(SYSTEM_RUN_ENDED).split('/').mapNotNull { it.toIntOrNull() }
         .takeIf { it.size == 2 }?.let { (done, total) -> res.getString(R.string.run_ended, done, total) } ?: text
     else -> stageSystemText(res, text) ?: autoKeyLabel(text)?.let(res::getString) ?: text.orEmpty()

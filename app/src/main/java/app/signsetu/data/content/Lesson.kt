@@ -8,7 +8,8 @@ fun askable(q: Question, role: Role, profile: Profile) = (q.roles.isEmpty() || r
 
 /** Questions marked signed get one motion from the shared text-to-sign path, in draft ISL order (D-29). */
 fun ContentBundle.withSignedQuestions(): ContentBundle {
-    val made = questions.filter { it.signed && it.gesture == null && it.lexicon == null }.mapNotNull { q ->
+    // A q.* gesture was planned in another sign language; it is planned again here.
+    val made = questions.filter { it.signed && (it.gesture == null || it.gesture == "q.${it.id}") && it.lexicon == null }.mapNotNull { q ->
         q.text["en"]?.let { planText(it, setOf(SignMode.SIGNS)).gesture }?.let { q.id to it.copy(id = "q.${q.id}") }
     }.toMap()
     if (made.isEmpty()) return this

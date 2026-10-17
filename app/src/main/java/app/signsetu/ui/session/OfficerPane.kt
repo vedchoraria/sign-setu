@@ -43,6 +43,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.activity.compose.BackHandler
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material3.minimumInteractiveComponentSize
 import app.signsetu.ui.components.OfficerCard
@@ -118,7 +119,9 @@ import app.signsetu.R
 import app.signsetu.data.content.ContentBundle
 import app.signsetu.data.content.Phrase
 import app.signsetu.data.content.Question
+import app.signsetu.data.content.SignLanguage
 import app.signsetu.data.content.SignMode
+import app.signsetu.data.content.forSignLanguage
 import app.signsetu.data.content.pick
 import app.signsetu.data.session.EventType
 import app.signsetu.data.session.Profile
@@ -188,8 +191,10 @@ fun OfficerPane(
     paired: PairedPane? = null,
     onSecondScreen: (() -> Unit)? = null,
     allowAuto: Boolean = false,
+    islReorder: Boolean = true,
 ) {
-    val content = vm.content
+    val signLanguage = ui.signLanguage
+    val content = remember(vm.content, signLanguage) { vm.content.forSignLanguage(signLanguage) }
     val ink = LocalInk.current
     val subjectLang = ui.session.subjectLang
     val subjectLanguage = content.language(subjectLang)
@@ -199,12 +204,17 @@ fun OfficerPane(
     var replaying by rememberSaveable { mutableStateOf<Long?>(null) }
     var askSensitive by remember { mutableStateOf(false) }
     var askEnd by remember { mutableStateOf(false) }
+    // Sheets and dialogs take Back first; on the page itself it steps to the first tab, then asks before ending.
+    BackHandler { if (page != 0) page = 0 else askEnd = true }
     var export by remember { mutableStateOf<ExportState?>(null) }
     var stopSeen by rememberSaveable { mutableStateOf<Long?>(null) }
     var phrase by remember { mutableStateOf<Phrase?>(null) }
     val scope = rememberCoroutineScope()
     val res = LocalResources.current
     val attached = remember { mutableStateListOf<String>() }
+    // Held here so closing a sheet does not drop what was typed or picked.
+    var logNote by rememberSaveable { mutableStateOf("") }
+    var boardDraft by rememberSaveable { mutableStateOf<String?>(null) }
     var ownText by rememberSaveable { mutableStateOf("") }
     var suggestion by remember { mutableStateOf<Suggestion?>(null) }
     var thinking by remember { mutableStateOf(false) }
@@ -244,7 +254,7 @@ fun OfficerPane(
 
     val prepareTyped = {
         if (ownText.isNotBlank()) {
-            vm.prepare(Pending.FreeText(ownText.trim(), attached.toList(), modes.toSet(), suggestion?.caption))
+            vm.prepare(Pending.FreeText(ownText.trim(), attached.toList(), typedModes(modes, islReorder), suggestion?.caption))
             ownText = ""
             attached.clear()
             suggestion = null
@@ -314,6 +324,14 @@ fun OfficerPane(
                             text = { Text(stringResource(R.string.officer_change)) },
                             leadingIcon = { Icon(Icons.Filled.Person, contentDescription = null) },
                             onClick = { menu = false; sheet = Sheet.CHANGE },
+                        )
+                        // Fixed while something is on a second screen, like the profile and language.
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.officer_sign_language)) },
+                            leadingIcon = { Icon(painterResource(R.drawable.ic_videocam), contentDescription = null) },
+                            trailingIcon = { Text(signLanguage.name) },
+                            enabled = paired == null || ui.onStage == null,
+                            onClick = { vm.setSignLanguage(SignLanguage.entries[(signLanguage.ordinal + 1) % SignLanguage.entries.size]) },
                         )
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.officer_rotate)) },
@@ -438,7 +456,7 @@ fun OfficerPane(
         PhraseSheet(p, content, officerLang, onPick = { slot -> vm.prepare(Pending.PhraseAsk(p, slot)); phrase = null; page = 0 }, onDismiss = { phrase = null })
     }
     sayingBack?.let { e ->
-        SayBackDialog(e, onSend = { words -> vm.sayBack(e, words, modes.toSet()); sayingBack = null }, onDismiss = { sayingBack = null })
+        SayBackDialog(e, onSend = { words -> vm.sayBack(e, words, typedModes(modes, islReorder)); sayingBack = null }, onDismiss = { sayingBack = null })
     }
     replaying?.let { id ->
         ui.signed[id]?.let { segments ->
@@ -453,9 +471,13 @@ fun OfficerPane(
     }
     when (sheet) {
         Sheet.BOARD_SHOW -> BoardSheet(content, officerLang, emptyList(), favourites, onFavourite, onUse = { vm.prepare(Pending.Cards(it)); sheet = null; page = 0 }, onDismiss = { sheet = null })
-        Sheet.BOARD_ATTACH -> BoardSheet(content, officerLang, attached.toList(), favourites, onFavourite, onUse = { attached.clear(); attached.addAll(it); sheet = null }, onDismiss = { sheet = null })
+        Sheet.BOARD_ATTACH -> BoardSheet(
+            content, officerLang, boardDraft?.split(",")?.filter { it.isNotEmpty() } ?: attached.toList(), favourites, onFavourite,
+            onUse = { attached.clear(); attached.addAll(it); boardDraft = null; sheet = null },
+            onDismiss = { sheet = null }, onDraft = { boardDraft = it.joinToString(",") },
+        )
         Sheet.GESTURE -> GestureSheet(content, officerLang, onPick = { entry, found -> vm.prepare(Pending.ShowBack(entry, checkChoices(entry.card, found.map { it.card }))); sheet = null; page = 0 }, onDismiss = { sheet = null })
-        Sheet.LOG -> LogSheet(ui.events, onAddNote = vm::addNote, onDismiss = { sheet = null })
+        Sheet.LOG -> LogSheet(ui.events, logNote, { logNote = it }, onAddNote = vm::addNote, onDismiss = { sheet = null })
         // ISL hook: the dictionary's Show prepares the sign like a question.
         Sheet.DICTIONARY -> IslDictionarySheet(content, officerLang, onShow = { vm.prepare(Pending.Ask(it)); sheet = null; page = 0 }, onDismiss = { sheet = null })
         // Profile and language stay fixed while an item is on a second screen.
@@ -1174,6 +1196,8 @@ private fun MediaSummary(question: Question, content: ContentBundle, subjectLang
     }
 }
 
+private fun typedModes(modes: List<SignMode>, islReorder: Boolean) = if (islReorder) modes.toSet() else modes.toSet() + SignMode.TYPED_ORDER
+
 @Composable
 internal fun describe(p: Pending, content: ContentBundle, lang: String): String = when (p) {
     is Pending.Ask -> p.question.text.pick(lang) ?: p.question.id
@@ -1260,7 +1284,7 @@ private fun ExportDialog(state: ExportState, onShare: () -> Unit, onFinish: () -
             confirmButton = {},
         )
         is ExportState.Ready -> GuardedAlertDialog(
-            // The password is shown once; the dialog closes only through its own buttons.
+            // The password is shown once and the file is deleted on Finish, so Back must not close it.
             onDismissRequest = {},
             properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
             icon = { Icon(Icons.Filled.Lock, contentDescription = null) },

@@ -8,11 +8,13 @@ data class Completion(val form: String, val kind: Signability)
 private val TOKEN = Regex("[\\p{L}\\p{M}\\p{N}]+(?:['’]\\p{L}+)?")
 
 fun ContentBundle.signability(word: String): Signability {
-    val entry = words[word.lowercase().split('\'', '’').first()] ?: return Signability.SPELL
+    val w = word.lowercase().split('\'', '’').first()
+    val entry = words[w]
+    val motion = motionFor(w, entry, setOf(SignMode.SIGNS))
     return when {
-        entry.sign != null && entry.sign in gestures -> Signability.SIGN
-        entry.gesture != null && entry.gesture in gestures -> Signability.GESTURE
-        entry.card != null -> Signability.PICTURE
+        motion != null && motion.id == entry?.gesture && motion.id != entry.sign -> Signability.GESTURE
+        motion != null -> Signability.SIGN
+        entry?.card != null -> Signability.PICTURE
         else -> Signability.SPELL
     }
 }

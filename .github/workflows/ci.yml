@@ -1,0 +1,100 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Unit tests
+        run: ./gradlew --console=plain :app:testStandardDebugUnitTest
+      - name: Lint
+        run: ./gradlew --console=plain :app:lintStandardRelease
+      - name: Assemble
+        run: ./gradlew --console=plain :app:assembleStandardRelease
+
+  portal:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: portal
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: portal/package-lock.json
+      - run: npm ci
+      - run: npx vp check
+      - run: npx vp test
+      - run: npx vp build
+
+  tools:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install numpy
+      - name: Python tool tests
+        run: |
+          for d in tools/isl tools/content; do
+            if [ -d "$d" ]; then python -m unittest discover -s "$d" -p 'test_*.py' -v; fi
+          done
+
+  semgrep:
+    runs-on: ubuntu-latest
+    container: semgrep/semgrep
+    steps:
+      - uses: actions/checkout@v4
+      - run: semgrep scan --config auto --severity ERROR --error
+
+  osv:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan app dependencies
+        run: |
+          curl -sSfL -o osv-scanner https://github.com/google/osv-scanner/releases/download/v2.0.2/osv-scanner_linux_amd64
+          chmod +x osv-scanner
+          ./osv-scanner scan source --lockfile app/gradle.lockfile --format json --output osv.json || true
+          # max_severity is a CVSS base score; 7.0 and above is high or critical.
+          worst=$(jq '[.results[]?.packages[]?.groups[]?.max_severity | select(. != null and . != "") | tonumber] | max // 0' osv.json)
+          echo "worst CVSS: $worst"
+          jq -e ". < 7" <<< "$worst" > /dev/null
+
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  sbom:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - id: syft
+        uses: anchore/sbom-action/download-syft@v0
+      - run: python tools/security/sbom.py "${{ steps.syft.outputs.cmd }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: app/build/sbom/sign-setu-release.cdx.json

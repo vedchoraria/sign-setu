@@ -180,6 +180,13 @@ fun readBackLabels(ui: SessionUi): List<String> {
 /** Profiles whose subjects hear the questions without the officer pressing play (03-ux §3). */
 private val AutoSpeech = setOf(Profile.YOUNG_CHILD, Profile.OTHER_LANGUAGE)
 
+/** A No to a reading of the subject's own answer gives them their own way to say it again, never a dead end. */
+internal fun reopensInput(pending: Pending?, yes: Boolean) =
+    !yes && !pending.asksChoice && (pending is Pending.ShowBack || (pending is Pending.FreeText && pending.ref != null))
+
+/** A reopened input holds the item until the subject submits it; the next run step would close it. */
+internal fun advancesRun(pending: Pending?, yes: Boolean) = !reopensInput(pending, yes)
+
 fun characterFor(profile: Profile) = if (profile == Profile.ISL_USER) Character.ADULT else Character.CHILD
 
 /**
@@ -209,7 +216,7 @@ fun Stage(
     onSignChoice: (SignChoice?) -> Unit = {},
     onNextRule: () -> Unit = {},
     onPauseEnd: () -> Unit = {},
-    /** Lesson-sheet answers and phrases (LessonInputs.kt); null where they cannot be logged, as on a second screen. */
+    /** Lesson-sheet answers and phrases (LessonInputs.kt); null hides them. */
     onGiven: ((Given?) -> Unit)? = null,
 ) {
     val stage = LocalStageColors.current
@@ -376,7 +383,7 @@ fun Stage(
                     )
                     val sensitiveGroups = remember(content) { content.groups.filter { it.sensitive }.map { it.id } }
                     val sensitive = (pending as? Pending.Ask)?.question?.group in sensitiveGroups
-                    val glance = remember(ui.events) { glanceText(ui.events) }
+                    val glance = remember(ui.events, content) { glanceText(ui.events) { content.question(it)?.answer != null } }
                         ?.takeIf { !StagePace.glanceHidden.value && !sensitive && !drawing && !writing }
                     val onWordTap: ((Int) -> Unit)? = when {
                         pending is Pending.FreeText && highlightable && plan != null -> { offset ->
@@ -459,7 +466,15 @@ fun Stage(
                 verticalArrangement = Arrangement.spacedBy(Spacing.md),
             ) {
                 when {
-                    choices != null -> SignChoicePanel(choices, content, lang, { onSignChoice(it); reacting = true }, Modifier.weight(1f))
+                    choices != null -> {
+                        val last = ui.confirm?.queue?.size == 1
+                        SignChoicePanel(choices, content, lang, {
+                            onSignChoice(it)
+                            reacting = true
+                            if (it == null && last && tracker != null) onStartSigning()
+                        }, Modifier.weight(1f))
+                        PauseRow(content, lang, ui.answeredCard, onCard)
+                    }
                     drawing -> {
                         // Only a picture that was asked for has nothing to go back to.
                         DrawingPanel(content, lang, onDone = onDrawing, onBack = { drawing = false }.takeIf { pending != Pending.Drawing }, modifier = Modifier.weight(1f))
@@ -523,7 +538,10 @@ fun Stage(
                                     val next = if (rule != null) onNextRule else onNext
                                     next?.let { RailIcon(Icons.AutoMirrored.Filled.ArrowForward, content.subjectText("next", lang), stringResource(R.string.stage_next), answer.yes, answer.onYes, onClick = it) }
                                     if (asks) {
-                                        RailIcon(Icons.Filled.Close, content.subjectText("no", lang), stringResource(R.string.show_no), answer.no, answer.onNo, ui.answeredYes == false) { onYesNo(false) }
+                                        RailIcon(Icons.Filled.Close, content.subjectText("no", lang), stringResource(R.string.show_no), answer.no, answer.onNo, ui.answeredYes == false) {
+                                            onYesNo(false)
+                                            if (reopensInput(pending, false)) { if (canWrite) writing = true else drawing = true }
+                                        }
                                         RailCard("wrong", content.subjectText("wrong", lang), stringResource(R.string.stage_wrong), answer.unsure, answer.onUnsure, chosen == "wrong") { onCard("wrong") }
                                     }
                                     // A camera, not an open palm, so nothing beside Stop looks like a stop sign.
@@ -537,7 +555,12 @@ fun Stage(
             }
         }
         // Over the whole stage, so no answer can be tapped during a break; the officer's way out stays above it.
-        if (paused) PauseLayer(content.subjectText("ready", lang), onPauseEnd, Modifier.fillMaxSize().graphicsLayer { rotationZ = if (ui.rotated) 180f else 0f })
+        // A break can still become a Stop without first ending the pause.
+        val stopInPause: (@Composable (Modifier) -> Unit)? = if (ui.answeredCard != "break") null else { m ->
+            val answer = LocalAnswerColors.current
+            SmallAnswer("stop", content.subjectText("stop", lang), stringResource(R.string.stage_stop), answer.pause, answer.onPause, false, { onCard("stop") }, m)
+        }
+        if (paused) PauseLayer(content.subjectText("ready", lang), onPauseEnd, stop = stopInPause, modifier = Modifier.fillMaxSize().graphicsLayer { rotationZ = if (ui.rotated) 180f else 0f })
         onOfficer?.let { OfficerHandle(it, Modifier.align(if (ui.rotated) Alignment.BottomStart else Alignment.TopEnd).safeDrawingPadding()) }
         }
     }

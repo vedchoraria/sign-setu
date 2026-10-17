@@ -57,6 +57,9 @@ import app.signsetu.AppContainer
 import app.signsetu.DeviceGuard
 import app.signsetu.R
 import app.signsetu.data.content.ContentBundle
+import app.signsetu.data.content.SignLanguage
+import app.signsetu.data.content.forSignLanguage
+import app.signsetu.ui.session.signLanguage
 import app.signsetu.data.session.SessionRepository
 import app.signsetu.ui.components.LocalContentRepository
 import app.signsetu.ui.session.HandoverEffects
@@ -226,9 +229,14 @@ private fun SessionRoute(
         key = sessionId,
         factory = viewModelFactory { initializer { SessionViewModel(sessionId, repo, content, officerLang, report, reader) } },
     )
-    SideEffect { vm.reader = reader }
     LaunchedEffect(tracker) { tracker?.let { withContext(Dispatchers.Default) { it.warm() } } }
     val ui by vm.ui.collectAsStateWithLifecycle()
+    val signLanguage = ui?.signLanguage ?: SignLanguage.ISL
+    val langReader by produceState(reader.takeIf { signLanguage == SignLanguage.ISL }, signLanguage, reader) {
+        value = if (signLanguage == SignLanguage.ISL) reader else withContext(Dispatchers.IO) { container.signReader(signLanguage) }
+    }
+    SideEffect { vm.reader = langReader }
+    val signContent = remember(content, signLanguage) { content.forSignLanguage(signLanguage) }
     val conv by vm.auto.conv.collectAsStateWithLifecycle()
     val activity = LocalActivity.current
     val title = stringResource(R.string.return_prompt_title)
@@ -289,6 +297,7 @@ private fun SessionRoute(
             paired = pane,
             onSecondScreen = onSecondScreen,
             allowAuto = settings.allowAuto,
+            islReorder = settings.islReorder,
             onCallInterpreter = if (settings.interpreterConfigured) {
                 {
                     guard.unpin()
@@ -312,11 +321,11 @@ private fun SessionRoute(
         )
         Mode.SHOW -> {
             // Back would let a subject leave the stage with one tap; only the held handle leaves it.
-            BackHandler { if (settings.pinToLeaveStage) backToOfficer() }
+            BackHandler { if (settings.pinToLeaveStage) backToOfficer() else activity?.let { Toast.makeText(it, R.string.stage_back_blocked, Toast.LENGTH_SHORT).show() } }
             SubjectTheme {
                 Stage(
                     ui = state,
-                    content = content,
+                    content = signContent,
                     tracker = tracker,
                     cameraOn = cameraOn,
                     largeCaptions = settings.largeCaptions,

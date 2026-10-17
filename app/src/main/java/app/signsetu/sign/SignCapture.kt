@@ -35,6 +35,15 @@ class SignSegment(
     val word: String? get() = guesses?.let { it.firstOrNull()?.word ?: "?" }
 }
 
+/** A "Tell me" account as read: each sign's word at its m:ss from the first sign. */
+fun glossTranscript(segments: List<SignSegment>): String {
+    val t0 = segments.firstOrNull()?.frames?.firstOrNull()?.timestampMs ?: return ""
+    return segments.joinToString(" ") { s ->
+        val sec = ((s.frames.firstOrNull()?.timestampMs ?: t0) - t0) / 1000
+        "[%d:%02d] %s".format(sec / 60, sec % 60, s.word ?: "?")
+    }
+}
+
 /**
  * Splits a landmark stream into signs at pauses: hands gone or nearly still for [pauseMs]. Returns the index range of
  * each sign. A sign still open at the end is returned only when [final]; closed ranges never change as frames are added.

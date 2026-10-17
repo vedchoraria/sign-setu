@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Draft Hindi: needs review by a fluent speaker under the content policy. -->
 <resources>
+    <string name="skip">छोड़ें</string>
+    <string name="stage_back_blocked">यहाँ बैक बंद है। फ़ोन वापस देने के लिए हैंडल को दबाए रखें।</string>
     <string name="app_name">साइन सेतु</string>
     <string name="cancel">रद्द करें</string>
     <string name="notice_aid">साइन सेतु बातचीत में मदद करता है। यह दुभाषिया नहीं है, और यह कभी बयान दर्ज नहीं करता।</string>
@@ -196,6 +198,8 @@
     <string name="officer_has_audio">उनकी भाषा में रिकॉर्ड की गई आवाज़</string>
     <string name="officer_media_missing">केवल तस्वीर और कैप्शन</string>
     <string name="officer_camera">कैमरा आईना</string>
+    <string name="officer_sign_language">सांकेतिक भाषा</string>
+    <string name="log_sign_language">सांकेतिक भाषा %1$s चुनी</string>
     <string name="settings_stage">स्टेज</string>
     <string name="settings_camera">कैमरा आईना</string>
     <string name="settings_camera_summary">स्टेज पर व्यक्ति को उनके अपने हाथ दिखते हैं। कुछ भी रिकॉर्ड या सेव नहीं होता।</string>
@@ -207,6 +211,8 @@
     <string name="settings_large_captions_summary">धीरे पढ़ने वालों के लिए स्टेज पर बड़े शब्द</string>
     <string name="settings_slow_gestures">धीमे इशारे</string>
     <string name="settings_slow_gestures_summary">पात्र तीन-चौथाई गति से इशारे करता है</string>
+    <string name="settings_isl_reorder">ISL शब्द-क्रम</string>
+    <string name="settings_isl_reorder_summary">चालू होने पर समय पहले और प्रश्न-शब्द अंत में आता है; बंद होने पर शब्द जैसे लिखे वैसे</string>
     <string name="settings_lang_system">फ़ोन जैसी</string>
     <string name="lang_english">English</string>
     <string name="lang_hindi">हिन्दी</string>

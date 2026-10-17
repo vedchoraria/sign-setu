@@ -83,6 +83,13 @@ class LessonTest {
     }
 
     @Test
+    fun theGroupCarouselReachesEveryLessonSheetQuestion() {
+        val lesson = content.questions.filter { it.answer != null || it.group == EVERYDAY || it.group in setOf("identity", "family", "location", "school") }.map { it.id }.toSet()
+        val reached = Role.entries.flatMap { r -> Profile.entries.flatMap { p -> listOf(false, true).flatMap { c -> content.carouselQuestions(r, c, p) } } }.map { it.id }.toSet()
+        assertEquals(emptySet<String>(), lesson - reached)
+    }
+
+    @Test
     fun placesListEveryStateAndTerritoryWithChhattisgarhFirst() {
         assertEquals(36, content.states.size)
         assertEquals("CG", content.states.first().id)

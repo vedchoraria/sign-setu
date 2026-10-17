@@ -1,5 +1,6 @@
 package app.signsetu.pair
 
+import app.signsetu.ui.session.signLanguage
 import app.signsetu.data.content.ContentBundle
 import app.signsetu.data.content.SignMode
 import app.signsetu.ui.session.Mode
@@ -41,6 +42,7 @@ data class StageView(
     val largeCaptions: Boolean,
     val gestureSpeed: Float,
     val cameraOn: Boolean,
+    val signLanguage: String = "ISL",
 )
 
 @Serializable
@@ -62,6 +64,8 @@ sealed interface AnswerBody {
     @Serializable @SerialName("lang") data class Language(val code: String) : AnswerBody
     @Serializable @SerialName("text") data class Text(val text: String) : AnswerBody
     @Serializable @SerialName("draw") data class Drawing(val png: String) : AnswerBody
+    /** A lesson-sheet answer or phrase; [method] is a Method name and the officer's phone re-checks it. */
+    @Serializable @SerialName("given") data class Given(val question: String, val method: String, val confirmed: Boolean, val value: String = "", val picks: List<String> = emptyList()) : AnswerBody
 }
 
 @Serializable
@@ -88,6 +92,7 @@ object ByeReason {
 fun AnswerBody.fits(): Boolean = when (this) {
     is AnswerBody.Text -> text.length <= TEXT_CAP
     is AnswerBody.Drawing -> png.length <= (DRAWING_CAP + 2) / 3 * 4
+    is AnswerBody.Given -> value.length <= TEXT_CAP && picks.size <= 4 && picks.all { it.length <= 64 }
     else -> true
 }
 
@@ -126,6 +131,7 @@ fun SessionUi.toStageView(largeCaptions: Boolean, gestureSpeed: Float, cameraOn:
         largeCaptions = largeCaptions,
         gestureSpeed = gestureSpeed,
         cameraOn = cameraOn,
+        signLanguage = signLanguage.name,
     )
 }
 

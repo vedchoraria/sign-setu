@@ -20,6 +20,7 @@ import app.signsetu.data.session.SessionRepository
 import app.signsetu.data.settings.SettingsStore
 import app.signsetu.camera.LandmarkTracker
 import app.signsetu.camera.LandmarkTrackers
+import app.signsetu.data.content.SignLanguage
 import app.signsetu.sign.SignReader
 import app.signsetu.sign.SignReaders
 import app.signsetu.export.SessionReport
@@ -73,7 +74,9 @@ class AppContainer(private val app: Application) : DefaultLifecycleObserver, Com
     private fun landmarkTrackerOrNull() = if (tracker.isInitialized()) tracker.value else null
 
     /** Reads isolated signs from landmarks; none until its model is present (D-25). */
-    val signReader: SignReader? by lazy { SignReaders.create(app) }
+    private val signReaders = SignLanguage.entries.associateWith { lang -> lazy { SignReaders.create(app, lang) } }
+    val signReader: SignReader? get() = signReader(SignLanguage.ISL)
+    fun signReader(lang: SignLanguage): SignReader? = signReaders.getValue(lang).value
 
     /** SEC-63: warn only; blocking would fail an officer in an emergency. */
     val deviceLooksRooted: Boolean by lazy {

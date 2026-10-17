@@ -44,3 +44,49 @@ def featurize(left, right, pose, has_left, has_right, has_pose):
         if has_pose[j]:
             out[t, 84:96] = ((pose[j, ARMS] - center) / scale).reshape(-1)
     return out
+
+
+# Format 2, the fingerspelling reader (CtcSpellReader.kt must match): one hand per frame at a fixed rate.
+SPELL_FPS = 15
+SPELL_MAX = 300  # 20 s, the sign window's limit
+SPELL_FEATURES = 21 * 2 + 2 + 1  # hand points from the wrist, wrist motion, presence
+
+
+def spell_resample(ts) -> np.ndarray:
+    """Source frame for each output frame at SPELL_FPS by nearest timestamp (ms, ties to the earlier frame)."""
+    ts = np.asarray(ts, np.int64)
+    n = min(int((ts[-1] - ts[0]) * SPELL_FPS // 1000) + 1, SPELL_MAX)
+    out, i = np.zeros(n, int), 0
+    for k in range(n):
+        target = ts[0] + k * 1000 // SPELL_FPS
+        while i + 1 < len(ts) and abs(ts[i + 1] - target) < abs(ts[i] - target):
+            i += 1
+        out[k] = i
+    return out
+
+
+def spell_features(ts, left, right, has_left, has_right, aspect: float) -> np.ndarray:
+    """left, right: (N, 21, 2) normalised image points; ts in ms. Returns (frames, SPELL_FEATURES).
+
+    The hand seen in more resampled frames signs (ties to the right); a left hand is mirrored to look like a right one.
+    Points are taken from the wrist and divided by the wrist to middle-knuckle length; motion is the wrist's step since
+    the previous frame in the same unit, zero when that frame has no hand.
+    """
+    idx = spell_resample(ts)
+    use_left = has_left[idx].sum() > has_right[idx].sum()
+    hand, has = (left, has_left) if use_left else (right, has_right)
+    k = np.array([-1.0 if use_left else 1.0, 1.0 / aspect])
+    out = np.zeros((len(idx), SPELL_FEATURES), np.float32)
+    prev = None
+    for t, j in enumerate(idx):
+        p = hand[j] * k if has[j] else None
+        size = float(np.hypot(*(p[9] - p[0]))) if p is not None else 0.0
+        if size < 1e-6:
+            prev = None
+            continue
+        out[t, :42] = ((p - p[0]) / size).reshape(-1)
+        if prev is not None:
+            out[t, 42:44] = (p[0] - prev) / size
+        out[t, 44] = 1
+        prev = p[0]
+    return out

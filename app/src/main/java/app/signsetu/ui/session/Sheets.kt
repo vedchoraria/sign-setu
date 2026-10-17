@@ -139,6 +139,7 @@ fun BoardSheet(
     onFavourite: (String) -> Unit,
     onUse: (List<String>) -> Unit,
     onDismiss: () -> Unit,
+    onDraft: (List<String>) -> Unit = {},
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     // Favourites open first once the officer has starred any (FR-19).
@@ -148,7 +149,7 @@ fun BoardSheet(
         (category == null || c.category == category || (category == FAVOURITES && c.id in favourites)) &&
             (query.isBlank() || c.label.values.any { it.contains(query.trim(), ignoreCase = true) })
     }
-    OfficerSheet(onDismiss) {
+    OfficerSheet({ onDraft(chosen.toList()); onDismiss() }) {
         Column(Modifier.fillMaxHeight(0.92f).padding(horizontal = Spacing.lg)) {
             SheetTitle(stringResource(R.string.board_title))
             OutlinedTextField(
@@ -271,8 +272,7 @@ fun GestureSheet(content: ContentBundle, lang: String, onPick: (LexiconEntry, Li
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LogSheet(events: List<SessionEvent>, onAddNote: (String) -> Unit, onDismiss: () -> Unit) {
-    var note by rememberSaveable { mutableStateOf("") }
+fun LogSheet(events: List<SessionEvent>, note: String, onNote: (String) -> Unit, onAddNote: (String) -> Unit, onDismiss: () -> Unit) {
     OfficerSheet(onDismiss) {
         Column(Modifier.fillMaxHeight(0.92f).padding(horizontal = Spacing.lg).imePadding()) {
             SheetTitle(stringResource(R.string.officer_log))
@@ -293,7 +293,7 @@ fun LogSheet(events: List<SessionEvent>, onAddNote: (String) -> Unit, onDismiss:
             ) {
                 OutlinedTextField(
                     value = note,
-                    onValueChange = { note = it },
+                    onValueChange = onNote,
                     placeholder = { Text(stringResource(R.string.log_note_hint)) },
                     // SEC-05: the keyboard should not learn or suggest from what is noted about a subject.
                     keyboardOptions = KeyboardOptions(autoCorrectEnabled = false),
@@ -301,7 +301,7 @@ fun LogSheet(events: List<SessionEvent>, onAddNote: (String) -> Unit, onDismiss:
                     modifier = Modifier.weight(1f),
                 )
                 Button(
-                    onClick = { onAddNote(note); note = "" },
+                    onClick = { onAddNote(note); onNote("") },
                     enabled = note.isNotBlank(),
                     modifier = Modifier.padding(start = Spacing.sm),
                 ) { Text(stringResource(R.string.log_add)) }
@@ -421,7 +421,11 @@ fun OfficerSheet(onDismiss: () -> Unit, expanded: Boolean = true, content: @Comp
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = expanded),
         dragHandle = { Box(Modifier.sizeIn(minWidth = 48.dp), contentAlignment = Alignment.Center) { BottomSheetDefaults.DragHandle() } },
-        content = { FilterObscuredTouches(); content() },
+        content = {
+            FilterObscuredTouches()
+            TextButton(onClick = onDismiss, modifier = Modifier.padding(horizontal = Spacing.sm)) { Text(stringResource(R.string.back)) }
+            content()
+        },
     )
 }
 

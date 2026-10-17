@@ -37,18 +37,27 @@ GPL and AGPL code is never shipped in the app (policy §2); it may be used as a 
 | Sign recognition (D-25) | MediaPipe Tasks Vision 1.0.0 with the Holistic landmarker model | Apache-2.0 | Ship | On-device hand, face and pose landmarks, GPU then CPU; 64-bit native library only; usage-statistics upload backend excluded (D-33) |
 | | Protocol Buffers for Java 4.26.1 (`protobuf-java`) | BSD-3-Clause | Ship | Full runtime MediaPipe 1.0.0 is compiled against; replaces `protobuf-javalite` (D-38) |
 | | Sign reader (`LandmarkSignReader`), trained in `tools/ml` | Project code; weights derived from INCLUDE (CC BY 4.0) | Ship | Plain Kotlin forward pass; no inference library |
+| | ISL letter and digit reader (`isl_spell`, format 1) | Project code; trained on synthetic landmarks from the app's own keyframes | Ship | No redistributable ISL fingerspelling landmark set found (Hugging Face ISL-Fingerspelling sets are CC BY-NC 4.0); marked `synthetic` |
+| | ASL word reader (`asl_reader`, format 1) | Project code; weights derived from PopSign ASL v1.0 (CC BY 4.0) | Ship | Landmarks extracted with the app's Holistic model from the `sign/popsign-images` frames |
+| | ASL fingerspelling reader (`asl_spell`, format 2, `CtcSpellReader`) | Project code; weights derived from ASLNow! (MIT) | Ship | Small CTC model under 5 MB; trained on synthetic sequences of real static letters; marked `synthetic` |
 | | LiteRT | Apache-2.0 | Not chosen | The reader is small enough for plain Kotlin; LiteRT remains the path for a larger partner model |
 | | Kaggle Isolated Sign Language Recognition, first-place solution | MIT | Reference | Landmark-to-sign model that ran as TFLite under tight size and latency limits; retrain on ISL |
 | | OpenHands (AI4Bharat) | Code Apache-2.0; pose releases CC BY 4.0 | Data | The INCLUDE MediaPipe pose release (zenodo.org/records/6674324) is the reader's training input; attribution required |
 | ISL and gesture data | ISLRTC dictionary | Not published | Data with written permission | 10,000 terms; the reference for the ISL lexicon |
 | | INCLUDE (AI4Bharat, IIT Madras) | CC BY 4.0 | Data | 262 isolated ISL words; the reader is trained on it and its signers are retargeted into `isl_signs.json` (D-35); attribution required (§3) |
+| | PopSign ASL v1.0 (Georgia Tech, NTID) | CC BY 4.0 | Data | The 250 ASL signs of Google's Isolated Sign Language Recognition, frames via huggingface.co/datasets/sign/popsign-images; its signers are retargeted into `asl_signs.json` (`tools/isl/retarget_asl.py`); attribution required (§3) |
 | | CISLR, iSign | Per dataset | Data | Evaluation candidates; CISLR download is gated |
+| ASL data | PopSign ASL v1.0 (Georgia Tech, NTID) | CC BY 4.0 | Data | 250 isolated ASL signs, 47 Deaf signers; trains `asl_reader` and is retargeted into `asl_signs.json`; attribution required (§3) |
+| | Google "Isolated Sign Language Recognition" (Kaggle `asl-signs`) | CC BY 4.0, plus Kaggle rules | Not used | Rules: "Competition Use and Commercial ... any purpose", data "subject to ... CC-BY 4.0", but participants must not redistribute the data itself; download needs Kaggle credentials. Same corpus as PopSign, which is used instead |
+| | Google "ASL Fingerspelling" (Kaggle `asl-fingerspelling`) | CC BY 4.0, plus Kaggle rules | Not used | Same rule text as above; needs Kaggle credentials and about 170 GB. FSboard (CC BY 4.0) is video only. ASLNow! is used instead |
+| | ASLNow! fingerspelling landmarks (`sid220/asl-now-fingerspelling`) | MIT | Data | About 2,100 static MediaPipe hands, A to Z; trains `asl_spell` through synthetic sequences and gives the one-handed ASL alphabet keyframes |
 | | ISL emergency-word video set | Per dataset (Mendeley) | Data | 8 words (accident, call, doctor, help, hot, lose, pain, thief), adult signers |
 | Speech (v1.1) | Bhashini | Government service | Ship (via gateway) | Retention terms still unconfirmed |
 | | sherpa-onnx, Vosk | Apache-2.0 | Ship (optional pack) | Offline speech recognition so officer audio never leaves the phone |
 | Language identification (v1.1) | IndicLID (Bhashini and AI4Bharat) | See model card | Ship (via gateway) or Reference | Text language identification for 22+ Indic languages; no audio language identification service was found |
 | Storage and crypto | SQLCipher for Android | BSD-style | Ship | Room 3 supported from 4.18.0 |
 | Export | PdfBox-Android 2.0.27.0 | Apache-2.0 | Ship | AES-256 password-protected PDF export (D-17); no recent release, so watch advisories. Its BouncyCastle is held at 1.86 by a build constraint because 1.72 has known critical vulnerabilities |
+| | BouncyCastle (bcprov, bcpkix, bcutil) 1.86 | MIT-style Bouncy Castle licence | Ship | Pulled in for PdfBox-Android; pinned to 1.86 for the vulnerability fix above |
 | | zip4j | Apache-2.0 | Alternative | AES-256 zip; recipients need 7-Zip, so PDF is preferred |
 | Gateway attestation (v1.1) | android/keyattestation | Apache-2.0 | Ship (gateway) | Google's verification library; handles both attestation roots and revocation |
 | Networking (v1.1) | OkHttp, kotlinx.serialization | Apache-2.0 | Ship | Already planned |
@@ -86,7 +95,10 @@ GPL and AGPL code is never shipped in the app (policy §2); it may be used as a 
 The INCLUDE, OpenHands and MediaPipe notices appear in the app's **Settings > Open-source licences**, the ISL dictionary carries the INCLUDE notice for recorded signs, and all travel with any redistribution of the models or motions.
 
 - **INCLUDE**: "INCLUDE: A Large Scale Dataset for Indian Sign Language Recognition" by Advaith Sridhar, Rohith Gandhi Ganesan, Pratyush Kumar and Mitesh Khapra (IIT Madras, AI4Bharat), ACM Multimedia 2020, Zenodo doi:10.5281/zenodo.4010759, licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). Changes: a sign classifier was trained on its landmarks, and the signers' landmarks for each word were retargeted onto the app's characters as keyframes.
+- **PopSign ASL v1.0**: "PopSign ASL v1.0: An Isolated American Sign Language Dataset Collected via Smartphones" by Thad Starner, Sean Forbes, Matthew So, David Martin, Rohit Sridhar, Gururaj Deshpande et al. (Georgia Tech, NTID), NeurIPS 2023 Datasets and Benchmarks, signdata.cc.gatech.edu, licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). Changes: MediaPipe Holistic landmarks were taken from its frames and each sign's cleanest recording was retargeted onto the app's characters as keyframes, mirrored to right-hand dominant where the left hand led.
 - **OpenHands**: "OpenHands v1: Labelled ISLR datasets, Poses" (AI4Bharat), Zenodo record 6674324, licensed under CC BY 4.0. Changes: poses resampled and normalised as reader input.
+- **PopSign ASL v1.0**: "PopSign ASL v1.0: An Isolated American Sign Language Dataset Collected via Smartphones", T. Starner et al. (Georgia Tech, NTID), NeurIPS 2023 Datasets and Benchmarks, signdata.cc.gatech.edu, licensed under CC BY 4.0. Frames taken from huggingface.co/datasets/sign/popsign-images (CC BY 4.0). Changes: MediaPipe Holistic landmarks extracted, a sign classifier trained on them, and the signers' landmarks retargeted onto the app's characters as keyframes.
+- **ASLNow!**: fingerspelling hand landmarks by sid220, huggingface.co/datasets/sid220/asl-now-fingerspelling, MIT licence. Changes: static letters chained into synthetic spelling sequences to train a reader, and one typical hand per letter posed as the ASL alphabet.
 - **MediaPipe**: Google LLC, Apache License 2.0; the Holistic landmarker model is distributed under the same licence.
 - **Ping**: Yash Awasthi, MIT licence; the pairing design is adapted from its CryptoUtils and transport interface.
 

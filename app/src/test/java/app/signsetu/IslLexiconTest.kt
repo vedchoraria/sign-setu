@@ -5,13 +5,16 @@ import app.signsetu.data.content.DRAFT_CATEGORY
 import app.signsetu.data.content.IslSign
 import app.signsetu.data.content.IslSigns
 import app.signsetu.data.content.Question
+import app.signsetu.data.content.SignLanguage
 import app.signsetu.data.content.SignMode
 import app.signsetu.data.content.WordEntry
 import app.signsetu.data.content.dictionary
+import app.signsetu.data.content.forSignLanguage
 import app.signsetu.data.content.motionFor
 import app.signsetu.data.content.planText
 import app.signsetu.data.content.search
 import app.signsetu.data.content.signBack
+import app.signsetu.data.content.withSignedQuestions
 import app.signsetu.ui.avatar.AdultBuild
 import app.signsetu.ui.avatar.ChildBuild
 import app.signsetu.ui.avatar.Gesture
@@ -92,6 +95,16 @@ class IslLexiconTest {
     }
 
     @Test
+    fun reorderOffKeepsTypedOrder() {
+        val text = "What is your name?"
+        val typed = bundle.planText(text, signs + SignMode.TYPED_ORDER).motions
+        val reordered = bundle.planText(text, signs).motions
+        assertEquals(listOf("sign.what", "isl.you", "sign.name"), typed)
+        assertEquals(reordered.toSet(), typed.toSet())
+        assertTrue(reordered != typed)
+    }
+
+    @Test
     fun dictionaryFindsRecordedAndDraftSignsInEitherLanguage() {
         val dict = small.dictionary()
         assertTrue(dict.single { it.gestureId == "sign.water" }.let { !it.recorded && it.category == DRAFT_CATEGORY })
@@ -131,6 +144,64 @@ class IslLexiconTest {
         }
         // A word read from the camera can be signed back for the subject to confirm.
         for (label in labels) assertNotNull("cannot sign back $label", bundle.signBack(label))
+    }
+
+    @Serializable private data class TriageFile(val questions: List<Question>)
+
+    private val asl = bundle.copy(
+        questions = json.decodeFromString<TriageFile>(File(content, "triage.json").readText()).questions,
+        everyday = json.decodeFromString<GesturesFile>(File(content, "gestures.json").readText()).gestures.associateBy { it.id },
+        aslSigns = json.decodeFromString<IslSigns>(File(content, "asl_signs.json").readText()),
+        aslWords = json.decodeFromString<SignWordsFile>(File(content, "asl_words.json").readText()).words,
+    ).withSignedQuestions().forSignLanguage(SignLanguage.ASL)
+
+    private val manifest = json.parseToJsonElement(File(content, "manifest.json").readText()).jsonObject["files"]!!.jsonObject.keys
+
+    /** Labels of a reader the manifest lists; one listed but not bundled fails rather than passing on nothing. */
+    private fun readerLabels(file: String): List<String> {
+        val path = "models/$file.json"
+        if (path !in manifest) return emptyList()
+        val f = File(content, path)
+        assertTrue("$path is in the manifest but missing", f.isFile)
+        return json.parseToJsonElement(f.readText()).jsonObject["labels"]!!.jsonArray.map { it.jsonPrimitive.content }
+    }
+
+    @Test
+    fun everyReaderLabelSignsBackAndIsInTheDictionary() {
+        for ((b, labels) in listOf(bundle to readerLabels("sign_reader") + bundle.signWords.keys, asl to readerLabels("asl_reader") + asl.signWords.keys)) {
+            val prefix = if (b === asl) "asl." else "isl."
+            val ids = b.dictionary().map { it.gestureId }.toSet()
+            for (label in labels) {
+                val back = b.signBack(label)
+                assertTrue("$prefix$label: signs back ${back?.id}", back?.id?.startsWith(prefix) == true)
+                assertTrue("$prefix$label: not in dictionary", back!!.id in ids)
+            }
+        }
+        assertTrue("ASL dictionary has ${asl.dictionary().size} signs", asl.dictionary().size >= 250)
+        // Dictionary leaves letters and digits out; their motions are the fingerspelling keys.
+        for (label in readerLabels("isl_spell")) {
+            val c = label.lowercase().single()
+            assertTrue("isl_spell: no motion for $label", bundle.gestures.containsKey(if (c.isDigit()) "digit.$c" else "letter.$c"))
+        }
+        for (label in readerLabels("asl_spell").filter { it.length == 1 && it[0].isLetter() }) {
+            val c = label.lowercase()
+            assertEquals("asl_spell: $label", "asl.letter.$c", asl.gestures["letter.$c"]?.id)
+        }
+    }
+
+    @Test
+    fun anAslSessionSignsAslAndNeverIsl() {
+        assertTrue(asl.planText("water please", signs).motions.let { m -> m.isNotEmpty() && m.all { it.startsWith("asl.") } })
+        assertEquals(listOf("r", "a", "v", "i").map { "asl.letter.$it" }, asl.planText("ravi", setOf(SignMode.SPELL)).motions)
+        assertEquals("asl.water", asl.motionFor("water", asl.words["water"], signs)?.id)
+        val signed = asl.questions.filter { it.signed && it.lexicon == null }
+        assertTrue(signed.isNotEmpty())
+        for (q in signed) {
+            val plan = asl.planText(q.text["en"]!!, signs)
+            assertTrue("${q.id}: ${plan.motions}", plan.motions.none { it.startsWith("sign.") || it.startsWith("isl.") })
+            assertEquals(q.id, plan.gesture?.keys, asl.gestureFor(q)?.keys)
+        }
+        assertTrue(signed.any { q -> asl.planText(q.text["en"]!!, signs).motions.any { it.startsWith("asl.") } })
     }
 
     @Test

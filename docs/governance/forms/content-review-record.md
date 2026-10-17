@@ -166,6 +166,544 @@ Reviewers: child-welfare reviewer for every gesture; ISL reviewer as well for en
 | `sign.like` | "like" |  |  |  |  |
 | `sign.please` | "please" |  |  |  |  |
 | `sign.live` | "live" |  |  |  |  |
+| `isl.actor` | "actor" |  |  |  |  |
+| `isl.adult` | "adult" |  |  |  |  |
+| `isl.afternoon` | "afternoon" |  |  |  |  |
+| `isl.alive` | "alive" |  |  |  |  |
+| `isl.alright` | "alright" |  |  |  |  |
+| `isl.animal` | "animal" |  |  |  |  |
+| `isl.artist` | "artist" |  |  |  |  |
+| `isl.attack` | "attack" |  |  |  |  |
+| `isl.author` | "author" |  |  |  |  |
+| `isl.baby` | "baby" |  |  |  |  |
+| `isl.bad` | "bad" |  |  |  |  |
+| `isl.bag` | "bag" |  |  |  |  |
+| `isl.ball` | "ball" |  |  |  |  |
+| `isl.bank` | "bank" |  |  |  |  |
+| `isl.bathroom` | "bathroom" |  |  |  |  |
+| `isl.beautiful` | "beautiful" |  |  |  |  |
+| `isl.bed` | "bed" |  |  |  |  |
+| `isl.bedroom` | "bedroom" |  |  |  |  |
+| `isl.bicycle` | "bicycle" |  |  |  |  |
+| `isl.big large` | "big large" |  |  |  |  |
+| `isl.bill` | "bill" |  |  |  |  |
+| `isl.bird` | "bird" |  |  |  |  |
+| `isl.black` | "black" |  |  |  |  |
+| `isl.blind` | "blind" |  |  |  |  |
+| `isl.blue` | "blue" |  |  |  |  |
+| `isl.boat` | "boat" |  |  |  |  |
+| `isl.book` | "book" |  |  |  |  |
+| `isl.box` | "box" |  |  |  |  |
+| `isl.boy` | "boy" |  |  |  |  |
+| `isl.brother` | "brother" |  |  |  |  |
+| `isl.brown` | "brown" |  |  |  |  |
+| `isl.bus` | "bus" |  |  |  |  |
+| `isl.camera` | "camera" |  |  |  |  |
+| `isl.car` | "car" |  |  |  |  |
+| `isl.card` | "card" |  |  |  |  |
+| `isl.cat` | "cat" |  |  |  |  |
+| `isl.cell phone` | "cell phone" |  |  |  |  |
+| `isl.chair` | "chair" |  |  |  |  |
+| `isl.cheap` | "cheap" |  |  |  |  |
+| `isl.child` | "child" |  |  |  |  |
+| `isl.city` | "city" |  |  |  |  |
+| `isl.clean` | "clean" |  |  |  |  |
+| `isl.clock` | "clock" |  |  |  |  |
+| `isl.clothing` | "clothing" |  |  |  |  |
+| `isl.cold` | "cold" |  |  |  |  |
+| `isl.colour` | "colour" |  |  |  |  |
+| `isl.computer` | "computer" |  |  |  |  |
+| `isl.cool` | "cool" |  |  |  |  |
+| `isl.court` | "court" |  |  |  |  |
+| `isl.cow` | "cow" |  |  |  |  |
+| `isl.crowd` | "crowd" |  |  |  |  |
+| `isl.curved` | "curved" |  |  |  |  |
+| `isl.daughter` | "daughter" |  |  |  |  |
+| `isl.dead` | "dead" |  |  |  |  |
+| `isl.deaf` | "deaf" |  |  |  |  |
+| `isl.death` | "death" |  |  |  |  |
+| `isl.deep` | "deep" |  |  |  |  |
+| `isl.dirty` | "dirty" |  |  |  |  |
+| `isl.doctor` | "doctor" |  |  |  |  |
+| `isl.dog` | "dog" |  |  |  |  |
+| `isl.door` | "door" |  |  |  |  |
+| `isl.dream` | "dream" |  |  |  |  |
+| `isl.dress` | "dress" |  |  |  |  |
+| `isl.dry` | "dry" |  |  |  |  |
+| `isl.election` | "election" |  |  |  |  |
+| `isl.energy` | "energy" |  |  |  |  |
+| `isl.evening` | "evening" |  |  |  |  |
+| `isl.exercise` | "exercise" |  |  |  |  |
+| `isl.expensive` | "expensive" |  |  |  |  |
+| `isl.fall` | "fall" |  |  |  |  |
+| `isl.family` | "family" |  |  |  |  |
+| `isl.famous` | "famous" |  |  |  |  |
+| `isl.fan` | "fan" |  |  |  |  |
+| `isl.fast` | "fast" |  |  |  |  |
+| `isl.father` | "father" |  |  |  |  |
+| `isl.female` | "female" |  |  |  |  |
+| `isl.fish` | "fish" |  |  |  |  |
+| `isl.flat` | "flat" |  |  |  |  |
+| `isl.friday` | "friday" |  |  |  |  |
+| `isl.friend` | "friend" |  |  |  |  |
+| `isl.gift` | "gift" |  |  |  |  |
+| `isl.girl` | "girl" |  |  |  |  |
+| `isl.god` | "god" |  |  |  |  |
+| `isl.good` | "good" |  |  |  |  |
+| `isl.good afternoon` | "good afternoon" |  |  |  |  |
+| `isl.good evening` | "good evening" |  |  |  |  |
+| `isl.good morning` | "good morning" |  |  |  |  |
+| `isl.good night` | "good night" |  |  |  |  |
+| `isl.grandfather` | "grandfather" |  |  |  |  |
+| `isl.grandmother` | "grandmother" |  |  |  |  |
+| `isl.green` | "green" |  |  |  |  |
+| `isl.grey` | "grey" |  |  |  |  |
+| `isl.ground` | "ground" |  |  |  |  |
+| `isl.gun` | "gun" |  |  |  |  |
+| `isl.happy` | "happy" |  |  |  |  |
+| `isl.hard` | "hard" |  |  |  |  |
+| `isl.hat` | "hat" |  |  |  |  |
+| `isl.he` | "he" |  |  |  |  |
+| `isl.healthy` | "healthy" |  |  |  |  |
+| `isl.heavy` | "heavy" |  |  |  |  |
+| `isl.hello` | "hello" |  |  |  |  |
+| `isl.high` | "high" |  |  |  |  |
+| `isl.horse` | "horse" |  |  |  |  |
+| `isl.hospital` | "hospital" |  |  |  |  |
+| `isl.hot` | "hot" |  |  |  |  |
+| `isl.hour` | "hour" |  |  |  |  |
+| `isl.house` | "house" |  |  |  |  |
+| `isl.how are you` | "how are you" |  |  |  |  |
+| `isl.husband` | "husband" |  |  |  |  |
+| `isl.i` | "i" |  |  |  |  |
+| `isl.india` | "india" |  |  |  |  |
+| `isl.it` | "it" |  |  |  |  |
+| `isl.job` | "job" |  |  |  |  |
+| `isl.key` | "key" |  |  |  |  |
+| `isl.king` | "king" |  |  |  |  |
+| `isl.kitchen` | "kitchen" |  |  |  |  |
+| `isl.lamp` | "lamp" |  |  |  |  |
+| `isl.laptop` | "laptop" |  |  |  |  |
+| `isl.lawyer` | "lawyer" |  |  |  |  |
+| `isl.letter` | "letter" |  |  |  |  |
+| `isl.library` | "library" |  |  |  |  |
+| `isl.light` | "light" |  |  |  |  |
+| `isl.location` | "location" |  |  |  |  |
+| `isl.lock` | "lock" |  |  |  |  |
+| `isl.long` | "long" |  |  |  |  |
+| `isl.loose` | "loose" |  |  |  |  |
+| `isl.loud` | "loud" |  |  |  |  |
+| `isl.low` | "low" |  |  |  |  |
+| `isl.male` | "male" |  |  |  |  |
+| `isl.man` | "man" |  |  |  |  |
+| `isl.manager` | "manager" |  |  |  |  |
+| `isl.market` | "market" |  |  |  |  |
+| `isl.marriage` | "marriage" |  |  |  |  |
+| `isl.mean` | "mean" |  |  |  |  |
+| `isl.medicine` | "medicine" |  |  |  |  |
+| `isl.minute` | "minute" |  |  |  |  |
+| `isl.monday` | "monday" |  |  |  |  |
+| `isl.money` | "money" |  |  |  |  |
+| `isl.monsoon` | "monsoon" |  |  |  |  |
+| `isl.month` | "month" |  |  |  |  |
+| `isl.morning` | "morning" |  |  |  |  |
+| `isl.mother` | "mother" |  |  |  |  |
+| `isl.mouse` | "mouse" |  |  |  |  |
+| `isl.narrow` | "narrow" |  |  |  |  |
+| `isl.neighbour` | "neighbour" |  |  |  |  |
+| `isl.new` | "new" |  |  |  |  |
+| `isl.newspaper` | "newspaper" |  |  |  |  |
+| `isl.nice` | "nice" |  |  |  |  |
+| `isl.night` | "night" |  |  |  |  |
+| `isl.office` | "office" |  |  |  |  |
+| `isl.old` | "old" |  |  |  |  |
+| `isl.orange` | "orange" |  |  |  |  |
+| `isl.page` | "page" |  |  |  |  |
+| `isl.paint` | "paint" |  |  |  |  |
+| `isl.pant` | "pant" |  |  |  |  |
+| `isl.paper` | "paper" |  |  |  |  |
+| `isl.parent` | "parent" |  |  |  |  |
+| `isl.park` | "park" |  |  |  |  |
+| `isl.patient` | "patient" |  |  |  |  |
+| `isl.peace` | "peace" |  |  |  |  |
+| `isl.pen` | "pen" |  |  |  |  |
+| `isl.pencil` | "pencil" |  |  |  |  |
+| `isl.photograph` | "photograph" |  |  |  |  |
+| `isl.pink` | "pink" |  |  |  |  |
+| `isl.plane` | "plane" |  |  |  |  |
+| `isl.player` | "player" |  |  |  |  |
+| `isl.pleased` | "pleased" |  |  |  |  |
+| `isl.pocket` | "pocket" |  |  |  |  |
+| `isl.police` | "police" |  |  |  |  |
+| `isl.poor` | "poor" |  |  |  |  |
+| `isl.president` | "president" |  |  |  |  |
+| `isl.price` | "price" |  |  |  |  |
+| `isl.priest` | "priest" |  |  |  |  |
+| `isl.queen` | "queen" |  |  |  |  |
+| `isl.quiet` | "quiet" |  |  |  |  |
+| `isl.race (ethnicity)` | "race (ethnicity)" |  |  |  |  |
+| `isl.radio` | "radio" |  |  |  |  |
+| `isl.red` | "red" |  |  |  |  |
+| `isl.religion` | "religion" |  |  |  |  |
+| `isl.reporter` | "reporter" |  |  |  |  |
+| `isl.restaurant` | "restaurant" |  |  |  |  |
+| `isl.rich` | "rich" |  |  |  |  |
+| `isl.ring` | "ring" |  |  |  |  |
+| `isl.sad` | "sad" |  |  |  |  |
+| `isl.saturday` | "saturday" |  |  |  |  |
+| `isl.school` | "school" |  |  |  |  |
+| `isl.science` | "science" |  |  |  |  |
+| `isl.screen` | "screen" |  |  |  |  |
+| `isl.season` | "season" |  |  |  |  |
+| `isl.second` | "second" |  |  |  |  |
+| `isl.secretary` | "secretary" |  |  |  |  |
+| `isl.shallow` | "shallow" |  |  |  |  |
+| `isl.she` | "she" |  |  |  |  |
+| `isl.shirt` | "shirt" |  |  |  |  |
+| `isl.shoes` | "shoes" |  |  |  |  |
+| `isl.short` | "short" |  |  |  |  |
+| `isl.sick` | "sick" |  |  |  |  |
+| `isl.sign` | "sign" |  |  |  |  |
+| `isl.sister` | "sister" |  |  |  |  |
+| `isl.skirt` | "skirt" |  |  |  |  |
+| `isl.slow` | "slow" |  |  |  |  |
+| `isl.small little` | "small little" |  |  |  |  |
+| `isl.soap` | "soap" |  |  |  |  |
+| `isl.soft` | "soft" |  |  |  |  |
+| `isl.soldier` | "soldier" |  |  |  |  |
+| `isl.son` | "son" |  |  |  |  |
+| `isl.sport` | "sport" |  |  |  |  |
+| `isl.spring` | "spring" |  |  |  |  |
+| `isl.store or shop` | "store or shop" |  |  |  |  |
+| `isl.street or road` | "street or road" |  |  |  |  |
+| `isl.strong` | "strong" |  |  |  |  |
+| `isl.student` | "student" |  |  |  |  |
+| `isl.suit` | "suit" |  |  |  |  |
+| `isl.summer` | "summer" |  |  |  |  |
+| `isl.sunday` | "sunday" |  |  |  |  |
+| `isl.t-shirt` | "t-shirt" |  |  |  |  |
+| `isl.table` | "table" |  |  |  |  |
+| `isl.tall` | "tall" |  |  |  |  |
+| `isl.teacher` | "teacher" |  |  |  |  |
+| `isl.team` | "team" |  |  |  |  |
+| `isl.technology` | "technology" |  |  |  |  |
+| `isl.telephone` | "telephone" |  |  |  |  |
+| `isl.television` | "television" |  |  |  |  |
+| `isl.temple` | "temple" |  |  |  |  |
+| `isl.thank you` | "thank you" |  |  |  |  |
+| `isl.they` | "they" |  |  |  |  |
+| `isl.thick` | "thick" |  |  |  |  |
+| `isl.thin` | "thin" |  |  |  |  |
+| `isl.thursday` | "thursday" |  |  |  |  |
+| `isl.tight` | "tight" |  |  |  |  |
+| `isl.time` | "time" |  |  |  |  |
+| `isl.today` | "today" |  |  |  |  |
+| `isl.tomorrow` | "tomorrow" |  |  |  |  |
+| `isl.tool` | "tool" |  |  |  |  |
+| `isl.train` | "train" |  |  |  |  |
+| `isl.train station` | "train station" |  |  |  |  |
+| `isl.train ticket` | "train ticket" |  |  |  |  |
+| `isl.transportation` | "transportation" |  |  |  |  |
+| `isl.truck` | "truck" |  |  |  |  |
+| `isl.tuesday` | "tuesday" |  |  |  |  |
+| `isl.ugly` | "ugly" |  |  |  |  |
+| `isl.university` | "university" |  |  |  |  |
+| `isl.waiter` | "waiter" |  |  |  |  |
+| `isl.war` | "war" |  |  |  |  |
+| `isl.warm` | "warm" |  |  |  |  |
+| `isl.we` | "we" |  |  |  |  |
+| `isl.weak` | "weak" |  |  |  |  |
+| `isl.wednesday` | "wednesday" |  |  |  |  |
+| `isl.week` | "week" |  |  |  |  |
+| `isl.wet` | "wet" |  |  |  |  |
+| `isl.white` | "white" |  |  |  |  |
+| `isl.wide` | "wide" |  |  |  |  |
+| `isl.wife` | "wife" |  |  |  |  |
+| `isl.window` | "window" |  |  |  |  |
+| `isl.winter` | "winter" |  |  |  |  |
+| `isl.woman` | "woman" |  |  |  |  |
+| `isl.year` | "year" |  |  |  |  |
+| `isl.yellow` | "yellow" |  |  |  |  |
+| `isl.yesterday` | "yesterday" |  |  |  |  |
+| `isl.you` | "you" |  |  |  |  |
+| `isl.you (plural)` | "you (plural)" |  |  |  |  |
+| `isl.young` | "young" |  |  |  |  |
+| `asl.after` | "after" |  |  |  |  |
+| `asl.airplane` | "airplane" |  |  |  |  |
+| `asl.all` | "all" |  |  |  |  |
+| `asl.alligator` | "alligator" |  |  |  |  |
+| `asl.animal` | "animal" |  |  |  |  |
+| `asl.another` | "another" |  |  |  |  |
+| `asl.any` | "any" | one held keyframe |  |  |  |
+| `asl.apple` | "apple" |  |  |  |  |
+| `asl.arm` | "arm" | one held keyframe |  |  |  |
+| `asl.aunt` | "aunt" |  |  |  |  |
+| `asl.awake` | "awake" |  |  |  |  |
+| `asl.backyard` | "backyard" |  |  |  |  |
+| `asl.bad` | "bad" |  |  |  |  |
+| `asl.balloon` | "balloon" |  |  |  |  |
+| `asl.bath` | "bath" | two-handed sign drawn with the right hand only |  |  |  |
+| `asl.because` | "because" |  |  |  |  |
+| `asl.bed` | "bed" | one held keyframe |  |  |  |
+| `asl.bedroom` | "bedroom" |  |  |  |  |
+| `asl.bee` | "bee" |  |  |  |  |
+| `asl.before` | "before" |  |  |  |  |
+| `asl.beside` | "beside" |  |  |  |  |
+| `asl.better` | "better" |  |  |  |  |
+| `asl.bird` | "bird" |  |  |  |  |
+| `asl.black` | "black" |  |  |  |  |
+| `asl.blow` | "blow" |  |  |  |  |
+| `asl.blue` | "blue" |  |  |  |  |
+| `asl.boat` | "boat" | one held keyframe; two-handed sign drawn with the right hand only |  |  |  |
+| `asl.book` | "book" | one held keyframe; two-handed sign drawn with the right hand only |  |  |  |
+| `asl.boy` | "boy" |  |  |  |  |
+| `asl.brother` | "brother" |  |  |  |  |
+| `asl.brown` | "brown" |  |  |  |  |
+| `asl.bug` | "bug" |  |  |  |  |
+| `asl.bye` | "bye" |  |  |  |  |
+| `asl.callonphone` | "call" |  |  |  |  |
+| `asl.can` | "can" |  |  |  |  |
+| `asl.car` | "car" | two-handed sign drawn with the right hand only |  |  |  |
+| `asl.carrot` | "carrot" |  |  |  |  |
+| `asl.cat` | "cat" |  |  |  |  |
+| `asl.cereal` | "cereal" |  |  |  |  |
+| `asl.chair` | "chair" | two-handed sign drawn with the right hand only |  |  |  |
+| `asl.cheek` | "cheek" |  |  |  |  |
+| `asl.child` | "child" |  |  |  |  |
+| `asl.chin` | "chin" |  |  |  |  |
+| `asl.chocolate` | "chocolate" |  |  |  |  |
+| `asl.clean` | "clean" |  |  |  |  |
+| `asl.close` | "close" |  |  |  |  |
+| `asl.closet` | "closet" | two-handed sign drawn with the right hand only |  |  |  |
+| `asl.cloud` | "cloud" |  |  |  |  |
+| `asl.clown` | "clown" |  |  |  |  |
+| `asl.cow` | "cow" |  |  |  |  |
+| `asl.cowboy` | "cowboy" |  |  |  |  |
+| `asl.cry` | "cry" |  |  |  |  |
+| `asl.cut` | "cut" |  |  |  |  |
+| `asl.cute` | "cute" | one held keyframe |  |  |  |
+| `asl.dad` | "dad" |  |  |  |  |
+| `asl.dance` | "dance" | two-handed sign drawn with the right hand only |  |  |  |
+| `asl.dirty` | "dirty" |  |  |  |  |
+| `asl.dog` | "dog" |  |  |  |  |
+| `asl.doll` | "doll" |  |  |  |  |
+| `asl.donkey` | "donkey" |  |  |  |  |
+| `asl.down` | "down" |  |  |  |  |
+| `asl.drawer` | "drawer" | two-handed sign drawn with the right hand only |  |  |  |
+| `asl.drink` | "drink" | one held keyframe |  |  |  |
+| `asl.drop` | "drop" |  |  |  |  |
+| `asl.dry` | "dry" |  |  |  |  |
+| `asl.dryer` | "dryer" |  |  |  |  |
+| `asl.duck` | "duck" |  |  |  |  |
+| `asl.ear` | "ear" |  |  |  |  |
+| `asl.elephant` | "elephant" |  |  |  |  |
+| `asl.empty` | "empty" | one held keyframe |  |  |  |
+| `asl.every` | "every" |  |  |  |  |
+| `asl.eye` | "eye" |  |  |  |  |
+| `asl.face` | "face" |  |  |  |  |
+| `asl.fall` | "fall" |  |  |  |  |
+| `asl.farm` | "farm" | two-handed sign drawn with the right hand only |  |  |  |
+| `asl.fast` | "fast" |  |  |  |  |
+| `asl.feet` | "feet" |  |  |  |  |
+| `asl.find` | "find" |  |  |  |  |
+| `asl.fine` | "fine" |  |  |  |  |
+| `asl.finger` | "finger" |  |  |  |  |
+| `asl.finish` | "finish" |  |  |  |  |
+| `asl.fireman` | "fireman" |  |  |  |  |
+| `asl.first` | "first" | one held keyframe |  |  |  |
+| `asl.fish` | "fish" |  |  |  |  |
+| `asl.flag` | "flag" |  |  |  |  |
+| `asl.flower` | "flower" |  |  |  |  |
+| `asl.food` | "food" |  |  |  |  |
+| `asl.for` | "for" |  |  |  |  |
+| `asl.frenchfries` | "french fries" |  |  |  |  |
+| `asl.frog` | "frog" |  |  |  |  |
+| `asl.garbage` | "garbage" |  |  |  |  |
+| `asl.gift` | "gift" |  |  |  |  |
+| `asl.giraffe` | "giraffe" |  |  |  |  |
+| `asl.girl` | "girl" |  |  |  |  |
+| `asl.give` | "give" |  |  |  |  |
+| `asl.glasswindow` | "window" |  |  |  |  |
+| `asl.go` | "go" |  |  |  |  |
+| `asl.goose` | "goose" |  |  |  |  |
+| `asl.grandma` | "grandma" |  |  |  |  |
+| `asl.grandpa` | "grandpa" |  |  |  |  |
+| `asl.grass` | "grass" |  |  |  |  |
+| `asl.green` | "green" |  |  |  |  |
+| `asl.gum` | "gum" |  |  |  |  |
+| `asl.hair` | "hair" |  |  |  |  |
+| `asl.happy` | "happy" |  |  |  |  |
+| `asl.hat` | "hat" |  |  |  |  |
+| `asl.hate` | "hate" |  |  |  |  |
+| `asl.have` | "have" |  |  |  |  |
+| `asl.haveto` | "have to" |  |  |  |  |
+| `asl.head` | "head" |  |  |  |  |
+| `asl.hear` | "hear" |  |  |  |  |
+| `asl.helicopter` | "helicopter" | two-handed sign drawn with the right hand only |  |  |  |
+| `asl.hello` | "hello" |  |  |  |  |
+| `asl.hen` | "hen" |  |  |  |  |
+| `asl.hesheit` | "he" |  |  |  |  |
+| `asl.hide` | "hide" |  |  |  |  |
+| `asl.high` | "high" |  |  |  |  |
+| `asl.home` | "home" | one held keyframe |  |  |  |
+| `asl.horse` | "horse" |  |  |  |  |
+| `asl.hot` | "hot" |  |  |  |  |
+| `asl.hungry` | "hungry" | one held keyframe |  |  |  |
+| `asl.icecream` | "ice cream" |  |  |  |  |
+| `asl.if` | "if" |  |  |  |  |
+| `asl.into` | "into" |  |  |  |  |
+| `asl.jacket` | "jacket" | one held keyframe |  |  |  |
+| `asl.jeans` | "jeans" |  |  |  |  |
+| `asl.jump` | "jump" |  |  |  |  |
+| `asl.kiss` | "kiss" |  |  |  |  |
+| `asl.kitty` | "kitty" |  |  |  |  |
+| `asl.lamp` | "lamp" |  |  |  |  |
+| `asl.later` | "later" |  |  |  |  |
+| `asl.like` | "like" |  |  |  |  |
+| `asl.lion` | "lion" |  |  |  |  |
+| `asl.lips` | "lips" |  |  |  |  |
+| `asl.listen` | "listen" |  |  |  |  |
+| `asl.look` | "look" |  |  |  |  |
+| `asl.loud` | "loud" |  |  |  |  |
+| `asl.mad` | "mad" |  |  |  |  |
+| `asl.make` | "make" |  |  |  |  |
+| `asl.man` | "man" |  |  |  |  |
+| `asl.many` | "many" |  |  |  |  |
+| `asl.milk` | "milk" |  |  |  |  |
+| `asl.minemy` | "my" | one held keyframe |  |  |  |
+| `asl.mitten` | "mitten" |  |  |  |  |
+| `asl.mom` | "mom" |  |  |  |  |
+| `asl.moon` | "moon" |  |  |  |  |
+| `asl.morning` | "morning" |  |  |  |  |
+| `asl.mouse` | "mouse" |  |  |  |  |
+| `asl.mouth` | "mouth" |  |  |  |  |
+| `asl.nap` | "nap" |  |  |  |  |
+| `asl.napkin` | "napkin" |  |  |  |  |
+| `asl.night` | "night" |  |  |  |  |
+| `asl.no` | "no" |  |  |  |  |
+| `asl.noisy` | "noisy" |  |  |  |  |
+| `asl.nose` | "nose" |  |  |  |  |
+| `asl.not` | "not" | one held keyframe |  |  |  |
+| `asl.now` | "now" |  |  |  |  |
+| `asl.nuts` | "nuts" |  |  |  |  |
+| `asl.old` | "old" | one held keyframe |  |  |  |
+| `asl.on` | "on" |  |  |  |  |
+| `asl.open` | "open" | one held keyframe; two-handed sign drawn with the right hand only |  |  |  |
+| `asl.orange` | "orange" |  |  |  |  |
+| `asl.outside` | "outside" | one held keyframe |  |  |  |
+| `asl.owie` | "hurt" |  |  |  |  |
+| `asl.owl` | "owl" |  |  |  |  |
+| `asl.pajamas` | "pajamas" |  |  |  |  |
+| `asl.pen` | "pen" |  |  |  |  |
+| `asl.pencil` | "pencil" |  |  |  |  |
+| `asl.penny` | "penny" |  |  |  |  |
+| `asl.person` | "person" |  |  |  |  |
+| `asl.pig` | "pig" |  |  |  |  |
+| `asl.pizza` | "pizza" |  |  |  |  |
+| `asl.please` | "please" |  |  |  |  |
+| `asl.police` | "police" |  |  |  |  |
+| `asl.pool` | "pool" |  |  |  |  |
+| `asl.potty` | "potty" |  |  |  |  |
+| `asl.pretend` | "pretend" |  |  |  |  |
+| `asl.pretty` | "pretty" |  |  |  |  |
+| `asl.puppy` | "puppy" |  |  |  |  |
+| `asl.puzzle` | "puzzle" | one held keyframe; two-handed sign drawn with the right hand only |  |  |  |
+| `asl.quiet` | "quiet" | one held keyframe |  |  |  |
+| `asl.radio` | "radio" |  |  |  |  |
+| `asl.rain` | "rain" |  |  |  |  |
+| `asl.read` | "read" | one held keyframe; two-handed sign drawn with the right hand only |  |  |  |
+| `asl.red` | "red" | one held keyframe |  |  |  |
+| `asl.refrigerator` | "refrigerator" | two-handed sign drawn with the right hand only |  |  |  |
+| `asl.ride` | "ride" | one held keyframe; two-handed sign drawn with the right hand only |  |  |  |
+| `asl.room` | "room" | one held keyframe |  |  |  |
+| `asl.sad` | "sad" |  |  |  |  |
+| `asl.same` | "same" | two-handed sign drawn with the right hand only |  |  |  |
+| `asl.say` | "say" |  |  |  |  |
+| `asl.scissors` | "scissors" | two-handed sign drawn with the right hand only |  |  |  |
+| `asl.see` | "see" |  |  |  |  |
+| `asl.shhh` | "hush" | one held keyframe |  |  |  |
+| `asl.shirt` | "shirt" |  |  |  |  |
+| `asl.shoe` | "shoe" |  |  |  |  |
+| `asl.shower` | "shower" |  |  |  |  |
+| `asl.sick` | "sick" |  |  |  |  |
+| `asl.sleep` | "sleep" |  |  |  |  |
+| `asl.sleepy` | "sleepy" |  |  |  |  |
+| `asl.smile` | "smile" |  |  |  |  |
+| `asl.snack` | "snack" |  |  |  |  |
+| `asl.snow` | "snow" |  |  |  |  |
+| `asl.stairs` | "stairs" | two-handed sign drawn with the right hand only |  |  |  |
+| `asl.stay` | "stay" |  |  |  |  |
+| `asl.sticky` | "sticky" |  |  |  |  |
+| `asl.store` | "store" |  |  |  |  |
+| `asl.story` | "story" | two-handed sign drawn with the right hand only |  |  |  |
+| `asl.stuck` | "stuck" |  |  |  |  |
+| `asl.sun` | "sun" |  |  |  |  |
+| `asl.table` | "table" | two-handed sign drawn with the right hand only |  |  |  |
+| `asl.talk` | "talk" |  |  |  |  |
+| `asl.taste` | "taste" |  |  |  |  |
+| `asl.thankyou` | "thank you" |  |  |  |  |
+| `asl.that` | "that" |  |  |  |  |
+| `asl.there` | "there" |  |  |  |  |
+| `asl.think` | "think" |  |  |  |  |
+| `asl.thirsty` | "thirsty" |  |  |  |  |
+| `asl.tiger` | "tiger" |  |  |  |  |
+| `asl.time` | "time" |  |  |  |  |
+| `asl.tomorrow` | "tomorrow" |  |  |  |  |
+| `asl.tongue` | "tongue" |  |  |  |  |
+| `asl.tooth` | "tooth" |  |  |  |  |
+| `asl.toothbrush` | "toothbrush" |  |  |  |  |
+| `asl.touch` | "touch" |  |  |  |  |
+| `asl.toy` | "toy" |  |  |  |  |
+| `asl.tree` | "tree" |  |  |  |  |
+| `asl.TV` | "tv" |  |  |  |  |
+| `asl.uncle` | "uncle" | one held keyframe |  |  |  |
+| `asl.underwear` | "underwear" |  |  |  |  |
+| `asl.up` | "up" | one held keyframe |  |  |  |
+| `asl.vacuum` | "vacuum" | two-handed sign drawn with the right hand only |  |  |  |
+| `asl.wait` | "wait" |  |  |  |  |
+| `asl.wake` | "wake" |  |  |  |  |
+| `asl.water` | "water" |  |  |  |  |
+| `asl.wet` | "wet" |  |  |  |  |
+| `asl.weus` | "we" |  |  |  |  |
+| `asl.where` | "where" |  |  |  |  |
+| `asl.white` | "white" | one held keyframe |  |  |  |
+| `asl.who` | "who" |  |  |  |  |
+| `asl.why` | "why" | one held keyframe |  |  |  |
+| `asl.will` | "will" |  |  |  |  |
+| `asl.wolf` | "wolf" |  |  |  |  |
+| `asl.yellow` | "yellow" |  |  |  |  |
+| `asl.yes` | "yes" |  |  |  |  |
+| `asl.yesterday` | "yesterday" |  |  |  |  |
+| `asl.yourself` | "yourself" |  |  |  |  |
+| `asl.yucky` | "yuck" |  |  |  |  |
+| `asl.zebra` | "zebra" | one held keyframe |  |  |  |
+| `asl.zipper` | "zipper" |  |  |  |  |
+| `asl.letter.a` | "a" |  |  |  |  |
+| `asl.letter.b` | "b" |  |  |  |  |
+| `asl.letter.c` | "c" |  |  |  |  |
+| `asl.letter.d` | "d" |  |  |  |  |
+| `asl.letter.e` | "e" |  |  |  |  |
+| `asl.letter.f` | "f" |  |  |  |  |
+| `asl.letter.g` | "g" |  |  |  |  |
+| `asl.letter.h` | "h" |  |  |  |  |
+| `asl.letter.i` | "i" |  |  |  |  |
+| `asl.letter.j` | "j" |  |  |  |  |
+| `asl.letter.k` | "k" |  |  |  |  |
+| `asl.letter.l` | "l" |  |  |  |  |
+| `asl.letter.m` | "m" |  |  |  |  |
+| `asl.letter.n` | "n" |  |  |  |  |
+| `asl.letter.o` | "o" |  |  |  |  |
+| `asl.letter.p` | "p" |  |  |  |  |
+| `asl.letter.q` | "q" |  |  |  |  |
+| `asl.letter.r` | "r" |  |  |  |  |
+| `asl.letter.s` | "s" |  |  |  |  |
+| `asl.letter.t` | "t" |  |  |  |  |
+| `asl.letter.u` | "u" |  |  |  |  |
+| `asl.letter.v` | "v" |  |  |  |  |
+| `asl.letter.w` | "w" |  |  |  |  |
+| `asl.letter.x` | "x" |  |  |  |  |
+| `asl.letter.y` | "y" |  |  |  |  |
+| `asl.letter.z` | "z" |  |  |  |  |
 
 ## 2. Phrase-bank sentences
 

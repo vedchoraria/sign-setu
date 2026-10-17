@@ -1,0 +1,94 @@
+{
+ "format": 2,
+ "architecture": "per-frame linear+relu; residual blocks h += relu(conv1d(h)) (same padding, dilated, batch norm folded); per-frame linear to logits; class 0 is the CTC blank, greedy decoding",
+ "fps": 15,
+ "max_frames": 300,
+ "features": 45,
+ "hidden": 192,
+ "kernel": 5,
+ "dilations": [
+  1,
+  2,
+  4,
+  1
+ ],
+ "alphabet": "abcdefghijklmnopqrstuvwxyz",
+ "tensors": [
+  {
+   "shape": [
+    192,
+    45
+   ]
+  },
+  {
+   "shape": [
+    192
+   ]
+  },
+  {
+   "shape": [
+    192,
+    192,
+    5
+   ]
+  },
+  {
+   "shape": [
+    192
+   ]
+  },
+  {
+   "shape": [
+    192,
+    192,
+    5
+   ]
+  },
+  {
+   "shape": [
+    192
+   ]
+  },
+  {
+   "shape": [
+    192,
+    192,
+    5
+   ]
+  },
+  {
+   "shape": [
+    192
+   ]
+  },
+  {
+   "shape": [
+    192,
+    192,
+    5
+   ]
+  },
+  {
+   "shape": [
+    192
+   ]
+  },
+  {
+   "shape": [
+    27,
+    192
+   ]
+  },
+  {
+   "shape": [
+    27
+   ]
+  }
+ ],
+ "weights": "float32 little-endian, tensors in the order above, row-major; conv weight is [out][in][kernel]",
+ "feature_spec": "frames resampled to `fps` by nearest timestamp (ties to the earlier), at most `max_frames`; the hand present in more resampled frames (ties to the right), a left hand mirrored in x; y scaled by height/width; per frame: 21x(x,y) minus the wrist, divided by the wrist to middle-knuckle (point 9) length, then the wrist's step since the previous frame in that unit (zero after a frame without the hand), then a presence flag; a frame without the hand is zeros",
+ "dataset": "synthetic sequences from ASLNow! static letters (huggingface.co/datasets/sid220/asl-now-fingerspelling, MIT)",
+ "synthetic": true,
+ "epochs": 60,
+ "test_cer": 0.0228
+}
