@@ -129,6 +129,7 @@ class TranslateTest {
         ), Made.WORDS)
         assertNull(content.toHindi("My name is Ravi."))
         assertNull(content.toHindi("Blorft the zibble"))
+        assertNull("no modal form, so no caption that drops it", content.toHindi("you can not go"))
         assertNull(content.toHindi("Do not worry. Ravi is here."))
         assertNull(content.toHindi(""))
     }

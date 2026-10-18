@@ -10,10 +10,10 @@ Sign Setu is an offline Android application that helps a police officer communic
 | --- | --- |
 | Platform | Android 10 (API 29) and later; sign reading on 64-bit phones |
 | Network | None: the application declares no INTERNET permission and the build fails if one is added |
-| Languages for the subject | 17 in the language finder, including Chhattisgarhi, Gondi and Halbi; question captions in English and Hindi |
+| Languages for the subject | 17 in the language finder, including Chhattisgarhi, Gondi and Halbi; every stage word, question, phrase and picture label in all 17 (drafts beyond English and Hindi, D-43); typed English captioned in Hindi on the phone (D-44); sign languages ISL and ASL |
 | Officer interface languages | English, Hindi |
-| Release APK | 45.4 MiB (47,579,538 bytes, standard build, unsigned) |
-| Automated tests | 147 unit tests in 19 classes pass for both build flavors; 918 portal tests pass; 28 instrumented test methods |
+| Release APK | 67.6 MiB (70,891,654 bytes, standard build, unsigned), nothing compressed for size (D-42) |
+| Automated tests | 201 unit tests pass for both build flavors; 76 instrumented tests pass on an API 34 emulator; 918 portal tests pass |
 
 ## 2. How a session works
 
@@ -70,7 +70,7 @@ The officer page has two tabs, built from one card and tile style. **Transcribe*
 | Characters | A child and an adult character framed to the hips, with jointed fingers and facial expressions; 411 motions: 262 ISL signs retargeted from recorded Deaf signers, 42 gestures, the 26-letter two-handed ISL alphabet, 10 digits and 71 draft word signs |
 | Opening | The officer's introduction (s1), then four pictured and signed ground rules ("I was not there", "you can say I don't know", "tell me if I'm wrong", "you can take a break") and a neutral practice round, "Show me what you did this morning", answered by drawing, writing or signing. The subject moves on with Next; each step is logged as shown. If the officer takes the phone back before the practice round, the log records "Officer skipped the rest of the ground rules" |
 | Caption | The question in the subject's language in large type; during typed text the current word is lit, a spelled word shows its current letter, and a word's picture is held up. Tapping a word replays it alone at half speed; tapping the question replays it |
-| Speech | 88 recordings (placeholders until re-recorded); automatic for a young child or another language, never for a signer |
+| Speech | Placeholder recordings until re-recorded: 853 recordings: the greeting in 15 languages, about 55 questions and every phrase in English and Hindi, and about 55 questions in Chhattisgarhi and twelve more languages (Indic Parler-TTS); the rest show captions and pictures; Gondi and Halbi have no voice yet; automatic for a young child or another language, never for a signer |
 | Answers | Rails either side of a 9:16 camera window: Yes, "I don't know", "I don't understand", Draw and Write on the left; Next (opening or Auto), No, "That's wrong", the camera button and Stop (an octagonal stop sign, never an open palm, and the only pause control) on the right. Stop also stays on the drawing, writing and language-finder screens. Every tap is logged right after the prompt that was on screen |
 | Picture choices | Shuffled every time and capped at four pictures, plus "Something else" (which opens the drawing pad) and "I don't understand". Yes/no, number and single-picture questions are not shuffled |
 | Answer inputs | For a lesson-sheet question the panel under the character becomes its input: a number pad with large digits (age 0 to 120, counts, brothers then sisters), a 10-digit mobile pad grouped 5 and 5 with "No phone", a written name or place, a class grid (1 to 12, college, not in school), a state list (Chhattisgarh first, all states and union territories) then its district or a written one, and several pictures with Done. A written or typed answer is read back large and becomes the subject's own only on their Yes; one left unconfirmed is logged as unconfirmed. "I don't know", "I don't understand", "That's wrong" and Stop stay under every input |

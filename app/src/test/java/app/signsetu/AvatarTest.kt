@@ -54,8 +54,9 @@ class AvatarTest {
             val chained = chain(p.id, ids.map { byId.getValue(it!!) })
             assertTrue("${p.id}/${slot.card}: keys out of order", chained.keys.zipWithNext().all { (a, b) -> a.t < b.t })
             assertEquals(ids.sumOf { byId.getValue(it!!).keys.size }, chained.keys.size)
-            // Draft captions are not voiced yet; a voiced language must voice every phrase.
-            for (code in slot.text.keys.filter { File(content, "audio/$it").isDirectory }) {
+            // Phrases are voiced per language or not at all; English and Hindi always are.
+            val voiced = slot.text.keys.filter { it in setOf("en", "hi") || File(content, "audio/$it").list()?.any { f -> f.startsWith("phrase.") } == true }
+            for (code in voiced) {
                 assertTrue("${p.id}/${slot.card}: no $code audio", File(content, "audio/$code/phrase.${p.id}.${slot.card}.ogg").exists())
             }
         }

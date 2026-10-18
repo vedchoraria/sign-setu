@@ -1,6 +1,6 @@
 # 14. Screen Catalogue
 
-Every screen of the application, captured from the `standard` debug build on an Android 14 emulator (1080 by 2400 pixels) in a session for a victim who signs, with Hindi as the subject language unless stated. Release builds block screenshots (SEC controls), so the catalogue is taken from the debug build of the same source. The emulator's camera shows a synthetic scene in place of a person.
+Every screen of the application, captured from the `standard` debug build on an Android 14 emulator (1080 by 2400 pixels) in a session for a victim who signs, with Hindi as the subject language unless stated. Release builds block screenshots (SEC controls), so the catalogue is taken from the debug build of the same source. The emulator's camera shows a synthetic scene in place of a person; for S-11, S-12 and O-16 the debug build's stand-in tracker supplies a moving hand.
 
 ## 1. Notation
 
@@ -35,8 +35,8 @@ Every screen of the application, captured from the `standard` debug build on an 
 | S-8 | Drawing in Chhattisgarhi | [13-stage-drawing-chhattisgarhi.png](screens/13-stage-drawing-chhattisgarhi.png) | Every stage word in the chosen language (D-43) |
 | S-9 | Phrase board | [14-stage-phrase-board.png](screens/14-stage-phrase-board.png) | Eight everyday phrases the subject can say |
 | S-10 | Number pad | [15-stage-number-pad.png](screens/15-stage-number-pad.png) | Lesson-sheet answer input; the Sign button carries a word and a tool colour |
-| S-11 | Sign window | [16-stage-signing.png](screens/16-stage-signing.png) | Time bar, body guide, "Sign to the camera. Tap Done when you finish." |
-| S-12 | After signing | [17-stage-after-signing.png](screens/17-stage-after-signing.png) | With no sign read, the question returns; with a reading, the picture choices of D-41 appear first |
+| S-11 | Sign window | [16-stage-signing.png](screens/16-stage-signing.png) | Time bar, body guide, live hand skeleton, one dot per sign seen, "Sign to the camera. Tap Done when you finish." |
+| S-12 | After signing | [17-stage-after-signing.png](screens/17-stage-after-signing.png) | "Is this it?": two or three pictures per sign read and "None of these"; only the person's tap records a meaning (D-41) |
 | S-13 | Pause | [18-stage-pause.png](screens/18-stage-pause.png) | Breathing circle and bubbles; only "I'm ready" ends it |
 | S-14 | Language finder | [19-stage-language-finder.png](screens/19-stage-language-finder.png) | Seventeen languages in their own scripts; the tapped one greets back |
 
@@ -59,6 +59,7 @@ Every screen of the application, captured from the `standard` debug build on an 
 | O-13 | Second screen | [32-officer-second-screen.png](screens/32-officer-second-screen.png) | Pairing a department device |
 | O-14 | End session | [33-officer-end-session.png](screens/33-officer-end-session.png) | Export, end without export, cancel |
 | O-15 | Report ready | [34-officer-export.png](screens/34-officer-export.png) | One-time password, share, finish and delete |
+| O-16 | A signed answer | [38-officer-signed-answer.png](screens/38-officer-signed-answer.png) | The app's reading with replay, the choices shown, and the person's confirmed pick as separate rows |
 
 ## 5. Settings
 
@@ -73,5 +74,4 @@ Every screen of the application, captured from the `standard` debug build on an 
 | Screen | Reason |
 | --- | --- |
 | Unlock prompt | The system credential window is secure and captures blank |
-| Picture choices after a signed answer | Needs a person signing to the camera; the emulator camera shows a synthetic scene. The panel is the one used for "Ask them to choose" and is covered by the instrumented stage tests |
 | Second-screen stage device | Needs two devices |

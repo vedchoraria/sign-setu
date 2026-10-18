@@ -58,7 +58,7 @@ private fun ContentBundle.makeBank(): Bank {
         if (en.isNotEmpty() && en !in STOP && en.count { it == ' ' } < 3) l["hi"]?.let { nouns.putIfAbsent(en, clean(it)) }
     }
     for ((form, e) in words) if (form !in STOP && form.all { it in 'a'..'z' || it == ' ' }) {
-        (e.card?.let { cards[it]?.label?.get("hi") }?.let(::clean) ?: e.w.firstOrNull(::devanagari))?.let { nouns.putIfAbsent(form, it) }
+        (e.card?.let { cards[it]?.label?.get("hi") }?.let(::clean) ?: e.w.firstOrNull(::devanagari)?.let(::clean))?.let { nouns.putIfAbsent(form, it) }
     }
     return Bank(sentences, nouns)
 }
@@ -76,7 +76,7 @@ private val VERBS = mapOf(
     "show" to V("दिखा", "को"), "call" to V("फ़ोन कर", "को"), "help" to V("मदद कर", "की"), "point" to V("इशारा कर"),
     "point to" to V("इशारा कर", "की ओर"), "point at" to V("इशारा कर", "की ओर"), "understand" to V("समझ"),
     "open" to V("खोल"), "close" to V("बंद कर"), "wash" to V("धो"), "play" to V("खेल"), "run" to V("भाग"),
-    "live" to V("रह"), "work" to V("काम कर"), "take" to V("ले"), "give" to V("दे"), "bring" to V("ला"),
+    "live" to V("रह"), "work" to V("काम कर"), "take" to V("ले"), "give" to V("दे", "को"), "bring" to V("ला"),
     "find" to V("ढूँढ"), "keep" to V("रख"), "put" to V("रख"), "touch" to V("छू"), "hold" to V("पकड़"),
     "worry" to V("चिंता कर"), "cry" to V("रो"), "breathe" to V("साँस ले"), "calm down" to V("शांत हो"),
     "move" to V("हिल"), "follow" to V("पीछे आ"), "sign" to V("इशारा कर"), "know" to V("जान"), "wake up" to V("उठ"),
@@ -390,6 +390,8 @@ private class Bank(val sentences: Map<String, Pair<String, String>>, val nouns: 
 
     /** Word by word in Hindi order: doer, the rest as typed, question word, नहीं, verb. Null at the first unknown word. */
     private fun words(t: List<String>, asked: Boolean): String? {
+        // No modal forms yet: "you can not go" must not become "you do not go".
+        if ("can" in t || "could" in t) return null
         var doer: String? = null
         var verb: String? = null
         var want = false

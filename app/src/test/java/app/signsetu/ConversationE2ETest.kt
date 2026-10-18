@@ -284,6 +284,7 @@ class ConversationE2ETest {
         waitFor("the reading is put to the subject") { vm.now().confirm?.eventId == machine.id }
         assertEquals("the choices are logged as shown", EventSource.SHOW_BACK, vm.events().last { it.type == EventType.QUESTION_SHOWN }.source)
         assertTrue("only pictures, never an English word", vm.now().confirm!!.queue.flatten().all { it.card != null })
+        assertTrue("at most three checks, one per meaning", vm.now().confirm!!.queue.size <= 3 && vm.now().confirm!!.read.distinct().size == vm.now().confirm!!.read.size)
         while (vm.now().confirm != null) vm.chooseSign(null)
         assertEquals("l3", (vm.now().pending as Pending.Ask).question.id)
 

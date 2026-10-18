@@ -513,6 +513,7 @@ fun Stage(
                             content, lang, drawn,
                             onDone = { png ->
                                 onDrawing(png)
+                                drawn.clear()
                                 drawing = false
                                 if (pending == Pending.Drawing) drawingSent = true else reacting = true
                             },

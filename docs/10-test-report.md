@@ -1,6 +1,6 @@
 # 10. Test Report
 
-Results of the [test plan](06-test-plan.md) for release 1, version 0.1.0. Section 2 lists the automated suite on the current build: it is built and compiled (Run A) and not yet run (Run B), so it carries no results. Sections 3 to 6 give the manual and device evidence; a result marked *earlier build* was observed on an emulator build of 0.1.0 that predates the recorded signs, lesson-sheet questions, stage split and GPU delegate (D-35 to D-38), and is repeated on the current build before release.
+Results of the [test plan](06-test-plan.md) for release 1, version 0.3.0. Section 2 lists the automated suite on the current build: it is built and compiled (Run A) and not yet run (Run B), so it carries no results. Sections 3 to 6 give the manual and device evidence; a result marked *earlier build* was observed on an emulator build of 0.1.0 that predates the recorded signs, lesson-sheet questions, stage split and GPU delegate (D-35 to D-38), and is repeated on the current build before release.
 
 ## 1. Build
 
@@ -8,24 +8,25 @@ Results of the [test plan](06-test-plan.md) for release 1, version 0.1.0. Sectio
 | --- | --- |
 | Application | `in.signsetu` 0.1.0, version code 1; `in.signsetu.nearby` 0.1.0-nearby for the nearby flavor |
 | Variants | `standardDebug`, `standardRelease`, `nearbyDebug`, `nearbyRelease` |
-| Release APK (unsigned) | Default build: `standard` 41,004,639 bytes (39.1 MiB), `nearby` 41,642,265 bytes (39.7 MiB); arm64-v8a only, float16 reader weights, native libraries compressed; under the 50 MB limit of NFR-05. With `-Pstored` and float32 readers: `standard` 58,239,739 bytes, `nearby` 58,873,961 bytes. Both builds install and reach the stage with the camera running on an x86_64 emulator through its arm64 translation; every content file in both APKs matches the manifest hash, and the holistic model is stored uncompressed |
+| Release APK (unsigned) | `standard` 70,891,654 bytes (67.6 MiB), `nearby` 71,525,872 bytes (68.2 MiB); arm64-v8a only, float32 reader weights, native libraries, models and reader weights stored uncompressed (D-42); under the 100 MB ceiling of NFR-05 |
 | Toolchain | AGP 9.4.1, Gradle 9.8.1, Kotlin 2.4.21, KSP 2.3.12, JDK 21, NDK r30, CMake 4.1.1 |
 | Devices used | Android 10 (API 29) emulator, x86_64, 3 GB RAM; Android 14 (API 34) emulator, x86_64, 3 GB RAM, with the virtual camera and the debug stand-in hand; a 5-inch screen (360 by 640 dp) simulated on the Android 14 emulator for NFR-11 |
 | Not yet used | A real Android 10 phone; a recent phone; two phones and a tablet for the second screen |
 
 ## 2. Automated suite on the current build
 
-All suites below were run on release 0.2.0.
+All suites below were run on release 0.3.0, except the release APK row, which records 0.2.0.
 
 | Suite | Command | Result |
 | --- | --- | --- |
-| Unit, standard flavor | `./gradlew testStandardDebugUnitTest` | 196 of 196 pass |
-| Unit, nearby flavor | `./gradlew testNearbyDebugUnitTest` | 196 of 196 pass |
+| Unit, standard flavor | `./gradlew testStandardDebugUnitTest` | 201 of 201 pass |
+| Unit, nearby flavor | `./gradlew testNearbyDebugUnitTest` | 201 of 201 pass |
 | Instrumented | `./gradlew connectedStandardDebugAndroidTest` | 76 of 76 pass on the API 34 emulator, including the real hand tracker on dictionary clips (`SignPipelineDeviceTest`) and the drawn skeleton on a signer's frame (`SkeletonOverlayDeviceTest`) |
-| Android Lint | `./gradlew lintStandardDebug` | Passes the gate |
+| Android Lint | `./gradlew lintStandardRelease` | Passes the gate |
 | Portal | `cd portal && npx vp test` | 918 of 918 pass |
 | Python tools | `python -m unittest discover` in `tools/isl` and `tools/security` | Pass |
-| Reader evaluation | `python tools/ml/eval_isl.py`; `python tools/ml/eval_asl.py` | Scores in `tools/ml/EVAL.md`, on the shipped float16 models |
+| Reader evaluation | `python tools/ml/eval_isl.py`; `python tools/ml/eval_asl.py` | Scores in `tools/ml/EVAL.md`; the readers ship as float32 again (D-42) |
+| Stage walkthrough | Debug build on the API 34 emulator | Every screen in [the screen catalogue](14-screens.md) reached and captured: opening, questions, writing, drawing and hand-back, phrase board, number pad, sign window, pause, language finder, typed English with its Hindi caption, dictionaries, log, export |
 | Release APK | `./gradlew assembleStandardRelease`, then signed | Installed and run on the emulator under 64-bit ARM translation: tracker, database and assistant libraries load with the camera on |
 
 ## 3. Functional scenarios

@@ -113,6 +113,7 @@ val StartRows = setOf(SYSTEM_JJ_NOTICE, SYSTEM_JUVENILE)
 const val SYSTEM_RUN_ENDED = "run_ended:"
 const val RUN_MAX = 5
 private const val RUN_STEP_MS = 1_400L
+private const val STAGE_CHECKS = 3
 
 /** A young child, or an accused the officer marked as possibly under 18: no adult arrest rights are offered. */
 val SessionUi.juvenile: Boolean
@@ -359,7 +360,8 @@ class SessionViewModel(
      * With no officer reading the choices are all pictures, so no English word reaches someone who reads another script.
      */
     private suspend fun confirmOnStage(eventId: Long) {
-        val asked = choiceQueue(eventId, emptyList())
+        // A held or repeated sign reads the same several times; the person is asked once per meaning, three at most.
+        val asked = choiceQueue(eventId, emptyList()).distinctBy { (choices, read) -> read ?: choices.mapNotNull { it.card }.sorted().joinToString() }.take(STAGE_CHECKS)
         if (asked.isEmpty() || local.value.mode != Mode.SHOW) return
         logChoices(asked.first().first)
         local.update { it.copy(answeredCard = null, answeredYes = null, confirm = SignConfirm(eventId, asked.map { it.first }, asked.map { it.second })) }
@@ -730,7 +732,7 @@ class SessionViewModel(
         }
         endRun()
         l.chosenLanguage?.let { repo.setSubjectLang(sessionId, it) }
-        local.update { it.copy(mode = Mode.OFFICER, pending = if (paired) it.pending else null, onStage = null, itemId = null) }
+        local.update { it.copy(mode = Mode.OFFICER, pending = if (paired) it.pending else null, onStage = null, itemId = null, confirm = null) }
         auto.onReturn()
     }
 

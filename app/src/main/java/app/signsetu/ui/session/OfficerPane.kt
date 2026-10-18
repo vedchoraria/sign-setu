@@ -249,7 +249,7 @@ fun OfficerPane(
     }
     LaunchedEffect(ownText, subjectLang, content) {
         delay(250)
-        draft = hindi(ownText)
+        draft = withContext(Dispatchers.Default) { hindi(ownText) }
     }
     val modes = rememberSaveable(ui.session.profile, saver = listSaver(save = { l -> l.map { it.name } }, restore = { l -> l.map(SignMode::valueOf).toMutableStateList() })) {
         defaultModes(ui.session.profile).toMutableStateList()
@@ -1432,7 +1432,8 @@ private fun ExportDialog(state: ExportState, onShare: () -> Unit, onFinish: () -
 @Composable
 private fun DrawingThumb(id: Long, load: suspend (Long) -> ByteArray?) {
     val image by produceState<ImageBitmap?>(null, id) {
-        value = withContext(Dispatchers.Default) { load(id)?.let { BitmapFactory.decodeByteArray(it, 0, it.size)?.asImageBitmap() } }
+        // Half size is plenty for the bubble and its dialog, and a quarter of the memory.
+        value = withContext(Dispatchers.Default) { load(id)?.let { BitmapFactory.decodeByteArray(it, 0, it.size, BitmapFactory.Options().apply { inSampleSize = 2 })?.asImageBitmap() } }
     }
     var open by remember { mutableStateOf(false) }
     val name = stringResource(R.string.report_drawing)

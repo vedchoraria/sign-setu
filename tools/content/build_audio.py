@@ -25,6 +25,8 @@ VOICES = {
     "hi": "Divya", "bn": "Aditi", "ne": "Amrita", "as": "Sita", "or": "Debjani", "ta": "Jaya",
     "te": "Lalitha", "kn": "Anu", "ml": "Anjali", "mr": "Sunita", "gu": "Neha", "pa": "Gurpreet", "en": "Mary",
 }
+# Indic Parler-TTS has no Gondi or Halbi voice; those subjects get captions and pictures until volunteers record them.
+UNVOICED = {"gon", "hlb"}
 STYLE = "speaks in a calm, warm and slow voice, close to the microphone, with very clear audio and no background noise."
 
 
@@ -47,7 +49,7 @@ def jobs():
 
 
 def main(force: bool) -> None:
-    todo = [j for j in jobs() if force or not j[2].exists()]
+    todo = [j for j in jobs() if j[0] not in UNVOICED and (force or not j[2].exists())]
     if not todo:
         print("nothing to generate")
         return
