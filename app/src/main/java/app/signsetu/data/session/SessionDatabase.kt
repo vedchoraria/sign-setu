@@ -97,6 +97,18 @@ interface SessionDao {
 
     @Query("DELETE FROM session WHERE startedAt < :cutoff")
     suspend fun deleteStartedBefore(cutoff: Long): Int
+
+    /** Observability: total stored sessions (for retention worker diagnostics). */
+    @Query("SELECT COUNT(*) FROM session")
+    suspend fun sessionCount(): Int
+
+    /** Observability: total stored events across all sessions. */
+    @Query("SELECT COUNT(*) FROM event")
+    suspend fun eventCount(): Int
+
+    /** All session rows, ordered most recent first. */
+    @Query("SELECT * FROM session ORDER BY startedAt DESC")
+    suspend fun allSessions(): List<SessionEntity>
 }
 
 @Database(entities = [SessionEntity::class, EventEntity::class, DrawingEntity::class], version = 3, exportSchema = true)

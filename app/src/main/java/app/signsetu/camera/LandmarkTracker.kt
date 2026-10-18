@@ -321,12 +321,12 @@ fun countOpenFingers(frame: LandmarkFrame): Int? {
         // Thumb extended check: tip further from pinky MCP than thumb MCP is
         val thumbSpan = d(4, 17)
         val thumbBase = d(2, 17)
-        if (thumbSpan > thumbBase * 1.2f && d(4, wrist) > d(2, wrist) * 1.15f) count++
+        if (thumbSpan > thumbBase * 1.15f && d(4, wrist) > d(2, wrist) * 1.10f) count++
 
-        // Fingers: Index (8), Middle (12), Ring (16), Pinky (20)
+        // Fingers: Index (8 to 5/6), Middle (12 to 9/10), Ring (16 to 13/14), Pinky (20 to 17/18)
         val fingers = listOf(8 to 6, 12 to 10, 16 to 14, 20 to 18)
         for ((tip, pip) in fingers) {
-            if (d(tip, wrist) > d(pip, wrist) * 1.18f) count++
+            if (d(tip, wrist) > d(pip, wrist) * 1.12f) count++
         }
     }
     return count.takeIf { it in 1..10 }

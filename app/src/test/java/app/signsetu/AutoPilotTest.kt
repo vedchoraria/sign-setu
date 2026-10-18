@@ -66,6 +66,9 @@ class AutoPilotTest {
         override suspend fun drawing(id: Long): ByteArray? = null
         override suspend fun deleteSession(id: String) = Unit
         override suspend fun deleteStartedBefore(cutoff: Long) = 0
+        override suspend fun sessionCount() = if (session.value != null) 1 else 0
+        override suspend fun eventCount() = rows.value.size
+        override suspend fun allSessions() = listOfNotNull(session.value)
     }
 
     /** The view model's side of auto mode, reduced to what the pilot calls. */

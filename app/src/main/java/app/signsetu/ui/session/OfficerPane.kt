@@ -26,6 +26,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
@@ -500,6 +501,110 @@ fun OfficerPane(
         paired?.let { PairedBar(it, ui, content, officerLang) }
         if (signLanguage == SignLanguage.ASL) AslExperimentalBanner()
 
+        // Officer Quick Access & Navigation Bar
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState())
+                .padding(horizontal = Spacing.md, vertical = 6.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // 1. Second Device Quick Pairing / Status
+            Surface(
+                shape = RoundedCornerShape(14.dp),
+                color = if (paired != null) Color(0xFF065F46) else MaterialTheme.colorScheme.surfaceVariant,
+                border = BorderStroke(1.dp, if (paired != null) Color(0xFF34D399) else MaterialTheme.colorScheme.outlineVariant),
+                modifier = Modifier.clickable { onSecondScreen?.invoke() },
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Icon(
+                        Icons.Filled.Phone,
+                        contentDescription = null,
+                        tint = if (paired != null) Color(0xFF34D399) else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(14.dp),
+                    )
+                    Text(
+                        text = if (paired != null) "2nd Screen: Live" else "Pair 2nd Phone",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = if (paired != null) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+
+            // 2. Evidence Mode Toggle (Skeleton vs Picture)
+            Surface(
+                shape = RoundedCornerShape(14.dp),
+                color = if (app.signsetu.camera.EvidenceMode.skeletonOnly.value) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.tertiaryContainer,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                modifier = Modifier.clickable {
+                    app.signsetu.camera.EvidenceMode.skeletonOnly.value = !app.signsetu.camera.EvidenceMode.skeletonOnly.value
+                },
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Text(
+                        text = if (app.signsetu.camera.EvidenceMode.skeletonOnly.value) "🦴 Evidence: Skeleton Only" else "📷 Evidence: Camera Photos",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = if (app.signsetu.camera.EvidenceMode.skeletonOnly.value) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onTertiaryContainer,
+                    )
+                }
+            }
+
+            // 3. Dictionary / Signs lookup
+            Surface(
+                shape = RoundedCornerShape(14.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                modifier = Modifier.clickable { sheet = Sheet.DICTIONARY },
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Icon(painterResource(R.drawable.ic_videocam), contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.primary)
+                    Text(
+                        text = "${signLanguage.name} Dictionary",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+
+            // 4. Quick Log Sheet
+            Surface(
+                shape = RoundedCornerShape(14.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                modifier = Modifier.clickable { sheet = Sheet.LOG },
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Icon(Icons.AutoMirrored.Filled.List, contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        text = "Session Log ($answers)",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+
         PrimaryTabRow(selectedTabIndex = page, containerColor = MaterialTheme.colorScheme.background) {
             Tab(selected = page == 0, onClick = { page = 0 }, text = { Text(stringResource(R.string.officer_tab_transcribe), style = MaterialTheme.typography.titleSmall) })
             Tab(selected = page == 1, onClick = { page = 1 }, text = { Text(stringResource(R.string.officer_tab_more), style = MaterialTheme.typography.titleSmall) })
@@ -666,7 +771,13 @@ fun OfficerPane(
                             val idle = notActedOn(ui.events)
                             // Lesson-sheet hook: the report's personal details section (PersonalDetails.kt).
                             val section = detailsSection(res, content, officerLang, ui.events)
-                            export = runCatching { vm.exportReport(reportText(res, ui, content), recordDetail(res, content, officerLang, ui.events) { eventDetail(res, it, by, idle) }, section) }
+                            val reportSummary = aiReport ?: runCatching {
+                                val sessionLog = ui.events.joinToString("\n") { ev ->
+                                    "[${ev.type.name}] [${ev.source.name}] text=${ev.text ?: ""} card=${ev.cardId ?: ""} lang=${ev.lang ?: ""}"
+                                }
+                                app.signsetu.assistant.TokenRouterAiService.synthesizeOfflineForensicReport(sessionLog, ui.session.role.name, subjectLang)
+                            }.getOrNull()
+                            export = runCatching { vm.exportReport(reportText(res, ui, content), recordDetail(res, content, officerLang, ui.events) { eventDetail(res, it, by, idle) }, section, reportSummary) }
                                 .fold({ (file, pass) -> ExportState.Ready(file, pass) }, { ExportState.Failed })
                         }
                     }) { Text(stringResource(R.string.end_export)) }
@@ -957,6 +1068,69 @@ private fun Dock(
                     if (run.isEmpty()) item(key = "run_basics") { CategoryChip(stringResource(R.string.run_basics), false, locked = false, onClick = onRunBasics) }
                     items(quick, key = { it.id }) { q ->
                         CategoryChip(q.text.pick(officerLang) ?: q.id, (pending as? Pending.Ask)?.question?.id == q.id, locked = false, onLongClick = { onAddToRun(q) }, longClickLabel = addLabel) { onQuestion(q) }
+                    }
+                }
+            }
+
+            // AI Autonomous Conversation Follow-up Prompts (Generated by Nemotron-3 Omni)
+            var aiFollowUps by remember(ui.events.size) { mutableStateOf<List<String>>(emptyList()) }
+            var aiLoadingFollowUps by remember { mutableStateOf(false) }
+            val lastAnswerEvent = remember(ui.events.size) { ui.events.lastOrNull { it.type in AnswerEvents } }
+
+            LaunchedEffect(lastAnswerEvent?.id) {
+                if (lastAnswerEvent != null && !typing) {
+                    aiLoadingFollowUps = true
+                    val transcript = ui.events.takeLast(10).joinToString("\n") { "[${it.type.name}] ${it.text ?: it.cardId ?: ""}" }
+                    val suggestions = app.signsetu.assistant.TokenRouterAiService.suggestFollowUpQuestions(
+                        sessionTranscript = transcript,
+                        lastAnswer = lastAnswerEvent.text ?: lastAnswerEvent.cardId ?: "answered",
+                        isChild = ui.session.profile == Profile.YOUNG_CHILD,
+                    )
+                    aiFollowUps = suggestions
+                    aiLoadingFollowUps = false
+                }
+            }
+
+            AnimatedVisibility(!typing && aiFollowUps.isNotEmpty(), enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
+                Column(Modifier.padding(horizontal = Spacing.lg).padding(bottom = 6.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Icon(Icons.Filled.Star, contentDescription = null, tint = Color(0xFFF59E0B), modifier = Modifier.size(13.dp))
+                        Text(
+                            text = "AI Conversation Suggestions (Non-leading follow-up)",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color(0xFFD97706),
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = PaddingValues(top = 4.dp),
+                    ) {
+                        items(aiFollowUps, key = { it }) { prompt ->
+                            Surface(
+                                shape = RoundedCornerShape(14.dp),
+                                color = Color(0xFFFEF3C7),
+                                border = BorderStroke(1.dp, Color(0xFFFCD34D)),
+                                modifier = Modifier
+                                    .clickable { onText(prompt) }
+                                    .semantics { role = Role.Button; contentDescription = prompt },
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                ) {
+                                    Text("✨", fontSize = 12.sp)
+                                    Text(
+                                        text = prompt,
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = Color(0xFF92400E),
+                                        fontWeight = FontWeight.SemiBold,
+                                        maxLines = 1,
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }

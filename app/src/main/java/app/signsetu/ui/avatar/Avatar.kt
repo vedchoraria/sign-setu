@@ -154,8 +154,9 @@ fun Avatar(
                 if (playing && !still) {
                     val f = pose.face
                     if (f.mouthOpen < 0.2f && f.mouthRound < 0.5f) {
-                        val talk = 0.06f * (0.5f + 0.5f * sin(t * 2f * PI.toFloat() * 2.2f)) * e
-                        pose = pose.copy(face = f.copy(mouthOpen = f.mouthOpen + talk))
+                        val talk = 0.07f * (0.5f + 0.5f * sin(t * 2f * PI.toFloat() * 2.3f)) * e
+                        val extraSmile = 0.05f * (0.5f + 0.5f * cos(t * 2f * PI.toFloat() * 1.5f)) * e
+                        pose = pose.copy(face = f.copy(mouthOpen = f.mouthOpen + talk, smile = f.smile + extraSmile))
                     }
                 }
                 val blink = when {

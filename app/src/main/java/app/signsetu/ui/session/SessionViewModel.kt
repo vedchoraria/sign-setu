@@ -53,10 +53,12 @@ import app.signsetu.data.content.Method
 import app.signsetu.data.content.TEXT_MAX
 import app.signsetu.data.content.answerText
 import app.signsetu.data.content.reason
+import app.signsetu.export.EvidenceIntegrity
 import app.signsetu.export.ReportRow
 import app.signsetu.export.ReportSection
 import app.signsetu.export.ReportText
 import app.signsetu.export.SessionReport
+import app.signsetu.export.recordDigest
 import java.io.File
 
 /** What the officer has prepared but not yet shown (FR-15). */
@@ -352,6 +354,18 @@ class SessionViewModel(
     private suspend fun logSigned(segments: List<SignSegment>, words: List<String>, source: EventSource, lang: String, shownId: Long? = local.value.itemId): Long {
         val id = repo.log(sessionId, EventType.ANSWER_SIGNED, source, lang, text = words.joinToString(" "), shownId = shownId)
         local.update { it.copy(signed = it.signed + (id to segments)) }
+        if (app.signsetu.camera.EvidenceMode.autoCapture.value) {
+            val keyFrame = segments.flatMap { it.frames }.firstOrNull { it.pose != null || it.leftHand != null || it.rightHand != null }
+                ?: segments.firstOrNull()?.frames?.firstOrNull()
+            if (keyFrame != null) {
+                val png = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+                    runCatching { app.signsetu.camera.renderSkeletonPng(keyFrame) }.getOrNull()
+                }
+                if (png != null) {
+                    repo.log(sessionId, EventType.ANSWER_DRAWING, source, drawingPng = png, shownId = shownId, reason = "evidence:skeleton")
+                }
+            }
+        }
         return id
     }
 
@@ -547,6 +561,18 @@ class SessionViewModel(
                     repo.log(sessionId, EventType.ANSWER_UNCLEAR, EventSource.SUBJECT, shownId = q, via = via)
                 }
                 if (current) local.update { it.copy(onStage = null, itemId = null) }
+            }
+            is AnswerBody.Signed -> {
+                val text = body.words.joinToString(" ")
+                if (text.isNotBlank()) {
+                    repo.log(sessionId, EventType.ANSWER_SIGNED, EventSource.SUBJECT, lang, text = text, shownId = q, via = via)
+                }
+                if (body.skeletonPng != null) {
+                    val png = runCatching { java.util.Base64.getDecoder().decode(body.skeletonPng) }.getOrNull()?.let(reencodePng)
+                    if (png != null) {
+                        repo.log(sessionId, EventType.ANSWER_DRAWING, EventSource.SUBJECT, drawingPng = png, shownId = q, via = via, reason = "evidence:skeleton")
+                    }
+                }
             }
         }
         remoteLogged += itemId to n
@@ -798,8 +824,21 @@ class SessionViewModel(
     suspend fun drawing(id: Long): ByteArray? = repo.drawing(id)
 
     /** Builds the encrypted report from everything logged so far; returns the file and its one-time passphrase. */
-    suspend fun exportReport(text: ReportText, detail: (SessionEvent) -> String, section: ReportSection? = null): Pair<File, String> =
-        report.export(reportRows(detail), text, { repo.drawing(it) }, section)
+    suspend fun exportReport(text: ReportText, detail: (SessionEvent) -> String, section: ReportSection? = null, aiSummary: String? = null): Pair<File, String> {
+        val rows = reportRows(detail)
+        val currentUi = ui.value
+        val sessionObj = currentUi?.session ?: Session(sessionId, System.currentTimeMillis(), Profile.NOT_SURE, "en")
+        val events = currentUi?.events ?: emptyList()
+        val chainDigest = EvidenceIntegrity.computeChainHash(sessionObj, events)
+        val recDigest = recordDigest(rows)
+        val certificate = EvidenceIntegrity.generateSection63Certificate(
+            session = sessionObj,
+            events = events,
+            chainDigest = chainDigest,
+            recordDigest = recDigest,
+        )
+        return report.export(rows, text, { repo.drawing(it) }, section, aiSummary, certificate, chainDigest)
+    }
 
     internal fun reportRows(detail: (SessionEvent) -> String): List<ReportRow> {
         val events = ui.value?.events ?: emptyList()

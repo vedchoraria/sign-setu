@@ -68,6 +68,8 @@ sealed interface AnswerBody {
     @Serializable @SerialName("change") data object Change : AnswerBody
     /** A lesson-sheet answer or phrase; [method] is a Method name and the officer's phone re-checks it. */
     @Serializable @SerialName("given") data class Given(val question: String, val method: String, val confirmed: Boolean, val value: String = "", val picks: List<String> = emptyList()) : AnswerBody
+    /** Transcribed sign language answer from stage device camera, with optional skeleton landmark evidence PNG. */
+    @Serializable @SerialName("signed") data class Signed(val words: List<String>, val skeletonPng: String? = null) : AnswerBody
 }
 
 @Serializable
@@ -94,6 +96,7 @@ fun AnswerBody.fits(): Boolean = when (this) {
     is AnswerBody.Text -> text.length <= TEXT_CAP
     is AnswerBody.Drawing -> png.length <= (DRAWING_CAP + 2) / 3 * 4
     is AnswerBody.Given -> value.length <= TEXT_CAP && picks.size <= 4 && picks.all { it.length <= 64 }
+    is AnswerBody.Signed -> words.joinToString(" ").length <= TEXT_CAP && (skeletonPng == null || skeletonPng.length <= (DRAWING_CAP + 2) / 3 * 4)
     else -> true
 }
 

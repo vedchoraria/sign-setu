@@ -110,6 +110,27 @@ class SessionRepository(
 
     suspend fun purgeExpired(retentionHours: Int): Int = dao.deleteStartedBefore(clock() - retentionHours * 3_600_000L)
 
+    /** Generates the forensic chronological audit timeline text for this session. */
+    suspend fun auditTimeline(sessionId: String): String {
+        val s = openSession()?.takeIf { it.id == sessionId } ?: Session(sessionId, clock(), Profile.NOT_SURE, "en")
+        val evs = eventsNow(sessionId)
+        return app.signsetu.export.SessionAuditLog.buildAuditTimeline(s, evs)
+    }
+
+    /** Generates the formal case diary summary entry for this session. */
+    suspend fun caseDiarySummary(sessionId: String): String {
+        val s = openSession()?.takeIf { it.id == sessionId } ?: Session(sessionId, clock(), Profile.NOT_SURE, "en")
+        val evs = eventsNow(sessionId)
+        return app.signsetu.export.SessionAuditLog.buildCaseDiarySummary(s, evs)
+    }
+
+    /** Returns forensic session metrics. */
+    suspend fun metrics(sessionId: String): app.signsetu.export.SessionMetrics {
+        val s = openSession()?.takeIf { it.id == sessionId } ?: Session(sessionId, clock(), Profile.NOT_SURE, "en")
+        val evs = eventsNow(sessionId)
+        return app.signsetu.export.EvidenceIntegrity.computeSessionMetrics(s, evs, clock())
+    }
+
     private inline fun <reified T : Enum<T>> safeValueOf(value: String, default: T): T =
         try { enumValueOf<T>(value) } catch (_: IllegalArgumentException) { default }
 

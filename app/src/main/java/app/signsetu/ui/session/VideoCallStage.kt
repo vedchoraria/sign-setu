@@ -75,6 +75,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.signsetu.R
+import androidx.compose.runtime.saveable.rememberSaveable
 import app.signsetu.camera.CAMERA_ASPECT
 import app.signsetu.camera.CameraMirror
 import app.signsetu.camera.Head
@@ -84,6 +85,7 @@ import app.signsetu.camera.countOpenFingers
 import app.signsetu.data.content.AnswerType
 import app.signsetu.data.content.ContentBundle
 import app.signsetu.data.content.pick
+import app.signsetu.data.content.planText
 import app.signsetu.data.content.questionKind
 import app.signsetu.sign.SignChoice
 import app.signsetu.sign.SignSegment
@@ -160,17 +162,23 @@ fun VideoCallStage(
         }
     }
 
+    var showVictimSkeleton by rememberSaveable { mutableStateOf(false) }
+
     val item = remember(pending, lang) { describeItem(pending, content, lang) }
-    val gesture = remember(pending) {
+    val plan = remember(pending, lang) {
+        (pending as? Pending.FreeText)?.let { content.planText(it.text, it.modes) }
+    }
+    val gesture = remember(pending, plan) {
         when (pending) {
             is Pending.Ask -> content.gestureFor(pending.question)
             is Pending.PhraseAsk -> content.gestureFor(pending.phrase, pending.slot)
+            is Pending.FreeText -> plan?.gesture ?: content.gestures["ask"] ?: content.gestures["namaste"]
             else -> content.gestures["namaste"]
         }
     }
 
     // Avatar voice / prompt text
-    val promptText = item.caption ?: content.subjectText("hint_wait", lang) ?: "We are here with you."
+    val promptText = (pending as? Pending.FreeText)?.let { it.caption ?: it.text } ?: item.caption ?: content.subjectText("hint_wait", lang) ?: "We are here with you."
 
     // Recognized signs stream
     val liveTranscript = remember(ui.reading) {
@@ -411,6 +419,7 @@ fun VideoCallStage(
             CameraMirror(
                 tracker = tracker,
                 modifier = Modifier.fillMaxSize(),
+                showSkeleton = showVictimSkeleton,
                 onFrame = onFrameAnalyzed,
                 onHead = { head ->
                     if (head == Head.Nod) {
@@ -452,6 +461,25 @@ fun VideoCallStage(
                 ) {
                     Icon(painterResource(R.drawable.ic_videocam), contentDescription = null, tint = Color.White.copy(alpha = 0.5f), modifier = Modifier.size(24.dp))
                 }
+            }
+
+            // Victim Immersion: Skeleton vs Natural Camera Mirror Toggle
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = if (showVictimSkeleton) Color(0xDD0F172A) else Color(0x99000000),
+                border = BorderStroke(1.dp, if (showVictimSkeleton) Color(0xFFFBBF24) else Color(0x44FFFFFF)),
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(6.dp)
+                    .clickable { showVictimSkeleton = !showVictimSkeleton },
+            ) {
+                Text(
+                    text = if (showVictimSkeleton) "🦴 Skel: ON" else "👤 Natural",
+                    fontSize = 9.sp,
+                    color = if (showVictimSkeleton) Color(0xFFFDE68A) else Color(0xFFE2E8F0),
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
+                )
             }
 
             // "You (Signing)" badge on PiP

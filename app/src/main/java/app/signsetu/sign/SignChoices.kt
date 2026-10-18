@@ -29,11 +29,18 @@ fun cardFor(label: String, signWords: Map<String, String>, words: Map<String, Wo
     signWords[label]?.let { words[it]?.card }
 
 /**
- * Puts the guesses whose concept answers the item on screen first, each group still by score. Others stay: the reader
- * lacks many answer words, and dropping its guesses would leave the officer with none.
+ * Ranks guesses with context-aware scoring:
+ * - Guesses whose concept matches the item on screen receive priority.
+ * - Within and between groups, higher-confidence guesses take precedence.
+ * - Preserves all guesses so no officer reading words are dropped.
  */
-fun inContext(guesses: List<SignGuess>, context: Set<String>, signWords: Map<String, String>, words: Map<String, WordEntry>): List<SignGuess> =
-    guesses.sortedByDescending { cardFor(it.word, signWords, words) in context }
+fun inContext(guesses: List<SignGuess>, context: Set<String>, signWords: Map<String, String>, words: Map<String, WordEntry>): List<SignGuess> {
+    if (context.isEmpty()) return guesses
+    return guesses.sortedWith(
+        compareByDescending<SignGuess> { cardFor(it.word, signWords, words) in context }
+            .thenByDescending { it.score }
+    )
+}
 
 /** One alternative the subject can pick: a picture card, or the officer's word when it has no card. */
 @Immutable

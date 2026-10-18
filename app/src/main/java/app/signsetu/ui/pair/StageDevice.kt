@@ -1,7 +1,6 @@
 package app.signsetu.ui.pair
 
 import androidx.compose.runtime.produceState
-import app.signsetu.camera.LandmarkTracker
 import android.Manifest
 import android.app.ActivityManager
 import android.app.KeyguardManager
@@ -53,7 +52,9 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -74,6 +75,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.signsetu.AppContainer
 import app.signsetu.DeviceGuard
 import app.signsetu.R
+import app.signsetu.camera.LandmarkFrame
+import app.signsetu.camera.LandmarkTracker
 import app.signsetu.data.content.ContentBundle
 import app.signsetu.data.content.forSignLanguage
 import app.signsetu.data.content.SignLanguage
@@ -88,6 +91,7 @@ import app.signsetu.pair.ToOfficer
 import app.signsetu.pair.b64
 import app.signsetu.pair.fitDrawing
 import app.signsetu.pair.resolve
+import app.signsetu.sign.SignReader
 import app.signsetu.ui.ImmersiveWhile
 import app.signsetu.ui.components.GuardedAlertDialog
 import app.signsetu.ui.session.Mode
@@ -96,6 +100,7 @@ import app.signsetu.ui.session.Stage
 import app.signsetu.ui.session.SmallAnswer
 import app.signsetu.ui.session.StripAnswer
 import app.signsetu.ui.theme.LocalAnswerColors
+import app.signsetu.ui.theme.LocalStageColors
 import app.signsetu.ui.theme.Spacing
 import app.signsetu.ui.theme.SubjectTheme
 import kotlinx.coroutines.Dispatchers
@@ -278,6 +283,11 @@ private fun LiveStage(link: StageLink, baseContent: ContentBundle, state: LinkSt
     val view = show?.view
     val lang = view?.signLanguage?.let { n -> SignLanguage.entries.firstOrNull { it.name == n } } ?: SignLanguage.ISL
     val content = remember(baseContent, lang) { baseContent.forSignLanguage(lang) }
+    val reader by produceState<SignReader?>(null, lang) {
+        value = withContext(Dispatchers.IO) { container.signReader(lang) ?: container.signReader }
+    }
+    var signing by remember { mutableStateOf(false) }
+    val signFrames = remember { mutableStateListOf<LandmarkFrame>() }
     val itemId = show?.itemId
     // The item answered last; Stop on an idle screen still belongs somewhere in the record.
     val lastItem = remember { LongArray(1) }
@@ -342,9 +352,29 @@ private fun LiveStage(link: StageLink, baseContent: ContentBundle, state: LinkSt
                     onLanguage = { chosenLanguage = it; send(AnswerBody.Language(it)) },
                     onDrawing = { png -> scope.launch { withContext(Dispatchers.Default) { fitDrawing(png) }?.let { send(AnswerBody.Drawing(it.b64())) } } },
                     onWritten = { send(AnswerBody.Text(it.trim())) },
-                    onSignFrame = {},
-                    onStartSigning = {},
-                    onDoneSigning = {},
+                    onSignFrame = { frame ->
+                        if (signing) signFrames.add(frame)
+                    },
+                    onStartSigning = {
+                        signFrames.clear()
+                        signing = true
+                    },
+                    onDoneSigning = {
+                        signing = false
+                        if (signFrames.isNotEmpty()) {
+                            val frames = signFrames.toList()
+                            signFrames.clear()
+                            val r = reader
+                            scope.launch(Dispatchers.Default) {
+                                val words = r?.read(frames)?.mapNotNull { it.word }?.filter { it != "?" }?.take(4).orEmpty()
+                                val keyFrame = frames.firstOrNull { it.leftHand != null || it.rightHand != null } ?: frames.firstOrNull()
+                                val skeletonPng = keyFrame?.let { app.signsetu.camera.renderSkeletonPng(it).b64() }
+                                if (words.isNotEmpty() || skeletonPng != null) {
+                                    send(AnswerBody.Signed(words, skeletonPng))
+                                }
+                            }
+                        }
+                    },
                     onOfficer = null,
                     onNextRule = { send(AnswerBody.Next) },
                     onGiven = { g -> send(if (g != null) AnswerBody.Given(g.question, g.method.name, g.confirmed, g.value, g.picks) else AnswerBody.Change) },

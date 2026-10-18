@@ -53,9 +53,18 @@ class ReportSection(val title: String, val header: List<String>, val rows: List<
  */
 class SessionReport(private val context: Context) {
 
-    suspend fun export(rows: List<ReportRow>, text: ReportText, drawing: suspend (Long) -> ByteArray?, section: ReportSection? = null): Pair<File, String> =
+    suspend fun export(
+        rows: List<ReportRow>,
+        text: ReportText,
+        drawing: suspend (Long) -> ByteArray?,
+        section: ReportSection? = null,
+        aiSummary: String? = null,
+        certificateText: String? = null,
+        chainDigest: String? = null,
+    ): Pair<File, String> =
         withContext(Dispatchers.IO) {
-            val plain = render(rows, text, drawing, section)
+            purgeStaleExports(context)
+            val plain = render(rows, text, drawing, section, aiSummary, certificateText, chainDigest)
             val passphrase = newPassphrase()
             PDFBoxResourceLoader.init(context)
             val dir = File(context.cacheDir, "exports").apply { mkdirs() }
@@ -70,7 +79,15 @@ class SessionReport(private val context: Context) {
             file to passphrase
         }
 
-    private suspend fun render(rows: List<ReportRow>, text: ReportText, drawing: suspend (Long) -> ByteArray?, section: ReportSection?): ByteArray {
+    private suspend fun render(
+        rows: List<ReportRow>,
+        text: ReportText,
+        drawing: suspend (Long) -> ByteArray?,
+        section: ReportSection?,
+        aiSummary: String? = null,
+        certificateText: String? = null,
+        chainDigest: String? = null,
+    ): ByteArray {
         val pdf = PdfDocument()
         val pages = mutableListOf<PdfDocument.Page>()
         val titlePaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply { textSize = 17f; typeface = Typeface.DEFAULT_BOLD }
@@ -140,6 +157,19 @@ class SessionReport(private val context: Context) {
             y += 12
         }
 
+        aiSummary?.takeIf { it.isNotBlank() }?.let { summary ->
+            val title = block("CASE INVESTIGATION & FORENSIC SUMMARY", headPaint, full)
+            ensure(title.height + 30f)
+            draw(title, MARGIN, y)
+            y += title.height + 4
+            val summaryLayout = block(summary, smallPaint, full)
+            ensure(summaryLayout.height + 15f)
+            draw(summaryLayout, MARGIN, y)
+            y += summaryLayout.height + 8
+            canvas!!.drawLine(MARGIN, y - 2, PAGE_W - MARGIN, y - 2, rule)
+            y += 8
+        }
+
         val colTime = MARGIN
         val colEvent = MARGIN + 52
         val colDetail = MARGIN + 160
@@ -189,20 +219,32 @@ class SessionReport(private val context: Context) {
             headerRow()
             readings.forEach { drawRow(it) }
         }
+
+        certificateText?.takeIf { it.isNotBlank() }?.let { cert ->
+            newPage()
+            val certTitle = block("STATUTORY ELECTRONIC EVIDENCE CERTIFICATE (SEC. 63 BSA 2023 / SEC. 65B IEA)", headPaint, full)
+            draw(certTitle, MARGIN, y)
+            y += certTitle.height + 8
+            val certBody = block(cert, smallPaint, full)
+            draw(certBody, MARGIN, y)
+            y += certBody.height + 12
+        }
+
         page?.let { pdf.finishPage(it) }
 
         // Page numbers need the final count, so they are written after the PDF is laid out, by PdfBox.
         val bytes = ByteArrayOutputStream().use { out -> pdf.writeTo(out); pdf.close(); out.toByteArray() }
-        return numberPages(bytes, text, recordDigest(rows))
+        return numberPages(bytes, text, recordDigest(rows), chainDigest)
     }
 
-    private fun numberPages(bytes: ByteArray, text: ReportText, digest: String): ByteArray {
+    private fun numberPages(bytes: ByteArray, text: ReportText, digest: String, chainDigest: String? = null): ByteArray {
         PDFBoxResourceLoader.init(context)
+        val chainSuffix = if (!chainDigest.isNullOrBlank()) "   chain $chainDigest" else ""
         return PDDocument.load(bytes).use { doc ->
             val total = doc.numberOfPages
             val font = com.tom_roush.pdfbox.pdmodel.font.PDType1Font.HELVETICA
             for (i in 0 until total) {
-                val label = text.page(i + 1, total).filter { it.code < 128 }.ifBlank { "${i + 1} / $total" } + "   record $digest"
+                val label = text.page(i + 1, total).filter { it.code < 128 }.ifBlank { "${i + 1} / $total" } + "   record $digest$chainSuffix"
                 com.tom_roush.pdfbox.pdmodel.PDPageContentStream(
                     doc, doc.getPage(i), com.tom_roush.pdfbox.pdmodel.PDPageContentStream.AppendMode.APPEND, true, true,
                 ).use { cs ->
@@ -217,7 +259,7 @@ class SessionReport(private val context: Context) {
         }
     }
 
-    private companion object {
+    companion object {
         const val PAGE_W = 595
         const val PAGE_H = 842
         const val MARGIN = 40f
@@ -229,6 +271,18 @@ class SessionReport(private val context: Context) {
         fun newPassphrase(): String {
             val random = SecureRandom()
             return (1..16).map { ALPHABET[random.nextInt(ALPHABET.length)] }.chunked(4).joinToString("-") { it.joinToString("") }
+        }
+
+        /** SEC-02: Deletes cached exported PDF files older than maxAgeMs. */
+        fun purgeStaleExports(context: Context, maxAgeMs: Long = 15 * 60 * 1000L) {
+            val dir = File(context.cacheDir, "exports")
+            if (!dir.exists() || !dir.isDirectory) return
+            val cutoff = System.currentTimeMillis() - maxAgeMs
+            dir.listFiles()?.forEach { file ->
+                if (file.isFile && file.lastModified() < cutoff) {
+                    file.delete()
+                }
+            }
         }
     }
 }

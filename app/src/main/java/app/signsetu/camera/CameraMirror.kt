@@ -63,6 +63,12 @@ object SkeletonOnly {
     val on = mutableStateOf(false)
 }
 
+/** Controls evidence image capturing mode: skeleton only (default) vs normal picture. */
+object EvidenceMode {
+    val skeletonOnly = mutableStateOf(true)
+    val autoCapture = mutableStateOf(true)
+}
+
 fun hasCameraPermission(context: Context) =
     ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
 
@@ -79,6 +85,7 @@ fun CameraMirror(
     onFrame: ((LandmarkFrame) -> Unit)? = null,
     handColor: Color = Color(0xFFFFC56B),
     showFace: Boolean = false,
+    showSkeleton: Boolean = true,
     /** A nod or shake, on the analysis thread; the stage treats it as a proposal, never an answer. */
     onHead: ((Head) -> Unit)? = null,
     /** A body part pointed at, as a card id; also only a proposal. */
@@ -207,6 +214,7 @@ fun CameraMirror(
         else Box(Modifier.fillMaxSize().background(Color(0xFF1E2A33)))
         // Landmarks are read in the draw phase only, so each analysed frame redraws this canvas without recomposing.
         Canvas(Modifier.fillMaxSize()) {
+            if (!showSkeleton && !skeletonOnly) return@Canvas
             // No body in view while signing is expected: a faint head and shoulders shows where to stand, without words.
             if (analysing && shown?.pose == null) {
                 val c = Offset(size.width / 2, size.height * 0.38f)
@@ -347,3 +355,52 @@ internal fun tuningLine(f: LandmarkFrame): String {
         region(f) ?: "-", raisedPalm(f), shrug(f), thumbs.joinToString().ifEmpty { "-" },
     )
 }
+
+/**
+ * Renders a landmark frame's skeleton lines and joints onto an Android Bitmap for evidence archiving.
+ */
+fun renderSkeletonBitmap(seen: LandmarkFrame, width: Int = 360, height: Int = 480): android.graphics.Bitmap {
+    val bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
+    val canvas = android.graphics.Canvas(bitmap)
+    canvas.drawColor(android.graphics.Color.rgb(30, 42, 51))
+    val bonePaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+        color = android.graphics.Color.rgb(255, 197, 107)
+        strokeWidth = 6f
+        strokeCap = android.graphics.Paint.Cap.ROUND
+    }
+    val jointPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+        color = android.graphics.Color.WHITE
+    }
+    fun mapX(p: Offset) = p.x * width
+    fun mapY(p: Offset) = p.y * height
+
+    seen.pose?.takeIf { it.size >= 33 }?.let { pose ->
+        for ((i, j) in ArmBones) {
+            canvas.drawLine(mapX(pose[i]), mapY(pose[i]), mapX(pose[j]), mapY(pose[j]), bonePaint)
+        }
+        for (i in 11..16) {
+            canvas.drawCircle(mapX(pose[i]), mapY(pose[i]), 7f, jointPaint)
+        }
+    }
+    for (hand in listOfNotNull(seen.leftHand, seen.rightHand)) {
+        if (hand.size >= 21) {
+            for ((i, j) in HandBones) {
+                canvas.drawLine(mapX(hand[i]), mapY(hand[i]), mapX(hand[j]), mapY(hand[j]), bonePaint)
+            }
+            for (p in hand) {
+                canvas.drawCircle(mapX(p), mapY(p), 4.5f, jointPaint)
+            }
+        }
+    }
+    return bitmap
+}
+
+/** Converts a LandmarkFrame skeleton snapshot to PNG bytes for storage in Room / drawing entities. */
+fun renderSkeletonPng(seen: LandmarkFrame, width: Int = 360, height: Int = 480): ByteArray {
+    val bmp = renderSkeletonBitmap(seen, width, height)
+    val stream = java.io.ByteArrayOutputStream()
+    bmp.compress(android.graphics.Bitmap.CompressFormat.PNG, 90, stream)
+    bmp.recycle()
+    return stream.toByteArray()
+}
+

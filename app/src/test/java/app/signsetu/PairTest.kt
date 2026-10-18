@@ -318,7 +318,9 @@ class PairTest {
         val png = ByteArray(600_000).also(SecureRandom()::nextBytes)
         val body = AnswerBody.Drawing(java.util.Base64.getEncoder().encodeToString(png))
         assertTrue(body.fits())
-        assertTrue(encodeToOfficer(ToOfficer.Answer(1, 0, body)).size + 16 < FRAME_CAP)
+        val signedBody = AnswerBody.Signed(listOf("police", "help"), java.util.Base64.getEncoder().encodeToString(png))
+        assertTrue(signedBody.fits())
+        assertTrue(encodeToOfficer(ToOfficer.Answer(1, 0, signedBody)).size + 16 < FRAME_CAP)
         assertFalse(AnswerBody.Text("x".repeat(2_001)).fits())
         assertTrue(AnswerBody.Text("x".repeat(2_000)).fits())
     }
@@ -401,6 +403,9 @@ class PairTest {
         override suspend fun drawing(id: Long): ByteArray? = null
         override suspend fun deleteSession(id: String) = Unit
         override suspend fun deleteStartedBefore(cutoff: Long) = 0
+        override suspend fun sessionCount() = sessions.value.size
+        override suspend fun eventCount() = rows.value.size
+        override suspend fun allSessions() = sessions.value.values.toList()
     }
 
     @Before
@@ -526,6 +531,27 @@ class PairTest {
         val row = dao.rows.value.single { it.type == EventType.ANSWER_TEXT.name }
         assertEquals("stage", row.via)
         assertEquals("given:WRITTEN:0", row.reason)
+    }
+
+    @Test
+    fun aSignedAnswerFromStageLogsTranscriptAndSkeletonEvidence() = vmTest { vm, dao ->
+        vm.prepare(Pending.Ask(question))
+        vm.show()
+        val item = vm.ui.value!!.itemId!!
+        val png = ByteArray(1024).also(SecureRandom()::nextBytes)
+        val b64 = java.util.Base64.getEncoder().encodeToString(png)
+        vm.reencodePng = { it }
+        vm.logRemote(item, 0, AnswerBody.Signed(listOf("police", "help"), b64))
+
+        val signedRow = dao.rows.value.firstOrNull { it.type == EventType.ANSWER_SIGNED.name }
+        assertNotNull(signedRow)
+        assertEquals("police help", signedRow?.text)
+        assertEquals("stage", signedRow?.via)
+
+        val drawingRow = dao.rows.value.firstOrNull { it.type == EventType.ANSWER_DRAWING.name }
+        assertNotNull(drawingRow)
+        assertEquals("evidence:skeleton", drawingRow?.reason)
+        assertEquals("stage", drawingRow?.via)
     }
 
     // 18
