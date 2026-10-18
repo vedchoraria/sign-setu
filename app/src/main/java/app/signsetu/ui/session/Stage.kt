@@ -239,12 +239,18 @@ fun Stage(
     val pending = ui.pending
     val rule = ruleStep(pending)
     var drawing by remember(pending) { mutableStateOf(pending == Pending.Drawing) }
+    // A drawing the officer asked for ends with thanks and a hand-back, never a bare greeting that looks like a reset.
+    var drawingSent by remember(pending) { mutableStateOf(false) }
     var writing by remember(pending) { mutableStateOf(false) }
     // Held here, not in the panel: turning a tablet swaps the stage layout and would drop the panel's own state.
     val drawn = remember(pending) { mutableStateListOf<DrawStroke>() }
     // A young child is not asked to write; anyone else, signers above all, can answer in their own words.
     // A ground rule asks for no answer, so only the practice round opens the other ways to answer.
     val canWrite = pending != null && profile != Profile.YOUNG_CHILD && (rule == null || isPractice(pending))
+    // The introduction and ground rules only tell; Yes and No under them would ask for an answer nobody asked for.
+    val statement = rule != null && !isPractice(pending)
+    // "Show me what you did this morning" has no yes or no answer.
+    val openEnded = isPractice(pending)
     val signing = ui.reading != null
     val narrative = ui.signWindow == SignWindow.NARRATIVE
     val choices = ui.confirm?.queue?.firstOrNull()
@@ -354,6 +360,7 @@ fun Stage(
     }
     val caption = when {
         reacting -> content.subjectText("okay", lang)
+        drawingSent -> listOfNotNull(content.subjectText("thanks", lang), content.subjectText("give_back", lang)).joinToString(" ").ifEmpty { null }
         drawing -> content.subjectText("draw", lang)
         writing -> content.subjectText("write", lang)
         choices != null -> content.subjectText("is_this_it", lang)
@@ -500,7 +507,20 @@ fun Stage(
                     }
                     drawing -> {
                         // Only a picture that was asked for has nothing to go back to.
-                        DrawingPanel(content, lang, drawn, onDone = onDrawing, onBack = { drawing = false }.takeIf { pending != Pending.Drawing }, modifier = Modifier.weight(1f))
+                        DrawingPanel(
+                            content, lang, drawn,
+                            onDone = { png ->
+                                onDrawing(png)
+                                drawing = false
+                                if (pending == Pending.Drawing) drawingSent = true else reacting = true
+                            },
+                            onBack = { drawing = false }.takeIf { pending != Pending.Drawing },
+                            modifier = Modifier.weight(1f),
+                        )
+                        PauseRow(content, lang, ui.answeredCard, onCard)
+                    }
+                    drawingSent -> {
+                        HandBackPanel(content, lang, onDrawMore = { drawn.clear(); drawingSent = false; drawing = true }, modifier = Modifier.weight(1f))
                         PauseRow(content, lang, ui.answeredCard, onCard)
                     }
                     writing -> WritingPanel(
@@ -526,7 +546,7 @@ fun Stage(
                     else -> {
                         val answer = LocalAnswerColors.current
                         val chosen = ui.answeredCard
-                        val asks = pending != null && rightsNotice == null
+                        val asks = pending != null && rightsNotice == null && !statement
                         Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                             Rail {
                                 when {
@@ -534,18 +554,26 @@ fun Stage(
                                     // A Yes under a right would read as the person accepting or waiving it; it is only shown.
                                     rightsNotice != null -> RailCard(DONT_UNDERSTAND, content.subjectText(DONT_UNDERSTAND, lang), stringResource(R.string.stage_dont_understand), answer.unsure, answer.onUnsure, chosen == DONT_UNDERSTAND) { onCard(DONT_UNDERSTAND) }
                                     asks -> {
-                                        RailIcon(Icons.Filled.Check, content.subjectText("yes", lang), stringResource(R.string.show_yes), answer.yes, answer.onYes, ui.answeredYes == true, proposed = nodded == true) { if (nodded == true) onCue("nod"); onYesNo(true) }
+                                        if (!openEnded) RailIcon(Icons.Filled.Check, content.subjectText("yes", lang), stringResource(R.string.show_yes), answer.yes, answer.onYes, ui.answeredYes == true, proposed = nodded == true) { if (nodded == true) onCue("nod"); onYesNo(true) }
                                         RailCard("dont_know", content.subjectText("dont_know", lang), stringResource(R.string.stage_dont_know), answer.unsure, answer.onUnsure, chosen == "dont_know", proposed = shrugged.value) { if (shrugged.value) onCue("shrug"); onCard("dont_know") }
                                         RailCard(DONT_UNDERSTAND, content.subjectText(DONT_UNDERSTAND, lang), stringResource(R.string.stage_dont_understand), answer.unsure, answer.onUnsure, chosen == DONT_UNDERSTAND) { onCard(DONT_UNDERSTAND) }
                                     }
                                 }
                                 if (!signing && item.canDraw) RailIcon(Icons.Filled.Create, content.subjectText("draw", lang), stringResource(R.string.stage_draw), stage.tool, stage.onTool, tool = true) { drawing = true }
-                                if (!signing && canWrite) RailIcon(Icons.Filled.Edit, content.subjectText("write", lang), stringResource(R.string.stage_write), stage.tool, stage.onTool, tool = true) { writing = true }
+                                if (!signing && canWrite) RailIcon(painterResource(R.drawable.ic_keyboard), content.subjectText("write", lang), stringResource(R.string.stage_write), stage.tool, stage.onTool, tool = true) { writing = true }
                             }
                             Box(Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.Center) {
                                 val window = Modifier.aspectRatio(CAMERA_ASPECT)
                                 if (signing) SigningPanel(camera, ui.reading.orEmpty(), content, lang, narrative, onFrame = onSignFrame, modifier = window)
                                 else MirrorWindow(camera, cameraOn, item.choices, item.numbers, chosen, content, lang, { id -> if (id == point.value) onCue("point"); onCard(id) }, window, proposedCard = point.value)
+                                // One plain line says what to do now, so a frightened person is never left guessing.
+                                val hint = when {
+                                    signing -> if (narrative) null else content.subjectText("hint_signing", lang)
+                                    rightsNotice != null || pending == null || reacting || item.choices.isNotEmpty() -> null
+                                    statement -> content.subjectText("hint_next", lang)
+                                    else -> content.subjectText("hint_answer", lang)
+                                }
+                                hint?.let { StageHint(it, Modifier.align(if (signing) Alignment.BottomCenter else Alignment.TopCenter).padding(bottom = if (signing) 40.dp else 0.dp)) }
                                 rightsNotice?.let {
                                     Text(
                                         it, style = MaterialTheme.typography.labelLarge, color = Color.White, textAlign = TextAlign.Center, maxLines = 3,
@@ -560,7 +588,7 @@ fun Stage(
                                 } else {
                                     val next = if (rule != null) onNextRule else onNext
                                     next?.let { RailIcon(Icons.AutoMirrored.Filled.ArrowForward, content.subjectText("next", lang), stringResource(R.string.stage_next), answer.yes, answer.onYes, onClick = it) }
-                                    if (asks) {
+                                    if (asks && !openEnded) {
                                         RailIcon(Icons.Filled.Close, content.subjectText("no", lang), stringResource(R.string.show_no), answer.no, answer.onNo, ui.answeredYes == false, proposed = nodded == false) {
                                             if (nodded == false) onCue("shake")
                                             onYesNo(false)
@@ -569,7 +597,7 @@ fun Stage(
                                         RailCard("wrong", content.subjectText("wrong", lang), stringResource(R.string.stage_wrong), answer.unsure, answer.onUnsure, chosen == "wrong") { onCard("wrong") }
                                     }
                                     // A camera, not an open palm, so nothing beside Stop looks like a stop sign.
-                                    if (canWrite && tracker != null) RailIcon(painterResource(R.drawable.ic_videocam), null, stringResource(R.string.officer_read_signs), stage.tool, stage.onTool, tool = true, onClick = onStartSigning)
+                                    if (canWrite && tracker != null) RailIcon(painterResource(R.drawable.ic_videocam), content.subjectText("sign", lang), stringResource(R.string.officer_read_signs), stage.tool, stage.onTool, tool = true, onClick = onStartSigning)
                                     RailCard("stop", content.subjectText("stop", lang), stringResource(R.string.stage_stop), answer.pause, answer.onPause, chosen == "stop", proposed = palm.value) { if (palm.value) onCue("palm"); onCard("stop") }
                                 }
                             }
@@ -1130,7 +1158,12 @@ private fun LanguageGrid(content: ContentBundle, chosen: String?, modifier: Modi
     }
 }
 
-private class DrawStroke(val points: List<Offset>)
+private class DrawStroke(val points: List<Offset>, val color: Color = Ink)
+
+private val Ink = Color(0xFF2B2118)
+
+/** Dark ink, and red, blue, green and brown, so a person can mark where it hurts or what colour something was. */
+private val InkColors = listOf(Ink, Color(0xFFD32F2F), Color(0xFF1E5BD8), Color(0xFF2E7D32), Color(0xFF8D5524))
 
 private fun Offset.fraction(size: IntSize) = Offset(x / size.width.coerceAtLeast(1), y / size.height.coerceAtLeast(1))
 private fun Offset.scaled(size: IntSize) = Offset(x * size.width, y * size.height)
@@ -1213,7 +1246,7 @@ private fun Modifier.named(@StringRes id: Int, needed: Boolean): Modifier {
 private fun DrawingPanel(content: ContentBundle, lang: String, strokes: SnapshotStateList<DrawStroke>, onDone: (ByteArray) -> Unit, onBack: (() -> Unit)?, modifier: Modifier) {
     var current by remember { mutableStateOf<List<Offset>>(emptyList()) }
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
-    val ink = Color(0xFF2B2118)
+    var ink by remember { mutableStateOf(Ink) }
     val paper = Color.White
     Column(modifier, verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
         Surface(
@@ -1232,24 +1265,42 @@ private fun DrawingPanel(content: ContentBundle, lang: String, strokes: Snapshot
                             onDragStart = { current = listOf(it) },
                             onDrag = { change, _ -> current = current + change.position },
                             // Kept in canvas fractions, so a drawing survives the canvas changing size.
-                            onDragEnd = { strokes.add(DrawStroke(current.map { it.fraction(canvasSize) })); current = emptyList() },
+                            onDragEnd = { strokes.add(DrawStroke(current.map { it.fraction(canvasSize) }, ink)); current = emptyList() },
                             onDragCancel = { current = emptyList() },
                         )
                     },
             ) {
-                (strokes.map { s -> DrawStroke(s.points.map { it.scaled(canvasSize) }) } + DrawStroke(current)).forEach { s ->
+                (strokes.map { s -> DrawStroke(s.points.map { it.scaled(canvasSize) }, s.color) } + DrawStroke(current, ink)).forEach { s ->
                     if (s.points.size < 2) return@forEach
                     val path = Path().apply {
                         moveTo(s.points[0].x, s.points[0].y)
                         s.points.drop(1).forEach { lineTo(it.x, it.y) }
                     }
-                    drawPath(path, ink, style = Stroke(width = 8.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
+                    drawPath(path, s.color, style = Stroke(width = 8.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
                 }
+            }
+        }
+        val stage = LocalStageColors.current
+        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), verticalAlignment = Alignment.CenterVertically) {
+            InkColors.forEach { c ->
+                Box(
+                    Modifier.size(48.dp).clip(CircleShape).clickable(role = Role.RadioButton) { ink = c }.semantics { selected = ink == c },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Box(Modifier.size(if (ink == c) 40.dp else 32.dp).background(c, CircleShape).border(if (ink == c) 3.dp else 0.dp, Color.White, CircleShape))
+                }
+            }
+            Spacer(Modifier.weight(1f))
+            // Undo takes back one line; a slip of the finger should not cost the whole picture.
+            PressableSurface(
+                onClick = { if (strokes.isNotEmpty()) strokes.removeAt(strokes.lastIndex) }, shape = CircleShape, color = stage.tool, border = BorderStroke(1.dp, stage.onTool.copy(alpha = 0.16f)),
+                modifier = Modifier.size(48.dp).semantics { contentDescription = content.subjectText("undo", lang) ?: "Undo" },
+            ) {
+                Box(contentAlignment = Alignment.Center) { Icon(painterResource(R.drawable.ic_undo), contentDescription = null, tint = stage.onTool) }
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.md)) {
             onBack?.let { BackButton(content, lang, it) }
-            val stage = LocalStageColors.current
             PressableSurface(
                 onClick = { strokes.clear() }, shape = RoundedCornerShape(50), color = stage.tool, border = BorderStroke(1.dp, stage.onTool.copy(alpha = 0.16f)),
                 modifier = Modifier.weight(1f).height(56.dp).named(R.string.stage_clear, content.subjectText("clear", lang) == null),
@@ -1261,7 +1312,7 @@ private fun DrawingPanel(content: ContentBundle, lang: String, strokes: Snapshot
             }
             val answer = LocalAnswerColors.current
             PressableSurface(
-                onClick = { if (strokes.isNotEmpty()) onDone(renderPng(strokes.map { s -> DrawStroke(s.points.map { it.scaled(canvasSize) }) }, canvasSize, ink.toArgb(), paper.toArgb())) },
+                onClick = { if (strokes.isNotEmpty()) onDone(renderPng(strokes.map { s -> DrawStroke(s.points.map { it.scaled(canvasSize) }, s.color) }, canvasSize, paper.toArgb())) },
                 shape = RoundedCornerShape(50),
                 color = if (strokes.isNotEmpty()) answer.yes else Color(0xFFBFD8CB),
                 modifier = Modifier.weight(1f).height(56.dp).named(R.string.stage_done, content.subjectText("done", lang) == null),
@@ -1275,7 +1326,7 @@ private fun DrawingPanel(content: ContentBundle, lang: String, strokes: Snapshot
     }
 }
 
-private fun renderPng(strokes: List<DrawStroke>, size: IntSize, ink: Int, paper: Int): ByteArray {
+private fun renderPng(strokes: List<DrawStroke>, size: IntSize, paper: Int): ByteArray {
     val w = size.width.coerceAtLeast(1)
     val h = size.height.coerceAtLeast(1)
     val bitmap = createBitmap(w, h)
@@ -1287,10 +1338,10 @@ private fun renderPng(strokes: List<DrawStroke>, size: IntSize, ink: Int, paper:
         strokeCap = Paint.Cap.ROUND
         strokeJoin = Paint.Join.ROUND
         strokeWidth = 8 * density
-        color = ink
     }
     strokes.forEach { s ->
         if (s.points.size < 2) return@forEach
+        paint.color = s.color.toArgb()
         val path = android.graphics.Path().apply {
             moveTo(s.points[0].x, s.points[0].y)
             s.points.drop(1).forEach { lineTo(it.x, it.y) }
@@ -1301,5 +1352,38 @@ private fun renderPng(strokes: List<DrawStroke>, size: IntSize, ink: Int, paper:
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
         bitmap.recycle()
         out.toByteArray()
+    }
+}
+
+/** What to do now, in one short line over the top of the camera window. */
+@Composable
+private fun StageHint(text: String, modifier: Modifier) {
+    Text(
+        text, style = MaterialTheme.typography.labelLarge, color = Color.White, textAlign = TextAlign.Center, maxLines = 3,
+        modifier = modifier.fillMaxWidth().padding(Spacing.sm)
+            .background(Color.Black.copy(alpha = 0.55f), RoundedCornerShape(14.dp)).padding(horizontal = Spacing.sm, vertical = 6.dp),
+    )
+}
+
+/** After a requested drawing: thanks, the way back to the officer, and a way to add to it. */
+@Composable
+private fun HandBackPanel(content: ContentBundle, lang: String, onDrawMore: () -> Unit, modifier: Modifier) {
+    val stage = LocalStageColors.current
+    Column(modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.lg, Alignment.CenterVertically)) {
+        Surface(shape = CircleShape, color = LocalAnswerColors.current.yes, modifier = Modifier.size(96.dp)) {
+            Box(contentAlignment = Alignment.Center) { Icon(Icons.Filled.Check, contentDescription = null, tint = LocalAnswerColors.current.onYes, modifier = Modifier.size(56.dp)) }
+        }
+        content.subjectText("give_back", lang)?.let {
+            Text(it, fontFamily = Baloo, fontWeight = FontWeight.SemiBold, fontSize = 22.sp, textAlign = TextAlign.Center, color = stage.onBubble)
+        }
+        PressableSurface(
+            onClick = onDrawMore, shape = RoundedCornerShape(50), color = stage.tool, border = BorderStroke(1.dp, stage.onTool.copy(alpha = 0.16f)),
+            modifier = Modifier.height(56.dp).widthIn(min = 160.dp).named(R.string.stage_draw, content.subjectText("draw_more", lang) == null),
+        ) {
+            Row(Modifier.padding(horizontal = Spacing.lg), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Filled.Create, contentDescription = null, tint = stage.onTool)
+                content.subjectText("draw_more", lang)?.let { Text(it, style = MaterialTheme.typography.labelLarge, color = stage.onTool, modifier = Modifier.padding(start = Spacing.sm)) }
+            }
+        }
     }
 }

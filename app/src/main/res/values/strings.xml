@@ -205,8 +205,11 @@
     <string name="officer_has_audio">Recorded speech in their language</string>
     <string name="officer_media_missing">Picture and caption only</string>
     <string name="officer_camera">Camera mirror</string>
+    <string name="officer_glance">My upside-down strip on the stage</string>
     <string name="officer_skeleton_only">Skeleton only (hide the picture)</string>
     <string name="officer_sign_language">Sign language</string>
+    <string name="sign_isl">Indian (ISL)</string>
+    <string name="sign_asl">American (ASL)</string>
     <string name="log_sign_language">Sign language set to %1$s</string>
     <string name="settings_stage">Stage</string>
     <string name="settings_camera">Camera mirror</string>

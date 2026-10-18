@@ -183,7 +183,7 @@ class InterviewTest {
             assertFalse(card, autoAdvanceAllowed(q.getValue("g1"), yes.copy(cardId = card), q.getValue("g2"), "hi", 0))
         }
         assertFalse(autoAdvanceAllowed(q.getValue("g1"), yes.copy(type = EventType.ANSWER_SIGNED, cardId = null), q.getValue("g2"), "hi", 0))
-        assertFalse("no caption in Odia", autoAdvanceAllowed(q.getValue("g1"), yes, q.getValue("g2"), "or", 0))
+        assertFalse("no caption in Santali", autoAdvanceAllowed(q.getValue("g1"), yes, q.getValue("g2"), "sat", 0))
         assertFalse(autoAdvanceAllowed(q.getValue("g1"), yes, q.getValue("g2"), "hi", 3))
         assertFalse("a safety answer always reaches the officer", autoAdvanceAllowed(q.getValue("s3"), yes, q.getValue("g2"), "hi", 0))
     }
@@ -226,7 +226,7 @@ class InterviewTest {
         assertEquals(SHOWN_RIGHTS, shownReason(bank, q.getValue("r1"), "en"))
         assertEquals(SHOWN_RIGHTS, shownReason(bank, q.getValue("pw3"), "hi"))
         assertNull(shownReason(bank, q.getValue("s2"), "hi"))
-        assertEquals("caption_missing", shownReason(bank, q.getValue("s2"), "or"))
+        assertEquals("caption_missing", shownReason(bank, q.getValue("s2"), "sat"))
     }
 
     /** Fails the build when the bank breaks a rule auto mode or the stage relies on. */
@@ -244,7 +244,7 @@ class InterviewTest {
             if (q.phase in AUTO_PHASES && !g.sensitive && !g.rights) {
                 assertTrue("${q.id} asks one thing", q.text.getValue("en").count { it == '?' } <= 1)
             }
-            assertTrue("${q.id} has en and hi", q.text["en"] != null && q.text["hi"] != null)
+            for (lang in listOf("en", "hi", "hne", "gon", "hlb")) assertTrue("${q.id} has $lang", q.text[lang] != null)
             q.after?.let { a ->
                 val (ref, want) = a.split(':')
                 assertTrue("${q.id} follows a real item", ref in ids)

@@ -51,6 +51,7 @@ The officer page has two tabs, built from one card and tile style. **Transcribe*
 | Signed answers | The app's reading per sign, slow replay at ¼× or ½× with sign markers, a word per sign with the reader's top three guesses as chips, and **Ask them to choose** |
 | Manual and Auto | Auto, when allowed in Settings, suggests the next welfare item from the reviewed bank and the officer approves each one. It is not an interview and records no statement. The report shows the mode, who chose each shown item, and suggestions not acted on |
 | Media marks | Each question card shows whether a gesture and a recording exist and whether the caption is missing in the subject's language; "Ready to show" lists what the subject will get |
+| Instant Hindi caption | When the subject reads Hindi, English the officer types gets a Hindi caption as they type, from the reviewed bank, sentence patterns or word by word, marked as unchecked; a tap dismisses it, and nothing is shown if any word is unknown |
 | Assistant (optional) | Translates typed text into the subject's language and back into English on the phone; the officer sees both before sending |
 | They gestured | The officer marks where the subject's hand went and what it did; matching entries from the 33-entry gesture lexicon are shown back to the subject, who confirms the meaning |
 | Picture board | 117 picture cards in 12 categories (including clothes and colours for describing someone), with search and favourites |
@@ -74,19 +75,20 @@ The officer page has two tabs, built from one card and tile style. **Transcribe*
 | Picture choices | Shuffled every time and capped at four pictures, plus "Something else" (which opens the drawing pad) and "I don't understand". Yes/no, number and single-picture questions are not shuffled |
 | Answer inputs | For a lesson-sheet question the panel under the character becomes its input: a number pad with large digits (age 0 to 120, counts, brothers then sisters), a 10-digit mobile pad grouped 5 and 5 with "No phone", a written name or place, a class grid (1 to 12, college, not in school), a state list (Chhattisgarh first, all states and union territories) then its district or a written one, and several pictures with Done. A written or typed answer is read back large and becomes the subject's own only on their Yes; one left unconfirmed is logged as unconfirmed. "I don't know", "I don't understand", "That's wrong" and Stop stay under every input |
 | Phrase board | A button by the character opens the eight everyday phrases as pictures with words; a tap logs the phrase as the subject's own |
-| Draw and Write | A drawing pad; Write opens the keyboard for every profile except a young child; written answers are capped at 2,000 characters |
-| Sign an answer | The camera button opens a 20-second sign window; the stage shows one dot per sign seen, never the reader's guesses (§6) |
+| Draw and Write | A drawing pad with five ink colours and Undo; a drawing that answers a question returns to it, a requested drawing ends on a thank-you and hand-back screen; Write opens the keyboard for every profile except a young child; written answers are capped at 2,000 characters |
+| Sign an answer | The camera button ("Sign") opens a 20-second sign window; the stage shows one dot per sign seen, then at once asks the person to pick what each sign meant among two or three pictures (§6, D-41) |
+| What to do now | One plain line over the camera window: answer by tapping or signing, or tap Next; statements show only Next and Stop |
 | Choosing a meaning | After the officer taps Ask them to choose: two or three picture cards per sign in the subject's language, and "None of these" |
 | Camera mirror | The subject sees the whole camera frame below the character, uncropped at 9:16, with a hand-and-arm skeleton during a sign window, never face points; nothing is captured or stored |
 | Replay and speed | The subject sets the signing speed (½×, ¾×, 1×), kept for the session in memory only; a young child starts at ¾× at most |
 | Pause | After Stop, a calm night-sky layer with a breathing circle and bubbles to pop covers the whole stage, with no score and no sound. Only the subject's "I'm ready" ends it; the officer's lock stays reachable. The log records "Pause ended after N s" |
-| Officer glance strip | A band at the edge facing the officer shows the last question and answer upside down, for an officer sitting opposite. Hidden for sensitive questions and while the subject draws or writes; a long press hides it for the session. Machine sign readings never appear on it |
+| Officer glance strip | A band at the edge facing the officer shows the last question and answer upside down, for an officer sitting opposite. Off until the officer turns it on from the session menu (D-41). Hidden for sensitive questions and while the subject draws or writes; a long press hides it for the session. Machine sign readings never appear on it |
 | Vibration codes | Felt by whoever holds the phone: Yes one long buzz; No two buzzes; Stop, Break, "I don't know", "I don't understand" or "That's wrong" three short pulses; a picture a tick. Never for the young-child profile |
 | Sun mode | The stage turns black, white and yellow in glare: on after 3 s above 10,000 lux, off after 10 s below 2,000 lux. The light sensor is read only while the stage shows; the officer can force it on from the menu |
 | Rotate | The stage turns 180 degrees for a subject sitting opposite; tilting the phone to show turns it automatically |
 | Staying on the stage | The app is pinned; Back does nothing; single volume presses do nothing; one tap on the small lock, or both volume keys held for 1.5 s, returns to the officer |
 
-Subject-screen words added for the opening, pause and new answers exist in English and Hindi only so far; other subject languages show the pictures alone until translations are added.
+Subject-screen words, questions, phrases and card labels exist in English, Hindi, Chhattisgarhi, Gondi, Halbi and the other twelve languages of the language finder; everything beyond English and Hindi is a draft awaiting native-speaker review (D-43).
 
 ### 3.3 Paired stage
 
@@ -166,6 +168,10 @@ Manual is the default. When a department allows Auto, a rule-ordered sequencer o
 | Export | The PDF is drawn on the phone, encrypted with AES-256 under a 16-character password from 32 symbols without look-alikes (80 bits), and handed to Android's share sheet; temporary files are deleted afterwards |
 | Overlay protection | The activity, every dialog, sheet and menu ignore taps that pass through another app's overlay |
 
+### 4.11 Instant Hindi caption
+
+With a Hindi-reading subject, Latin text the officer types is translated on the phone, without a model, 250 ms after typing stops (D-44). A reviewed English and Hindi pair in the content wins: it is matched on lower case with punctuation, articles and contractions removed. Next come about 30 sentence patterns (Do you want X? Are you X? Is X hurt? Where is X? Did someone hurt you? Show me X, Can you X? I will X, Do not X, How many X? and others) with nouns from the picture cards, the gesture lexicon and words.json, polite आप forms, honorific agreement for parents and officials, and "हम" for the officer so no gender is assumed. Last, if every word is known, a word-by-word draft in Hindi order. Otherwise there is no caption. The draft is shown marked "machine translation, not checked"; a tap dismisses it for that message, and Send makes it again from the final text. The character signs the officer's own words; an assistant suggestion replaces the caption. The signed-answer draft uses the same idea for common verbs ("मुझे पानी चाहिए").
+
 ## 5. The character in detail
 
 The character is not a 3D model, a video or a machine-learning model. It is a parametric 2D puppet drawn in code with Compose Canvas and redrawn every frame from numbers.
@@ -216,7 +222,7 @@ For the whole session:
 
 - The app's reading, the officer's reading and the subject's answer are three separate layers (§4.2).
 - A reading becomes the subject's answer only when the officer taps "Ask them to choose". The stage then shows, for each sign, two or three picture cards in the subject's language (the officer's reading first, then the reader's guesses, then the item's own answer cards, in shuffled positions) and "None of these".
-- Machine guesses are never shown to the subject automatically.
+- After a short sign window on the stage, the choices appear at once (D-41); the reader's guesses are never shown as words, and only the subject's pick records a meaning.
 
 ### 6.3 Context-limited vocabulary
 

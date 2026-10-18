@@ -109,6 +109,18 @@ private val HINDI = mapOf(
 )
 
 /**
+ * A signed verb as Hindi says it with the doer in को, which needs no gender: "मुझे पानी चाहिए", not "मैं पानी चाहना".
+ * Keyed by the word's first written form in words.json.
+ */
+private val HINDI_VERB = mapOf(
+    "want" to "चाहिए", "go" to "जाना है", "come" to "आना है", "eat" to "खाना है", "sleep" to "सोना है", "sit" to "बैठना है",
+    "help" to "मदद चाहिए", "pain" to "दर्द है", "know" to "पता है", "understand" to "समझ आया", "like" to "पसंद है",
+    "remember" to "याद है", "hungry" to "भूख लगी है", "talk" to "बात करनी है", "speak" to "बोलना है", "play" to "खेलना है",
+    "wash" to "धोना है", "write" to "लिखना है", "scared" to "डर लग रहा है", "cold" to "ठंड लग रही है",
+)
+private val DOER = mapOf("i" to "मुझे", "you" to "आपको")
+
+/**
  * The inverse of [planText]'s ISL order. [gloss] is the written word of each sign, in signed order; a run of single
  * letters or digits is one fingerspelled word. [lang] ASL keeps the gloss order. [browsUp]: raised brows, the non-manual
  * mark of a yes/no question in ISL and ASL, make it a question without a question sign. ISL signs time first, the verb last and negation and question after it;
@@ -146,7 +158,13 @@ fun glossToText(gloss: List<String>, words: Map<String, WordEntry>, lang: SignLa
 
     fun hi(t: Pair<String, Boolean>) = if (t.second) t.first else HINDI[t.first]
         ?: words[t.first]?.w?.firstOrNull { w -> w.any { it in 'ऀ'..'ॿ' } } ?: t.first
-    val hiRest = rest.map(::hi)
+    val hiRest = rest.map(::hi).toMutableList()
+    // A past sign keeps the bare verb: the present forms below would change the tense.
+    val verb = rest.lastOrNull()?.takeIf { !it.second && time.none { t -> t.first == "yesterday" } }?.let { HINDI_VERB[en(it)] }
+    if (verb != null) {
+        hiRest[hiRest.lastIndex] = verb
+        if (rest.size > 1) rest.first().takeIf { !it.second }?.let { DOER[en(it)] }?.let { hiRest[0] = it }
+    }
     val hindi = (time.map(::hi) + hiRest.dropLast(1) + ask.map { HINDI[it] ?: it } + listOfNotNull("नहीं".takeIf { negated }) + hiRest.takeLast(1))
         .joinToString(" ") + if (question) "?" else "।"
     return SignedText(english, hindi)

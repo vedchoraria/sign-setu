@@ -54,8 +54,7 @@
    ]
   }
  ],
- "dtype": "float16",
- "weights": "float16 little-endian, tensors in the order above, row-major; conv weight is [out][in][kernel]",
+ "weights": "float32 little-endian, tensors in the order above, row-major; conv weight is [out][in][kernel]",
  "feature_spec": "MediaPipe Holistic normalised image points, unmirrored; y scaled by height/width; centre = mean shoulder midpoint (pose 11, 12) over the segment, scale = mean shoulder width; per frame: left hand 21x(x,y), right hand 21x(x,y), pose 11..16 (x,y), left and right presence flags; a missing part is zeros; segment resampled to `frames` by nearest index (i*(n-1)*2 + frames-1) div (2*(frames-1))",
  "dataset": "Multimodal ISL alphabet photographs (CC BY 4.0, doi:10.17632/2tj6c7pzfk.1) plus the app's ISL letter and digit keyframes posed on the rig; tested on ISLAN signers (doi:10.17632/rc349j45m5.1)",
  "norm": "hands",

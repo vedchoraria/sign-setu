@@ -224,6 +224,9 @@ class ConversationE2ETest {
         assertEquals("every colour was offered once", d2.cards.sorted(), seen.sorted())
         waitFor("the drawing pad once all are seen") { vm.now().onStage is Pending.Drawing }
         assertEquals("each page is logged as shown", 2, vm.events().count { it.type == EventType.QUESTION_SHOWN && it.itemId == "d2" })
+        vm.submitDrawing(byteArrayOf(1))
+        waitFor("the drawing is logged") { vm.events().any { it.type == EventType.ANSWER_DRAWING } }
+        assertEquals("the stage keeps what was asked, for its thanks and hand-back", Pending.Drawing, vm.now().pending)
     }
 
     @Test
@@ -277,6 +280,12 @@ class ConversationE2ETest {
         assertEquals("${draft.en} / ${draft.hi}", note.text)
         assertTrue("no raised brows, a statement", draft.en.endsWith("."))
         assertEquals(Grade.MACHINE_READ, grades(vm.events())[machine.id])
+        // The subject checks the reading at once on the stage, and the question is still there afterwards.
+        waitFor("the reading is put to the subject") { vm.now().confirm?.eventId == machine.id }
+        assertEquals("the choices are logged as shown", EventSource.SHOW_BACK, vm.events().last { it.type == EventType.QUESTION_SHOWN }.source)
+        assertTrue("only pictures, never an English word", vm.now().confirm!!.queue.flatten().all { it.card != null })
+        while (vm.now().confirm != null) vm.chooseSign(null)
+        assertEquals("l3", (vm.now().pending as Pending.Ask).question.id)
 
         // 4. The officer reads the second sign as "police": the record keeps both readings, and the sign is taught.
         val officerWords = listOf(read[0], "police", read[2])

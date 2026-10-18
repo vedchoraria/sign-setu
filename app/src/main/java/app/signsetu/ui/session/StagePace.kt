@@ -17,18 +17,18 @@ internal fun initialPace(profile: Profile, setting: Float): Float =
 internal fun beatAt(beats: List<WordBeat>, offset: Int): WordBeat? = beats.firstOrNull { offset in it.range }
 
 /**
- * Stage choices that last for one session, in memory only: the subject's signing speed and whether the officer hid
- * the glance strip. A new session id resets both, so nothing carries over to the next person.
+ * Stage choices that last for one session, in memory only: the subject's signing speed and whether the glance strip
+ * shows. It starts hidden, since upside-down text confuses a subject; the officer turns it on from the menu.
  */
 internal object StagePace {
     private var session: String? = null
     val speed = mutableFloatStateOf(1f)
-    val glanceHidden = mutableStateOf(false)
+    val glanceHidden = mutableStateOf(true)
 
     fun forSession(id: String, initial: Float) {
         if (session == id) return
         session = id
         speed.floatValue = initial
-        glanceHidden.value = false
+        glanceHidden.value = true
     }
 }

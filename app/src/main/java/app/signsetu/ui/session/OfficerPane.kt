@@ -1,5 +1,13 @@
 package app.signsetu.ui.session
 
+import androidx.compose.foundation.border
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
+import androidx.compose.runtime.produceState
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.foundation.Image
+import android.graphics.BitmapFactory
 import androidx.compose.material.icons.filled.Star
 import app.signsetu.camera.SkeletonOnly
 import app.signsetu.assistant.Suggestion
@@ -125,6 +133,9 @@ import app.signsetu.data.content.SignLanguage
 import app.signsetu.data.content.SignMode
 import app.signsetu.data.content.forSignLanguage
 import app.signsetu.data.content.pick
+import app.signsetu.data.content.toHindi
+import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.delay
 import app.signsetu.data.session.EventSource
 import app.signsetu.data.session.EventType
 import app.signsetu.data.session.Profile
@@ -226,6 +237,18 @@ fun OfficerPane(
     var suggestion by remember { mutableStateOf<Suggestion?>(null) }
     var thinking by remember { mutableStateOf(false) }
     var noHelp by remember { mutableStateOf(false) }
+    // The instant Hindi caption: previewed while typing, made again from the final text on Send.
+    var draft by remember { mutableStateOf<String?>(null) }
+    var draftOff by remember { mutableStateOf(false) }
+    fun hindi(text: String): String? {
+        val t = text.trim()
+        val english = subjectLang == "hi" && officerLang != "hi" && t.any { it in 'a'..'z' || it in 'A'..'Z' } && t.none { it in 'ऀ'..'ॿ' }
+        return if (english) content.toHindi(t)?.hi else null
+    }
+    LaunchedEffect(ownText, subjectLang, content) {
+        delay(250)
+        draft = hindi(ownText)
+    }
     val modes = rememberSaveable(ui.session.profile, saver = listSaver(save = { l -> l.map { it.name } }, restore = { l -> l.map(SignMode::valueOf).toMutableStateList() })) {
         defaultModes(ui.session.profile).toMutableStateList()
     }
@@ -262,10 +285,12 @@ fun OfficerPane(
 
     val prepareTyped = {
         if (ownText.isNotBlank()) {
-            vm.prepare(Pending.FreeText(ownText.trim(), attached.toList(), typedModes(modes, islReorder), suggestion?.caption))
+            val caption = suggestion?.caption ?: if (draftOff) null else hindi(ownText)
+            vm.prepare(Pending.FreeText(ownText.trim(), attached.toList(), typedModes(modes, islReorder), caption))
             ownText = ""
             attached.clear()
             suggestion = null
+            draftOff = false
         }
     }
     val send = {
@@ -359,6 +384,13 @@ fun OfficerPane(
                             modifier = Modifier.toggleState(SunMode.forced.value, Role.Switch),
                         )
                         DropdownMenuItem(
+                            text = { Text(stringResource(R.string.officer_glance)) },
+                            leadingIcon = { Icon(Icons.Filled.Refresh, contentDescription = null) },
+                            trailingIcon = { Switch(checked = !StagePace.glanceHidden.value, onCheckedChange = null) },
+                            onClick = { StagePace.glanceHidden.value = !StagePace.glanceHidden.value },
+                            modifier = Modifier.toggleState(!StagePace.glanceHidden.value, Role.Switch),
+                        )
+                        DropdownMenuItem(
                             text = { Text(stringResource(R.string.officer_skeleton_only)) },
                             leadingIcon = { Icon(painterResource(R.drawable.ic_videocam), contentDescription = null) },
                             trailingIcon = { Switch(checked = SkeletonOnly.on.value, onCheckedChange = null) },
@@ -414,7 +446,7 @@ fun OfficerPane(
             )
         } else {
         Box(Modifier.weight(1f).fillMaxWidth()) {
-            Transcript(ui.events, ui.session.profile, ui.signed, onReplay = { replaying = it }, Modifier.fillMaxSize(), onSayBack = { sayingBackId = it.id })
+            Transcript(ui.events, ui.session.profile, ui.signed, onReplay = { replaying = it }, Modifier.fillMaxSize(), onSayBack = { sayingBackId = it.id }, drawing = vm::drawing)
             // The scope-free overload: inside this Box the Column's AnimatedVisibility does not apply.
             androidx.compose.animation.AnimatedVisibility(
                 lastStop != null && lastStop.id != stopSeen && paired == null,
@@ -432,7 +464,7 @@ fun OfficerPane(
             content = content,
             officerLang = officerLang,
             text = ownText,
-            onText = { ownText = it; suggestion = null; noHelp = false },
+            onText = { ownText = it; suggestion = null; noHelp = false; if (it.isBlank()) draftOff = false },
             assistant = assistant != null,
             canRead = canReadSigns,
             thinking = thinking,
@@ -450,6 +482,8 @@ fun OfficerPane(
                 }
             },
             onDiscard = { suggestion = null },
+            draft = draft.takeIf { !draftOff },
+            onDraftOff = { draftOff = true },
             modes = modes,
             onMode = { if (!modes.remove(it)) modes.add(it) },
             attached = attached,
@@ -570,7 +604,7 @@ fun OfficerPane(
 
 /** The conversation so far: what was shown on the right, the subject's answers on the left, newest at the bottom. */
 @Composable
-private fun Transcript(events: List<SessionEvent>, profile: Profile, signed: Map<Long, List<SignSegment>>, onReplay: (Long) -> Unit, modifier: Modifier, onSayBack: (SessionEvent) -> Unit = {}) {
+private fun Transcript(events: List<SessionEvent>, profile: Profile, signed: Map<Long, List<SignSegment>>, onReplay: (Long) -> Unit, modifier: Modifier, onSayBack: (SessionEvent) -> Unit = {}, drawing: suspend (Long) -> ByteArray? = { null }) {
     if (events.isEmpty()) {
         Column(modifier.padding(Spacing.xxl), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
             MiniFace(characterFor(profile), 72.dp, Color(0xFFFFDDBE))
@@ -613,6 +647,7 @@ private fun Transcript(events: List<SessionEvent>, profile: Profile, signed: Map
                         e, profile, onReplay = if (e.id in signed) ({ onReplay(e.id) }) else null,
                         grade = grades[e.id], trail = trails[e.id], position = positions[e.id],
                         onSayBack = if (canSayBack(e, grades[e.id])) ({ onSayBack(e) }) else null,
+                        drawing = drawing,
                     )
                 }
             }
@@ -662,6 +697,7 @@ private fun Answered(
     trail: Trail? = null,
     position: Pair<Int, Int>? = null,
     onSayBack: (() -> Unit)? = null,
+    drawing: suspend (Long) -> ByteArray? = { null },
 ) {
     val colors = MaterialTheme.colorScheme
     val answer = LocalAnswerColors.current
@@ -702,6 +738,7 @@ private fun Answered(
                     }
                 }
             }
+            e.drawingId?.let { DrawingThumb(it, drawing) }
             val mark = if (e.type == EventType.ANSWER_SIGNED) " · ${stringResource(signedMark(e))}" else ""
             Text(
                 "${stringResource(e.type.label())}$mark · ${timeOf(e)}",
@@ -747,6 +784,8 @@ private fun Dock(
     noHelp: Boolean,
     onAssist: () -> Unit,
     onDiscard: () -> Unit,
+    draft: String?,
+    onDraftOff: () -> Unit,
     modes: List<SignMode>,
     onMode: (SignMode) -> Unit,
     attached: List<String>,
@@ -804,7 +843,9 @@ private fun Dock(
             }
             if (typing) CompletionRows(content, text, officerLang, onComplete = onText, onTemplate = onTemplate)
             if (typing && suggestion != null) {
-                AssistantCard(suggestion, content.language(subjectLang)?.english ?: subjectLang, onDiscard)
+                AssistantCard(suggestion.caption, suggestion.meaning, content.language(subjectLang)?.english ?: subjectLang, onDiscard)
+            } else if (typing && draft != null) {
+                AssistantCard(draft, null, content.language(subjectLang)?.english ?: subjectLang, onDraftOff)
             } else if (typing && noHelp) {
                 Text(stringResource(R.string.ai_none), style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant, modifier = Modifier.padding(horizontal = Spacing.lg).padding(bottom = Spacing.sm))
             }
@@ -1056,9 +1097,9 @@ private fun AssistChip(thinking: Boolean, onClick: () -> Unit) {
     }
 }
 
-/** The assistant's suggestion, shown before Send; a machine translation is always marked as unchecked (D-24). */
+/** A machine caption shown before Send, always marked as unchecked (D-24, D-41); [meaning] is the assistant's English back. */
 @Composable
-private fun AssistantCard(suggestion: Suggestion, languageName: String, onDiscard: () -> Unit) {
+private fun AssistantCard(caption: String, meaning: String?, languageName: String, onDiscard: () -> Unit) {
     val colors = MaterialTheme.colorScheme
     Surface(
         shape = MaterialTheme.shapes.medium,
@@ -1069,9 +1110,11 @@ private fun AssistantCard(suggestion: Suggestion, languageName: String, onDiscar
         Row(Modifier.padding(start = Spacing.md, top = Spacing.sm, bottom = Spacing.sm), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(stringResource(R.string.ai_caption, languageName), style = MaterialTheme.typography.labelSmall, color = colors.tertiary)
-                Text(suggestion.caption, style = MaterialTheme.typography.titleSmall)
-                Text(stringResource(R.string.ai_meaning), style = MaterialTheme.typography.labelSmall, color = colors.primary)
-                Text(suggestion.meaning, style = MaterialTheme.typography.bodyMedium)
+                Text(caption, style = MaterialTheme.typography.titleSmall)
+                if (meaning != null) {
+                    Text(stringResource(R.string.ai_meaning), style = MaterialTheme.typography.labelSmall, color = colors.primary)
+                    Text(meaning, style = MaterialTheme.typography.bodyMedium)
+                }
             }
             IconButton(onClick = onDiscard) { Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.cancel)) }
         }
@@ -1371,6 +1414,29 @@ private fun ExportDialog(state: ExportState, onShare: () -> Unit, onFinish: () -
             onDismissRequest = onDismiss,
             title = { Text(stringResource(R.string.export_failed)) },
             confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.ok)) } },
+        )
+    }
+}
+
+/** The subject's drawing itself, not just a label; a tap opens it full size. */
+@Composable
+private fun DrawingThumb(id: Long, load: suspend (Long) -> ByteArray?) {
+    val image by produceState<ImageBitmap?>(null, id) {
+        value = withContext(Dispatchers.Default) { load(id)?.let { BitmapFactory.decodeByteArray(it, 0, it.size)?.asImageBitmap() } }
+    }
+    var open by remember { mutableStateOf(false) }
+    val name = stringResource(R.string.report_drawing)
+    image?.let { img ->
+        Image(
+            img, contentDescription = name,
+            modifier = Modifier.padding(top = Spacing.xs).widthIn(max = 220.dp).heightIn(max = 220.dp)
+                .clip(RoundedCornerShape(14.dp)).border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(14.dp))
+                .clickable(role = Role.Button) { open = true },
+        )
+        if (open) GuardedAlertDialog(
+            onDismissRequest = { open = false },
+            text = { Image(img, contentDescription = name, modifier = Modifier.fillMaxWidth()) },
+            confirmButton = { TextButton(onClick = { open = false }) { Text(stringResource(R.string.close)) } },
         )
     }
 }

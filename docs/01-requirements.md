@@ -192,7 +192,7 @@ Delivered early: FR-22 (on-device sign recognition) as FR-84 to FR-87 (D-25). Wi
 | NFR-01 | Cold start to usable Officer state under 2 seconds on the oldest test device. | MUST |
 | NFR-02 | A preset question appears in the Show state within 300 ms of confirmation. | MUST |
 | NFR-03 | Clips play at their source frame rate without visible stutter on the oldest test device. | MUST |
-| NFR-05 | APK under 50 MB for the base content set, including the vision and sign-reader models (D-25). | MUST |
+| NFR-05 | APK under 100 MB for the base content set, including the vision and sign-reader models at full precision; no part of the APK is compressed or quantised to save size (D-25, D-42). | MUST |
 | NFR-06 | Memory under 300 MB during a session. | SHOULD |
 | NFR-10 | Android 10 (API 29) and later, 3 GB RAM or more. | MUST |
 | NFR-11 | Portrait, screens 5 to 6.9 inches. | MUST |

@@ -77,12 +77,11 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    // Native libraries are compressed and unpacked at install, keeping the download under 50 MB (NFR-05);
-    // -Pstored keeps them uncompressed for a larger APK that loads them straight from the file.
-    packaging { jniLibs { useLegacyPackaging = !project.hasProperty("stored") } }
+    // Native libraries and models ship uncompressed, so they load straight from the APK at full precision.
+    packaging { jniLibs { useLegacyPackaging = false } }
 
     androidResources {
-        noCompress += listOf("webp", "ogg", "mp4", "task")
+        noCompress += listOf("webp", "ogg", "mp4", "task", "bin")
     }
 }
 

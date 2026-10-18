@@ -77,7 +77,7 @@ Release build on the API 29 emulator with 3 GB RAM, then on a real Android 10 ph
 | PT-01 | Cold start (Macrobenchmark `StartupTimingMetric`) | Under 2 s (NFR-01) |
 | PT-02 | Confirm to Show state with clip playing | Under 300 ms (NFR-02) |
 | PT-03 | Clip playback frame timing (`FrameTimingMetric`) | No janky frames at source rate (NFR-03) |
-| PT-04 | Release APK size | Under 50 MB (NFR-05) |
+| PT-04 | Release APK size | Under 100 MB, models float32 and native libraries stored uncompressed (NFR-05) |
 | PT-05 | Memory over a 30-question session | Under 300 MB (NFR-06) |
 
 ## 4. Resilience

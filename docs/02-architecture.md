@@ -143,7 +143,7 @@ API-level details for authentication are in [security](04-security.md) SEC-21 an
 - `BuildConfig.BUILD_EPOCH_DAY` is set at build time for the build-expiry check (FR-67).
 - Two product flavors on the `transport` dimension: `standard` (default, the reference build) and `nearby` (application ID suffix `.nearby`). Tasks are named per variant, for example `assembleStandardRelease`.
 - Version `0.1.0`, version code 1 (`app/build.gradle.kts`); the nearby flavor appends `-nearby` to the name.
-- Release builds: R8 full mode with resource shrinking, `debuggable=false`, `android.util.Log` calls stripped (`proguard-rules.pro`). The release ABI is arm64-v8a only; 32-bit phones cannot install the app. Native libraries are compressed in the APK and unpacked at install (`-Pstored` keeps them uncompressed); the holistic model stays uncompressed because it is mapped from the file. Reader weights ship as float16. Debug builds add x86_64 for the emulator. No app-specific Baseline Profile is generated; it is the next step if cold start on the oldest phone misses NFR-01.
+- Release builds: R8 full mode with resource shrinking, `debuggable=false`, `android.util.Log` calls stripped (`proguard-rules.pro`). The release ABI is arm64-v8a only; 32-bit phones cannot install the app. Nothing is compressed for size: native libraries, the holistic model and the reader weights are stored uncompressed in the APK, and reader weights ship at full float32 precision. Debug builds add x86_64 for the emulator. No app-specific Baseline Profile is generated; it is the next step if cold start on the oldest phone misses NFR-01.
 - Release APKs are signed with the department key; CI runs unit tests, lint and the permission check on every push.
 
 ## 10. Performance

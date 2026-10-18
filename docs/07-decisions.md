@@ -578,3 +578,63 @@ Status: Proposed, Accepted, Superseded.
 **Alternatives.** Reading words INCLUDE lacks from one ISLRTC signer each by dynamic time warping (measured: 0.07 top-1 across 60 words on INCLUDE signers, too often wrong to offer); analysis only inside sign windows (the overlay looked broken); treating a nod or point as an answer (would put words in the subject's mouth); a per-subject trained model for home signs (needs storage and training on the phone).
 
 **Consequences.** More frames are analysed, bounded at 10 a second outside sign windows. Landmarks and home-sign templates remain memory-only biometric data under SEC-71. Every proposal still needs the subject's tap, so FR-66 holds.
+
+## D-41 A plainer stage for the person answering, and signed answers checked at once
+
+**Status:** Accepted; amends D-20, D-25, D-37 and FR-97
+
+**Context.** Field review found the stage confusing for a frightened person: Yes and No sat under statements that ask nothing, nothing said what to do next, the camera button had no word, the officer's upside-down strip looked like an error, a finished drawing dropped the person back to a greeting with the question gone, and a signed answer reached the person for checking only after the officer took the phone, read it and handed it back.
+
+**Decision.**
+- The introduction and ground rules show only Next and Stop; the practice round shows no Yes, No or "That's wrong", because it has no yes-or-no answer.
+- One plain line over the camera window says what to do now: answer by tapping or signing, tap Next, or, inside a sign window, sign and tap Done. The camera button carries the word "Sign".
+- The glance strip starts hidden; the officer turns it on from the session menu when sitting opposite.
+- The drawing pad has five ink colours (dark, red, blue, green, brown) and Undo. A drawing given as an answer to a question returns to that question with the usual acknowledgement. A drawing the officer asked for ends on a hand-back screen: a tick, "Please give the phone back to the officer" and "Draw more". The officer's conversation shows the drawing itself; a tap opens it full size.
+- When a short sign window ends on the stage, the app's reading is put to the person straight away: two or three picture choices per sign and "None of these", logged as shown before they appear, exactly as "Ask them to choose". Only their pick records a meaning; "None of these" on the last sign opens a new sign window. The question stays on the stage afterwards. Tell me accounts and paired second screens keep the officer-led path.
+- On Home, the Signs profile offers Indian (ISL) or American (ASL) before the session starts.
+
+**Alternatives.** Keeping the officer-led check only (two extra handovers per signed answer); showing the reader's top guess as text (would put words in the person's mouth); a guided tour before the first question (one more step for the person, and it would be skipped in practice).
+
+**Consequences.** Machine readings now reach the subject without an officer action, but only as two or three choices among which their own tap decides; FR-66 holds and the record keeps the app's reading, the choices shown and the pick as separate rows. The new stage words are content strings and need review in every subject language.
+
+## D-42 Full-precision models and an uncompressed APK
+
+**Status:** Accepted; amends NFR-05 and the release packaging in D-25
+
+**Context.** The 0.2.0 release halved the sign-reader weights to float16 and compressed the native libraries to stay under 50 MB. The owner asked that nothing be compressed when the app is built.
+
+**Decision.** The ISL and ASL word readers and both fingerspelling readers ship as float32. Native libraries, the holistic model and the reader weights are stored uncompressed in the APK and load straight from it. The release stays arm64-v8a only. R8 shrinking stays on, because it also strips logging and debugging aids (SEC controls), not to save size. NFR-05 becomes a 100 MB ceiling.
+
+**Alternatives.** Keeping float16 (readers differ from the trained weights by rounding); per-ABI splits (one APK per phone type complicates sideloading).
+
+**Consequences.** The APK grows by about 17 MB; readers give exactly the trained model's scores; the installed size and load time drop because nothing is unpacked at install.
+
+## D-43 Draft captions in every language of the language finder
+
+**Status:** Accepted; amends section 3.2 of the product overview
+
+**Context.** Subject-facing text existed only in English and Hindi, so a subject who reads Chhattisgarhi, Gondi, Halbi or another language picked in the language finder saw pictures with no caption. Most subjects in the focus region, Chhattisgarh including Bastar, speak one of the first three at home.
+
+**Decision.**
+- Every subject-screen word, question, phrase and card label carries Chhattisgarhi (hne), Gondi (gon) and Halbi (hlb), Gondi and Halbi as spoken in Bastar and written in Devanagari; lexicon labels carry these three as well.
+- The same texts, except lexicon labels, carry Bengali, Nepali, Assamese, Odia, Tamil, Telugu, Kannada, Malayalam, Marathi, Gujarati, Punjabi and Urdu, each in its own script.
+- Each content file holding these texts says in its status that everything beyond English and Hindi is a draft until a native speaker reviews it; rights items need that review and the legal review together before field use.
+
+**Alternatives.** Pictures alone until reviewed translations exist (leaves most local subjects without words); Hindi as the fallback caption (many Gondi and Halbi speakers read little Hindi, and a half-understood rights text is worse than none).
+
+**Consequences.** A wrong draft caption can mislead; pictures stay beside every caption and every answer still needs the subject's tap (FR-66). New subject texts need all seventeen languages or show pictures alone in the missing ones.
+
+## D-44 Instant English to Hindi captions without a model
+
+**Status:** Accepted; amends D-24
+
+**Context.** Text an officer types reached a Hindi-speaking subject in English unless the optional 806 MB assistant was imported and asked, which is slow and takes a button press. The written draft of a signed answer gave Hindi verbs in their dictionary form ("मैं पानी चाहना").
+
+**Decision.**
+- When the subject's language is Hindi and the officer types in Latin letters, a Hindi caption is made on the phone as they type (after a 250 ms pause) and shown under the composer, marked "machine translation, not checked". A tap dismisses it for that message; Send makes it again from the final text. The character still signs the officer's own words; an assistant suggestion, when asked for, replaces it.
+- The caption comes, in order, from: a reviewed English and Hindi pair in the content (questions, phrases, subject screen text, gesture lexicon, picture cards), matched on lower case without punctuation, articles or contractions; one of about 30 sentence patterns for welfare and police questions, using polite आप forms, honorific agreement for parents and officials, अपना where the subject owns the thing, and gender-free "हम" for the officer; or word by word in Hindi order. Any unknown word gives no caption rather than part of one.
+- The signed-answer draft gives common verbs their Hindi present form with the doer in को ("मुझे पानी चाहिए", "मुझे घर जाना है").
+
+**Alternatives.** Making the assistant model mandatory (size and speed); a bundled phrase-based translation model (new dependency, still unreviewed output); word-by-word output with gaps (puts half-sentences in front of a frightened subject).
+
+**Consequences.** Every caption is still an unchecked draft under D-24 and is logged with the officer's words. Hindi reviewers should check the sentence patterns in `Translate.kt` with the content. Other subject languages still need the assistant.

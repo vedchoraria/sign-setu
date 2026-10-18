@@ -38,9 +38,9 @@ class SignLanguageTest {
     @Test
     fun sentenceDemo() {
         val cases = listOf(
-            listOf("me", "water", "want") to ("I want water." to "मैं पानी चाहिए।"),
+            listOf("me", "water", "want") to ("I want water." to "मुझे पानी चाहिए।"),
             listOf("yesterday", "r", "a", "v", "i", "home", "go", "no") to ("Yesterday Ravi did not go home." to "कल ravi घर नहीं जाना।"),
-            listOf("you", "go", "where") to ("Where do you go?" to "तुम कहाँ जाना?"),
+            listOf("you", "go", "where") to ("Where do you go?" to "आपको कहाँ जाना है?"),
             listOf("?", "water", "?") to ("Water." to "पानी।"),
         )
         for ((gloss, expected) in cases) {

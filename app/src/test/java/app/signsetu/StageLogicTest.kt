@@ -114,12 +114,12 @@ class StageLogicTest {
     fun paceLastsOneSessionAndCycles() {
         StagePace.forSession("a", 0.75f)
         StagePace.speed.floatValue = 0.5f
-        StagePace.glanceHidden.value = true
+        StagePace.glanceHidden.value = false
         StagePace.forSession("a", 0.75f)
         assertEquals(0.5f, StagePace.speed.floatValue)
         StagePace.forSession("b", 1f)
         assertEquals(1f, StagePace.speed.floatValue)
-        assertEquals(false, StagePace.glanceHidden.value)
+        assertEquals(true, StagePace.glanceHidden.value)
 
         assertEquals(listOf(0.75f, 1f, 0.5f), listOf(0.5f, 0.75f, 1f).map(::nextPace))
         assertEquals(0.75f, initialPace(Profile.YOUNG_CHILD, 1f))

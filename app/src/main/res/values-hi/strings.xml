@@ -198,8 +198,11 @@
     <string name="officer_has_audio">उनकी भाषा में रिकॉर्ड की गई आवाज़</string>
     <string name="officer_media_missing">केवल तस्वीर और कैप्शन</string>
     <string name="officer_camera">कैमरा आईना</string>
+    <string name="officer_glance">स्टेज पर मेरी उलटी पट्टी</string>
     <string name="officer_skeleton_only">केवल ढाँचा (तस्वीर छिपाएँ)</string>
     <string name="officer_sign_language">सांकेतिक भाषा</string>
+    <string name="sign_isl">भारतीय (ISL)</string>
+    <string name="sign_asl">अमेरिकी (ASL)</string>
     <string name="log_sign_language">सांकेतिक भाषा %1$s चुनी</string>
     <string name="settings_stage">स्टेज</string>
     <string name="settings_camera">कैमरा आईना</string>

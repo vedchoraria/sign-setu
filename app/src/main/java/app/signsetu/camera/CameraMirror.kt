@@ -272,8 +272,8 @@ internal fun DrawScope.drawLandmarks(seen: LandmarkFrame, front: Boolean, analys
             drawText(labels, label, map(hand[0]) + Offset(stroke * 1.5f, stroke), TextStyle(color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold))
         }
     }
-    // Debug builds show the raw cue values, for setting the calibration knobs on a real phone.
-    if (BuildConfig.DEBUG) drawText(labels, tuningLine(seen), Offset(8f, 8f), TextStyle(color = Color.Yellow, fontSize = 11.sp, background = Color.Black.copy(alpha = 0.5f)))
+    // Debug builds show the raw cue values for calibrating on a real phone: adb shell setprop log.tag.SignSetuTuning DEBUG
+    if (BuildConfig.DEBUG && android.util.Log.isLoggable("SignSetuTuning", android.util.Log.DEBUG)) drawText(labels, tuningLine(seen), Offset(8f, 8f), TextStyle(color = Color.Yellow, fontSize = 11.sp, background = Color.Black.copy(alpha = 0.5f)))
 }
 
 internal enum class Edge { Top, Bottom, Left, Right }

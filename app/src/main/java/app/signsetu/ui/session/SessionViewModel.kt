@@ -219,7 +219,7 @@ class SessionViewModel(
             val session = repo.session(sessionId).first() ?: return@launch
             // Starting a session is the officer's confirmation of its opening: the stage greets the person first,
             // or, for someone who speaks another language, lets them find it (FR-63).
-            if (repo.events(sessionId).first().all { it.type == EventType.SYSTEM && it.text in StartRows }) {
+            if (repo.events(sessionId).first().all { it.type == EventType.SYSTEM && (it.text in StartRows || it.text?.startsWith(SYSTEM_SIGN_LANGUAGE) == true) }) {
                 val opening = if (session.profile == Profile.OTHER_LANGUAGE) Pending.LanguageFinder
                 else Pending.GroundRules().takeIf { content.question(RuleSteps.first().key) != null }
                 opening?.let { present(it, session.subjectLang) }
@@ -328,7 +328,10 @@ class SessionViewModel(
             val narrative = local.value.signWindow == SignWindow.NARRATIVE
             local.update { it.copy(reading = null, signWindow = null) }
             if (segments.isEmpty()) return@launch
-            logSigned(segments, segments.map { it.word ?: "?" }, EventSource.MACHINE, "en")
+            val words = segments.map { it.word ?: "?" }
+            val id = logSigned(segments, words, EventSource.MACHINE, "en")
+            // The subject checks the reading straight away by picking what each sign meant; only their tap counts (FR-66).
+            if (!narrative && !paired) confirmOnStage(id)
             val signWords = reader?.words.orEmpty()
             val gloss = segments.flatMap { s -> glossOf(s.guesses?.firstOrNull(), signWords) }
             val draft = glossToText(gloss, content.words, ui.value?.signLanguage ?: SignLanguage.ISL, segments.count { it.browsUp } * 2 >= segments.size).takeIf { gloss.any { it != "?" } }?.let { "${it.en} / ${it.hi}" }
@@ -345,9 +348,21 @@ class SessionViewModel(
         viewModelScope.launch { logSigned(segments, words, EventSource.OFFICER, officerLang, shownId) }
     }
 
-    private suspend fun logSigned(segments: List<SignSegment>, words: List<String>, source: EventSource, lang: String, shownId: Long? = local.value.itemId) {
+    private suspend fun logSigned(segments: List<SignSegment>, words: List<String>, source: EventSource, lang: String, shownId: Long? = local.value.itemId): Long {
         val id = repo.log(sessionId, EventType.ANSWER_SIGNED, source, lang, text = words.joinToString(" "), shownId = shownId)
         local.update { it.copy(signed = it.signed + (id to segments)) }
+        return id
+    }
+
+    /**
+     * Like [askSubject], but from the stage itself: the question stays, so the subject returns to it after choosing.
+     * With no officer reading the choices are all pictures, so no English word reaches someone who reads another script.
+     */
+    private suspend fun confirmOnStage(eventId: Long) {
+        val asked = choiceQueue(eventId, emptyList())
+        if (asked.isEmpty() || local.value.mode != Mode.SHOW) return
+        logChoices(asked.first().first)
+        local.update { it.copy(answeredCard = null, answeredYes = null, confirm = SignConfirm(eventId, asked.map { it.first }, asked.map { it.second })) }
     }
 
     /**
@@ -690,8 +705,8 @@ class SessionViewModel(
     fun submitDrawing(png: ByteArray) {
         viewModelScope.launch {
             repo.log(sessionId, EventType.ANSWER_DRAWING, EventSource.SUBJECT, drawingPng = png, shownId = local.value.itemId)
-            // The subject still holds the phone; only the officer handle, with re-authentication, leaves Show (FR-61).
-            local.update { it.copy(pending = null) }
+            // The question stays on the stage, so a drawing given as one answer does not wipe what was asked.
+            advanceRun()
         }
     }
 

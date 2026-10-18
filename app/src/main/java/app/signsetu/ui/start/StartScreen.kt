@@ -1,5 +1,7 @@
 package app.signsetu.ui.start
 
+import app.signsetu.ui.session.SYSTEM_SIGN_LANGUAGE
+import app.signsetu.data.content.SignLanguage
 import app.signsetu.ui.components.GuardedAlertDialog
 import app.signsetu.ui.components.BrandButton
 import app.signsetu.ui.components.ChoiceTile
@@ -122,10 +124,12 @@ fun StartScreen(
     var lang by rememberSaveable { mutableStateOf("hi") }
     var role by rememberSaveable { mutableStateOf(SessionRole.NOT_KNOWN) }
     var underAge by rememberSaveable { mutableStateOf(false) }
+    var signLang by rememberSaveable { mutableStateOf(SignLanguage.ISL) }
 
     val begin = { p: Profile ->
         scope.launch {
             val id = repo.start(p, lang, role)
+            if (p == Profile.ISL_USER && signLang != SignLanguage.ISL) repo.log(id, EventType.SYSTEM, EventSource.OFFICER, text = SYSTEM_SIGN_LANGUAGE + signLang.name)
             // The record shows the officer saw the Juvenile Justice notice, and whether they marked the person a child.
             if (role == SessionRole.ACCUSED) {
                 repo.log(id, EventType.SYSTEM, EventSource.OFFICER, text = SYSTEM_JJ_NOTICE)
@@ -220,6 +224,16 @@ fun StartScreen(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
+                        if (profile == Profile.ISL_USER && !content.aslDisabled) {
+                            Text(stringResource(R.string.officer_sign_language), style = MaterialTheme.typography.titleSmall, modifier = Modifier.semantics { heading() })
+                            Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min).selectableGroup(), horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                                SignLanguage.entries.forEach { s ->
+                                    ChoiceTile(s == signLang, onClick = { signLang = s }, modifier = Modifier.weight(1f).fillMaxHeight()) {
+                                        Text(stringResource(if (s == SignLanguage.ASL) R.string.sign_asl else R.string.sign_isl), style = MaterialTheme.typography.labelLarge, textAlign = TextAlign.Center)
+                                    }
+                                }
+                            }
+                        }
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         if (profile == Profile.OTHER_LANGUAGE) {
                             Text(stringResource(R.string.start_language_finder), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
