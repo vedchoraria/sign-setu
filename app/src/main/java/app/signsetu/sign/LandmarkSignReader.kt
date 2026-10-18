@@ -15,7 +15,7 @@ import kotlin.math.max
  */
 class LandmarkSignReader(spec: String, weights: ByteArray, override val words: Map<String, String> = emptyMap()) : SignReader {
     @Serializable
-    private class Spec(val frames: Int, val features: Int, val hidden: Int, val kernel: Int, val labels: List<String>, val norm: String = "shoulders")
+    private class Spec(val frames: Int, val features: Int, val hidden: Int, val kernel: Int, val labels: List<String>, val norm: String = "shoulders", val dtype: String = "float32")
 
     private val s = Json { ignoreUnknownKeys = true }.decodeFromString<Spec>(spec)
     override val labels: List<String> = s.labels
@@ -33,13 +33,14 @@ class LandmarkSignReader(spec: String, weights: ByteArray, override val words: M
 
     init {
         require(s.features == FEATURES) { "feature count" }
-        val buf = ByteBuffer.wrap(weights).order(ByteOrder.LITTLE_ENDIAN).asFloatBuffer()
-        fun take(n: Int) = FloatArray(n).also { buf.get(it) }
+        val flat = weightFloats(weights, s.dtype)
+        var at = 0
+        fun take(n: Int) = flat.copyOfRange(at, at + n).also { at += n }
         embedW = take(h * FEATURES); embedB = take(h)
         conv1W = take(h * h * k); conv1B = take(h)
         conv2W = take(h * h * k); conv2B = take(h)
         headW = take(labels.size * 2 * h); headB = take(labels.size)
-        require(!buf.hasRemaining()) { "weights size" }
+        require(at == flat.size) { "weights size" }
     }
 
     override fun read(frames: List<LandmarkFrame>): List<SignGuess> {
@@ -141,4 +142,30 @@ fun handFeatures(frames: List<LandmarkFrame>, t: Int): FloatArray? {
         f.rightHand?.takeIf { it.size == 21 }?.let { hand -> hand.forEachIndexed { i, p -> put(42 + 2 * i, p.x, p.y) }; out[row + 97] = 1f }
     }
     return out
+}
+
+/** Little-endian weights as floats; "float16" files hold half precision (NFR-05). */
+internal fun weightFloats(weights: ByteArray, dtype: String): FloatArray {
+    val bytes = ByteBuffer.wrap(weights).order(ByteOrder.LITTLE_ENDIAN)
+    if (dtype != "float16") return FloatArray(weights.size / 4).also { bytes.asFloatBuffer().get(it) }
+    val shorts = bytes.asShortBuffer()
+    return FloatArray(weights.size / 2) { halfToFloat(shorts.get(it)) }
+}
+
+/** IEEE 754 half precision to float, in plain Kotlin so the JVM tests and every Android version read the same values. */
+internal fun halfToFloat(h: Short): Float {
+    val bits = h.toInt() and 0xffff
+    val sign = (bits and 0x8000) shl 16
+    val exp = (bits ushr 10) and 0x1f
+    val mant = bits and 0x3ff
+    return Float.fromBits(when {
+        exp == 0 && mant == 0 -> sign
+        exp == 0 -> { // subnormal: normalise
+            var e = -1; var m = mant
+            do { e++; m = m shl 1 } while (m and 0x400 == 0)
+            sign or ((127 - 15 - e) shl 23) or ((m and 0x3ff) shl 13)
+        }
+        exp == 0x1f -> sign or 0x7f800000 or (mant shl 13)
+        else -> sign or ((exp - 15 + 127) shl 23) or (mant shl 13)
+    })
 }

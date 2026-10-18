@@ -27,9 +27,9 @@ class HomeSigns {
     }
 
     private companion object {
-        // Mean per-frame distance in shoulder widths. On INCLUDE, the same word by other signers has median 7.9 and other
-        // words have 10th percentile 6.1, so 6 keeps most repeats by one signer and few strangers; tune on devices.
-        const val LIMIT = 6f
+        // Mean per-frame distance in shoulder widths. On INCLUDE, the same word by other signers has median 3.1 and other
+        // words have 10th percentile 3.0, so 3 keeps most repeats by one signer and few strangers; tune on devices.
+        const val LIMIT = 3f
     }
 }
 

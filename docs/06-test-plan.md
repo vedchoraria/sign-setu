@@ -6,13 +6,13 @@
 | --- | --- | --- | --- |
 | Unit | Session logic, retention, content resolution, lexicon search, lesson inputs, build expiry, segmentation, sign reader, auto sequencer, pairing protocol, handover, record and grades, rig | JUnit 4, kotlinx-coroutines-test, in-process transport fake; run for both flavors (`testStandardDebugUnitTest`, `testNearbyDebugUnitTest`) | Every change |
 | Portal | Rig parity with `Rig.kt`, review flags, missing captions | `vp test` (Vitest through Vite+) | Every change to the rig or portal |
-| Tools | Retarget maths, review-record merge | `python tools/isl/test_retarget.py`, `python tools/content/test_review_record.py` | Every change to the tools |
+| Tools | Retarget maths | `python tools/isl/test_retarget.py` | Every change to the tools |
 | Instrumented | Stage accessibility, overlay filtering, database migrations | `connectedStandardDebugAndroidTest` on an emulator | Every change |
 | Device | Release build on real phones | Scripts below, Macrobenchmark | Gate 1 |
 | Security | MASVS L2 checks, static analysis, dependency and secret scans | Lint, Semgrep, OSV-Scanner, gitleaks, MobSF static | Every change (static); gate 1 (full) |
 | Accessibility | IS 17802 / WCAG 2.1 AA on the officer panel | Accessibility Test Framework in instrumented tests (the Accessibility Scanner engine), TalkBack | Every change; TalkBack at gate 1 |
 | Content | Translations, motions, audio | Reviewers per the content policy, through the reviewer portal | Gate 1 |
-| Acceptance | Department testers | [governance/17-uat-scripts.md](governance/17-uat-scripts.md) | Gate 1 |
+| Acceptance | Department testers | Scripted walk-throughs on department phones | Gate 1 |
 
 Logic with branches (retention, show-back, build expiry, export) is written test-first: the failing test, then the code.
 

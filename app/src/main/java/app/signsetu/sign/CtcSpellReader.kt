@@ -4,8 +4,6 @@ import app.signsetu.camera.LandmarkFrame
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 import kotlin.math.abs
 import kotlin.math.hypot
 import kotlin.math.max
@@ -26,6 +24,7 @@ class CtcSpellReader(spec: String, weights: ByteArray) {
         val kernel: Int,
         val dilations: List<Int>,
         val alphabet: String,
+        val dtype: String = "float32",
     )
 
     private val s = Json { ignoreUnknownKeys = true }.decodeFromString<Spec>(spec)
@@ -42,14 +41,15 @@ class CtcSpellReader(spec: String, weights: ByteArray) {
 
     init {
         require(s.format == 2 && s.features == FEATURES) { "format" }
-        val buf = ByteBuffer.wrap(weights).order(ByteOrder.LITTLE_ENDIAN).asFloatBuffer()
-        fun take(n: Int) = FloatArray(n).also { buf.get(it) }
+        val flat = weightFloats(weights, s.dtype)
+        var at = 0
+        fun take(n: Int) = flat.copyOfRange(at, at + n).also { at += n }
         embedW = take(h * FEATURES); embedB = take(h)
         val w = ArrayList<FloatArray>(); val b = ArrayList<FloatArray>()
         repeat(s.dilations.size) { w += take(h * h * k); b += take(h) }
         convW = w; convB = b
         headW = take(classes * h); headB = take(classes)
-        require(!buf.hasRemaining()) { "weights size" }
+        require(at == flat.size) { "weights size" }
     }
 
     /** The letters read, empty when no hand was seen. */

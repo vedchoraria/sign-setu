@@ -70,9 +70,7 @@ const val MODE_RESUME = "resume"
  * Keys for one link; [code] is the 6 digits, [resumeKey] is set on new links only. [check] is shown on both screens
  * once the officer's phone has accepted the code, so the stage goes live only for the phone in the officer's hand.
  */
-class LinkKeys(val send: ByteArray, val receive: ByteArray, val code: String, val resumeKey: ByteArray?, val peerModel: String, val check: String) {
-    fun wipe() { send.fill(0); receive.fill(0); resumeKey?.fill(0) }
-}
+class LinkKeys(val send: ByteArray, val receive: ByteArray, val code: String, val resumeKey: ByteArray?, val peerModel: String, val check: String)
 
 private val P256 by lazy {
     (KeyPairGenerator.getInstance("EC").apply { initialize(ECGenParameterSpec("secp256r1")) }.generateKeyPair().public as ECPublicKey).params
@@ -106,7 +104,7 @@ internal fun readPlain(input: DataInputStream): ByteArray {
 private inline fun <reified T> decode(bytes: ByteArray): T =
     try { handshakeJson.decodeFromString<T>(bytes.decodeToString()) } catch (_: Exception) { throw PairAbort(Abort.PROTOCOL) }
 
-private fun derive(ss: ByteArray, transcript: ByteArray, resumeKey: ByteArray?, officer: Boolean, peerModel: String): LinkKeys {
+internal fun derive(ss: ByteArray, transcript: ByteArray, resumeKey: ByteArray?, officer: Boolean, peerModel: String): LinkKeys {
     val salt = if (resumeKey == null) transcript else sha256(resumeKey, transcript)
     val prk = Hkdf.extract(salt, ss)
     ss.fill(0)

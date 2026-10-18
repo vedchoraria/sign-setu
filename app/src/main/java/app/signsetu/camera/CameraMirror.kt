@@ -4,8 +4,6 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.os.SystemClock
-import android.util.Log
 import android.util.Size
 import app.signsetu.BuildConfig
 import androidx.camera.compose.CameraXViewfinder
@@ -41,9 +39,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
@@ -52,7 +52,9 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.withContext
 import java.util.concurrent.Executors
 import kotlin.math.max
 
@@ -101,14 +103,15 @@ fun CameraMirror(
     val skeletonOnly = SkeletonOnly.on.value && tracker != null
 
     if (permitted) {
-        LaunchedEffect(owner, tracker, skeletonOnly) {
+        // CameraX binds and sets surfaces on the main thread only; an effect resumes wherever its dispatcher says.
+        LaunchedEffect(owner, tracker, skeletonOnly) { withContext(Dispatchers.Main.immediate) {
             // Opening the camera waits for the stage's first frame, so the question appears first (NFR-02).
             withFrameNanos { }
             val provider = ProcessCameraProvider.awaitInstance(context)
             val selector = when {
                 provider.hasCamera(CameraSelector.DEFAULT_FRONT_CAMERA) -> CameraSelector.DEFAULT_FRONT_CAMERA.also { front = true }
                 provider.hasCamera(CameraSelector.DEFAULT_BACK_CAMERA) -> CameraSelector.DEFAULT_BACK_CAMERA.also { front = false }
-                else -> { failed = true; return@LaunchedEffect }
+                else -> { failed = true; return@withContext }
             }
             val preview = if (skeletonOnly) null else Preview.Builder().setResolutionSelector(PREVIEW_RESOLUTION).build().apply { setSurfaceProvider { request = it } }
             val frames = tracker?.let {
@@ -132,7 +135,7 @@ fun CameraMirror(
                 request = null
                 provider.unbind(*useCases.toTypedArray())
             }
-        }
+        } }
     }
 
     val analysing = onFrame != null
@@ -150,8 +153,6 @@ fun CameraMirror(
         var lastMs: Long? = null
         var reused: Bitmap? = null
         var busy = false
-        var fpsFrames = 0
-        var fpsSince = SystemClock.uptimeMillis()
         a.setAnalyzer(executor) { proxy ->
             proxy.use {
                 val ms = it.imageInfo.timestamp / 1_000_000
@@ -173,15 +174,6 @@ fun CameraMirror(
                 busy = true
                 val frame = runCatching { tracker.track(bitmap, ms)?.copy(aspect = aspect)?.let(cues::mark)?.let(heads::mark)?.let(thumbs::mark)?.let(pointing::mark)?.let(palms::mark)?.let(shrugs::mark) }.getOrNull()
                 busy = false
-                if (BuildConfig.DEBUG) {
-                    fpsFrames++
-                    val now = SystemClock.uptimeMillis()
-                    if (now - fpsSince >= 1000) {
-                        Log.d("SignSetuFps", "$fpsFrames fps")
-                        fpsFrames = 0
-                        fpsSince = now
-                    }
-                }
                 if (!packed) bitmap.recycle()
                 if (frame?.pose != null) lastPerson = ms
                 shown = frame
@@ -229,54 +221,59 @@ fun CameraMirror(
                 }, guide, style = line)
             }
             val seen = shown ?: return@Canvas
-            fun map(p: Offset) = overlayPoint(p, seen.aspect, size.width, size.height, front)
-            val a = map(Offset.Zero)
-            val b = map(Offset(1f, 1f))
-            val stroke = max(4f, size.minDimension / 90f)
-            // A wrist at or past the frame edge lights that edge, a wordless "bring your hands into view", only while signing is expected.
-            if (analysing) seen.pose?.takeIf { it.size >= 33 }?.let { pose ->
-                val bar = stroke * 2f
-                val left = minOf(a.x, b.x); val right = max(a.x, b.x)
-                for (w in listOf(pose[15], pose[16])) {
-                    val e = outOfView(w) ?: continue
-                    val (x, y) = when (e) {
-                        Edge.Top -> Offset(left, a.y) to Extent(right - left, bar)
-                        Edge.Bottom -> Offset(left, b.y - bar) to Extent(right - left, bar)
-                        // The front camera is mirrored, so the frame's left edge shows on the right.
-                        Edge.Left -> (if (front) Offset(right - bar, a.y) else Offset(left, a.y)) to Extent(bar, b.y - a.y)
-                        Edge.Right -> (if (front) Offset(left, a.y) else Offset(right - bar, a.y)) to Extent(bar, b.y - a.y)
-                    }
-                    drawRect(handColor.copy(alpha = 0.8f), x, y)
-                }
-            }
-            // Points beyond the frame edge would otherwise sit in the letterbox band as stray dots.
-            clipRect(minOf(a.x, b.x), a.y, max(a.x, b.x), b.y) {
-                seen.face?.takeIf { it.size >= 468 }?.let { face ->
-                    fun outline(line: List<Int>, color: Color, width: Float) {
-                        val path = Path().apply { line.forEachIndexed { i, n -> map(face[n]).let { if (i == 0) moveTo(it.x, it.y) else lineTo(it.x, it.y) } } }
-                        drawPath(path, color, style = Stroke(width))
-                    }
-                    if (showFace) for (line in FaceOutlines.all) outline(line, Color.White.copy(alpha = 0.5f), stroke * 0.5f)
-                    // Brows and lips carry facial grammar; they light up when raised or open.
-                    val brow = if (seen.browsUp) handColor else Color.White.copy(alpha = 0.7f)
-                    outline(FaceOutlines.leftBrow, brow, stroke * if (seen.browsUp) 0.9f else 0.6f)
-                    outline(FaceOutlines.rightBrow, brow, stroke * if (seen.browsUp) 0.9f else 0.6f)
-                    outline(FaceOutlines.lips, if (seen.mouthOpen) handColor else Color.White.copy(alpha = 0.7f), stroke * if (seen.mouthOpen) 0.9f else 0.6f)
-                }
-                seen.pose?.takeIf { it.size >= 33 }?.let { pose ->
-                    for ((i, j) in ArmBones) drawLine(handColor.copy(alpha = 0.6f), map(pose[i]), map(pose[j]), stroke * 1.6f, StrokeCap.Round)
-                    for (i in 11..16) drawCircle(handColor, stroke * 1.2f, map(pose[i]))
-                }
-                for ((label, hand) in labelledHands(seen)) {
-                    for ((i, j) in HandBones) drawLine(handColor, map(hand[i]), map(hand[j]), stroke, StrokeCap.Round)
-                    for (p in hand) drawCircle(Color.White, stroke * 0.9f, map(p))
-                    drawText(labels, label, map(hand[0]) + Offset(stroke * 1.5f, stroke), TextStyle(color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold))
-                }
-            }
-            // Debug builds show the raw cue values, for setting the calibration knobs on a real phone.
-            if (BuildConfig.DEBUG) drawText(labels, tuningLine(seen), Offset(8f, 8f), TextStyle(color = Color.Yellow, fontSize = 11.sp, background = Color.Black.copy(alpha = 0.5f)))
+            drawLandmarks(seen, front, analysing, showFace, handColor, labels)
         }
     }
+}
+
+/** The traced skeleton, brows and lips of [seen] over a frame drawn Fit and centred; the camera overlay and its device test both draw this. */
+internal fun DrawScope.drawLandmarks(seen: LandmarkFrame, front: Boolean, analysing: Boolean, showFace: Boolean, handColor: Color, labels: TextMeasurer) {
+    fun map(p: Offset) = overlayPoint(p, seen.aspect, size.width, size.height, front)
+    val a = map(Offset.Zero)
+    val b = map(Offset(1f, 1f))
+    val stroke = max(4f, size.minDimension / 90f)
+    // A wrist at or past the frame edge lights that edge, a wordless "bring your hands into view", only while signing is expected.
+    if (analysing) seen.pose?.takeIf { it.size >= 33 }?.let { pose ->
+        val bar = stroke * 2f
+        val left = minOf(a.x, b.x); val right = max(a.x, b.x)
+        for (w in listOf(pose[15], pose[16])) {
+            val e = outOfView(w) ?: continue
+            val (x, y) = when (e) {
+                Edge.Top -> Offset(left, a.y) to Extent(right - left, bar)
+                Edge.Bottom -> Offset(left, b.y - bar) to Extent(right - left, bar)
+                // The front camera is mirrored, so the frame's left edge shows on the right.
+                Edge.Left -> (if (front) Offset(right - bar, a.y) else Offset(left, a.y)) to Extent(bar, b.y - a.y)
+                Edge.Right -> (if (front) Offset(left, a.y) else Offset(right - bar, a.y)) to Extent(bar, b.y - a.y)
+            }
+            drawRect(handColor.copy(alpha = 0.8f), x, y)
+        }
+    }
+    // Points beyond the frame edge would otherwise sit in the letterbox band as stray dots.
+    clipRect(minOf(a.x, b.x), a.y, max(a.x, b.x), b.y) {
+        seen.face?.takeIf { it.size >= 468 }?.let { face ->
+            fun outline(line: List<Int>, color: Color, width: Float) {
+                val path = Path().apply { line.forEachIndexed { i, n -> map(face[n]).let { if (i == 0) moveTo(it.x, it.y) else lineTo(it.x, it.y) } } }
+                drawPath(path, color, style = Stroke(width))
+            }
+            if (showFace) for (line in FaceOutlines.all) outline(line, Color.White.copy(alpha = 0.5f), stroke * 0.5f)
+            // Brows and lips carry facial grammar; they light up when raised or open.
+            val brow = if (seen.browsUp) handColor else Color.White.copy(alpha = 0.7f)
+            outline(FaceOutlines.leftBrow, brow, stroke * if (seen.browsUp) 0.9f else 0.6f)
+            outline(FaceOutlines.rightBrow, brow, stroke * if (seen.browsUp) 0.9f else 0.6f)
+            outline(FaceOutlines.lips, if (seen.mouthOpen) handColor else Color.White.copy(alpha = 0.7f), stroke * if (seen.mouthOpen) 0.9f else 0.6f)
+        }
+        seen.pose?.takeIf { it.size >= 33 }?.let { pose ->
+            for ((i, j) in ArmBones) drawLine(handColor.copy(alpha = 0.6f), map(pose[i]), map(pose[j]), stroke * 1.6f, StrokeCap.Round)
+            for (i in 11..16) drawCircle(handColor, stroke * 1.2f, map(pose[i]))
+        }
+        for ((label, hand) in labelledHands(seen)) {
+            for ((i, j) in HandBones) drawLine(handColor, map(hand[i]), map(hand[j]), stroke * 1.3f, StrokeCap.Round)
+            for (p in hand) { drawCircle(Color.Black.copy(alpha = 0.5f), stroke * 1.4f, map(p)); drawCircle(Color.White, stroke * 1.1f, map(p)) }
+            drawText(labels, label, map(hand[0]) + Offset(stroke * 1.5f, stroke), TextStyle(color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold))
+        }
+    }
+    // Debug builds show the raw cue values, for setting the calibration knobs on a real phone.
+    if (BuildConfig.DEBUG) drawText(labels, tuningLine(seen), Offset(8f, 8f), TextStyle(color = Color.Yellow, fontSize = 11.sp, background = Color.Black.copy(alpha = 0.5f)))
 }
 
 internal enum class Edge { Top, Bottom, Left, Right }

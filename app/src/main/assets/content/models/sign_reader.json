@@ -3,49 +3,49 @@
  "architecture": "per-frame linear+relu; conv1d+relu x2 (same padding, batch norm folded); global average and max pooling concatenated; linear to logits",
  "frames": 32,
  "features": 98,
- "hidden": 160,
+ "hidden": 320,
  "kernel": 5,
  "classes": 262,
  "tensors": [
   {
    "shape": [
-    160,
+    320,
     98
    ]
   },
   {
    "shape": [
-    160
+    320
    ]
   },
   {
    "shape": [
-    160,
-    160,
+    320,
+    320,
     5
    ]
   },
   {
    "shape": [
-    160
+    320
    ]
   },
   {
    "shape": [
-    160,
-    160,
+    320,
+    320,
     5
    ]
   },
   {
    "shape": [
-    160
+    320
    ]
   },
   {
    "shape": [
     262,
-    320
+    640
    ]
   },
   {
@@ -54,11 +54,13 @@
    ]
   }
  ],
- "weights": "float32 little-endian, tensors in the order above, row-major; conv weight is [out][in][kernel]",
+ "dtype": "float16",
+ "weights": "float16 little-endian, tensors in the order above, row-major; conv weight is [out][in][kernel]",
  "feature_spec": "MediaPipe Holistic normalised image points, unmirrored; y scaled by height/width; centre = mean shoulder midpoint (pose 11, 12) over the segment, scale = mean shoulder width; per frame: left hand 21x(x,y), right hand 21x(x,y), pose 11..16 (x,y), left and right presence flags; a missing part is zeros; segment resampled to `frames` by nearest index (i*(n-1)*2 + frames-1) div (2*(frames-1))",
  "dataset": "INCLUDE (AI4Bharat), OpenHands pose release, zenodo.org/records/6674324, CC BY 4.0",
- "test_top1": 0.9779,
- "test_top3": 0.9939,
+ "epochs": 400,
+ "test_top1": 0.9792,
+ "test_top3": 0.9951,
  "labels": [
   "actor",
   "adult",

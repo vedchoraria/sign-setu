@@ -154,7 +154,7 @@ fun CompletionRows(content: ContentBundle, text: String, officerLang: String, on
 /** Under an answer bubble: whose meaning it is, the place of the picture chosen, its timing, and Say it back. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun AnswerMeta(grade: Grade?, trail: Trail?, position: Pair<Int, Int>?, onSayBack: (() -> Unit)?) {
+fun AnswerMeta(grade: Grade?, trail: Trail?, position: Pair<Int, Int>?, onSayBack: (() -> Unit)?, cue: String? = null) {
     val res = LocalResources.current
     val colors = MaterialTheme.colorScheme
     val answer = LocalAnswerColors.current
@@ -172,6 +172,7 @@ fun AnswerMeta(grade: Grade?, trail: Trail?, position: Pair<Int, Int>?, onSayBac
             }
         }
         val line = listOfNotNull(
+            cue,
             position?.let { (n, of) -> stringResource(R.string.choice_position, n, of) },
             trail?.let { trailText(res, it) },
         ).joinToString(" · ")

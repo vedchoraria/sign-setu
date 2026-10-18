@@ -21,6 +21,7 @@ import numpy as np
 import torch
 from torch import nn
 
+import runtime
 from features import SPELL_FEATURES, SPELL_FPS, SPELL_MAX, spell_features
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
@@ -248,7 +249,7 @@ def export(data: pathlib.Path) -> None:
         for conv, bn in zip(model.convs, model.bns):
             tensors += list(folded(conv, bn))
         tensors += [model.head.weight, model.head.bias]
-        blob = b"".join(t.detach().numpy().astype("<f4").tobytes() for t in tensors)
+        blob = b"".join(t.detach().numpy().astype("<f2").tobytes() for t in tensors)
     (MODELS / "asl_spell.bin").write_bytes(blob)
     spec = {
         "format": 2,
@@ -257,7 +258,8 @@ def export(data: pathlib.Path) -> None:
         "fps": SPELL_FPS, "max_frames": SPELL_MAX, "features": SPELL_FEATURES, "hidden": HIDDEN, "kernel": KERNEL,
         "dilations": list(DILATIONS), "alphabet": ALPHABET,
         "tensors": [{"shape": list(t.shape)} for t in tensors],
-        "weights": "float32 little-endian, tensors in the order above, row-major; conv weight is [out][in][kernel]",
+        "dtype": "float16",
+        "weights": "float16 little-endian, tensors in the order above, row-major; conv weight is [out][in][kernel]",
         "feature_spec": "frames resampled to `fps` by nearest timestamp (ties to the earlier), at most `max_frames`; "
                         "the hand present in more resampled frames (ties to the right), a left hand mirrored in x; "
                         "y scaled by height/width; per frame: 21x(x,y) minus the wrist, divided by the wrist to "
@@ -272,6 +274,8 @@ def export(data: pathlib.Path) -> None:
     (MODELS / "asl_spell.json").write_text(json.dumps(spec, indent=1) + "\n", encoding="utf-8", newline="\n")
     print(f"asl_spell: weights {len(blob)} bytes")
 
+    # The fixture is what the shipped half-precision file computes, so Kotlin must match it exactly.
+    _, shipped = runtime.speller()
     letters, aspect = load(data)
     rng = np.random.default_rng(5)
     cases = []
@@ -279,8 +283,7 @@ def export(data: pathlib.Path) -> None:
         ts, left, right, hl, hr = sequence(text, letters, "test", aspect, rng)
         left, right = np.round(left.astype(np.float64), 5), np.round(right.astype(np.float64), 5)
         f = spell_features(ts, left, right, hl, hr, aspect)
-        with torch.no_grad():
-            logits = model(torch.tensor(f[None]))[0].double().numpy()
+        logits = shipped(f.astype(np.float64))
         frames = [{"t": int(ts[i]), "left": [round(float(v), 5) for v in left[i].reshape(-1)] if hl[i] else None,
                    "right": [round(float(v), 5) for v in right[i].reshape(-1)] if hr[i] else None} for i in range(len(ts))]
         cases.append({"text": text, "decoded": greedy(logits), "frames": frames,

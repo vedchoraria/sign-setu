@@ -38,17 +38,9 @@ npx vp preview  # serves portal/dist
 The built `dist/` folder can be copied to any machine and served by any static file server. Content changes in the
 app need a rebuild.
 
-## Into the content review record
+## Keeping the verdicts
 
-Pass the exported file to the record generator:
-
-```
-python tools/content/review_record.py --reviews content-review-2026-10-16.json
-```
-
-Gesture verdicts fill the Child and Adult columns, phrase verdicts the English, Hindi and Signs columns (by role),
-question verdicts the prepared-questions table, and approved recordings are counted per language folder. Notes go
-into the Notes column with the reviewer's role.
+The exported JSON file is the review record: keep it with the release it reviewed.
 
 ## Keeping the rig in step
 

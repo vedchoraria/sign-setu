@@ -9,7 +9,7 @@ MODELS = pathlib.Path(__file__).resolve().parents[2] / "app" / "src" / "main" / 
 
 def _tensors(name: str):
     spec = json.loads((MODELS / f"{name}.json").read_text(encoding="utf-8"))
-    flat = np.frombuffer((MODELS / f"{name}.bin").read_bytes(), "<f4")
+    flat = np.frombuffer((MODELS / f"{name}.bin").read_bytes(), "<f2" if spec.get("dtype") == "float16" else "<f4")
     out, at = [], 0
     for t in spec["tensors"]:
         n = int(np.prod(t["shape"]))

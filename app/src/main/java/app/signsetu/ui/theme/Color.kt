@@ -117,17 +117,13 @@ internal val StageScheme = lightColorScheme(
 /** The officer header and main buttons: the indigo brand gradient, the same in both themes. */
 @Immutable
 data class InkColors(
-    val band: Color, val onBand: Color, val onBandMuted: Color, val chip: Color, val chipSelected: Color, val onChipSelected: Color,
+    val onBand: Color, val onBandMuted: Color,
     val brush: Brush,
 )
 
 internal val Ink = InkColors(
-    band = Color(0xFF1E3A8A),
     onBand = Color(0xFFFFFFFF),
     onBandMuted = Color(0xBFFFFFFF),
-    chip = Color(0x2EFFFFFF),
-    chipSelected = Color(0xFFFFFFFF),
-    onChipSelected = Color(0xFF1E3A8A),
     brush = Brush.linearGradient(listOf(Color(0xFF1E3A8A), Color(0xFF3B4FD8), Color(0xFF6366F1))),
 )
 
@@ -142,7 +138,6 @@ data class StageColors(
     val onBubble: Color,
     val window: Color,
     val windowFrame: Color,
-    val onWindow: Color,
     val handle: Color,
     val onHandle: Color,
     /** Wordmark and icons drawn straight on the backdrop. */
@@ -164,7 +159,6 @@ internal val StageLight = StageColors(
     onBubble = Color(0xFF2B2118),
     window = Color(0xFF2E2A33),
     windowFrame = Color(0xFFFFFFFF),
-    onWindow = Color(0xFFF5EFE8),
     handle = Color(0x33000000),
     onHandle = Color(0xFF5B4C3E),
     title = Color(0xFF143C44),
@@ -179,7 +173,6 @@ internal val StageDark = StageColors(
     onBubble = Color(0xFF2B2118),
     window = Color(0xFF1A1719),
     windowFrame = Color(0xFF6B5A4E),
-    onWindow = Color(0xFFF5EFE8),
     handle = Color(0x33FFFFFF),
     onHandle = Color(0xFFE7D8C8),
     title = Color(0xFFF6E7D6),
@@ -196,7 +189,6 @@ internal val SunStageColors = StageColors(
     onBubble = Color(0xFFFFE14D),
     window = Color(0xFF000000),
     windowFrame = Color(0xFFFFFFFF),
-    onWindow = Color(0xFFFFFFFF),
     handle = Color(0x66FFFFFF),
     onHandle = Color(0xFFFFFFFF),
     title = Color(0xFFFFE14D),

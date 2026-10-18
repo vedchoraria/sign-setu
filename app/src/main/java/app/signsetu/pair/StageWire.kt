@@ -57,16 +57,16 @@ sealed interface ToStage {
 
 @Serializable
 sealed interface AnswerBody {
-    @Serializable @SerialName("card") data class Card(val id: String) : AnswerBody
+    @Serializable @SerialName("card") data class Card(val id: String, val cue: String? = null) : AnswerBody
     /** The subject moves the opening on; it is not an answer and is not logged. */
     @Serializable @SerialName("next") data object Next : AnswerBody
-    @Serializable @SerialName("yesno") data class YesNo(val yes: Boolean) : AnswerBody
+    @Serializable @SerialName("yesno") data class YesNo(val yes: Boolean, val cue: String? = null) : AnswerBody
     @Serializable @SerialName("lang") data class Language(val code: String) : AnswerBody
     @Serializable @SerialName("text") data class Text(val text: String) : AnswerBody
     @Serializable @SerialName("draw") data class Drawing(val png: String) : AnswerBody
-    /** A lesson-sheet answer or phrase; [method] is a Method name and the officer's phone re-checks it. */
     /** The subject changed a lesson answer before confirming it; the earlier entry is dropped. */
     @Serializable @SerialName("change") data object Change : AnswerBody
+    /** A lesson-sheet answer or phrase; [method] is a Method name and the officer's phone re-checks it. */
     @Serializable @SerialName("given") data class Given(val question: String, val method: String, val confirmed: Boolean, val value: String = "", val picks: List<String> = emptyList()) : AnswerBody
 }
 
@@ -87,7 +87,6 @@ object ByeReason {
     const val FALLBACK = "fallback"
     const val EXIT = "exit"
     const val UNPINNED = "unpinned"
-    const val ERROR = "error"
 }
 
 /** Sender-side check; an answer that fails it is never sent (the stage caps input before this). */

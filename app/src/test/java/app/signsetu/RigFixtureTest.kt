@@ -12,6 +12,7 @@ import app.signsetu.ui.avatar.elbowAt
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
+import org.junit.Assert.fail
 import org.junit.Test
 import java.io.File
 import java.util.Locale
@@ -43,7 +44,10 @@ class RigFixtureTest {
             }
         }
         val text = "{\"samples\":[\n" + lines.joinToString(",\n") + "\n]}\n"
-        if (!fixtures.exists()) fixtures.writeText(text)
+        if (!fixtures.exists()) {
+            fixtures.writeText(text)
+            fail("wrote ${fixtures.path}; check rig.test.ts passes against it and run again")
+        }
         assertEquals("Rig.kt changed: regenerate ${fixtures.path} (see the class comment)", fixtures.readText(), text)
     }
 

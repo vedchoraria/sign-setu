@@ -41,8 +41,17 @@ class SegmentTest {
 
     @Test
     fun twitchesAreNotSigns() {
-        val frames = stream(*gone(5), *moving(2), *gone(20))
-        assertTrue(segmentSigns(frames, final = true).isEmpty())
+        fun signs(frames: List<LandmarkFrame>): Int {
+            val capture = SignCapture()
+            val captured = frames.flatMap { capture.add(it) } + capture.finish()
+            assertEquals(segmentSigns(frames, final = true).size, captured.size)
+            return captured.size
+        }
+        // Too short: four moving frames over 0.13 s.
+        assertEquals(0, signs(stream(*gone(5), *moving(4), *gone(20))))
+        // Too few moving frames: a hand appears, rests, and jumps once, 0.4 s in all.
+        assertEquals(0, signs(stream(*gone(5), *still(11), 0.6f, *still(3, at = 0.6f), *gone(20))))
+        assertEquals(1, signs(stream(*gone(5), *moving(8), *gone(20))))
     }
 
     @Test

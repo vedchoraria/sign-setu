@@ -53,12 +53,9 @@ jobs:
       - run: pip install numpy resvg-py pillow
       - name: Python tool tests
         run: |
-          for d in tools/isl tools/content tools/security; do
-            if [ -d "$d" ]; then python -m unittest discover -s "$d" -p 'test_*.py' -v; fi
-          done
-      - name: Content review record and manifest are current
+          for d in tools/isl tools/security; do python -m unittest discover -s "$d" -p 'test_*.py' -v; done
+      - name: Content manifest is current
         run: |
-          python tools/content/review_record.py
           python tools/content/build_content.py --manifest-only
           git diff --exit-code
 
@@ -119,22 +116,6 @@ jobs:
       - uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  sbom:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - id: syft
-        uses: anchore/sbom-action/download-syft@v0
-      - run: python tools/security/sbom.py "${{ steps.syft.outputs.cmd }}"
-      - uses: actions/upload-artifact@v4
-        with:
-          name: sbom
-          path: app/build/sbom/sign-setu-release.cdx.json
 
   release-record:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'

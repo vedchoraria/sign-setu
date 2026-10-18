@@ -230,7 +230,8 @@ class PairTest {
         } catch (_: java.io.IOException) {
             // The watchdog closed the pipe under the blocked read, which is how a socket times out.
         }
-        assertTrue((System.nanoTime() - started) / 1_000_000 < 5_000)
+        // It blocked until the deadline, not failing at once on something else.
+        assertTrue((System.nanoTime() - started) / 1_000_000 in 250..5_000)
     }
 
     private fun sender(keys: LinkKeys, wire: ByteArrayOutputStream) =
@@ -300,9 +301,13 @@ class PairTest {
             fail("a stage without the resume key opened the frame")
         } catch (_: AEADBadTagException) {
         }
-        // A resume offered to a stage expecting a new pairing is refused.
-        val (mo, _) = handshake(officerResume = rk.copyOf(), stageResume = null)
+        // A resume offered to a stage expecting a new pairing is refused by both sides, and the other way round.
+        val (mo, ms) = handshake(officerResume = rk.copyOf(), stageResume = null)
         assertEquals(Abort.MODE, abortOf(mo))
+        assertEquals(Abort.MODE, abortOf(ms))
+        val (no, ns) = handshake(officerResume = null, stageResume = rk.copyOf())
+        assertEquals(Abort.MODE, abortOf(no))
+        assertEquals(Abort.MODE, abortOf(ns))
     }
 
     private fun encodeToStageConfirm() = app.signsetu.pair.encodeToStage(ToStage.Confirm)
@@ -396,7 +401,6 @@ class PairTest {
         override suspend fun drawing(id: Long): ByteArray? = null
         override suspend fun deleteSession(id: String) = Unit
         override suspend fun deleteStartedBefore(cutoff: Long) = 0
-        override suspend fun deleteAll() = Unit
     }
 
     @Before
@@ -440,6 +444,18 @@ class PairTest {
         val answers = dao.rows.value.filter { it.type == EventType.ANSWER_CARD.name }
         assertEquals(listOf("yes", "no"), answers.map { it.cardId })
         assertTrue(answers.all { it.shownId == item && it.via == "stage" })
+    }
+
+    @Test
+    fun aGestureCueFromTheStagePhoneReachesTheRecord() = vmTest { vm, dao ->
+        vm.prepare(Pending.Ask(question))
+        vm.show()
+        val item = vm.ui.value!!.itemId!!
+        vm.logRemote(item, 0, AnswerBody.YesNo(true, cue = "nod"))
+        vm.logRemote(item, 1, AnswerBody.Card("stop", cue = "palm"))
+        vm.logRemote(item, 2, AnswerBody.YesNo(false))
+        val answers = dao.rows.value.filter { it.type == EventType.ANSWER_CARD.name }
+        assertEquals(listOf("cue:nod", "cue:palm", null), answers.map { it.reason })
     }
 
     // 16
@@ -737,5 +753,18 @@ class PairTest {
         } catch (e: PairAbort) {
             assertEquals(reason, e.reason)
         }
+    }
+
+    @Test
+    fun linkKeysDependOnTheSharedSecret() {
+        // Both phones see the transcript; only the ECDH secret is private, so keys must change with it.
+        val transcript = ByteArray(64) { it.toByte() }
+        val a = app.signsetu.pair.derive(ByteArray(32) { 1 }, transcript, null, true, "m")
+        val b = app.signsetu.pair.derive(ByteArray(32) { 2 }, transcript, null, true, "m")
+        assertFalse(a.send.contentEquals(b.send))
+        assertFalse(a.receive.contentEquals(b.receive))
+        assertFalse(a.code == b.code && a.check == b.check)
+        val again = app.signsetu.pair.derive(ByteArray(32) { 1 }, transcript, null, true, "m")
+        assertTrue(a.send.contentEquals(again.send))
     }
 }

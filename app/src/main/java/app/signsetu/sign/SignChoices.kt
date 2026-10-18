@@ -20,9 +20,6 @@ const val LOST_SHARE = 0.3f
 /** A gap between analysed frames longer than this means the tracker lost the person. */
 const val LOST_GAP_MS = 150L
 
-/** The answer words officers need most, checked against the reader's vocabulary for data collection. */
-val CoreAnswerWords = listOf("yes", "no", "water", "pain", "toilet", "home", "mother", "father", "police", "help", "stop", "don't know")
-
 /** Reads assets/content/sign_words.json: the reader's labels to a written form in words.json. */
 fun parseSignWords(json: String): Map<String, String> =
     Json.parseToJsonElement(json).jsonObject.getValue("words").jsonObject.mapValues { it.value.jsonPrimitive.content }

@@ -709,7 +709,7 @@ private fun Answered(
                 color = colors.onSurfaceVariant,
                 modifier = Modifier.padding(top = 2.dp, start = 4.dp),
             )
-            AnswerMeta(grade, trail, position, onSayBack)
+            AnswerMeta(grade, trail, position, onSayBack, cueText(LocalResources.current, e))
         }
     }
 }
@@ -1262,7 +1262,7 @@ private sealed interface ExportState {
 }
 
 /** How the subject answered, by kind, for the report header: what a reader of the record should weigh first. */
-private fun answerSummary(res: Resources, events: List<SessionEvent>): Pair<String, String>? {
+internal fun answerSummary(res: Resources, events: List<SessionEvent>): Pair<String, String>? {
     val subject = events.filter { it.source == EventSource.SUBJECT }
     fun n(vararg t: EventType) = subject.count { it.type in t }
     val parts = listOfNotNull(
@@ -1279,7 +1279,7 @@ private fun answerSummary(res: Resources, events: List<SessionEvent>): Pair<Stri
     return parts.takeIf { it.isNotEmpty() }?.let { res.getString(R.string.report_answers) to it.joinToString(", ") }
 }
 
-private fun reportText(res: Resources, ui: SessionUi, content: ContentBundle): ReportText {
+internal fun reportText(res: Resources, ui: SessionUi, content: ContentBundle): ReportText {
     val time = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
     val language = content.language(ui.session.subjectLang)
     return ReportText(
@@ -1308,7 +1308,7 @@ private fun reportText(res: Resources, ui: SessionUi, content: ContentBundle): R
     )
 }
 
-private fun eventDetail(res: Resources, e: SessionEvent, by: Map<Long, ShownBy> = emptyMap(), idle: Set<Long> = emptySet()): String = when {
+internal fun eventDetail(res: Resources, e: SessionEvent, by: Map<Long, ShownBy> = emptyMap(), idle: Set<Long> = emptySet()): String = when {
     e.type == EventType.SYSTEM -> systemText(res, e.text)
     e.type == EventType.ANSWER_SIGNED -> "${signedDisplay(res, e.text)} (${res.getString(signedMark(e))})"
     e.drawingId != null -> res.getString(R.string.report_drawing)

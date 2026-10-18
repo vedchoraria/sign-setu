@@ -18,6 +18,7 @@ from torch import nn
 from features import ARMS, ARMS_FLIPPED, FEATURES, FRAMES, featurize, featurize_hands, isotropic
 
 HIDDEN, KERNEL = int(os.environ.get("SIGN_HIDDEN", 160)), 5
+STRONG = os.environ.get("SIGN_AUG") == "strong"
 DROPOUT = float(os.environ.get("SIGN_DROPOUT", 0.4))
 
 
@@ -62,6 +63,12 @@ def features(s, aspect, rng=None):
         left, right, pose = left @ m.T, right @ m.T, pose @ m.T
         left = left + rng.normal(0, 0.003, left.shape)
         right = right + rng.normal(0, 0.003, right.shape)
+        if STRONG:
+            # Other signers: hands held higher, lower or wider than INCLUDE's, and larger or smaller against the body.
+            sw = np.linalg.norm(pose[hp][:, 11] - pose[hp][:, 12], axis=1).mean() if hp.any() else 0.0
+            for h in (left, right):
+                c = h.mean(1, keepdims=True)
+                h[:] = c + (h - c) * rng.uniform(0.85, 1.2) + rng.normal(0, 0.12 * sw, 2)
     return (featurize_hands if s.get("norm") == "hands" else featurize)(left, right, pose, hl, hr, hp)
 
 

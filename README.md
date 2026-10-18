@@ -28,4 +28,4 @@ The build needs JDK 21, Android SDK 37, NDK `30.0.16248370` and CMake 4.1.1. Dep
 | `portal/` | Static reviewer portal for content sign-off (Vite+, React, TypeScript); not shipped |
 | `tools/` | Content, ISL retargeting, sign-reader training and SBOM scripts (Python) |
 | `content/` | Source symbols for the picture cards |
-| `docs/` | Requirements, architecture, security, decisions, test plan and report, governance pack ([index](docs/README.md)) |
+| `docs/` | Requirements, architecture, security, decisions, test plan and report ([index](docs/README.md)) |

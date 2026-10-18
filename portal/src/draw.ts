@@ -54,10 +54,8 @@ export const AdultLook: Look = {
   longSleeves: true,
 };
 
-/** The part of the 200-unit character space a view shows, as AvatarView in Avatar.kt. */
-export const BODY_VIEW = { left: -10, top: 0, width: 220, height: 258 };
-export const HEAD_VIEW = { left: 0, top: 0, width: 200, height: 200 };
-export type View = typeof BODY_VIEW;
+/** The part of the 200-unit character space shown, as the body AvatarView in Avatar.kt. */
+const VIEW = { left: -10, top: 0, width: 220, height: 258 };
 
 const WHITE = "#FFFFFF";
 const HALO = "rgba(255,255,255,0.35)";
@@ -118,13 +116,13 @@ function circle(ctx: Ctx, r: number, c: Pt) {
 }
 const lerpPt = (a: Pt, b: Pt, f: number): Pt => [lerp(a[0], b[0], f), lerp(a[1], b[1], f)];
 
-/** Draws [pose] for [b] on the whole canvas, fitting [view] to its height. */
-export function drawCharacter(ctx: Ctx, b: Build, look: Look, pose: Pose, child: boolean, view: View = BODY_VIEW) {
+/** Draws [pose] for [b] on the whole canvas, fitting the view to its height. */
+export function drawCharacter(ctx: Ctx, b: Build, look: Look, pose: Pose, child: boolean) {
   const { width, height } = ctx.canvas;
   ctx.clearRect(0, 0, width, height);
-  const unit = height / view.height;
+  const unit = height / VIEW.height;
   ctx.save();
-  ctx.translate((width - view.width * unit) / 2 - view.left * unit, -view.top * unit);
+  ctx.translate((width - VIEW.width * unit) / 2 - VIEW.left * unit, -VIEW.top * unit);
   ctx.scale(unit, unit);
   // A raised hand lifts its own shoulder, and the body leans a little towards where the hands are.
   const liftR = pose.shrug * 7 + 3 * clamp((b.shoulderY - pose.r.y) / 90, 0, 1);

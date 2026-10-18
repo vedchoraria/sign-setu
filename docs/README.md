@@ -6,31 +6,23 @@ Sign Setu is an offline Android app that helps a police officer communicate with
 
 | File | Contents |
 | --- | --- |
-| [system-design.html](system-design.html) | Features, data flow diagrams (levels 0 to 2), data dictionary, trust boundaries, technology, readiness |
-| [sign-setu-docs.html](sign-setu-docs.html) | Every document in this folder except `teammate/`, in one offline page |
-| [teammate-handoff.html](teammate-handoff.html) | The engineering handoff: `teammate/`, the repository README, requirements, decision log and open-source register |
 | [01-requirements.md](01-requirements.md) | Purpose, users, subject profiles, constraints, functional (FR-) and non-functional (NFR-) requirements, traceability |
 | [02-architecture.md](02-architecture.md) | Technology, packages and flavor source sets, content bundle, data model, storage, export, build, performance, second-screen protocol, reviewer portal |
 | [03-ux.md](03-ux.md) | Officer and stage states, profiles, flows, accessibility, visual and content style |
 | [04-security.md](04-security.md) | Security controls (SEC-), keys, threats in scope |
 | [05-avatar-and-gestures.md](05-avatar-and-gestures.md) | Gesture and ISL lexicons, the two characters, motion pipelines, the code-drawn rig, validation |
 | [06-test-plan.md](06-test-plan.md) | Functional (TC-), performance (PT-), resilience (RD-), security (ST-) and accessibility (AT-) tests; testing with children |
-| [07-decisions.md](07-decisions.md) | Decision log D-01 to D-38 |
-| [08-plan.md](08-plan.md) | Release path: the four gates to production, and pilot success criteria |
+| [07-decisions.md](07-decisions.md) | Decision log D-01 to D-40 |
 | [09-open-source.md](09-open-source.md) | Reusable open-source components per module, with licences and attribution |
 | [10-test-report.md](10-test-report.md) | Results against the test plan: the automated suite on the current build and the device evidence |
 | [11-hand-model-integration.md](11-hand-model-integration.md) | The vision engine and sign reader, sign windows, and the contract for a replacement model |
 | [12-on-device-assistant.md](12-on-device-assistant.md) | The optional on-device translation assistant: model, installation, budgets |
 | [13-product-overview.md](13-product-overview.md) | One reference for explaining the product: features, mechanisms, character, sign reading, export, stack, frontend, readiness |
-| [14-presentation-script.md](14-presentation-script.md) | Spoken walk-through with demonstration steps and likely questions |
 
 ## Other folders
 
 | Folder | Contents |
 | --- | --- |
-| [teammate/](teammate/README.md) | Engineering reference for developers: build and test commands, SRS, DFDs, architecture, data model, sequences, state machines, rig, ML, security, tests, interfaces, operations |
-| [governance/](governance/README.md) | Compliance pack for the department, legal adviser and CERT-In auditor: threat model, DPIA, compliance matrix, risk register, release process, incident response, UAT, user guide, training, audit scope, policies, agreements, forms |
-| [tools/](tools/) | Generators: `python docs/tools/build_system_design.py docs/system-design.html`; `python docs/tools/build_docs_html.py --mermaid mermaid.min.js` (needs markdown-it-py and mdit-py-plugins) |
 | [../portal/](../portal/README.md) | Reviewer portal for content sign-off (static web page; not shipped in the app) |
 
 ## Conventions

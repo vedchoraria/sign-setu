@@ -5,6 +5,12 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.FocusRequester
@@ -113,6 +119,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -233,6 +240,8 @@ fun Stage(
     val rule = ruleStep(pending)
     var drawing by remember(pending) { mutableStateOf(pending == Pending.Drawing) }
     var writing by remember(pending) { mutableStateOf(false) }
+    // Held here, not in the panel: turning a tablet swaps the stage layout and would drop the panel's own state.
+    val drawn = remember(pending) { mutableStateListOf<DrawStroke>() }
     // A young child is not asked to write; anyone else, signers above all, can answer in their own words.
     // A ground rule asks for no answer, so only the practice round opens the other ways to answer.
     val canWrite = pending != null && profile != Profile.YOUNG_CHILD && (rule == null || isPractice(pending))
@@ -357,22 +366,21 @@ fun Stage(
 
     Surface(color = stage.skyBottom, modifier = Modifier.fillMaxSize()) {
         Box(Modifier.fillMaxSize()) {
-        Column(
+        BoxWithConstraints(
             Modifier
                 .fillMaxSize()
                 .graphicsLayer { rotationZ = if (ui.rotated) 180f else 0f }
                 // Covered by the pause layer: screen readers must not reach answers that cannot be tapped.
                 .then(if (paused) Modifier.clearAndSetSemantics {} else Modifier),
         ) {
+            // Landscape, which Android 16 forces on tablets, puts the character beside the camera instead of above it.
+            val wide = maxWidth > maxHeight
             // A panel that needs width and height gets more room; otherwise the character and the camera split the screen.
             val rightsNotice = (pending as? Pending.Ask)?.question?.takeIf(content::isRights)?.let { content.subjectText("rights_interpreter", lang) }
             val topWeight = if (drawing || writing || choices != null || pending == Pending.LanguageFinder || saying || lesson != null) 0.36f else 0.5f
             val topAnimated by animateFloatAsState(topWeight, spring(stiffness = 300f), label = "split")
-            Box(
-                Modifier
-                    .weight(topAnimated)
-                    .fillMaxWidth(),
-            ) {
+            val characterPane: @Composable (Modifier) -> Unit = { m ->
+            Box(m) {
                 Backdrop(Modifier.fillMaxSize())
                 BoxWithConstraints(Modifier.fillMaxSize().safeDrawingPadding()) {
                     val roomy = maxHeight >= 240.dp
@@ -474,17 +482,15 @@ fun Stage(
                     glance?.let { GlanceStrip(it, onHide = { StagePace.glanceHidden.value = true }, Modifier.align(Alignment.TopCenter)) }
                 }
             }
+            }
+            val answerPane: @Composable (Modifier) -> Unit = { m ->
             Column(
-                Modifier
-                    .weight(1f - topAnimated)
-                    .fillMaxWidth()
-                    .padding(horizontal = Spacing.lg)
-                    .padding(top = Spacing.md, bottom = Spacing.md),
+                m.padding(horizontal = Spacing.lg).padding(top = Spacing.md, bottom = Spacing.md),
                 verticalArrangement = Arrangement.spacedBy(Spacing.md),
             ) {
                 when {
                     choices != null -> {
-                        val last = ui.confirm?.queue?.size == 1
+                        val last = ui.confirm.queue.size == 1
                         SignChoicePanel(choices, content, lang, {
                             onSignChoice(it)
                             reacting = true
@@ -494,7 +500,7 @@ fun Stage(
                     }
                     drawing -> {
                         // Only a picture that was asked for has nothing to go back to.
-                        DrawingPanel(content, lang, onDone = onDrawing, onBack = { drawing = false }.takeIf { pending != Pending.Drawing }, modifier = Modifier.weight(1f))
+                        DrawingPanel(content, lang, drawn, onDone = onDrawing, onBack = { drawing = false }.takeIf { pending != Pending.Drawing }, modifier = Modifier.weight(1f))
                         PauseRow(content, lang, ui.answeredCard, onCard)
                     }
                     writing -> WritingPanel(
@@ -570,6 +576,15 @@ fun Stage(
                         }
                     }
                 }
+            }
+            }
+            if (wide) Row(Modifier.fillMaxSize()) {
+                characterPane(Modifier.weight(topAnimated).fillMaxHeight())
+                // Room above the panels for the officer's handle, which would otherwise sit on a drawing or a keyboard.
+                answerPane(Modifier.weight(1f - topAnimated).fillMaxHeight().windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.End)).padding(top = 48.dp))
+            } else Column(Modifier.fillMaxSize()) {
+                characterPane(Modifier.weight(topAnimated).fillMaxWidth())
+                answerPane(Modifier.weight(1f - topAnimated).fillMaxWidth())
             }
         }
         // Over the whole stage, so no answer can be tapped during a break; the officer's way out stays above it.
@@ -827,12 +842,14 @@ private fun MirrorWindow(
                 verticalArrangement = Arrangement.spacedBy(Spacing.sm),
             ) {
                 if (numbers) {
-                    choices.chunked(5).forEach { row ->
+                    // Five to a row leaves each key under 48 dp in the camera window of a 360 dp phone.
+                    choices.chunked(4).forEach { row ->
                         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.fillMaxWidth()) {
                             row.forEach { id ->
                                 val delay = 40 * choices.indexOf(id)
                                 NumberButton(id.removePrefix("n"), chosenCard == id, { onCard(id) }, Modifier.weight(1f).popIn(rememberPopIn(delay)))
                             }
+                            repeat(4 - row.size) { Spacer(Modifier.weight(1f)) }
                         }
                     }
                 } else {
@@ -929,12 +946,13 @@ private fun MirrorPlaceholder() {
 internal fun ChoiceTile(cardId: String, label: String?, chosen: Boolean, onClick: () -> Unit, modifier: Modifier, name: String? = label, proposed: Boolean = false) {
     val answer = LocalAnswerColors.current
     val pulse = if (proposed && !chosen) rememberInfiniteTransition(label = "proposed").animateFloat(0.25f, 1f, infiniteRepeatable(tween(600), RepeatMode.Reverse), label = "ring").value else 0f
+    val suggested = if (proposed && !chosen) stringResource(R.string.stage_proposed) else null
     PressableSurface(
         onClick = onClick,
         shape = RoundedCornerShape(20.dp),
         color = Color.White,
         border = if (chosen) BorderStroke(4.dp, answer.selection) else if (pulse > 0f) BorderStroke(4.dp, answer.selection.copy(alpha = pulse)) else TileEdge,
-        modifier = modifier.heightIn(min = 96.dp).semantics { (label ?: name)?.let { contentDescription = it }; selected = chosen },
+        modifier = modifier.heightIn(min = 96.dp).semantics { (label ?: name)?.let { contentDescription = it }; selected = chosen; suggested?.let { stateDescription = it } },
     ) {
         Column(Modifier.padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             // Without a word in their language the picture carries the meaning alone, so it gets the room.
@@ -990,6 +1008,8 @@ private fun ColumnScope.RailIcon(icon: Painter, label: String?, name: String, co
 @Composable
 private fun ColumnScope.RailButton(label: String?, name: String, color: Color, onColor: Color, chosen: Boolean, tool: Boolean, onClick: () -> Unit, proposed: Boolean = false, icon: @Composable () -> Unit) {
     val pulse = if (proposed && !chosen) rememberInfiniteTransition(label = "proposed").animateFloat(0.25f, 1f, infiniteRepeatable(tween(600), RepeatMode.Reverse), label = "ring").value else 0f
+    // The pulse is the only sign of a proposal, so screen readers hear it too.
+    val suggested = if (proposed && !chosen) stringResource(R.string.stage_proposed) else null
     PressableSurface(
         onClick = onClick,
         shape = RoundedCornerShape(16.dp),
@@ -1002,7 +1022,7 @@ private fun ColumnScope.RailButton(label: String?, name: String, color: Color, o
         },
         // 64 dp fits an icon over two lines of Hindi; five in one rail on a 640 dp phone share the height, still above 48 dp.
         modifier = Modifier.weight(1f, fill = false).fillMaxWidth().height(64.dp)
-            .semantics { contentDescription = label ?: name; selected = chosen },
+            .semantics { contentDescription = label ?: name; selected = chosen; suggested?.let { stateDescription = it } },
     ) {
         Column(Modifier.padding(4.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
             icon()
@@ -1112,6 +1132,9 @@ private fun LanguageGrid(content: ContentBundle, chosen: String?, modifier: Modi
 
 private class DrawStroke(val points: List<Offset>)
 
+private fun Offset.fraction(size: IntSize) = Offset(x / size.width.coerceAtLeast(1), y / size.height.coerceAtLeast(1))
+private fun Offset.scaled(size: IntSize) = Offset(x * size.width, y * size.height)
+
 /** The subject's own words, typed large on the stage; the keyboard opens at once and Done sends them. */
 @Composable
 private fun WritingPanel(
@@ -1180,15 +1203,14 @@ private fun BackButton(content: ContentBundle, lang: String, onBack: () -> Unit)
 
 /** A name for a control whose word is missing in the subject's language, so a screen reader still has one. */
 @Composable
-private fun Modifier.named(@StringRes id: Int, needed: Boolean = true): Modifier {
+private fun Modifier.named(@StringRes id: Int, needed: Boolean): Modifier {
     if (!needed) return this
     val name = stringResource(id)
     return semantics { contentDescription = name }
 }
 
 @Composable
-private fun DrawingPanel(content: ContentBundle, lang: String, onDone: (ByteArray) -> Unit, onBack: (() -> Unit)?, modifier: Modifier) {
-    val strokes = remember { mutableStateListOf<DrawStroke>() }
+private fun DrawingPanel(content: ContentBundle, lang: String, strokes: SnapshotStateList<DrawStroke>, onDone: (ByteArray) -> Unit, onBack: (() -> Unit)?, modifier: Modifier) {
     var current by remember { mutableStateOf<List<Offset>>(emptyList()) }
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
     val ink = Color(0xFF2B2118)
@@ -1209,12 +1231,13 @@ private fun DrawingPanel(content: ContentBundle, lang: String, onDone: (ByteArra
                         detectDragGestures(
                             onDragStart = { current = listOf(it) },
                             onDrag = { change, _ -> current = current + change.position },
-                            onDragEnd = { strokes.add(DrawStroke(current)); current = emptyList() },
+                            // Kept in canvas fractions, so a drawing survives the canvas changing size.
+                            onDragEnd = { strokes.add(DrawStroke(current.map { it.fraction(canvasSize) })); current = emptyList() },
                             onDragCancel = { current = emptyList() },
                         )
                     },
             ) {
-                (strokes + DrawStroke(current)).forEach { s ->
+                (strokes.map { s -> DrawStroke(s.points.map { it.scaled(canvasSize) }) } + DrawStroke(current)).forEach { s ->
                     if (s.points.size < 2) return@forEach
                     val path = Path().apply {
                         moveTo(s.points[0].x, s.points[0].y)
@@ -1238,7 +1261,7 @@ private fun DrawingPanel(content: ContentBundle, lang: String, onDone: (ByteArra
             }
             val answer = LocalAnswerColors.current
             PressableSurface(
-                onClick = { if (strokes.isNotEmpty()) onDone(renderPng(strokes, canvasSize, ink.toArgb(), paper.toArgb())) },
+                onClick = { if (strokes.isNotEmpty()) onDone(renderPng(strokes.map { s -> DrawStroke(s.points.map { it.scaled(canvasSize) }) }, canvasSize, ink.toArgb(), paper.toArgb())) },
                 shape = RoundedCornerShape(50),
                 color = if (strokes.isNotEmpty()) answer.yes else Color(0xFFBFD8CB),
                 modifier = Modifier.weight(1f).height(56.dp).named(R.string.stage_done, content.subjectText("done", lang) == null),

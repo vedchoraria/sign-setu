@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Sign Setu</string>
     <string name="cancel">Cancel</string>
     <string name="notice_aid">Sign Setu helps you communicate. It is not an interpreter, and it never records statements.</string>
@@ -117,6 +117,7 @@
     <string name="show_officer">Officer</string>
     <string name="show_yes">Yes</string>
     <string name="show_no">No</string>
+    <string name="stage_proposed">Suggested</string>
     <string name="show_replay">Play again</string>
 
     <!-- Export -->
@@ -144,7 +145,7 @@
     <string name="report_drawing">Drawing</string>
     <string name="back">Back</string>
     <string name="skip">Skip</string>
-    <string name="stage_back_blocked">Back is off here. Hold the handle to hand the phone back.</string>
+    <string name="stage_back_blocked">Back is off here. Tap the handle to hand the phone back.</string>
     <string name="save">Save</string>
     <string name="close">Close</string>
 
@@ -277,12 +278,12 @@
     <string name="signed_sign">Sign %1$d</string>
     <string name="signed_type">Type the word</string>
     <string name="report_answers">Answers</string>
-    <string name="summary_taps">%1$d tapped</string>
-    <string name="summary_taps_cued">%1$d tapped (%2$d after a gesture)</string>
-    <string name="summary_signed">%1$d signed</string>
-    <string name="summary_drawn">%1$d drawn</string>
-    <string name="summary_written">%1$d written</string>
-    <string name="summary_gestured">%1$d gestured</string>
+    <string name="summary_taps" tools:ignore="PluralsCandidate">%1$d tapped</string>
+    <string name="summary_taps_cued" tools:ignore="PluralsCandidate">%1$d tapped (%2$d after a gesture)</string>
+    <string name="summary_signed" tools:ignore="PluralsCandidate">%1$d signed</string>
+    <string name="summary_drawn" tools:ignore="PluralsCandidate">%1$d drawn</string>
+    <string name="summary_written" tools:ignore="PluralsCandidate">%1$d written</string>
+    <string name="summary_gestured" tools:ignore="PluralsCandidate">%1$d gestured</string>
     <string name="cue_nod">after a nod or thumbs up</string>
     <string name="cue_shake">after a head shake or thumbs down</string>
     <string name="cue_point">after pointing at it</string>

@@ -13,11 +13,10 @@ import torch
 from torch import nn
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
-from features import ARMS, ARMS_FLIPPED, FEATURES, FRAMES
-from train import SignNet, batch, evaluate
+from features import ARMS, ARMS_FLIPPED, FRAMES
+from train import STRONG, SignNet, batch, evaluate
 
 TMAX = 80
-MIXUP = float(os.environ.get("SIGN_MIXUP", 0.0))
 KD_T, KD_W = 2.0, float(os.environ.get("SIGN_KD", 0.7))
 
 
@@ -85,6 +84,13 @@ def augmented(lr, po, has, ln, g):
     pose = pose @ mt
     kp = kp @ mt
     hands = hands + 0.003 * torch.randn(hands.shape, device=dev, generator=g)
+    if STRONG:  # as train.py: each hand moved and resized against the body
+        sw = (kp[:, :, 11] - kp[:, :, 12]).norm(dim=-1).mean(1)[:, None, None, None]
+        parts = []
+        for part in (hands[:, :, :21], hands[:, :, 21:]):
+            c = part.mean(2, keepdim=True)
+            parts.append(c + (part - c) * (0.85 + 0.35 * u(b)[:, None, None, None]) + 0.12 * sw * torch.randn(b, 1, 1, 2, device=dev, generator=g))
+        hands = torch.cat(parts, 2)
     return featurize(hands, pose, h, kp[:, :, [11, 12]], kh)
 
 
@@ -123,7 +129,6 @@ def main(cache: pathlib.Path, out: pathlib.Path, epochs: int, teachers: list) ->
     lr, po, has, ln = pack(train, aspect, dev)
     y = torch.tensor([index[s["label"]] for s in train], device=dev)
     del train
-    soft = None
     if teachers:
         nets = []
         for p in teachers:
@@ -145,15 +150,8 @@ def main(cache: pathlib.Path, out: pathlib.Path, epochs: int, teachers: list) ->
             ids = order[k:k + bs]
             x = augmented(lr[ids], po[ids], has[ids], ln[ids], g)
             yy = y[ids]
-            if MIXUP and torch.rand(1, device=dev, generator=g).item() < 0.5:
-                lam = float(np.random.beta(MIXUP, MIXUP))
-                perm = torch.randperm(len(ids), device=dev, generator=g)
-                x = lam * x + (1 - lam) * x[perm]
-                logits = model(x)
-                loss = lam * ce(logits, yy) + (1 - lam) * ce(logits, yy[perm])
-            else:
-                logits = model(x)
-                loss = ce(logits, yy)
+            logits = model(x)
+            loss = ce(logits, yy)
             if teachers:
                 with torch.no_grad():
                     p = torch.stack([n(x).div(KD_T).softmax(1) for n in nets]).mean(0)

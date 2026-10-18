@@ -36,6 +36,13 @@
       }
     },
     {
+      "id": "looks",
+      "label": {
+        "en": "Clothes and colours",
+        "hi": "कपड़े और रंग"
+      }
+    },
+    {
       "id": "places",
       "label": {
         "en": "Places",
@@ -325,6 +332,22 @@
       "label": {
         "en": "Scared",
         "hi": "डर"
+      }
+    },
+    {
+      "id": "angry",
+      "category": "feelings",
+      "label": {
+        "en": "Angry",
+        "hi": "गुस्सा"
+      }
+    },
+    {
+      "id": "happy",
+      "category": "feelings",
+      "label": {
+        "en": "Happy",
+        "hi": "खुश"
       }
     },
     {
@@ -893,6 +916,110 @@
       "label": {
         "en": "No phone",
         "hi": "फ़ोन नहीं है"
+      }
+    },
+    {
+      "id": "red",
+      "category": "looks",
+      "label": {
+        "en": "Red",
+        "hi": "लाल"
+      }
+    },
+    {
+      "id": "blue",
+      "category": "looks",
+      "label": {
+        "en": "Blue",
+        "hi": "नीला"
+      }
+    },
+    {
+      "id": "black",
+      "category": "looks",
+      "label": {
+        "en": "Black",
+        "hi": "काला"
+      }
+    },
+    {
+      "id": "white",
+      "category": "looks",
+      "label": {
+        "en": "White",
+        "hi": "सफ़ेद"
+      }
+    },
+    {
+      "id": "green",
+      "category": "looks",
+      "label": {
+        "en": "Green",
+        "hi": "हरा"
+      }
+    },
+    {
+      "id": "yellow",
+      "category": "looks",
+      "label": {
+        "en": "Yellow",
+        "hi": "पीला"
+      }
+    },
+    {
+      "id": "brown",
+      "category": "looks",
+      "label": {
+        "en": "Brown",
+        "hi": "भूरा"
+      }
+    },
+    {
+      "id": "shirt",
+      "category": "looks",
+      "label": {
+        "en": "Shirt",
+        "hi": "कमीज़"
+      }
+    },
+    {
+      "id": "trousers",
+      "category": "looks",
+      "label": {
+        "en": "Trousers",
+        "hi": "पैंट"
+      }
+    },
+    {
+      "id": "shoes",
+      "category": "looks",
+      "label": {
+        "en": "Shoes",
+        "hi": "जूते"
+      }
+    },
+    {
+      "id": "cap",
+      "category": "looks",
+      "label": {
+        "en": "Cap or hat",
+        "hi": "टोपी"
+      }
+    },
+    {
+      "id": "dress",
+      "category": "looks",
+      "label": {
+        "en": "Dress",
+        "hi": "फ्रॉक"
+      }
+    },
+    {
+      "id": "knife",
+      "category": "things",
+      "label": {
+        "en": "Knife",
+        "hi": "चाकू"
       }
     }
   ]

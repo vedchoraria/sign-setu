@@ -20,7 +20,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class GestureTest {
-    // A right hand with its wrist at w; image y grows downwards. Fingers curled unless open; the thumb points up, down or out.
+    // A right hand with its wrist at w; image y grows downwards. Fingers curled unless open; the thumb points up (1),
+    // down (-1), out (0) or out and up but more out than up (2).
     private fun hand(w: Offset, thumb: Int = 0, open: Boolean = false, point: Boolean = false): List<Offset> {
         val p = MutableList(21) { w }
         val xs = listOf(-0.03f, 0f, 0.03f, 0.06f)
@@ -37,6 +38,7 @@ class GestureTest {
         when (thumb) {
             1 -> { p[3] = w + Offset(-0.06f, -0.12f); p[4] = w + Offset(-0.06f, -0.18f) }
             -1 -> { p[3] = w + Offset(-0.06f, 0f); p[4] = w + Offset(-0.06f, 0.06f) }
+            2 -> { p[3] = w + Offset(-0.13f, -0.10f); p[4] = w + Offset(-0.20f, -0.15f) }
             else -> { p[3] = w + Offset(-0.10f, -0.07f); p[4] = w + Offset(-0.14f, -0.08f) }
         }
         return p
@@ -63,6 +65,7 @@ class GestureTest {
         assertEquals(Head.Nod, thumb(up, 1f))
         assertEquals(Head.Shake, thumb(flipY(up, w), 1f))
         assertNull(thumb(hand(w, thumb = 0), 1f))
+        assertNull(thumb(hand(w, thumb = 2), 1f))
         assertNull(thumb(hand(w, thumb = 1, open = true), 1f))
     }
 
@@ -72,7 +75,7 @@ class GestureTest {
         val up = hand(Offset(0.5f, 0.6f), thumb = 1)
         val heads = (0L..1500L step 100).map { g.mark(frame(it, up)).head }
         assertEquals(listOf(Head.Nod), heads.filterNotNull())
-        assertNull(heads[4])
+        assertEquals(5, heads.indexOf(Head.Nod))
     }
 
     @Test
@@ -95,7 +98,7 @@ class GestureTest {
         val g = PalmGestures()
         val stops = (0L..1500L step 100).map { g.mark(frame(it, palm)).stopPalm }
         assertEquals(1, stops.count { it })
-        assertFalse(stops[5])
+        assertEquals(8, stops.indexOf(true))
         assertTrue(BodyPointing().mark(frame(0, palm)).pointsAt == null)
     }
 
@@ -107,6 +110,8 @@ class GestureTest {
         val right = flatHand(Offset(0.2f, 0.6f), -1f)
         assertTrue(shrug(LandmarkFrame(0, leftHand = left, rightHand = right, pose = pose, aspect = 1f)))
         assertFalse(shrug(LandmarkFrame(0, leftHand = hand(Offset(0.6f, 0.6f), open = true), rightHand = hand(Offset(0.4f, 0.6f), open = true), pose = pose, aspect = 1f)))
+        // Flat and low but close together is not wide enough.
+        assertFalse(shrug(LandmarkFrame(0, leftHand = flatHand(Offset(0.55f, 0.6f), 1f), rightHand = flatHand(Offset(0.45f, 0.6f), -1f), pose = pose, aspect = 1f)))
     }
 
     @Test
@@ -120,6 +125,10 @@ class GestureTest {
         val h = HeadGestures()
         val shake = listOf(0f, 0.02f, 0f, 0.02f, 0f, 0.02f, 0f).mapIndexed { i, d -> h.mark(frame(i * 150L, face = face(0f, d))).head }
         assertEquals(Head.Shake, shake.filterNotNull().firstOrNull())
+        // Looking down once is not a nod; a nose bobbing on a diagonal is neither.
+        fun heads(vararg moves: Pair<Float, Float>) = HeadGestures().let { g -> moves.mapIndexed { i, (dy, dx) -> g.mark(frame(i * 150L, face = face(dy, dx))).head } }
+        assertNull(heads(0f to 0f, *Array(6) { 0.02f to 0f }).firstOrNull { it != null })
+        assertNull(heads(*Array(7) { (if (it % 2 == 0) 0f else 0.02f).let { d -> d to d } }).firstOrNull { it != null })
         // A wobble: the head rolls, the eye line tilts, the nose stays centred between the eyes.
         fun rolled(a: Float) = List(468) { Offset(0.5f, 0.3f) }.toMutableList().apply {
             val (c, s) = kotlin.math.cos(a) to kotlin.math.sin(a)
@@ -148,5 +157,9 @@ class SessionSignTest {
         home.teach(sweep(0.3f, 0.7f, 0.5f), "nani")
         assertEquals("nani", home.match(sweep(0.31f, 0.69f, 0.5f))?.word)
         assertNull(home.match(sweep(0.7f, 0.2f, 0.25f)))
+        // With two taught, each repeat is offered the nearer one.
+        home.teach(sweep(0.7f, 0.3f, 0.3f), "chacha")
+        assertEquals("nani", home.match(sweep(0.31f, 0.69f, 0.5f))?.word)
+        assertEquals("chacha", home.match(sweep(0.69f, 0.31f, 0.3f))?.word)
     }
 }

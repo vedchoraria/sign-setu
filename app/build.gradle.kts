@@ -17,8 +17,8 @@ android {
         applicationId = "in.signsetu"
         minSdk = 29
         targetSdk = 37
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = "0.2.0"
         buildConfigField("long", "BUILD_EPOCH_DAY", "${LocalDate.now().toEpochDay()}L")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // The on-device assistant (D-24) runs only on 64-bit phones; the x86_64 build serves the emulator.
@@ -38,8 +38,8 @@ android {
 
     buildTypes {
         release {
-            // Officers' phones are ARM; x86 libraries only serve the emulator in debug builds.
-            ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") }
+            // Officers' phones are 64-bit ARM; x86 libraries only serve the emulator in debug builds.
+            ndk { abiFilters += listOf("arm64-v8a") }
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
@@ -77,8 +77,9 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    // 32-bit phones keep a plain mirror (D-25); dropping MediaPipe's armeabi-v7a library keeps the APK small.
-    packaging { jniLibs { excludes += "lib/armeabi-v7a/libmediapipe_tasks_jni.so" } }
+    // Native libraries are compressed and unpacked at install, keeping the download under 50 MB (NFR-05);
+    // -Pstored keeps them uncompressed for a larger APK that loads them straight from the file.
+    packaging { jniLibs { useLegacyPackaging = !project.hasProperty("stored") } }
 
     androidResources {
         noCompress += listOf("webp", "ogg", "mp4", "task")
@@ -118,6 +119,11 @@ androidComponents {
         val packaging = setOf("assemble$name", "bundle$name", "install$name", "package$name", "package${name}Bundle")
         tasks.matching { it.name in packaging }.configureEach { dependsOn(check) }
     }
+}
+
+// The test APK's classes load first, so androidx.test's lite protobuf would hide the full one MediaPipe needs.
+configurations.matching { it.name.endsWith("AndroidTestRuntimeClasspath") }.configureEach {
+    exclude(group = "com.google.protobuf", module = "protobuf-javalite")
 }
 
 // SEC-50: every resolved version is pinned in gradle.lockfile; update with --write-locks.

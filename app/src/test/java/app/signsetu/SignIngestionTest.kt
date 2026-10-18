@@ -3,7 +3,6 @@ package app.signsetu
 import androidx.compose.ui.geometry.Offset
 import app.signsetu.camera.LandmarkFrame
 import app.signsetu.data.content.WordEntry
-import app.signsetu.sign.CoreAnswerWords
 import app.signsetu.sign.SignCapture
 import app.signsetu.sign.SignChoice
 import app.signsetu.sign.SignGuess
@@ -131,8 +130,8 @@ class SignIngestionTest {
         }
         // Answer words the reader cannot read yet: a follow-up for data collection. Update when the model grows.
         val known = signWords.values.mapNotNull { words[it] }.toSet()
-        val missing = CoreAnswerWords.filter { w -> words[w]?.let { it !in known } ?: (w !in labels) }
-        println("core answer words the sign reader lacks: $missing")
+        val core = listOf("yes", "no", "water", "pain", "toilet", "home", "mother", "father", "police", "help", "stop", "don't know")
+        val missing = core.filter { w -> words[w]?.let { it !in known } ?: (w !in labels) }
         assertEquals(listOf("yes", "no", "water", "pain", "help", "stop", "don't know"), missing)
     }
 }

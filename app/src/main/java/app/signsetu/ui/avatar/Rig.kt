@@ -474,9 +474,9 @@ private fun hermite(p1: Float, p2: Float, m1: Float, m2: Float, u: Float): Float
     return (2 * u3 - 3 * u2 + 1) * p1 + (u3 - 2 * u2 + u) * m1 + (-2 * u3 + 3 * u2) * p2 + (u3 - u2) * m2
 }
 
-private fun easeOutBack(f: Float, c1: Float = 1.1f): Float {
+private fun easeOutBack(f: Float): Float {
     val g = f - 1f
-    return 1f + (c1 + 1f) * g * g * g + c1 * g * g
+    return 1f + 2.1f * g * g * g + 1.1f * g * g
 }
 
 private fun blendShape(a: HandShape, b: HandShape, f: Float) = HandShape(

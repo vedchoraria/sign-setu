@@ -181,10 +181,6 @@ data class ContentBundle(
     fun questionsIn(group: String, role: Role, profile: Profile): List<Question> =
         questions.filter { it.group == group && askable(it, role, profile) }
 
-    /** Every question the group carousel reaches for this person: each shown group's askable questions. */
-    fun carouselQuestions(role: Role, child: Boolean, profile: Profile): List<Question> =
-        groupsFor(role, child).flatMap { questionsIn(it.id, role, profile) }
-
     fun group(id: String): Group? = groups.firstOrNull { it.id == id }
     fun question(id: String): Question? = questions.firstOrNull { it.id == id }
     fun isRights(q: Question) = group(q.group)?.rights == true

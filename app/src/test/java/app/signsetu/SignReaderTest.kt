@@ -5,6 +5,8 @@ import app.signsetu.camera.LandmarkFrame
 import app.signsetu.data.content.SignLanguage
 import app.signsetu.sign.LandmarkSignReader
 import app.signsetu.sign.SignReaders
+import app.signsetu.sign.handFeatures
+import app.signsetu.sign.signFeatures
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -17,6 +19,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
 class SignReaderTest {
     private val models = File("src/main/assets/content/models")
@@ -45,12 +48,25 @@ class SignReaderTest {
         // The ISL word reader, the ISL letter and digit reader and the ASL word reader share format 1.
         for (name in listOf("sign_reader", "isl_spell", "asl_reader")) {
             val r = reader(name)
+            assertTrue("$name fixture has no cases", cases(name).isNotEmpty())
             for ((frames, expected) in cases(name)) {
                 val logits = r.logits(frames)!!
                 assertEquals(expected.size, logits.size)
                 val worst = expected.indices.maxOf { abs(expected[it] - logits[it]) }
                 assertTrue("$name max logit difference $worst", worst < 1e-3f)
             }
+        }
+    }
+
+    @Test
+    fun resamplingTakesTheNearestFrame() {
+        // Seven frames whose right hand sits further right each frame; row j of 32 must show frame round(j * 6 / 31).
+        val pose = MutableList(17) { Offset(0.5f, 0.5f) }.apply { this[11] = Offset(0.6f, 0.4f); this[12] = Offset(0.4f, 0.4f) }
+        val frames = (0 until 7).map { i -> LandmarkFrame(i * 33L, rightHand = List(21) { k -> Offset(0.05f * i + 0.01f * k, 0.5f + 0.01f * k) }, pose = pose, aspect = 1f) }
+        for (x in listOf(signFeatures(frames, 32)!!, handFeatures(frames, 32)!!)) {
+            val wrist = (0 until 32).map { j -> x[j * 98 + 42] }
+            val source = wrist.map { ((it - wrist[0]) / (wrist[31] - wrist[0]) * 6).roundToInt() }
+            assertEquals((0 until 32).map { (it * 6 / 31.0).roundToInt() }, source)
         }
     }
 
@@ -79,15 +95,5 @@ class SignReaderTest {
                 assertTrue("${lang.spell}.$ext", words is LandmarkSignReader && words.labels.size < full.labels.size)
             }
         }
-    }
-
-    @Test
-    fun forwardPassTime() {
-        val frames = cases[0].first
-        repeat(20) { reader.logits(frames) }
-        val runs = 100
-        val start = System.nanoTime()
-        repeat(runs) { reader.logits(frames) }
-        println("sign reader forward pass: ${(System.nanoTime() - start) / runs / 1000} us")
     }
 }

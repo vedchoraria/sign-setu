@@ -53,6 +53,25 @@ const val SPELL_MIN_PEAK = 0.9f
  */
 const val SPELL_ODDS = 2f
 
+/** How far a wrist strays from its middle position, in shoulder widths, above which a segment is not read as a letter:
+ *  95% of INCLUDE words reach past 1.06, real ISLRTC letters stay under 0.95 (90%). Unlike path length, jitter does not add up. */
+const val SPELL_MAX_REACH = 1f
+
+/** The larger wrist's farthest distance from its median position over [frames], in shoulder widths; null without shoulders. */
+internal fun wristReach(frames: List<LandmarkFrame>): Float? {
+    val p = frames.firstNotNullOfOrNull { it.pose?.takeIf { p -> p.size > 12 } } ?: return null
+    val ky = 1f / frames.first().aspect
+    val sw = kotlin.math.hypot(p[11].x - p[12].x, (p[11].y - p[12].y) * ky).takeIf { it > 1e-6f } ?: return null
+    fun reach(hand: (LandmarkFrame) -> List<androidx.compose.ui.geometry.Offset>?): Float {
+        val w = frames.mapNotNull { hand(it)?.firstOrNull() }
+        if (w.size < 3) return 0f
+        val mx = w.map { it.x }.sorted()[w.size / 2]
+        val my = w.map { it.y }.sorted()[w.size / 2]
+        return w.maxOf { kotlin.math.hypot(it.x - mx, (it.y - my) * ky) }
+    }
+    return maxOf(reach { it.leftHand }, reach { it.rightHand }) / sw
+}
+
 /**
  * The format 2 CTC reader as a [SignReader]: one guess, the letters read, scored by its least sure letter. Reads with
  * fewer or weaker letters are left to the word reader, which also lets a failed read ask for slower signing.
@@ -86,8 +105,9 @@ fun glossOf(guess: SignGuess?, signWords: Map<String, String>): List<String> = w
 internal fun letterOf(label: String) = label.lowercase().removePrefix("letter.").removePrefix("digit.")
 
 /**
- * Word and fingerspelling readers over one segment: the spelling's guesses when its top is more than [odds] times the
- * word top, else the words'. Only one side is returned, since callers re-sort by score and the scales differ.
+ * Word and fingerspelling readers over one segment: the words' guesses, unless the spelling's top is more than [odds]
+ * times the word top. Then the top letter, the top word and the second letter, so a word mistaken for a letter is still
+ * offered; on an unseen ISLRTC signer that keeps 8 more of 199 words in the three shown and loses no real letter.
  */
 internal class CombinedReader(private val signs: SignReader, private val spell: SignReader, private val odds: Float) : SignReader {
     override val labels = signs.labels + spell.labels
@@ -95,7 +115,10 @@ internal class CombinedReader(private val signs: SignReader, private val spell: 
     override fun read(frames: List<LandmarkFrame>): List<SignGuess> {
         val w = signs.read(frames)
         val s = spell.read(frames)
-        return if (s.isNotEmpty() && s[0].score > odds * (w.firstOrNull()?.score ?: 0f)) s else w
+        // ISL letters are held still; a segment whose wrist moves far is a word, whatever the letter reader thinks.
+        val still = odds == 0f || (wristReach(frames) ?: 0f) < SPELL_MAX_REACH
+        val spelled = still && s.isNotEmpty() && s[0].score > odds * (w.firstOrNull()?.score ?: 0f)
+        return if (spelled) listOfNotNull(s[0], w.firstOrNull(), s.getOrNull(1)) else w
     }
     override fun close() { signs.close(); spell.close() }
 }

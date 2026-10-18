@@ -28,7 +28,9 @@ class AslSpellTest {
 
     @Test
     fun logitsAndLettersMatchPython() {
-        for (c in fixture.getValue("cases").jsonArray.map { it.jsonObject }) {
+        val cases = fixture.getValue("cases").jsonArray.map { it.jsonObject }
+        assertTrue(cases.isNotEmpty())
+        for (c in cases) {
             val frames = c.getValue("frames").jsonArray.map { f ->
                 val o = f.jsonObject
                 LandmarkFrame(o.getValue("t").jsonPrimitive.long, leftHand = points(o["left"]), rightHand = points(o["right"]), aspect = aspect)

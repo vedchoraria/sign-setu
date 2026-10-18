@@ -32,7 +32,7 @@ data class AppSettings(
     val largeCaptions: Boolean = false,
     /** Gestures play at three-quarter speed by default (FR-51). */
     val slowGestures: Boolean = false,
-    /** Leaving the stage asks for the screen lock as well as a long press; a department can turn it on (D-23). */
+    /** Leaving the stage asks for the screen lock as well as the handle; a department can turn it on (D-23). */
     val pinToLeaveStage: Boolean = false,
     /** Tipping the phone over its top edge shows what is prepared. */
     val tiltToShow: Boolean = true,

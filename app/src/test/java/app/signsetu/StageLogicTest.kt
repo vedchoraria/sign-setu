@@ -67,10 +67,14 @@ class StageLogicTest {
 
     @Test
     fun glanceNeverShowsAPersonalDetail() {
-        val personal = { item: String -> item == "name" }
+        val personal = { item: String -> item == "name" || item == "family" }
         val asked = event(EventType.QUESTION_SHOWN, "Your name?").copy(itemId = "name")
         val typed = event(EventType.ANSWER_TEXT, "Ravi Kumar").copy(shownId = asked.id)
         assertEquals("Your name?", glanceText(listOf(asked, typed), personal))
+        // Picked answers do show on the strip, except to a personal item.
+        val family = event(EventType.QUESTION_SHOWN, "Who lives with you?").copy(itemId = "family")
+        assertEquals("Who lives with you?", glanceText(listOf(family, event(EventType.ANSWER_CARD, "Mother", "mother")), personal))
+        assertEquals("Who lives with you?", glanceText(listOf(family, event(EventType.ANSWER_GESTURE, "Mother", "mother")), personal))
         val signed = event(EventType.ANSWER_SIGNED, "ravi").copy(shownId = asked.id)
         val sayBack = event(EventType.QUESTION_SHOWN, "Ravi").copy(lexiconId = "ref:${signed.id}")
         assertNull(glanceText(listOf(asked, signed, sayBack), personal))

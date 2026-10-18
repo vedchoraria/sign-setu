@@ -1,6 +1,6 @@
 # 09. Open-Source Reuse Map
 
-What to reuse for each independent part of the app (licence as reported by the project's repository). Every entry still goes through the [copyright and licensing policy](governance/policies/copyright-licensing-policy.md) and into the SBOM before use.
+What to reuse for each independent part of the app (licence as reported by the project's repository). Every entry still goes through the copyright and licensing policy and into the SBOM before use.
 
 **How to use a component:**
 - **Ship**: linked into the app or gateway.

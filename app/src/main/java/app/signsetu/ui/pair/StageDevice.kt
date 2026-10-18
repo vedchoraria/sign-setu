@@ -1,5 +1,7 @@
 package app.signsetu.ui.pair
 
+import androidx.compose.runtime.produceState
+import app.signsetu.camera.LandmarkTracker
 import android.Manifest
 import android.app.ActivityManager
 import android.app.KeyguardManager
@@ -219,7 +221,7 @@ fun StageDeviceScreen(link: StageLink, content: ContentBundle, container: AppCon
                 Waiting(container.pairTransport?.localName() ?: Build.MODEL) { container.endLink(ByeReason.CANCEL) }
             is LinkState.Code -> CodeScreen(s.code.orEmpty(), s.check, link::cancelCode, link::match)
             is LinkState.Ended -> Ended(exit)
-            else -> LiveStage(link, content, s, exit, scope)
+            else -> LiveStage(link, content, s, exit, scope, container)
         }
     }
 }
@@ -266,7 +268,10 @@ fun CheckValue(check: String) {
 }
 
 @Composable
-private fun LiveStage(link: StageLink, baseContent: ContentBundle, state: LinkState, exit: () -> Unit, scope: kotlinx.coroutines.CoroutineScope) {
+private fun LiveStage(link: StageLink, baseContent: ContentBundle, state: LinkState, exit: () -> Unit, scope: kotlinx.coroutines.CoroutineScope, container: AppContainer) {
+    // Landmarks drive the overlay and gesture proposals here (D-40); no sign is read on this phone and none leaves it.
+    val tracker by produceState<LandmarkTracker?>(null) { value = withContext(Dispatchers.IO) { container.landmarkTracker } }
+    var cue by remember { mutableStateOf<String?>(null) }
     val show by link.view.collectAsStateWithLifecycle()
     val unacked by link.unacked.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -317,7 +322,7 @@ private fun LiveStage(link: StageLink, baseContent: ContentBundle, state: LinkSt
     val onCard = { id: String ->
         answeredCard = id
         answeredYes = null
-        send(AnswerBody.Card(id))
+        send(AnswerBody.Card(id, cue.also { cue = null }))
         if (id == "stop") breakFor = itemId ?: -1L
     }
     Box(Modifier.fillMaxSize()) {
@@ -327,13 +332,13 @@ private fun LiveStage(link: StageLink, baseContent: ContentBundle, state: LinkSt
                 Stage(
                     ui = ui,
                     content = content,
-                    // No landmark analysis here: guesses are not sent in this version and the mirror stays plain.
-                    tracker = null,
+                    tracker = tracker,
                     cameraOn = view.cameraOn && ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == android.content.pm.PackageManager.PERMISSION_GRANTED,
                     largeCaptions = view.largeCaptions,
                     gestureSpeed = view.gestureSpeed,
                     onCard = onCard,
-                    onYesNo = { answeredYes = it; answeredCard = null; send(AnswerBody.YesNo(it)) },
+                    onYesNo = { answeredYes = it; answeredCard = null; send(AnswerBody.YesNo(it, cue.also { cue = null })) },
+                    onCue = { cue = it },
                     onLanguage = { chosenLanguage = it; send(AnswerBody.Language(it)) },
                     onDrawing = { png -> scope.launch { withContext(Dispatchers.Default) { fitDrawing(png) }?.let { send(AnswerBody.Drawing(it.b64())) } } },
                     onWritten = { send(AnswerBody.Text(it.trim())) },

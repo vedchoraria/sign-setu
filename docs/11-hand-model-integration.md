@@ -51,7 +51,7 @@ data class LandmarkFrame(
 | Start-up | `warm()` loads the model off the main thread when the session screen opens, before the first frame; never during app start |
 | Delegate | GPU first; if the GPU fails to open, or the first inference throws, the graph reopens on the CPU on the next frame. `close()` frees the graph on lock and on memory pressure, and the next use opens it again |
 
-The holistic model (`models/holistic_landmarker.task`, 13.7 MB, float16, SHA-256 `e2dab61191e2dcd0a15f943d8e3ed1dce13c82dfa597b9dd39f562975a50c3f8`) is mapped from the uncompressed asset, checked against the content manifest and opened only if it matches (SEC-74). MediaPipe's native library ships for arm64-v8a only; 32-bit phones keep a plain mirror. The stage draws hands and arms only, never face points.
+The holistic model (`models/holistic_landmarker.task`, 13.7 MB, float16, SHA-256 `e2dab61191e2dcd0a15f943d8e3ed1dce13c82dfa597b9dd39f562975a50c3f8`) is mapped from the uncompressed asset, checked against the content manifest and opened only if it matches (SEC-74). The release APK is arm64-v8a only, so every installed phone has the tracker. The stage draws hands and arms only, never face points.
 
 ## 4. Sign reader
 

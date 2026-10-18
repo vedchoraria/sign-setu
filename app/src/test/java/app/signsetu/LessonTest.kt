@@ -85,7 +85,7 @@ class LessonTest {
     @Test
     fun theGroupCarouselReachesEveryLessonSheetQuestion() {
         val lesson = content.questions.filter { it.answer != null || it.group == EVERYDAY || it.group in setOf("identity", "family", "location", "school") }.map { it.id }.toSet()
-        val reached = Role.entries.flatMap { r -> Profile.entries.flatMap { p -> listOf(false, true).flatMap { c -> content.carouselQuestions(r, c, p) } } }.map { it.id }.toSet()
+        val reached = Role.entries.flatMap { r -> Profile.entries.flatMap { p -> listOf(false, true).flatMap { c -> content.groupsFor(r, c).flatMap { g -> content.questionsIn(g.id, r, p) } } } }.map { it.id }.toSet()
         assertEquals(emptySet<String>(), lesson - reached)
     }
 

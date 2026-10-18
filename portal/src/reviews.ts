@@ -1,8 +1,7 @@
-// Verdicts live in this browser only; the JSON export is what goes into the content review record
-// (python tools/content/review_record.py --reviews <file>).
+// Verdicts live in this browser only; the JSON export is the review record.
 
 export type Verdict = "A" | "C" | "R";
-/** Sections match review_record.py: gesture, phrase (pid.card), question, ui, greeting. */
+/** Sections of the export: gesture, phrase (pid.card), question, ui, greeting. */
 export type Section = "gesture" | "phrase" | "question" | "ui" | "greeting";
 
 export interface Review {

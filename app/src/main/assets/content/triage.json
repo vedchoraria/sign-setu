@@ -611,6 +611,64 @@
       "kind": "INVITATION"
     },
     {
+      "id": "d1",
+      "group": "recall",
+      "cards": [
+        "shirt",
+        "trousers",
+        "dress",
+        "cap",
+        "shoes"
+      ],
+      "text": {
+        "en": "What were they wearing? Show me if you can.",
+        "hi": "उन्होंने क्या पहना था? हो सके तो दिखाइए।"
+      },
+      "gesture": "show_me",
+      "phase": "FOLLOW_UP",
+      "kind": "OPTION",
+      "note": "Follow-up after free recall, only once the person has mentioned someone: it presupposes a person (ABE 3.71). Needs reviewer sign-off."
+    },
+    {
+      "id": "d2",
+      "group": "recall",
+      "cards": [
+        "red",
+        "blue",
+        "black",
+        "white",
+        "green",
+        "yellow",
+        "brown"
+      ],
+      "text": {
+        "en": "What colour was it? Show me.",
+        "hi": "वह किस रंग का था? दिखाइए।"
+      },
+      "gesture": "show_me",
+      "phase": "FOLLOW_UP",
+      "kind": "OPTION",
+      "note": "Follow-up after free recall, only once the person has mentioned someone: it presupposes a person (ABE 3.71). Needs reviewer sign-off."
+    },
+    {
+      "id": "d3",
+      "group": "recall",
+      "cards": [
+        "knife",
+        "phone",
+        "nothing",
+        "something_else"
+      ],
+      "text": {
+        "en": "Was anything in their hands?",
+        "hi": "क्या उनके हाथ में कुछ था?"
+      },
+      "gesture": "ask",
+      "phase": "FOLLOW_UP",
+      "kind": "OPTION",
+      "note": "Follow-up after free recall, only once the person has mentioned someone: it presupposes a person (ABE 3.71). Needs reviewer sign-off."
+    },
+    {
       "id": "l3",
       "group": "location",
       "cards": [
@@ -757,7 +815,8 @@
       "cards": [
         "okay",
         "scared",
-        "sad"
+        "sad",
+        "angry"
       ],
       "text": {
         "en": "Is anything worrying you?",
@@ -1237,8 +1296,10 @@
       "group": "everyday",
       "cards": [
         "okay",
+        "happy",
         "sad",
-        "scared"
+        "scared",
+        "angry"
       ],
       "text": {
         "en": "How are you?",

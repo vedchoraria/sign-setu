@@ -54,8 +54,8 @@ export default function App() {
         <button onClick={download}>Export JSON</button>
       </header>
       <p className="note">
-        Every item stays a candidate until it is approved. Verdicts are kept in this browser only; export them and pass the file to{" "}
-        <code>tools/content/review_record.py --reviews</code>.
+        Every item stays a candidate until it is approved. Verdicts are kept in this browser only; export them and keep the file as the
+        review record.
       </p>
       <div role="tablist" className="tabs">
         {(Object.keys(TABS) as Tab[]).map((t) => (

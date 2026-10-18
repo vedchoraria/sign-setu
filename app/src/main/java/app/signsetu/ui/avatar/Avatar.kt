@@ -221,7 +221,6 @@ private class Kit(val build: Build, val look: Look, val child: Boolean) {
     val rim = look.outline.copy(alpha = 0.9f)
 
     val torso = Path()
-    val neck = Path()
     val hair = Path()
     val tuft = Path()
     val curve = Path()

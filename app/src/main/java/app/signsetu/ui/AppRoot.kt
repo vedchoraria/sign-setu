@@ -209,7 +209,7 @@ private fun Navigation(repo: SessionRepository, content: ContentBundle, settings
 }
 
 @Composable
-private fun SessionRoute(
+internal fun SessionRoute(
     sessionId: String,
     repo: SessionRepository,
     content: ContentBundle,
@@ -259,7 +259,7 @@ private fun SessionRoute(
             container.endLink(ByeReason.FALLBACK)
         })
     }
-    // A long press on the handle is the officer's way back; the screen lock is asked too only if the department wants it (D-23).
+    // A tap on the handle is the officer's way back; the screen lock is asked too only if the department wants it (D-23).
     val backToOfficer = {
         if (settings.pinToLeaveStage) guard.confirmOfficer(title, subtitle, cancel) { vm.returnToOfficer() } else vm.returnToOfficer()
     }
@@ -320,7 +320,7 @@ private fun SessionRoute(
             },
         )
         Mode.SHOW -> {
-            // Back would let a subject leave the stage with one tap; only the held handle leaves it.
+            // Back would let a subject leave the stage with one tap; only the handle leaves it.
             BackHandler { if (settings.pinToLeaveStage) backToOfficer() else activity?.let { Toast.makeText(it, R.string.stage_back_blocked, Toast.LENGTH_SHORT).show() } }
             SubjectTheme {
                 Stage(

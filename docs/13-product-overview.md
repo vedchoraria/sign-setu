@@ -1,6 +1,6 @@
 # 13. Product Overview
 
-A single reference for explaining Sign Setu: what it does, how it works, what it is built with, and what remains before production. Diagrams are in the [system design](system-design.html); details are in the numbered documents cited in each section.
+A single reference for explaining Sign Setu: what it does, how it works, what it is built with, and what remains before production. Diagrams are in the system design; details are in the numbered documents cited in each section.
 
 ## 1. Purpose
 
@@ -53,7 +53,7 @@ The officer page has two tabs, built from one card and tile style. **Transcribe*
 | Media marks | Each question card shows whether a gesture and a recording exist and whether the caption is missing in the subject's language; "Ready to show" lists what the subject will get |
 | Assistant (optional) | Translates typed text into the subject's language and back into English on the phone; the officer sees both before sending |
 | They gestured | The officer marks where the subject's hand went and what it did; matching entries from the 33-entry gesture lexicon are shown back to the subject, who confirms the meaning |
-| Picture board | 102 picture cards in 11 categories, with search and favourites |
+| Picture board | 117 picture cards in 12 categories (including clothes and colours for describing someone), with search and favourites |
 | ISL dictionary | Every recorded and draft sign by category (262 recorded signs in 16 categories, plus the authored word signs), searched in English, Hindi or any written form; a tap plays the sign for the officer, Show prepares it for the stage |
 | Draw, language finder | A drawing pad for the subject; a grid of greetings in every language |
 | Interpreter call | Opens the department's Sandes or WhatsApp contact; no session data is passed |
@@ -340,7 +340,7 @@ The session view model combines the database's event flow with local state into 
 | Item | State | Needed |
 | --- | --- | --- |
 | Application | Built; 147 unit tests pass for both flavors | Instrumented suite, Lint and a device run on the current build |
-| Content: gestures, alphabet, authored and recorded signs, ISL order, vocabulary, sign-word map, lesson-sheet and local-language wording, recordings | Built, awaiting review | Sign-off by ISL, child-welfare and language reviewers through the reviewer portal and the [content review record](governance/forms/content-review-record.md) |
+| Content: gestures, alphabet, authored and recorded signs, ISL order, vocabulary, sign-word map, lesson-sheet and local-language wording, recordings | Built, awaiting review | Sign-off by ISL, child-welfare and language reviewers through the reviewer portal and the content review record |
 | Rights wording (English and Hindi), reworded x2 and x3 | Draft | Legal adviser and a legal translator |
 | Vision engine and sign reader | Built | Frame rate on the GPU delegate, memory and hand sides on a real 64-bit phone; accuracy with children; data for the core answer words |
 | Second screen | Built | Two-phone and tablet UAT; department devices and SOP |

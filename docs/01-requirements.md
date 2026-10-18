@@ -31,7 +31,7 @@ The officer chooses a **subject profile** for each session; it decides what the 
 | Cost | Free and open-source components and free government services only (D-10). |
 | Platform | Native Android, Kotlin, Jetpack Compose (D-01). |
 | Distribution | Signed APK through the Mobile Seva AppStore or a department download page. |
-| Law | DPDP Act 2023 and Rules 2025; Juvenile Justice Act 2015 section 74; POCSO Act sections 24 and 26; BNSS sections 38, 47, 48, 53, 58, 173 and 183; BSA section 125; Constitution Article 20(3); RPwD Act with IS 17802. Details in [governance](governance/). |
+| Law | DPDP Act 2023 and Rules 2025; Juvenile Justice Act 2015 section 74; POCSO Act sections 24 and 26; BNSS sections 38, 47, 48, 53, 58, 173 and 183; BSA section 125; Constitution Article 20(3); RPwD Act with IS 17802. Details in governance. |
 | Assurance | CERT-In empanelled security audit before production. |
 
 ## 4. Functional requirements
@@ -141,10 +141,10 @@ Priority: **MUST** (release 1 cannot ship without it), **SHOULD** (release 1 if 
 | ID | Requirement | Priority |
 | --- | --- | --- |
 | FR-89 | Word completions appear above the keyboard, tinted by what the character will do with the word (sign, gesture, picture, or none when spelled); tapping one fills in the word, and reviewed phrase templates about the word prepare a phrase in one tap. | SHOULD |
-| FR-90 | Question run: up to 5 queued questions on one handover, each shown 1.4 s after the previous answer. Sensitive questions are never queued. Stop, "Something else" or taking the phone back ends the run, logged as "Run ended after k of n". | SHOULD |
+| FR-90 | Question run: up to 5 queued questions on one handover, each shown 1.4 s after the previous answer. Sensitive questions are never queued. Stop, "Something else" once no unseen pictures remain, or taking the phone back ends the run, logged as "Run ended after k of n". | SHOULD |
 | FR-91 | Under each answer the officer sees its answer trail (time taken, every change, pause length after Stop) and its evidence grade; a changed answer or one slower than 20 s is outlined. | MUST |
 | FR-92 | Say it back: the officer's reading, edited if needed, is shown to the subject among the item's other pictures; only the subject's pick makes it Confirmed, and "No" marks the line "Said no". | MUST |
-| FR-93 | Picture choices are shuffled on every showing and capped at four, plus "Something else" (which opens the drawing pad) and "I don't understand". Yes/no, number and single-picture questions are not shuffled. | MUST |
+| FR-93 | Picture choices are shuffled on every showing and capped at four, plus "Something else" and "I don't understand". "Something else" shows the pictures not yet seen, four at a time, and opens the drawing pad once all have been seen. Yes/no, number and single-picture questions are not shuffled. | MUST |
 | FR-94 | A "Shown as" row after each item records the caption, motions, pictures in the order offered and the content version. The report carries the not-a-statement notice at the top and bottom of every page, a grade legend, each answer's grade, choice position and trail, and readings by the app or the officer in a separate section. | MUST |
 
 ### 4.11 Stage
@@ -173,6 +173,8 @@ Priority: **MUST** (release 1 cannot ship without it), **SHOULD** (release 1 if 
 | FR-110 | A nod, head shake, thumbs up or down, raised open palm, shrug, or a finger held on a body part makes the matching Yes, No, Stop, "I don't know" or picture pulse as a proposal; only the subject's tap answers. | SHOULD |
 | FR-111 | A sign the officer reads as a word the reader did not offer is recognised for the rest of the session and offered first. | SHOULD |
 | FR-112 | Raised brows over most signs of an answer make its written draft a question. | SHOULD |
+| FR-113 | A victim or witness can describe someone with pictures: clothes, colours and what was in their hands, offered only as follow-up after free recall. | SHOULD |
+| FR-114 | When a sign reads as a letter, the word reader's top guess is still offered among the three guesses. | SHOULD |
 | FR-108 | The officer sets the sign language of a session, ISL or ASL, and can change it during the session; each change is logged. The setting selects the sign reader, the dictionary, the fingerspelling alphabet and numbers, and the character's signs for typed text. ASL text keeps the order typed; the ISL reordering of time, negation and question words applies to ISL only. Every ASL sign and pairing is a draft until reviewed by Deaf ASL signers (D-39). | SHOULD |
 
 ### 4.13 Later releases
@@ -215,8 +217,8 @@ Delivered early: FR-22 (on-device sign recognition) as FR-84 to FR-87 (D-25). Wi
 | --- | --- | --- |
 | FR-02 to FR-07, FR-60, FR-61 | [UX](03-ux.md) §2-3, [architecture](02-architecture.md) §4 | [test plan](06-test-plan.md) §2 |
 | FR-10 to FR-19, FR-62 to FR-64 | [UX](03-ux.md) §4, [avatar and gestures](05-avatar-and-gestures.md) | [test plan](06-test-plan.md) §2 |
-| FR-20 to FR-24, FR-65, FR-66 | [UX](03-ux.md) §4, [system design](system-design.html) Figure 3 | [test plan](06-test-plan.md) §2 |
-| FR-72 to FR-76 | [architecture](02-architecture.md) §4, §11, [security](04-security.md) §2.8 | [test plan](06-test-plan.md) §2, [UAT](governance/17-uat-scripts.md) UAT-18 |
+| FR-20 to FR-24, FR-65, FR-66 | [UX](03-ux.md) §4 | [test plan](06-test-plan.md) §2 |
+| FR-72 to FR-76 | [architecture](02-architecture.md) §4, §11, [security](04-security.md) §2.8 | [test plan](06-test-plan.md) §2, UAT UAT-18 |
 | FR-77 to FR-83 | [decisions](07-decisions.md) D-30, [UX](03-ux.md) §4 | [test plan](06-test-plan.md) §2 |
 | FR-84 to FR-88 | [decisions](07-decisions.md) D-25, D-27, D-28, [hand model integration](11-hand-model-integration.md) | [test plan](06-test-plan.md) §2 |
 | FR-89 to FR-101 | [decisions](07-decisions.md) D-34, [UX](03-ux.md) §2, §4 | [test plan](06-test-plan.md) §2 |

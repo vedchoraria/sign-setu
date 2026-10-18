@@ -20,7 +20,7 @@ fun ContentBundle.signability(word: String): Signability {
 }
 
 /** Vocabulary forms starting with [prefix]: one per entry, signed first, then shorter. */
-fun ContentBundle.complete(prefix: String, limit: Int = 6): List<Completion> {
+fun ContentBundle.complete(prefix: String): List<Completion> {
     val p = prefix.lowercase()
     val min = if (p.any { it in 'ऀ'..'ॿ' }) 1 else 2
     if (p.length < min) return emptyList()
@@ -30,7 +30,7 @@ fun ContentBundle.complete(prefix: String, limit: Int = 6): List<Completion> {
         .map { (_, forms) -> forms.minWith(compareBy({ it.length }, { it })) }
         .map { Completion(it, signability(it)) }
         .sortedWith(compareBy({ it.kind.ordinal }, { it.form.length }, { it.form }))
-        .take(limit)
+        .take(6)
 }
 
 /** Each typed word's range and what will happen to it, with the tokenising TextSigning uses. */

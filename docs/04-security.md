@@ -116,7 +116,7 @@ Target: OWASP MASVS v2 with the MAS-L2 testing profile, plus the CERT-In require
 
 ## 4. Threats in scope for release 1
 
-The full STRIDE analysis is in [governance/07-threat-model.md](governance/07-threat-model.md); Release 1 removes the network threats (T-07 to T-13); camera exposure (T-16) and landmark processing (T-37) are controlled by SEC-47 and SEC-71; the second screen adds T-38 to T-44.
+In the threat model, Release 1 removes the network threats (T-07 to T-13); camera exposure (T-16) and landmark processing (T-37) are controlled by SEC-47 and SEC-71; the second screen adds T-38 to T-44.
 
 | Threat | Main controls |
 | --- | --- |
@@ -145,5 +145,5 @@ The full STRIDE analysis is in [governance/07-threat-model.md](governance/07-thr
 | When | Review |
 | --- | --- |
 | Every change | Review by someone other than the author; Lint, Semgrep, OSV-Scanner and gitleaks pass |
-| Gate 1, hardening ([release path](08-plan.md)) | MASVS self-check against this document; full internal MAS-L2 review; threat model refreshed |
+| Gate 1, hardening (release path) | MASVS self-check against this document; full internal MAS-L2 review; threat model refreshed |
 | Gate 2, security audit | CERT-In empanelled audit (source and binary) |

@@ -97,9 +97,6 @@ interface SessionDao {
 
     @Query("DELETE FROM session WHERE startedAt < :cutoff")
     suspend fun deleteStartedBefore(cutoff: Long): Int
-
-    @Query("DELETE FROM session")
-    suspend fun deleteAll()
 }
 
 @Database(entities = [SessionEntity::class, EventEntity::class, DrawingEntity::class], version = 3, exportSchema = true)

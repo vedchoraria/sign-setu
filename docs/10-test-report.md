@@ -8,27 +8,25 @@ Results of the [test plan](06-test-plan.md) for release 1, version 0.1.0. Sectio
 | --- | --- |
 | Application | `in.signsetu` 0.1.0, version code 1; `in.signsetu.nearby` 0.1.0-nearby for the nearby flavor |
 | Variants | `standardDebug`, `standardRelease`, `nearbyDebug`, `nearbyRelease` |
-| Release APK (unsigned) | `standard` 47,579,538 bytes (45.4 MiB); `nearby` 47,697,078 bytes (45.5 MiB); arm64-v8a and armeabi-v7a, with MediaPipe and the assistant for arm64-v8a only; under the 50 MB limit of NFR-05 on that build. The three readers added since (`isl_spell`, `asl_reader`, `asl_spell`, about 9 MB of models) are not yet measured |
+| Release APK (unsigned) | Default build: `standard` 41,004,639 bytes (39.1 MiB), `nearby` 41,642,265 bytes (39.7 MiB); arm64-v8a only, float16 reader weights, native libraries compressed; under the 50 MB limit of NFR-05. With `-Pstored` and float32 readers: `standard` 58,239,739 bytes, `nearby` 58,873,961 bytes. Both builds install and reach the stage with the camera running on an x86_64 emulator through its arm64 translation; every content file in both APKs matches the manifest hash, and the holistic model is stored uncompressed |
 | Toolchain | AGP 9.4.1, Gradle 9.8.1, Kotlin 2.4.21, KSP 2.3.12, JDK 21, NDK r30, CMake 4.1.1 |
 | Devices used | Android 10 (API 29) emulator, x86_64, 3 GB RAM; Android 14 (API 34) emulator, x86_64, 3 GB RAM, with the virtual camera and the debug stand-in hand; a 5-inch screen (360 by 640 dp) simulated on the Android 14 emulator for NFR-11 |
 | Not yet used | A real Android 10 phone; a recent phone; two phones and a tablet for the second screen |
 
 ## 2. Automated suite on the current build
 
-Run A built and compiled every suite below; none has been run on this build. The counts are the test methods written. Results from earlier builds (147 unit tests, 918 portal tests) are not carried over.
+All suites below were run on release 0.2.0.
 
-| Suite | Command | Status |
+| Suite | Command | Result |
 | --- | --- | --- |
-| Unit, standard flavor | `./gradlew testStandardDebugUnitTest` | 176 test methods in 25 classes written; not yet run |
-| Unit, nearby flavor | `./gradlew testNearbyDebugUnitTest` | Same classes; not yet run |
-| Portal | `cd portal && npx vp test` | 3 files; not yet run on this build |
-| Review record | `python tools/content/test_review_record.py` | Not yet run on this build |
-| Retarget maths | `python tools/isl/test_retarget.py` | 13 tests; needs NumPy, run in the tools environment; not yet run |
-| Reader evaluation | `python tools/ml/eval_isl.py`; `python tools/ml/eval_asl.py` | Scores in `tools/ml/EVAL.md` were produced on the shipped models; ASL words top-1 0.402 against the 0.6 target |
-| Instrumented | `./gradlew connectedStandardDebugAndroidTest` | 38 test methods written (overlay 2, migration 2, stage accessibility 24, stage device accessibility 10, the accessibility classes run in light and dark); not yet run |
-| Android Lint | `./gradlew lintStandardRelease` | Not yet run on this build |
-
-Unit tests by class (methods written): `AslDamageTest` 3, `AslSpellTest` 2, `AutoPilotTest` 10, `AvatarTest` 14, `HandoverTest` 6, `InterviewTest` 17, `IslLexiconTest` 13, `LessonTest` 12, `LogicTest` 7, `MainPageTest` 10, `PairTest` 29, `PolicyTest` 2, `ReadBackTest` 3, `RigFixtureTest` 1, `RoleTest` 4, `SegmentTest` 5, `SignIngestionTest` 7, `SignLanguageTest` 5, `SignReaderTest` 4, `SpellGateTest` 2, `StageLogicTest` 9, `SunModeTest` 2, `camera.AnalysisRateTest` 2, `camera.HolisticMappingTest` 2, `camera.OverlayMappingTest` 5.
+| Unit, standard flavor | `./gradlew testStandardDebugUnitTest` | 196 of 196 pass |
+| Unit, nearby flavor | `./gradlew testNearbyDebugUnitTest` | 196 of 196 pass |
+| Instrumented | `./gradlew connectedStandardDebugAndroidTest` | 76 of 76 pass on the API 34 emulator, including the real hand tracker on dictionary clips (`SignPipelineDeviceTest`) and the drawn skeleton on a signer's frame (`SkeletonOverlayDeviceTest`) |
+| Android Lint | `./gradlew lintStandardDebug` | Passes the gate |
+| Portal | `cd portal && npx vp test` | 918 of 918 pass |
+| Python tools | `python -m unittest discover` in `tools/isl` and `tools/security` | Pass |
+| Reader evaluation | `python tools/ml/eval_isl.py`; `python tools/ml/eval_asl.py` | Scores in `tools/ml/EVAL.md`, on the shipped float16 models |
+| Release APK | `./gradlew assembleStandardRelease`, then signed | Installed and run on the emulator under 64-bit ARM translation: tracker, database and assistant libraries load with the camera on |
 
 ## 3. Functional scenarios
 
@@ -89,7 +87,7 @@ Unit tests by class (methods written): `AslDamageTest` 3, `AslSpellTest` 2, `Aut
 | PT-01 | Earlier build, emulator only: release cold start to first frame 0.79 to 1.03 s over four runs (`am start -W`); repeat on a real Android 10 phone |
 | PT-02 | Earlier build: 173 to 236 ms repeat, 510 ms first on Android 14 with a desktop GPU; 283 to 388 ms repeat, 672 ms first on software-rendered Android 10; repeat on a phone |
 | PT-03 | Partial, earlier build: 0 to 8 janky frames of about 420 (0 to 2%), all as the stage opens; motion playback dropped none |
-| PT-04 | Pass: 47,579,538 bytes (45.4 MiB), under 50 MB |
+| PT-04 | Pass: 41,004,639 bytes (39.1 MiB), under 50 MB |
 | PT-05 | Earlier build: 139 MB total PSS on the stage with the camera running (limit 300 MB); repeat with the GPU delegate on a phone |
 
 ## 5. Security
@@ -155,7 +153,7 @@ Each control in [security](04-security.md) checked against the code.
 
 ## 8. Open items before production
 
-- Reviewer sign-off on the [content review record](governance/forms/content-review-record.md): every gesture, authored and recorded sign and both characters (05 §8), the phrase-bank sentences, the placeholder recordings, the draft ISL word order and sign-word map, the lesson-sheet wording, and the rights wording in English and Hindi.
+- Reviewer sign-off on the content review record: every gesture, authored and recorded sign and both characters (05 §8), the phrase-bank sentences, the placeholder recordings, the draft ISL word order and sign-word map, the lesson-sheet wording, and the rights wording in English and Hindi.
 - The unit, instrumented and portal suites, Android Lint and the retarget tests on the current build (Run B); the device scenarios marked *earlier build* repeated on it.
 - TC-05, PT-01 to PT-03 and PT-05 on a real Android 10 phone, and the vision engine's frame rate on the GPU delegate, memory and hand sides on a real 64-bit phone.
 - The two-phone and tablet script (TC-41, UAT-18), ST-17, and an accessibility pass over the stage device screens (AT-07).

@@ -13,6 +13,7 @@ import numpy as np
 import torch
 
 from features import FEATURES, FRAMES
+import runtime
 from train import HIDDEN, KERNEL, SignNet, features
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
@@ -56,7 +57,8 @@ def main(name: str, ckpt_path: pathlib.Path, cache_path: pathlib.Path) -> None:
         c1w, c1b = folded(model.conv1, model.bn1)
         c2w, c2b = folded(model.conv2, model.bn2)
         tensors = [model.embed.weight, model.embed.bias, c1w, c1b, c2w, c2b, model.head.weight, model.head.bias]
-        blob = b"".join(t.detach().numpy().astype("<f4").tobytes() for t in tensors)
+        # Half precision halves the APK share of the readers (NFR-05); the fixture below is computed from the same halves.
+        blob = b"".join(t.detach().numpy().astype("<f2").tobytes() for t in tensors)
     MODELS.mkdir(parents=True, exist_ok=True)
     (MODELS / f"{name}.bin").write_bytes(blob)
     spec = {
@@ -65,7 +67,8 @@ def main(name: str, ckpt_path: pathlib.Path, cache_path: pathlib.Path) -> None:
                         "global average and max pooling concatenated; linear to logits",
         "frames": FRAMES, "features": FEATURES, "hidden": HIDDEN, "kernel": KERNEL, "classes": len(labels),
         "tensors": [{"shape": list(t.shape)} for t in tensors],
-        "weights": "float32 little-endian, tensors in the order above, row-major; conv weight is [out][in][kernel]",
+        "dtype": "float16",
+        "weights": "float16 little-endian, tensors in the order above, row-major; conv weight is [out][in][kernel]",
         "feature_spec": "MediaPipe Holistic normalised image points, unmirrored; y scaled by height/width; "
                         "centre = mean shoulder midpoint (pose 11, 12) over the segment, scale = mean shoulder width; "
                         "per frame: left hand 21x(x,y), right hand 21x(x,y), pose 11..16 (x,y), left and right "
@@ -87,14 +90,14 @@ def main(name: str, ckpt_path: pathlib.Path, cache_path: pathlib.Path) -> None:
     one_hand = dict(pick(3), has_left=np.zeros_like(pick(3)["has_left"]))
     short = {k: (v[:7] if isinstance(v, np.ndarray) else v) for k, v in pick(5).items()}
     cases = []
+    # The fixture is what the shipped file computes, half-precision weights included, so Kotlin must match it exactly.
+    _, shipped = runtime.reader(name)
     for s in (pick(0), pick(200), pick(400), one_hand, short):
         s = rounded(s)
         f = features(s, aspect)
         if f is None:  # a one-hand case cut from a photograph with only that hand
             continue
-        x = torch.tensor(f[None])
-        with torch.no_grad():
-            logits = model(x)[0].double().numpy()
+        logits = shipped(f[None].astype(np.float64))[0]
         cases.append({"word": s["label"], "frames": frames_json(s), "logits": [round(float(v), 6) for v in logits]})
     RESOURCES.mkdir(parents=True, exist_ok=True)
     (RESOURCES / f"{name}_fixture.json").write_text(json.dumps({"aspect": aspect, "cases": cases}), encoding="utf-8")

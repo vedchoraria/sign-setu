@@ -28,6 +28,7 @@ import app.signsetu.ui.session.decodePrompt
 import app.signsetu.ui.session.encode
 import app.signsetu.ui.session.grades
 import app.signsetu.ui.session.offered
+import app.signsetu.ui.session.unseen
 import app.signsetu.ui.session.prompts
 import app.signsetu.ui.session.signedWords
 import org.junit.Assert.assertEquals
@@ -149,6 +150,24 @@ class MainPageTest {
         listOf(listOf("n1", "n2", "n3"), listOf("yes", "no", "dont_know"), listOf("phone", "draw"), listOf("water")).forEach {
             assertEquals(it, offered(it, Random(7)))
         }
+    }
+
+    @Test
+    fun somethingElseShowsThePicturesNotYetSeenBeforeDrawing() {
+        val all = listOf("mother", "father", "brother", "sister", "grandmother", "grandfather", "spouse", "children", "relatives")
+        val seen = mutableListOf<String>()
+        var left: List<String>? = all
+        var pages = 0
+        while (left != null) {
+            val shown = offered(left, Random(pages))
+            assertEquals(SOMETHING_ELSE, shown.last())
+            seen += shown.dropLast(1)
+            left = unseen(left, shown)
+            pages++
+        }
+        assertEquals("every picture once, four a page, the last alone with a way out", all.sorted(), seen.sorted())
+        assertEquals(3, pages)
+        assertEquals(null, unseen(listOf("water", "food"), offered(listOf("water", "food"), Random(1))))
     }
 
     @Test

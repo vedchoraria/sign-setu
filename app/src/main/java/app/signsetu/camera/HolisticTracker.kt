@@ -2,6 +2,7 @@ package app.signsetu.camera
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Build
 import androidx.compose.ui.geometry.Offset
 import com.google.mediapipe.framework.image.BitmapImageBuilder
@@ -19,6 +20,7 @@ import java.nio.channels.FileChannel
 import java.security.MessageDigest
 
 private const val MODEL = "models/holistic_landmarker.task"
+private const val PROBE = "models/holistic_probe.jpg"
 
 /** The bundled holistic model on 64-bit phones; 32-bit phones ship without its native library and keep a plain mirror. */
 fun holisticTracker(context: Context): LandmarkTracker? =
@@ -36,7 +38,8 @@ class HolisticTracker(private val context: Context) : LandmarkTracker {
     private val lock = Any()
     private var landmarker: HolisticLandmarker? = null
     private var opened = false
-    private var delegate = Delegate.GPU
+    internal var delegate = Delegate.GPU
+        private set
 
     private fun model(): HolisticLandmarker? = synchronized(lock) {
         if (!opened) {
@@ -75,8 +78,19 @@ class HolisticTracker(private val context: Context) : LandmarkTracker {
     }
 
     // The CPU managed about 9 frames a second on a mid-range phone; the GPU is tried first, the CPU when it fails.
-    private fun open(model: ByteBuffer): HolisticLandmarker =
-        runCatching { open(model, delegate) }.getOrElse { delegate = Delegate.CPU; open(model, Delegate.CPU) }
+    // Some GPUs run the graph yet find nothing, so the GPU is kept only if it finds the person in a bundled frame.
+    private fun open(model: ByteBuffer): HolisticLandmarker {
+        if (delegate == Delegate.GPU && runCatching { open(model, Delegate.GPU).let { gpu -> try { findsPerson(gpu) } finally { gpu.close() } } }.getOrDefault(false)) {
+            runCatching { return open(model, Delegate.GPU) }
+        }
+        delegate = Delegate.CPU
+        return open(model, Delegate.CPU)
+    }
+
+    private fun findsPerson(model: HolisticLandmarker): Boolean {
+        val probe = context.assets.open("content/$PROBE").use(BitmapFactory::decodeStream) ?: return false
+        return model.detectForVideo(BitmapImageBuilder(probe).build(), 0).poseLandmarks().isNotEmpty()
+    }
 
     private fun open(model: ByteBuffer, delegate: Delegate): HolisticLandmarker = HolisticLandmarker.createFromOptions(
         context,

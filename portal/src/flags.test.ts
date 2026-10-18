@@ -9,8 +9,11 @@ it("passes a plain open question", () => {
 });
 
 it("flags presupposing, either/or, tag and stacked questions", () => {
-  expect(q("Has someone hurt you?")).toHaveLength(1);
+  expect(q("Has someone hurt you?")).toEqual([expect.stringMatching(/presuppose a person/)]);
+  expect(q("Where is the knife?")).toEqual([expect.stringMatching(/"the"/)]);
   expect(q("Was it day or night?")[0]).toMatch(/Either/);
+  // "or" inside a word is not a choice.
+  expect(q("Is your door shut?")).toEqual([]);
   expect(q("You were at home, weren't you?")[0]).toMatch(/Tag/);
   expect(q("Are you hurt? Where?")[0]).toMatch(/stacked/);
 });

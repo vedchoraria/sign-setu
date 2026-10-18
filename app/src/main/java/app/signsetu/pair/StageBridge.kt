@@ -104,7 +104,8 @@ fun rememberPairedStage(
                     if (fresh && (m.body as? AnswerBody.Card)?.id == "stop") breakPending = true
                 }
                 is ToOfficer.Displayed -> confirmed += m.itemId
-                is ToOfficer.Status -> status = m
+                // An error report carries no battery reading (it sends 0), so it must not replace the last real one.
+                is ToOfficer.Status -> if (m.error == null) status = m
                 else -> Unit
             }
         }

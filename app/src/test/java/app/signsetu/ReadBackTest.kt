@@ -47,5 +47,8 @@ class ReadBackTest {
         // A Yes to a single reading is the subject's Yes; the reading stays the officer's (FR-66).
         val yes = event(4, EventType.ANSWER_CARD, EventSource.SUBJECT, "yes", ref = 1)
         assertEquals(Grade.SAID, grades(listOf(line, yes))[4])
+        assertEquals(Grade.OFFICER_READ, grades(listOf(line, yes))[1])
+        // A "no" that checks nothing is unclear, not a rejection.
+        assertEquals(Grade.UNCLEAR, grades(listOf(event(5, EventType.ANSWER_UNCLEAR, EventSource.SUBJECT, "no")))[5])
     }
 }

@@ -1,0 +1,1 @@
+Clips student.mp4, today.mp4 and husband.mp4 are from the ISLRTC Indian Sign Language Dictionary (Government of India), Government Open Data License - India. They are used unchanged, only for device tests, and are not part of the app.

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Draft Hindi: needs review by a fluent speaker under the content policy. -->
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="skip">छोड़ें</string>
-    <string name="stage_back_blocked">यहाँ बैक बंद है। फ़ोन वापस देने के लिए हैंडल को दबाए रखें।</string>
+    <string name="stage_back_blocked">यहाँ बैक बंद है। फ़ोन वापस देने के लिए हैंडल पर टैप करें।</string>
     <string name="app_name">साइन सेतु</string>
     <string name="cancel">रद्द करें</string>
     <string name="notice_aid">साइन सेतु बातचीत में मदद करता है। यह दुभाषिया नहीं है, और यह कभी बयान दर्ज नहीं करता।</string>
@@ -113,6 +113,7 @@
     <string name="show_officer">अधिकारी</string>
     <string name="show_yes">हाँ</string>
     <string name="show_no">नहीं</string>
+    <string name="stage_proposed">सुझाया गया</string>
     <string name="show_replay">फिर से दिखाएँ</string>
 
     <string name="end_export">रिपोर्ट निर्यात करें</string>
@@ -270,12 +271,12 @@
     <string name="signed_sign">संकेत %1$d</string>
     <string name="signed_type">शब्द लिखें</string>
     <string name="report_answers">उत्तर</string>
-    <string name="summary_taps">%1$d छूकर</string>
-    <string name="summary_taps_cued">%1$d छूकर (%2$d किसी इशारे के बाद)</string>
-    <string name="summary_signed">%1$d संकेत से</string>
-    <string name="summary_drawn">%1$d चित्र से</string>
-    <string name="summary_written">%1$d लिखकर</string>
-    <string name="summary_gestured">%1$d इशारे से</string>
+    <string name="summary_taps" tools:ignore="PluralsCandidate">%1$d छूकर</string>
+    <string name="summary_taps_cued" tools:ignore="PluralsCandidate">%1$d छूकर (%2$d किसी इशारे के बाद)</string>
+    <string name="summary_signed" tools:ignore="PluralsCandidate">%1$d संकेत से</string>
+    <string name="summary_drawn" tools:ignore="PluralsCandidate">%1$d चित्र से</string>
+    <string name="summary_written" tools:ignore="PluralsCandidate">%1$d लिखकर</string>
+    <string name="summary_gestured" tools:ignore="PluralsCandidate">%1$d इशारे से</string>
     <string name="cue_nod">सिर हिलाकर हाँ या अंगूठा ऊपर करने के बाद</string>
     <string name="cue_shake">सिर हिलाकर ना या अंगूठा नीचे करने के बाद</string>
     <string name="cue_point">उस ओर इशारा करने के बाद</string>

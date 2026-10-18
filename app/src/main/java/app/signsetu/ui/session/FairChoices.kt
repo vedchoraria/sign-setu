@@ -21,6 +21,13 @@ fun offered(cards: List<String>, random: Random): List<String> {
     return pictures.shuffled(random).take(4) + SOMETHING_ELSE
 }
 
+/** The pictures of [all] that [shown] left out, with a way out again when only one is left; null when none were. */
+fun unseen(all: List<String>, shown: List<String>): List<String>? {
+    if (SOMETHING_ELSE !in shown || SOMETHING_ELSE in all) return null
+    val rest = all.filter { it !in shown }
+    return when (rest.size) { 0 -> null; 1 -> rest + SOMETHING_ELSE; else -> rest }
+}
+
 /**
  * The pictures a show-back or say-back offers: the reading under check and up to two others from [pool]. A single
  * picture is no choice, so then only the reading comes back and a Yes to it confirms nothing (FR-66).
@@ -40,7 +47,7 @@ fun choicePositions(events: List<SessionEvent>): Map<Long, Pair<Int, Int>> {
         when (e.type) {
             EventType.QUESTION_SHOWN -> cards = records[e.id]?.cards.orEmpty()
             EventType.SYSTEM -> cards = emptyList()
-            EventType.ANSWER_CARD -> {
+            EventType.ANSWER_CARD, EventType.ANSWER_GESTURE -> {
                 val i = cards.indexOf(e.cardId)
                 if (i >= 0 && SOMETHING_ELSE in cards) out[e.id] = (i + 1) to cards.size
             }

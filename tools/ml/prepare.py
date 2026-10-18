@@ -13,7 +13,9 @@ import zipfile
 import numpy as np
 
 URL = "https://zenodo.org/records/6674324/files/INCLUDE.zip?download=1"
-WIDTH, HEIGHT = 1080, 1920  # every INCLUDE video is portrait 1080x1920; keypoints are in pixels
+WIDTH, HEIGHT = 1080, 1920  # the release scaled its 0..1 points by a portrait 1080x1920 frame
+# The videos are landscape 1920x1080, so after undoing that scaling the true frame aspect is 16:9, not 9:16.
+ASPECT = 1920 / 1080
 
 
 def label(folder: str) -> str:
@@ -49,7 +51,7 @@ def main(data: pathlib.Path) -> None:
                     "has_pose": np.abs(pose[:, 11:13]).sum((1, 2)) > 0,
                 })
     with open(data / "include.pkl", "wb") as f:
-        pickle.dump({"aspect": WIDTH / HEIGHT, "samples": samples}, f)
+        pickle.dump({"aspect": ASPECT, "samples": samples}, f)
     labels = sorted({s["label"] for s in samples})
     print(f"{len(samples)} samples, {len(labels)} labels")
 
