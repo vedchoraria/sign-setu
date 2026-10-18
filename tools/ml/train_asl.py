@@ -132,7 +132,7 @@ def main(cache: pathlib.Path, out: pathlib.Path, epochs: int, teachers: list) ->
     if teachers:
         nets = []
         for p in teachers:
-            ck = torch.load(p)
+            ck = torch.load(p, weights_only=True)  # nosemgrep: trailofbits.python.pickles-in-pytorch.pickles-in-pytorch
             net = SignNet(len(labels), hidden=ck["state"]["embed.weight"].shape[0]).to(dev)
             net.load_state_dict(ck["state"])
             nets.append(net.eval())
@@ -164,7 +164,7 @@ def main(cache: pathlib.Path, out: pathlib.Path, epochs: int, teachers: list) ->
         if epoch % 25 == 24 or epoch == epochs - 1:
             top1, top3 = evaluate(model, xt, yt)
             print(f"epoch {epoch + 1}: loss {loss.item():.3f} test top-1 {top1:.4f} top-3 {top3:.4f}", flush=True)
-    torch.save({"state": model.cpu().state_dict(), "labels": labels, "top1": top1, "top3": top3, "epochs": epochs}, out)
+    torch.save({"state": model.cpu().state_dict(), "labels": labels, "top1": top1, "top3": top3, "epochs": epochs}, out)  # nosemgrep: trailofbits.python.pickles-in-pytorch.pickles-in-pytorch
 
 
 if __name__ == "__main__":

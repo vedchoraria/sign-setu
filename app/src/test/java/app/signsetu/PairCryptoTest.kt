@@ -8,7 +8,7 @@ import app.signsetu.pair.officerHandshake
 import app.signsetu.pair.stageHandshake
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.runTest
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull

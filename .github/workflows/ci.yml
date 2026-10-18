@@ -17,6 +17,8 @@ jobs:
           distribution: temurin
           java-version: 21
       - uses: gradle/actions/setup-gradle@v4
+        with:
+          dependency-graph: disabled
       - name: Unit tests
         run: ./gradlew --console=plain :app:testStandardDebugUnitTest
       - name: Lint
@@ -76,7 +78,7 @@ jobs:
           chmod +x osv-scanner
           # Lint and test tooling never ships, so scan only the release runtime lines.
           mkdir shipped
-          grep -i 'releaseRuntimeClasspath' app/gradle.lockfile > shipped/gradle.lockfile
+          grep -E '(standard|nearby)ReleaseRuntimeClasspath' app/gradle.lockfile > shipped/gradle.lockfile
           ./osv-scanner scan source --lockfile shipped/gradle.lockfile --format json --output osv.json || true
           # max_severity is a CVSS base score; 7.0 and above is high or critical.
           worst=$(jq '[.results[]?.packages[]?.groups[]?.max_severity | select(. != null and . != "") | tonumber] | max // 0' osv.json)
@@ -92,6 +94,8 @@ jobs:
           distribution: temurin
           java-version: 21
       - uses: gradle/actions/setup-gradle@v4
+        with:
+          dependency-graph: disabled
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -102,7 +106,13 @@ jobs:
           api-level: 34
           arch: x86_64
           target: google_apis
+          profile: pixel_6
           script: ./gradlew --console=plain :app:connectedStandardDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=app.signsetu.StageAccessibilityTest,app.signsetu.StageDeviceAccessibilityTest
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: instrumented-report
+          path: app/build/reports/androidTests
 
   gitleaks:
     runs-on: ubuntu-24.04
@@ -127,6 +137,8 @@ jobs:
           distribution: temurin
           java-version: 21
       - uses: gradle/actions/setup-gradle@v4
+        with:
+          dependency-graph: disabled
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -141,7 +153,7 @@ jobs:
           curl -sSfL -o osv-scanner https://github.com/google/osv-scanner/releases/download/v2.0.2/osv-scanner_linux_amd64
           chmod +x osv-scanner
           mkdir shipped
-          grep -i 'releaseRuntimeClasspath' app/gradle.lockfile > shipped/gradle.lockfile
+          grep -E '(standard|nearby)ReleaseRuntimeClasspath' app/gradle.lockfile > shipped/gradle.lockfile
           ./osv-scanner scan source --lockfile shipped/gradle.lockfile --format json --output record/osv.json || true
           (cd record && sha256sum *.apk *.aab > SHA256SUMS)
       - uses: actions/upload-artifact@v4

@@ -409,7 +409,7 @@ internal fun SandesHandoffDialog(
 ) {
     val clipboard = LocalClipboardManager.current
     val context = LocalContext.current
-    val copiedMessage = stringResource(R.string.sandes_handoff_copied)
+    val copiedMessage = stringResource(R.string.sandes_contact_copied)
 
     GuardedAlertDialog(
         onDismissRequest = onDismiss,
@@ -418,7 +418,7 @@ internal fun SandesHandoffDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
                 Text(
-                    stringResource(R.string.sandes_handoff_message),
+                    stringResource(R.string.sandes_handoff_body),
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 Surface(
@@ -428,7 +428,7 @@ internal fun SandesHandoffDialog(
                 ) {
                     Column(Modifier.padding(Spacing.md)) {
                         Text(
-                            stringResource(R.string.sandes_handoff_contact_label),
+                            stringResource(R.string.sandes_contact_label),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -453,10 +453,10 @@ internal fun SandesHandoffDialog(
                         Toast.makeText(context, copiedMessage, Toast.LENGTH_SHORT).show()
                     },
                 ) {
-                    Text(stringResource(R.string.sandes_handoff_copy))
+                    Text(stringResource(R.string.sandes_copy_contact))
                 }
                 Button(onClick = onLaunch) {
-                    Text(stringResource(R.string.sandes_handoff_launch))
+                    Text(stringResource(R.string.sandes_launch))
                 }
             }
         },

@@ -231,7 +231,7 @@ def train(data: pathlib.Path, epochs: int = 60, per_epoch: int = 4000) -> None:
         with torch.no_grad():
             score = cer(lambda f: greedy(model(torch.tensor(f[None]).to(dev))[0].cpu().numpy()), letters, aspect, 200)
         print(f"epoch {epoch + 1}: loss {loss.item():.3f} test CER {score:.4f}", flush=True)
-    torch.save({"state": model.cpu().state_dict(), "cer": score, "epochs": epochs}, data / "asl_spell.pt")
+    torch.save({"state": model.cpu().state_dict(), "cer": score, "epochs": epochs}, data / "asl_spell.pt")  # nosemgrep: trailofbits.python.pickles-in-pytorch.pickles-in-pytorch
 
 
 def folded(conv, bn):
@@ -240,7 +240,7 @@ def folded(conv, bn):
 
 
 def export(data: pathlib.Path) -> None:
-    ckpt = torch.load(data / "asl_spell.pt")
+    ckpt = torch.load(data / "asl_spell.pt", weights_only=True)  # nosemgrep: trailofbits.python.pickles-in-pytorch.pickles-in-pytorch
     model = SpellNet()
     model.load_state_dict(ckpt["state"])
     model.eval()

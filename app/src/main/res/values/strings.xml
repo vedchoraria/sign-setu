@@ -500,9 +500,9 @@
     <!-- ASL Experimental Gating -->
     <string name="asl_experimental_badge">Experimental</string>
     <string name="asl_experimental_title">ASL Recognition is Experimental</string>
-    <string name="asl_experimental_advisory">ASL word recognition has ~40% accuracy and is provided for testing only. ISL is recommended for field investigations. ASL fingerspelling and character animation remain fully supported.</string>
+    <string name="asl_experimental_advisory" formatted="false">ASL word recognition has ~40% accuracy and is provided for testing only. ISL is recommended for field investigations. ASL fingerspelling and character animation remain fully supported.</string>
     <string name="settings_asl_advisory">ASL recognition status</string>
-    <string name="settings_asl_advisory_summary">ASL word recognition is experimental (40% accuracy). ISL is the primary field pipeline. ASL fingerspelling and gestures remain active.</string>
+    <string name="settings_asl_advisory_summary" formatted="false">ASL word recognition is experimental (40% accuracy). ISL is the primary field pipeline. ASL fingerspelling and gestures remain active.</string>
 
     <!-- Sandes Interpreter Handoff -->
     <string name="sandes_handoff_title">Sandes Interpreter Contact</string>

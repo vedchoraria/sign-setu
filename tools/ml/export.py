@@ -46,7 +46,7 @@ def frames_json(s):
 
 
 def main(name: str, ckpt_path: pathlib.Path, cache_path: pathlib.Path) -> None:
-    ckpt = torch.load(ckpt_path)
+    ckpt = torch.load(ckpt_path, weights_only=True)  # nosemgrep: trailofbits.python.pickles-in-pytorch.pickles-in-pytorch
     labels = ckpt["labels"]
     model = SignNet(len(labels))
     model.load_state_dict(ckpt["state"])

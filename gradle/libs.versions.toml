@@ -24,7 +24,7 @@ bouncycastle = "1.86"
 junit = "4.13.2"
 playServicesNearby = "19.5.1"
 mediapipe = "1.0.0"
-protobuf = "4.26.1"
+protobuf = "4.28.3"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }

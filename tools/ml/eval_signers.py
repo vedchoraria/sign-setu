@@ -12,7 +12,7 @@ from train import SignNet, batch, evaluate
 def main(cache_path: str, split: str, models: list) -> None:
     cache = pickle.load(open(cache_path, "rb"))
     for path in models:
-        ckpt = torch.load(path)
+        ckpt = torch.load(path, weights_only=True)  # nosemgrep: trailofbits.python.pickles-in-pytorch.pickles-in-pytorch
         labels = ckpt["labels"]
         index = {l: i for i, l in enumerate(labels)}
         test = [s for s in cache["samples"] if s["split"] == split and s["label"] in index]
