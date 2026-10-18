@@ -97,6 +97,11 @@ class AppContainer(private val app: Application) : DefaultLifecycleObserver, Com
     val keyReset: StateFlow<Boolean> = _keyReset.asStateFlow()
     fun acknowledgeKeyReset() { _keyReset.value = false }
 
+    private val _downgraded = MutableStateFlow(false)
+    /** True after stored sessions were reset because of a database downgrade; the officer is notified. */
+    val downgraded: StateFlow<Boolean> = _downgraded.asStateFlow()
+    fun acknowledgeDowngrade() { _downgraded.value = false }
+
     /** Null while the app is locked: no session data can be read without the officer's credential. */
     val sessions: StateFlow<SessionRepository?> = _sessions.asStateFlow()
 
@@ -122,7 +127,7 @@ class AppContainer(private val app: Application) : DefaultLifecycleObserver, Com
         val unwrapped = databaseKey.unwrap()
         if (unwrapped.reset) _keyReset.value = true
         // SQLCipher clears the key bytes itself once the database is open.
-        return SessionDatabase.open(app, unwrapped.key).also { db ->
+        return SessionDatabase.open(app, unwrapped.key, onDestructiveMigration = { _downgraded.value = true }).also { db ->
             runCatching { db.openHelper.writableDatabase }.onFailure { db.close(); throw it }
         }
     }

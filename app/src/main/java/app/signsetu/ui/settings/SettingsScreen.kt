@@ -164,6 +164,24 @@ fun SettingsScreen(store: SettingsStore, models: ModelStore, onBack: () -> Unit,
                     modifier = Modifier.toggleable(s.islReorder, role = Role.Switch) { on -> scope.launch { store.setIslReorder(on) } },
                 )
                 ListItem(
+                    headlineContent = { Text(stringResource(R.string.settings_asl_advisory)) },
+                    supportingContent = { Text(stringResource(R.string.settings_asl_advisory_summary)) },
+                    colors = ItemColors,
+                    trailingContent = {
+                        androidx.compose.material3.Surface(
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(4.dp),
+                            color = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                        ) {
+                            Text(
+                                stringResource(R.string.asl_experimental_badge),
+                                style = MaterialTheme.typography.labelSmall,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                            )
+                        }
+                    },
+                )
+                ListItem(
                     headlineContent = { Text(stringResource(R.string.settings_pin_to_leave)) },
                     supportingContent = { Text(stringResource(R.string.settings_pin_to_leave_summary)) },
                     colors = ItemColors,

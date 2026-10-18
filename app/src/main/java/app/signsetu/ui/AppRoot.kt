@@ -12,6 +12,24 @@ import android.content.Intent
 import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Call
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import app.signsetu.ui.theme.Spacing
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import app.signsetu.data.settings.AppSettings
@@ -139,6 +157,15 @@ fun AppRoot(container: AppContainer, guard: DeviceGuard) {
                     confirmButton = { TextButton(onClick = container::acknowledgeKeyReset) { Text(stringResource(R.string.ok)) } },
                 )
             }
+            val downgraded by container.downgraded.collectAsStateWithLifecycle()
+            if (downgraded && r != null) {
+                GuardedAlertDialog(
+                    onDismissRequest = container::acknowledgeDowngrade,
+                    title = { Text(stringResource(R.string.downgrade_reset_title)) },
+                    text = { Text(stringResource(R.string.downgrade_reset_body)) },
+                    confirmButton = { TextButton(onClick = container::acknowledgeDowngrade) { Text(stringResource(R.string.ok)) } },
+                )
+            }
         }
     } }
 }
@@ -244,6 +271,7 @@ internal fun SessionRoute(
     val cancel = stringResource(R.string.cancel)
     // The officer can turn the mirror off for one person, for example a child upset by seeing themself.
     var cameraOn by rememberSaveable { mutableStateOf(settings.cameraEnabled) }
+    var sandesHandoffContact by rememberSaveable { mutableStateOf<String?>(null) }
     // D-26: with a second screen the subject's stage is there, and this phone stays the officer's.
     val link by container.link.collectAsStateWithLifecycle()
     val officerLink = link?.takeIf { it.role == LinkRole.OFFICER }
@@ -300,8 +328,12 @@ internal fun SessionRoute(
             islReorder = settings.islReorder,
             onCallInterpreter = if (settings.interpreterConfigured) {
                 {
-                    guard.unpin()
-                    activity?.let { callInterpreter(it, settings) }
+                    if (settings.interpreterApp == InterpreterApp.SANDES) {
+                        sandesHandoffContact = settings.interpreterContact
+                    } else {
+                        guard.unpin()
+                        activity?.let { callInterpreter(it, settings) }
+                    }
                 }
             } else {
                 null
@@ -349,25 +381,115 @@ internal fun SessionRoute(
             }
         }
     }
+
+    sandesHandoffContact?.let { contact ->
+        SandesHandoffDialog(
+            contact = contact,
+            onLaunch = {
+                sandesHandoffContact = null
+                guard.unpin()
+                activity?.let { launchSandes(it, settings) }
+            },
+            onDismiss = { sandesHandoffContact = null },
+        )
+    }
+}
+
+/**
+ * FR-64 / Security: returns strictly the contact identifier for Sandes clipboard handoff,
+ * ensuring zero session data, transcript contents, or PII ever reach the system clipboard.
+ */
+fun sanitizeSandesHandoffClipboard(contact: String): String = contact.trim()
+
+@Composable
+internal fun SandesHandoffDialog(
+    contact: String,
+    onLaunch: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val clipboard = LocalClipboardManager.current
+    val context = LocalContext.current
+    val copiedMessage = stringResource(R.string.sandes_handoff_copied)
+
+    GuardedAlertDialog(
+        onDismissRequest = onDismiss,
+        icon = { Icon(Icons.Filled.Call, contentDescription = null) },
+        title = { Text(stringResource(R.string.sandes_handoff_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
+                Text(
+                    stringResource(R.string.sandes_handoff_message),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Surface(
+                    shape = MaterialTheme.shapes.small,
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Column(Modifier.padding(Spacing.md)) {
+                        Text(
+                            stringResource(R.string.sandes_handoff_contact_label),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Text(
+                            contact,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(top = 4.dp),
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+            ) {
+                OutlinedButton(
+                    onClick = {
+                        // ZERO session or transcript data is copied; ONLY the configured interpreter contact string.
+                        clipboard.setText(AnnotatedString(sanitizeSandesHandoffClipboard(contact)))
+                        Toast.makeText(context, copiedMessage, Toast.LENGTH_SHORT).show()
+                    },
+                ) {
+                    Text(stringResource(R.string.sandes_handoff_copy))
+                }
+                Button(onClick = onLaunch) {
+                    Text(stringResource(R.string.sandes_handoff_launch))
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
+            }
+        },
+    )
+}
+
+private fun launchSandes(activity: Activity, settings: AppSettings) {
+    val intent = activity.packageManager.getLaunchIntentForPackage(SANDES_PACKAGE)
+    val opened = intent != null && runCatching { activity.startActivity(intent) }.isSuccess
+    if (!opened) {
+        val name = activity.getString(R.string.settings_sandes)
+        Toast.makeText(activity, activity.getString(R.string.call_missing, name), Toast.LENGTH_LONG).show()
+    }
 }
 
 /** Opens the messaging app at the interpreter's contact; no session data goes with it (FR-64). */
 private fun callInterpreter(activity: Activity, settings: AppSettings) {
     val sandes = settings.interpreterApp == InterpreterApp.SANDES
-    val name = activity.getString(if (sandes) R.string.settings_sandes else R.string.settings_whatsapp)
-    val intent = if (sandes) {
-        activity.packageManager.getLaunchIntentForPackage(SANDES_PACKAGE)
-    } else {
-        whatsappNumber(settings.interpreterContact)?.let { Intent(Intent.ACTION_VIEW, "https://wa.me/$it".toUri()) }
+    if (sandes) {
+        launchSandes(activity, settings)
+        return
     }
+    val name = activity.getString(R.string.settings_whatsapp)
+    val intent = whatsappNumber(settings.interpreterContact)?.let { Intent(Intent.ACTION_VIEW, "https://wa.me/$it".toUri()) }
     val opened = intent != null && runCatching { activity.startActivity(intent) }.isSuccess
-    val message = when {
-        !opened -> activity.getString(R.string.call_missing, name)
-        // Sandes has no public link to a contact, so the officer is told whom to call.
-        sandes -> activity.getString(R.string.call_sandes_hint, settings.interpreterContact)
-        else -> null
+    if (!opened) {
+        Toast.makeText(activity, activity.getString(R.string.call_missing, name), Toast.LENGTH_LONG).show()
     }
-    message?.let { Toast.makeText(activity, it, Toast.LENGTH_LONG).show() }
 }
 
 private fun shareReport(activity: Activity, file: File) {

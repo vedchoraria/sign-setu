@@ -100,4 +100,14 @@ class SignLanguageTest {
         assertEquals("models/asl_reader", SignLanguage.ASL.reader)
         assertEquals("asl_signs.json", SignLanguage.ASL.signs)
     }
+
+    @Test
+    fun aslExperimentalGatingPreservesFingerspellingAndGestures() {
+        // ASL reader model is experimental but fingerspelling spell model and everyday gestures must be preserved
+        assertEquals("models/asl_spell", SignLanguage.ASL.spell)
+        assertEquals("asl_words.json", SignLanguage.ASL.words)
+        // Verify ISL remains primary default
+        assertEquals("models/sign_reader", SignLanguage.ISL.reader)
+        assertEquals("models/isl_spell", SignLanguage.ISL.spell)
+    }
 }

@@ -121,7 +121,7 @@ abstract class SessionDatabase : RoomDatabase() {
             }
         }
 
-        fun open(context: Context, key: ByteArray): SessionDatabase {
+        fun open(context: Context, key: ByteArray, onDestructiveMigration: () -> Unit = {}): SessionDatabase {
             System.loadLibrary("sqlcipher")
             return Room.databaseBuilder(context, SessionDatabase::class.java, FILE_NAME)
                 .openHelperFactory(SupportOpenHelperFactory(key))
@@ -133,6 +133,11 @@ abstract class SessionDatabase : RoomDatabase() {
                 .addCallback(object : Callback() {
                     override fun onOpen(db: SupportSQLiteDatabase) {
                         db.query("PRAGMA secure_delete = ON").use { it.moveToFirst() }
+                    }
+
+                    override fun onDestructiveMigration(db: SupportSQLiteDatabase) {
+                        super.onDestructiveMigration(db)
+                        onDestructiveMigration()
                     }
                 })
                 .build()

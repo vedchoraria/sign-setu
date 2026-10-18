@@ -486,4 +486,23 @@
     <string name="details_confirmed">पुष्टि</string>
     <string name="details_yes">हाँ</string>
     <string name="details_no">नहीं</string>
+
+    <!-- ASL Experimental Gating -->
+    <string name="asl_experimental_badge">प्रायोगिक</string>
+    <string name="asl_experimental_title">ASL पहचान अभी प्रायोगिक है</string>
+    <string name="asl_experimental_advisory">ASL शब्द पहचान की सटीकता लगभग 40% है और यह केवल परीक्षण के लिए है। फ़ील्ड जाँच के लिए ISL की सिफ़ारिश की जाती है। ASL फ़िंगरस्पेलिंग और एनीमेशन चालू हैं।</string>
+    <string name="settings_asl_advisory">ASL पहचान स्थिति</string>
+    <string name="settings_asl_advisory_summary">ASL शब्द पहचान प्रायोगिक है (40% सटीकता)। फ़ील्ड के लिए ISL मुख्य माध्यम है। ASL फ़िंगरस्पेलिंग और इशारे पूरी तरह समर्थित हैं।</string>
+
+    <!-- Sandes Interpreter Handoff -->
+    <string name="sandes_handoff_title">संदेश दुभाषिया संपर्क</string>
+    <string name="sandes_handoff_body">संदेश में कॉल मैन्युअल रूप से शुरू करनी होती है। नीचे दिए गए पंजीकृत दुभाषिया संपर्क पर कॉल करें। कोई भी व्यक्तिगत डेटा साझा नहीं किया जाता।</string>
+    <string name="sandes_contact_label">दुभाषिया संपर्क</string>
+    <string name="sandes_copy_contact">संपर्क कॉपी करें</string>
+    <string name="sandes_contact_copied">दुभाषिया संपर्क क्लिपबोर्ड में कॉपी हो गया</string>
+    <string name="sandes_launch">संदेश खोलें</string>
+
+    <!-- Database Downgrade Warning -->
+    <string name="downgrade_reset_title">डेटाबेस डाउनग्रेड मिला</string>
+    <string name="downgrade_reset_body">ऐप डाउनग्रेड होने के कारण सत्र तालिकाएँ फिर से बनाई गई हैं। पहले के अनएक्सपोर्टेड रिकॉर्ड सुरक्षित रूप से हटा दिए गए हैं। नए सत्र सामान्य रूप से चलेंगे।</string>
 </resources>
