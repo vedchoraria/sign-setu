@@ -16,6 +16,8 @@ import app.signsetu.assistant.Suggestion
 import app.signsetu.assistant.Assistant
 import android.app.Activity
 import android.content.res.Resources
+import androidx.compose.ui.text.font.FontWeight
+import app.signsetu.ui.theme.Baloo
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -24,6 +26,9 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -226,6 +231,8 @@ fun OfficerPane(
     // Sheets and dialogs take Back first; on the page itself it steps to the first tab, then asks before ending.
     BackHandler { if (page != 0) page = 0 else askEnd = true }
     var export by remember { mutableStateOf<ExportState?>(null) }
+    var aiReport by remember { mutableStateOf<String?>(null) }
+    var aiExtracting by remember { mutableStateOf(false) }
     var stopSeen by rememberSaveable { mutableStateOf<Long?>(null) }
     var phrase by remember { mutableStateOf<Phrase?>(null) }
     val scope = rememberCoroutineScope()
@@ -352,6 +359,43 @@ fun OfficerPane(
                 onCallInterpreter?.let { call ->
                     IconButton(onClick = call) { Icon(Icons.Filled.Call, contentDescription = stringResource(R.string.officer_call)) }
                 }
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color(0x33FFFFFF),
+                    border = BorderStroke(1.dp, Color(0x66FFFFFF)),
+                    modifier = Modifier
+                        .clickable {
+                            aiExtracting = true
+                            scope.launch {
+                                val sessionLog = ui.events.joinToString("\n") { ev ->
+                                    "[${ev.type.name}] [${ev.source.name}] text=${ev.text ?: ""} card=${ev.cardId ?: ""} lang=${ev.lang ?: ""}"
+                                }
+                                val rep = app.signsetu.assistant.TokenRouterAiService.extractInvestigationReport(
+                                    sessionLogText = sessionLog,
+                                    role = ui.session.role.name,
+                                    regionalDialect = subjectLang,
+                                )
+                                aiReport = rep ?: "No extracted report generated. Verify network connectivity."
+                                aiExtracting = false
+                            }
+                        }
+                        .padding(horizontal = 4.dp),
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Icon(Icons.Filled.Star, contentDescription = null, tint = Color(0xFFFBBF24), modifier = Modifier.size(16.dp))
+                        Text(
+                            text = "AI Report",
+                            fontFamily = Baloo,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.sp,
+                            color = Color.White,
+                        )
+                    }
+                }
                 IconButton(onClick = { sheet = Sheet.LOG }) {
                     BadgedBox(badge = { if (answers > 0) Badge { Text("$answers") } }) {
                         Icon(Icons.AutoMirrored.Filled.List, contentDescription = stringResource(R.string.officer_log))
@@ -423,11 +467,24 @@ fun OfficerPane(
                             modifier = Modifier.toggleState(SkeletonOnly.on.value, Role.Switch),
                         )
                         DropdownMenuItem(
-                            text = { Text(stringResource(R.string.officer_camera)) },
-                            leadingIcon = { Icon(painterResource(R.drawable.ic_videocam), contentDescription = null) },
-                            trailingIcon = { Switch(checked = cameraOn, onCheckedChange = null) },
-                            onClick = { onCameraOn(!cameraOn) },
-                            modifier = Modifier.toggleState(cameraOn, Role.Switch),
+                            text = { Text("Extract AI Police Report") },
+                            leadingIcon = { Icon(Icons.Filled.Star, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                            onClick = {
+                                menu = false
+                                aiExtracting = true
+                                scope.launch {
+                                    val sessionLog = ui.events.joinToString("\n") { ev ->
+                                        "[${ev.type.name}] [${ev.source.name}] text=${ev.text ?: ""} card=${ev.cardId ?: ""} lang=${ev.lang ?: ""}"
+                                    }
+                                    val rep = app.signsetu.assistant.TokenRouterAiService.extractInvestigationReport(
+                                        sessionLogText = sessionLog,
+                                        role = ui.session.role.name,
+                                        regionalDialect = subjectLang,
+                                    )
+                                    aiReport = rep ?: "No extracted report generated. Verify network connectivity."
+                                    aiExtracting = false
+                                }
+                            },
                         )
                         HorizontalDivider()
                         DropdownMenuItem(
@@ -621,6 +678,58 @@ fun OfficerPane(
             },
         )
     }
+    aiReport?.let { reportText ->
+        GuardedAlertDialog(
+            onDismissRequest = { aiReport = null },
+            icon = { Icon(Icons.Filled.Star, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+            title = { Text("AI Police Investigation Report") },
+            text = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 420.dp)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(
+                        text = "Auto-extracted from ISL gloss, gestures, and spoken interactions:",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    SelectionContainer {
+                        Text(
+                            text = reportText,
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(onClick = { aiReport = null }) {
+                    Text("Done")
+                }
+            },
+        )
+    }
+
+    if (aiExtracting) {
+        GuardedAlertDialog(
+            onDismissRequest = {},
+            title = { Text("Extracting Report via TokenRouter AI…") },
+            text = {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(16.dp),
+                ) {
+                    androidx.compose.material3.CircularProgressIndicator()
+                    Text("Synthesizing multi-modal ISL and dialogue statements into formal investigation report…")
+                }
+            },
+            confirmButton = {},
+        )
+    }
+
     export?.let { state ->
         ExportDialog(
             state = state,

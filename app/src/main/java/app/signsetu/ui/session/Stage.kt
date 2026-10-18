@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.SolidColor
@@ -268,6 +269,10 @@ fun Stage(
     LaunchedEffect(ui.answeredCard, ui.answeredYes) { reacting = answered }
     val paused = ui.answeredCard in PauseCards
     val context = LocalContext.current
+    val tts = remember(context) { ChildSpeechSynthesizer(context) }
+    DisposableEffect(tts) { onDispose { tts.shutdown() } }
+    var showExpressBoard by rememberSaveable { mutableStateOf(false) }
+
     // A young child is not startled by a buzz in the hand.
     LaunchedEffect(ui.answeredYes, ui.answeredCard) {
         if (profile != Profile.YOUNG_CHILD) buzzPattern(ui.answeredYes, ui.answeredCard)?.let { buzz(context, it) }
@@ -369,6 +374,64 @@ fun Stage(
         // Greeting back in the language they picked tells them the tap was understood.
         pending == Pending.LanguageFinder -> ui.chosenLanguage?.let { content.language(it)?.hello }
         else -> item.caption
+    }
+
+    var videoCallMode by rememberSaveable { mutableStateOf(profile == Profile.ISL_USER) }
+
+    if (videoCallMode && !drawing && !writing && pending != Pending.LanguageFinder && choices == null && lesson == null) {
+        Box(Modifier.fillMaxSize()) {
+            VideoCallStage(
+                ui = ui,
+                content = content,
+                tracker = tracker,
+                cameraOn = cameraOn,
+                onCard = onCard,
+                onYesNo = onYesNo,
+                onSignFrame = onSignFrame,
+                onStartSigning = onStartSigning,
+                onDoneSigning = onDoneSigning,
+                onOpenExpressBoard = { showExpressBoard = true },
+                onCue = onCue,
+                onNext = onNext,
+                onPause = { onCard("stop") },
+                modifier = Modifier.fillMaxSize(),
+            )
+            // Mode toggle pill
+            Surface(
+                shape = CircleShape,
+                color = Color(0x991E293B),
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(top = 12.dp, start = 14.dp)
+                    .clickable { videoCallMode = false }
+                    .semantics { role = Role.Button; contentDescription = "Switch to Standard View" },
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Icon(painterResource(R.drawable.ic_videocam), contentDescription = null, tint = Color(0xFF38BDF8), modifier = Modifier.size(16.dp))
+                    Text("Call View", fontSize = 11.sp, color = Color.White, fontWeight = FontWeight.SemiBold)
+                }
+            }
+
+            if (showExpressBoard) {
+                FullChildMuteCommunicationBoard(
+                    content = content,
+                    lang = lang,
+                    chosenCard = ui.answeredCard,
+                    onCard = { id ->
+                        onCard(id)
+                        reacting = true
+                    },
+                    onDismiss = { showExpressBoard = false },
+                    tts = tts,
+                )
+            }
+            onOfficer?.let { OfficerHandle(it, Modifier.align(if (ui.rotated) Alignment.BottomStart else Alignment.TopEnd).safeDrawingPadding()) }
+        }
+        return
     }
 
     Surface(color = stage.skyBottom, modifier = Modifier.fillMaxSize()) {
@@ -606,6 +669,20 @@ fun Stage(
                                 }
                             }
                         }
+                        if (!signing && !drawing && !writing && choices == null && pending != Pending.LanguageFinder && !saying) {
+                            ChildFriendlyNeedsBar(
+                                content = content,
+                                lang = lang,
+                                chosenCard = chosen,
+                                onCard = { id ->
+                                    onCard(id)
+                                    reacting = true
+                                },
+                                onOpenFullBoard = { showExpressBoard = true },
+                                tts = tts,
+                                modifier = Modifier.padding(top = 2.dp),
+                            )
+                        }
                     }
                 }
             }
@@ -626,13 +703,45 @@ fun Stage(
             SmallAnswer("stop", content.subjectText("stop", lang), stringResource(R.string.stage_stop), answer.pause, answer.onPause, false, { onCard("stop") }, m)
         }
         if (paused) PauseLayer(content.subjectText("ready", lang), onPauseEnd, stop = stopInPause, modifier = Modifier.fillMaxSize().graphicsLayer { rotationZ = if (ui.rotated) 180f else 0f })
+        if (showExpressBoard) {
+            FullChildMuteCommunicationBoard(
+                content = content,
+                lang = lang,
+                chosenCard = ui.answeredCard,
+                onCard = { id ->
+                    onCard(id)
+                    reacting = true
+                },
+                onDismiss = { showExpressBoard = false },
+                tts = tts,
+            )
+        }
+        // Button to switch into immersive Video Call mode
+        Surface(
+            shape = CircleShape,
+            color = Color(0x99000000),
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(top = 12.dp, start = 14.dp)
+                .clickable { videoCallMode = true }
+                .semantics { role = Role.Button; contentDescription = "Switch to Video Call Mode" },
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Icon(painterResource(R.drawable.ic_videocam), contentDescription = null, tint = Color(0xFF10B981), modifier = Modifier.size(16.dp))
+                Text("Video Call", fontSize = 11.sp, color = Color.White, fontWeight = FontWeight.SemiBold)
+            }
+        }
         onOfficer?.let { OfficerHandle(it, Modifier.align(if (ui.rotated) Alignment.BottomStart else Alignment.TopEnd).safeDrawingPadding()) }
         }
     }
 }
 
 /** What one shown item puts on the stage. */
-private class StageItem(
+internal class StageItem(
     val caption: String?,
     val held: String?,
     val choices: List<String>,
@@ -640,7 +749,7 @@ private class StageItem(
     val canDraw: Boolean,
 )
 
-private fun describeItem(pending: Pending?, content: ContentBundle, lang: String): StageItem {
+internal fun describeItem(pending: Pending?, content: ContentBundle, lang: String): StageItem {
     val (caption, cards) = when (pending) {
         is Pending.Ask -> pending.question.text.pick(lang) to pending.question.cards
         is Pending.FreeText -> (pending.caption ?: pending.text) to pending.cardIds
@@ -1032,11 +1141,11 @@ private fun PauseRow(content: ContentBundle, lang: String, chosenCard: String?, 
  */
 @Composable
 private fun Rail(content: @Composable ColumnScope.() -> Unit) =
-    Column(Modifier.width(60.dp).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(Spacing.sm, Alignment.CenterVertically), content = content)
+    Column(Modifier.width(68.dp).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(Spacing.sm, Alignment.CenterVertically), content = content)
 
 @Composable
 private fun ColumnScope.RailCard(cardId: String, label: String?, name: String, color: Color, onColor: Color, chosen: Boolean, proposed: Boolean = false, onClick: () -> Unit) =
-    RailButton(label, name, color, onColor, chosen, false, onClick, proposed) { CardImage(cardId, Modifier.size(if (label != null) 24.dp else 32.dp)) }
+    RailButton(label, name, color, onColor, chosen, false, onClick, proposed) { CardImage(cardId, Modifier.size(if (label != null) 28.dp else 34.dp)) }
 
 @Composable
 private fun ColumnScope.RailIcon(icon: ImageVector, label: String?, name: String, color: Color, onColor: Color, chosen: Boolean = false, tool: Boolean = false, proposed: Boolean = false, onClick: () -> Unit) =
@@ -1044,7 +1153,7 @@ private fun ColumnScope.RailIcon(icon: ImageVector, label: String?, name: String
 
 @Composable
 private fun ColumnScope.RailIcon(icon: Painter, label: String?, name: String, color: Color, onColor: Color, chosen: Boolean = false, tool: Boolean = false, proposed: Boolean = false, onClick: () -> Unit) =
-    RailButton(label, name, color, onColor, chosen, tool, onClick, proposed) { Icon(icon, contentDescription = null, tint = onColor, modifier = Modifier.size(24.dp)) }
+    RailButton(label, name, color, onColor, chosen, tool, onClick, proposed) { Icon(icon, contentDescription = null, tint = onColor, modifier = Modifier.size(26.dp)) }
 
 @Composable
 private fun ColumnScope.RailButton(label: String?, name: String, color: Color, onColor: Color, chosen: Boolean, tool: Boolean, onClick: () -> Unit, proposed: Boolean = false, icon: @Composable () -> Unit) {
@@ -1053,7 +1162,7 @@ private fun ColumnScope.RailButton(label: String?, name: String, color: Color, o
     val suggested = if (proposed && !chosen) stringResource(R.string.stage_proposed) else null
     PressableSurface(
         onClick = onClick,
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(18.dp),
         color = color,
         border = when {
             chosen -> BorderStroke(3.dp, onColor)
@@ -1061,8 +1170,8 @@ private fun ColumnScope.RailButton(label: String?, name: String, color: Color, o
             tool -> BorderStroke(1.dp, onColor.copy(alpha = 0.16f))
             else -> null
         },
-        // 64 dp fits an icon over two lines of Hindi; five in one rail on a 640 dp phone share the height, still above 48 dp.
-        modifier = Modifier.weight(1f, fill = false).fillMaxWidth().height(64.dp)
+        // 68 dp fits an icon over two lines of Hindi; friendly touch target for children and mute users
+        modifier = Modifier.weight(1f, fill = false).fillMaxWidth().height(68.dp)
             .semantics {
                 role = Role.Button
                 contentDescription = label ?: name

@@ -14,11 +14,23 @@ data class Suggestion(val caption: String, val meaning: String)
 class Assistant(private val models: ModelStore) {
     suspend fun suggest(text: String, language: Language): Suggestion? {
         if (!needsTranslation(text, language.code)) return null
-        return models.use { model ->
+        val local = models.use { model ->
             val caption = model.chat(toLanguage(language), text, 120).firstLine() ?: return@use null
             val meaning = model.chat(BACK_TO_ENGLISH, caption, 120).firstLine() ?: return@use null
             Suggestion(caption, meaning)
         }
+        if (local != null) return local
+
+        // Online TokenRouter AI fallback (handles regional Chhattisgarhi 'hne', Gondi 'gon', Halbi 'hlb')
+        val remoteCaption = TokenRouterAiService.translateRegional(text, language.code)?.firstLine() ?: return null
+        val remoteMeaning = TokenRouterAiService.chat(
+            listOf(
+                ChatMessage("system", BACK_TO_ENGLISH),
+                ChatMessage("user", remoteCaption),
+            ),
+            maxTokens = 120,
+        )?.firstLine() ?: text
+        return Suggestion(remoteCaption, remoteMeaning)
     }
 
     private fun toLanguage(language: Language) =

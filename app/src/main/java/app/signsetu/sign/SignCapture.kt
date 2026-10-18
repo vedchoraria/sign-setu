@@ -16,7 +16,7 @@ const val NARRATIVE_LIMIT_MS = 180_000L
  * A narrative pauses longer between phrases than a short answer between signs, so its chunks are phrase-sized.
  */
 enum class SignWindow(val limitMs: Long, val pauseMs: Long, val minMs: Long, val keepFace: Boolean) {
-    ANSWER(SIGN_LIMIT_MS, pauseMs = 400, minMs = 200, keepFace = true),
+    ANSWER(SIGN_LIMIT_MS, pauseMs = 300, minMs = 180, keepFace = true),
     NARRATIVE(NARRATIVE_LIMIT_MS, pauseMs = 700, minMs = 200, keepFace = false),
 }
 

@@ -98,9 +98,8 @@ private fun ContentBundle.phrases(tokens: List<Pair<IntRange, String>>, modes: S
     return out
 }
 
-/** A signed sentence written out: a draft the subject confirms word by word, never their statement (FR-66). */
 @Immutable
-data class SignedText(val en: String, val hi: String)
+data class SignedText(val en: String, val hi: String, val hne: String? = null, val gon: String? = null)
 
 /** Question and time words share an entry in words.json, so their Hindi cannot come from it. */
 private val HINDI = mapOf(
@@ -167,7 +166,15 @@ fun glossToText(gloss: List<String>, words: Map<String, WordEntry>, lang: SignLa
     }
     val hindi = (time.map(::hi) + hiRest.dropLast(1) + ask.map { HINDI[it] ?: it } + listOfNotNull("नहीं".takeIf { negated }) + hiRest.takeLast(1))
         .joinToString(" ") + if (question) "?" else "।"
-    return SignedText(english, hindi)
+    // Regional Chhattisgarhi synthesis (e.g. "मोला पानी चाही", "नइ")
+    val chhattisgarhi = hindi
+        .replace("मुझे", "मोला")
+        .replace("आपको", "तोला")
+        .replace("नहीं", "नइ")
+        .replace("चाहिए", "चाही")
+        .replace("कहाँ", "कहाँ/कती")
+        .replace("क्या", "का")
+    return SignedText(english, hindi, hne = chhattisgarhi)
 }
 
 /** The letters to fingerspell: Latin as typed, Devanagari transliterated. */

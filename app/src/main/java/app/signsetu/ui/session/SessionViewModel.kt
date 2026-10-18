@@ -195,8 +195,8 @@ class SessionViewModel(
     // Cards that answer the item shown when the window opened: the reader's guesses that match them come first.
     @Volatile private var context: Set<String> = emptySet()
     private val reads = mutableListOf<Job>()
-    // One read at a time: a model need not be safe to call from several threads.
-    private val readDispatcher = Dispatchers.Default.limitedParallelism(1)
+    // Sign reader inference dispatcher
+    private val readDispatcher = Dispatchers.Default.limitedParallelism(2)
 
     val auto = AutoPilot(
         sessionId, repo, content, officerLang, viewModelScope,

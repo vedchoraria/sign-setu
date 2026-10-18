@@ -59,7 +59,7 @@ class SessionReport(private val context: Context) {
             val passphrase = newPassphrase()
             PDFBoxResourceLoader.init(context)
             val dir = File(context.cacheDir, "exports").apply { mkdirs() }
-            val file = File(dir, "sign-setu-report.pdf")
+            val file = File(dir, "sign-setu-report-${System.currentTimeMillis()}.pdf")
             PDDocument.load(plain).use { doc ->
                 val owner = ByteArray(24).also { SecureRandom().nextBytes(it) }.joinToString("") { "%02x".format(it) }
                 val policy = StandardProtectionPolicy(owner, passphrase, AccessPermission()).apply { encryptionKeyLength = 256 }

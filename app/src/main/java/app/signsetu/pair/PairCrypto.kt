@@ -180,7 +180,7 @@ fun stageHandshake(input: DataInputStream, out: DataOutputStream, me: Identity, 
  * Encrypted frames: u32 length | u64 counter | AES-256-GCM ciphertext and tag. The IV is direction and counter, so
  * no IV repeats under a key, and the receiver accepts only the next counter, so replays and gaps close the link.
  */
-class LinkSession(private val input: DataInputStream, private val out: DataOutputStream, keys: LinkKeys, officer: Boolean) {
+class LinkSession(private val input: DataInputStream, private val out: DataOutputStream, keys: LinkKeys, officer: Boolean) : AutoCloseable {
     private val sendDir: Byte = if (officer) 1 else 2
     private val recvDir: Byte = if (officer) 2 else 1
     private var sendKey: SecretKeySpec? = SecretKeySpec(keys.send, "AES")
@@ -220,7 +220,7 @@ class LinkSession(private val input: DataInputStream, private val out: DataOutpu
     }
 
     /** Copies inside SecretKeySpec and the provider are out of reach; process exit is the real wipe (SEC-69). */
-    fun close() {
+    override fun close() {
         sendKey = null
         recvKey = null
     }

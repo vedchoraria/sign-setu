@@ -22,7 +22,15 @@ import javax.crypto.spec.GCMParameterSpec
 class DatabaseKey(private val context: Context) {
     private val wrapped = File(context.noBackupFilesDir, "dek.bin")
 
-    class Unwrapped(val key: ByteArray, val reset: Boolean)
+    class Unwrapped(val key: ByteArray, val reset: Boolean) : AutoCloseable {
+        fun wipe() {
+            key.fill(0)
+        }
+
+        override fun close() {
+            wipe()
+        }
+    }
 
     /**
      * Works for a short window after the officer unlocks the phone or passes a prompt; otherwise throws

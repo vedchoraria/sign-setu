@@ -225,7 +225,7 @@ private fun Navigation(repo: SessionRepository, content: ContentBundle, settings
                 SessionRoute(
                     key.id, repo, content, settings, guard, container.report, tracker, reader,
                     onFavourite = { id -> scope.launch { container.settings.toggleFavourite(id) } },
-                    assistant = container.assistant.takeIf { modelState == ModelStore.State.READY },
+                    assistant = container.assistant,
                     onClosed = { backStack.removeLastOrNull() },
                     container = container,
                     onSecondScreen = onSecondScreen,

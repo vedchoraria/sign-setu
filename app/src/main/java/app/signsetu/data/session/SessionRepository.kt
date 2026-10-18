@@ -110,9 +110,30 @@ class SessionRepository(
 
     suspend fun purgeExpired(retentionHours: Int): Int = dao.deleteStartedBefore(clock() - retentionHours * 3_600_000L)
 
-    private fun SessionEntity.toModel() = Session(id, startedAt, Profile.valueOf(profile), subjectLang, Role.valueOf(role))
+    private inline fun <reified T : Enum<T>> safeValueOf(value: String, default: T): T =
+        try { enumValueOf<T>(value) } catch (_: IllegalArgumentException) { default }
+
+    private fun SessionEntity.toModel() = Session(
+        id = id,
+        startedAt = startedAt,
+        profile = safeValueOf(profile, Profile.NOT_SURE),
+        subjectLang = subjectLang,
+        role = safeValueOf(role, Role.NOT_KNOWN),
+    )
 
     private fun EventEntity.toModel() = SessionEvent(
-        id, ts, EventType.valueOf(type), EventSource.valueOf(source), lang, text, cardId, lexiconId, drawingId, itemId, reason, shownId, via,
+        id = id,
+        ts = ts,
+        type = safeValueOf(type, EventType.SYSTEM),
+        source = safeValueOf(source, EventSource.MACHINE),
+        lang = lang,
+        text = text,
+        cardId = cardId,
+        lexiconId = lexiconId,
+        drawingId = drawingId,
+        itemId = itemId,
+        reason = reason,
+        shownId = shownId,
+        via = via,
     )
 }

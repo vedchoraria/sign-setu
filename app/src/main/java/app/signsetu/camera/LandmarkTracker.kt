@@ -101,7 +101,7 @@ enum class Head { Nod, Shake }
  * Nods and shakes from the nose tip against the midpoint of the eyes over the last 1.5 s, in eye spans. Measured from
  * the eyes, a sway of the body or the Indian head wobble (a roll that keeps the nose centred) is not a shake.
  */
-class HeadGestures {
+class HeadGestures(private val windowMs: Long = WINDOW_MS, private val swing: Float = SWING) {
     private val track = ArrayDeque<Triple<Long, Float, Float>>()
 
     fun mark(frame: LandmarkFrame): LandmarkFrame {
@@ -112,15 +112,15 @@ class HeadGestures {
         val ex = Offset((f[263].x - f[33].x) * frame.aspect, f[263].y - f[33].y) / eyes
         val n = Offset((f[1].x - mid.x) * frame.aspect, f[1].y - mid.y) / eyes
         track.addLast(Triple(frame.timestampMs, n.x * ex.x + n.y * ex.y, n.y * ex.x - n.x * ex.y))
-        while (frame.timestampMs - track.first().first > WINDOW_MS) track.removeFirst()
+        while (frame.timestampMs - track.first().first > windowMs) track.removeFirst()
         if (track.size < 6) return frame
         val xs = track.map { it.second }
         val ys = track.map { it.third }
         val dx = xs.max() - xs.min()
         val dy = ys.max() - ys.min()
         val head = when {
-            dy > SWING && dy > 2 * dx && turns(ys) >= 2 -> Head.Nod
-            dx > SWING && dx > 2 * dy && turns(xs) >= 2 -> Head.Shake
+            dy > swing && dy > 2 * dx && turns(ys) >= 2 -> Head.Nod
+            dx > swing && dx > 2 * dy && turns(xs) >= 2 -> Head.Shake
             else -> null
         } ?: return frame
         track.clear()
@@ -134,7 +134,7 @@ class HeadGestures {
         var anchor = v.first()
         for (x in v) {
             val d = x - anchor
-            if (kotlin.math.abs(d) < SWING / 4) continue
+            if (kotlin.math.abs(d) < swing / 4) continue
             val s = if (d > 0) 1 else -1
             if (dir != 0 && s != dir) n++
             dir = s
@@ -151,7 +151,7 @@ class HeadGestures {
 }
 
 /** Thumbs up or down held for half a second, read as a nod or shake for people who do not sign. */
-class ThumbGestures {
+class ThumbGestures(private val holdMs: Long = HOLD_MS) {
     private var held: Head? = null
     private var since = 0L
 
@@ -159,7 +159,7 @@ class ThumbGestures {
         if (frame.head != null) return frame
         val now = frame.hands.firstNotNullOfOrNull { thumb(it, frame.aspect) }
         if (now != held) { held = now; since = frame.timestampMs; return frame }
-        if (now == null || frame.timestampMs - since < HOLD_MS) return frame
+        if (now == null || frame.timestampMs - since < holdMs) return frame
         since = Long.MAX_VALUE / 2
         return frame.copy(head = now)
     }
@@ -189,14 +189,14 @@ internal fun thumb(h: List<Offset>, aspect: Float): Head? {
  * A body part the subject points at with one finger and holds for 0.6 s, as a picture card id (head, mouth, stomach,
  * arm, leg): how a child shows where it hurts. Regions come from the pose, in shoulder widths.
  */
-class BodyPointing {
+class BodyPointing(private val holdMs: Long = HOLD_MS) {
     private var held: String? = null
     private var since = 0L
 
     fun mark(frame: LandmarkFrame): LandmarkFrame {
         val now = region(frame)
         if (now != held) { held = now; since = frame.timestampMs; return frame }
-        if (now == null || frame.timestampMs - since < HOLD_MS) return frame
+        if (now == null || frame.timestampMs - since < holdMs) return frame
         since = Long.MAX_VALUE / 2
         return frame.copy(pointsAt = now)
     }
@@ -244,13 +244,13 @@ private fun near(p: Offset, a: Offset, b: Offset, r: Float): Boolean {
 }
 
 /** An open palm raised to the face or chest and held 0.8 s: the everyday "stop", proposed as Stop. */
-class PalmGestures {
+class PalmGestures(private val holdMs: Long = HOLD_MS) {
     private var since = Long.MIN_VALUE
 
     fun mark(frame: LandmarkFrame): LandmarkFrame {
         if (!raisedPalm(frame)) { since = Long.MIN_VALUE; return frame }
         if (since == Long.MIN_VALUE) since = frame.timestampMs
-        if (frame.timestampMs - since < HOLD_MS) return frame
+        if (frame.timestampMs - since < holdMs) return frame
         since = Long.MAX_VALUE / 2
         return frame.copy(stopPalm = true)
     }
@@ -274,13 +274,13 @@ internal fun raisedPalm(frame: LandmarkFrame): Boolean {
 }
 
 /** Both hands open, held low and wide apart for 0.6 s: the shrug many people use for "I don't know". */
-class ShrugGestures {
+class ShrugGestures(private val holdMs: Long = HOLD_MS) {
     private var since = Long.MIN_VALUE
 
     fun mark(frame: LandmarkFrame): LandmarkFrame {
         if (!shrug(frame)) { since = Long.MIN_VALUE; return frame }
         if (since == Long.MIN_VALUE) since = frame.timestampMs
-        if (frame.timestampMs - since < HOLD_MS) return frame
+        if (frame.timestampMs - since < holdMs) return frame
         since = Long.MAX_VALUE / 2
         return frame.copy(shrug = true)
     }
@@ -305,4 +305,29 @@ internal fun shrug(frame: LandmarkFrame): Boolean {
     fun flat(h: List<Offset>) = kotlin.math.abs(u(h[12]).y - u(h[0]).y) < 0.6f * (u(h[12]) - u(h[0])).getDistance()
     return open(l) && open(r) && flat(l) && flat(r) && l[0].y > shoulders && r[0].y > shoulders &&
         (u(l[0]) - u(r[0])).getDistance() > 1.2f * sw
+}
+
+/**
+ * Counts the number of open/extended fingers shown by the subject (e.g. for age, number of siblings, counts).
+ * Returns the count (1..10) if clearly held open, otherwise null.
+ */
+fun countOpenFingers(frame: LandmarkFrame): Int? {
+    var count = 0
+    val aspect = frame.aspect
+    for (h in frame.hands) {
+        if (h.size < 21) continue
+        fun d(a: Int, b: Int) = Offset((h[a].x - h[b].x) * aspect, h[a].y - h[b].y).getDistance()
+        val wrist = 0
+        // Thumb extended check: tip further from pinky MCP than thumb MCP is
+        val thumbSpan = d(4, 17)
+        val thumbBase = d(2, 17)
+        if (thumbSpan > thumbBase * 1.2f && d(4, wrist) > d(2, wrist) * 1.15f) count++
+
+        // Fingers: Index (8), Middle (12), Ring (16), Pinky (20)
+        val fingers = listOf(8 to 6, 12 to 10, 16 to 14, 20 to 18)
+        for ((tip, pip) in fingers) {
+            if (d(tip, wrist) > d(pip, wrist) * 1.18f) count++
+        }
+    }
+    return count.takeIf { it in 1..10 }
 }

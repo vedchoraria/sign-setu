@@ -144,11 +144,11 @@ fun CameraMirror(
         if (a == null || tracker == null) return@DisposableEffect onDispose { shown = null }
         var lastPerson: Long? = null
         val cues = FaceCueTracker()
-        val heads = HeadGestures()
-        val thumbs = ThumbGestures()
-        val pointing = BodyPointing()
-        val palms = PalmGestures()
-        val shrugs = ShrugGestures()
+        val heads = HeadGestures(windowMs = 900L, swing = 0.10f)
+        val thumbs = ThumbGestures(holdMs = 280L)
+        val pointing = BodyPointing(holdMs = 320L)
+        val palms = PalmGestures(holdMs = 380L)
+        val shrugs = ShrugGestures(holdMs = 350L)
         val executor = Executors.newSingleThreadExecutor()
         var lastMs: Long? = null
         var reused: Bitmap? = null
@@ -271,6 +271,17 @@ internal fun DrawScope.drawLandmarks(seen: LandmarkFrame, front: Boolean, analys
             for (p in hand) { drawCircle(Color.Black.copy(alpha = 0.5f), stroke * 1.4f, map(p)); drawCircle(Color.White, stroke * 1.1f, map(p)) }
             drawText(labels, label, map(hand[0]) + Offset(stroke * 1.5f, stroke), TextStyle(color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold))
         }
+        // Visual gesture recognition cues for children and mute individuals
+        if (seen.head == Head.Nod) {
+            drawCircle(Color(0xFF22C55E), stroke * 3f, Offset(size.width / 2, size.height * 0.12f))
+            drawText(labels, "✓", Offset(size.width / 2 - stroke * 1.2f, size.height * 0.12f - stroke * 1.8f), TextStyle(color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold))
+        } else if (seen.head == Head.Shake) {
+            drawCircle(Color(0xFFEF4444), stroke * 3f, Offset(size.width / 2, size.height * 0.12f))
+            drawText(labels, "✕", Offset(size.width / 2 - stroke * 1.2f, size.height * 0.12f - stroke * 1.8f), TextStyle(color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold))
+        } else if (seen.stopPalm) {
+            drawCircle(Color(0xFFF59E0B), stroke * 3f, Offset(size.width / 2, size.height * 0.12f))
+            drawText(labels, "✋", Offset(size.width / 2 - stroke * 1.2f, size.height * 0.12f - stroke * 1.8f), TextStyle(color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold))
+        }
     }
     // Debug builds show the raw cue values for calibrating on a real phone: adb shell setprop log.tag.SignSetuTuning DEBUG
     if (BuildConfig.DEBUG && android.util.Log.isLoggable("SignSetuTuning", android.util.Log.DEBUG)) drawText(labels, tuningLine(seen), Offset(8f, 8f), TextStyle(color = Color.Yellow, fontSize = 11.sp, background = Color.Black.copy(alpha = 0.5f)))
@@ -308,10 +319,10 @@ internal fun overlayPoint(p: Offset, frameAspect: Float, viewW: Float, viewH: Fl
     return Offset((viewW - w) / 2f + (if (mirrored) 1f - x else x) * w, (viewH - h) / 2f + y * h)
 }
 
-// Up to 30 fps inside a sign window: fast signing blurs between frames at 15. Outside it the overlay runs at 10 fps to bound heat.
-private const val ANALYSIS_INTERVAL_MS = 30L
-private const val PREVIEW_INTERVAL_MS = 100L
-private const val IDLE_INTERVAL_MS = 300L
+// High responsiveness: up to 40 fps during sign windows, and 30 fps in preview for instant gesture identification.
+private const val ANALYSIS_INTERVAL_MS = 25L
+private const val PREVIEW_INTERVAL_MS = 33L
+private const val IDLE_INTERVAL_MS = 250L
 private const val IDLE_AFTER_MS = 10_000L
 
 /** A sentinel such as Long.MIN_VALUE overflows the subtraction and would skip every frame, so the first one is null. */

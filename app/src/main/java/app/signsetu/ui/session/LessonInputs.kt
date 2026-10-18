@@ -2,6 +2,7 @@ package app.signsetu.ui.session
 
 import app.signsetu.ui.theme.LocalStageColors
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -192,6 +193,41 @@ private fun NumberPad(type: AnswerType, title: (@Composable () -> Unit)? = null,
                         if (type == AnswerType.PHONE) groupPhone(digits) else digits, fontFamily = Baloo, fontWeight = FontWeight.Bold, color = Ink, maxLines = 1,
                         autoSize = TextAutoSize.StepBased(minFontSize = 16.sp, maxFontSize = 34.sp),
                     )
+                }
+            }
+        }
+        // Direct one-tap finger counts for children (1..10) on age/count questions
+        if (type == AnswerType.AGE || type == AnswerType.COUNT) {
+            androidx.compose.foundation.lazy.LazyRow(
+                modifier = Modifier.fillMaxWidth().height(42.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                items(10) { index ->
+                    val num = (index + 1).toString()
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = if (digits == num) Color(0xFFFFB300) else Color.White,
+                        border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                        modifier = Modifier
+                            .height(38.dp)
+                            .padding(horizontal = 2.dp)
+                            .clickable {
+                                digits = num
+                                if (valid(type, num)) {
+                                    onEnter(num)
+                                }
+                            },
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Text("🖐", fontSize = 14.sp)
+                            Text(num, fontFamily = Baloo, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Ink)
+                        }
+                    }
                 }
             }
         }

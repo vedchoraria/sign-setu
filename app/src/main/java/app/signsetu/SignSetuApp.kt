@@ -125,10 +125,14 @@ class AppContainer(private val app: Application) : DefaultLifecycleObserver, Com
 
     private fun openDatabase(): SessionDatabase {
         val unwrapped = databaseKey.unwrap()
-        if (unwrapped.reset) _keyReset.value = true
-        // SQLCipher clears the key bytes itself once the database is open.
-        return SessionDatabase.open(app, unwrapped.key, onDestructiveMigration = { _downgraded.value = true }).also { db ->
-            runCatching { db.openHelper.writableDatabase }.onFailure { db.close(); throw it }
+        return try {
+            if (unwrapped.reset) _keyReset.value = true
+            // SQLCipher clears the key bytes itself once the database is open.
+            SessionDatabase.open(app, unwrapped.key, onDestructiveMigration = { _downgraded.value = true }).also { db ->
+                runCatching { db.openHelper.writableDatabase }.onFailure { db.close(); throw it }
+            }
+        } finally {
+            unwrapped.wipe()
         }
     }
 

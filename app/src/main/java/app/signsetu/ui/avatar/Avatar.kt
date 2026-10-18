@@ -127,7 +127,7 @@ fun Avatar(
     if (idleOn) {
         LaunchedEffect(Unit) {
             val start = withFrameNanos { it }
-            // Breathing and blinking read fine at 20 fps; a redraw every vsync only costs the camera and battery.
+            // 30 fps idle cadence provides fluid breathing, micro-expressions and eye darts
             var last = start
             while (true) withFrameNanos { now ->
                 if (now - last >= IDLE_FRAME_NS) {
@@ -170,7 +170,7 @@ fun Avatar(
     )
 }
 
-private const val IDLE_FRAME_NS = 50_000_000L
+private const val IDLE_FRAME_NS = 33_333_333L
 
 /** 0 to 1 over the lead-in, 1 while the gesture plays, back to 0 over the lead-out. */
 private fun envelope(t: Float, duration: Float) =
