@@ -17,8 +17,8 @@ android {
         applicationId = "in.signsetu"
         minSdk = 29
         targetSdk = 37
-        versionCode = 4
-        versionName = "0.4.0"
+        versionCode = 5
+        versionName = "0.4.1"
         buildConfigField("long", "BUILD_EPOCH_DAY", "${LocalDate.now().toEpochDay()}L")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // The on-device assistant (D-24) runs only on 64-bit phones; the x86_64 build serves the emulator.

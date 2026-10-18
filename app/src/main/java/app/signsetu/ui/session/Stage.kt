@@ -572,7 +572,8 @@ fun Stage(
                                 // One plain line says what to do now, so a frightened person is never left guessing.
                                 val hint = when {
                                     signing -> if (narrative) null else content.subjectText("hint_signing", lang)
-                                    rightsNotice != null || pending == null || reacting || item.choices.isNotEmpty() -> null
+                                    rightsNotice != null || reacting || item.choices.isNotEmpty() -> null
+                                    pending == null -> content.subjectText("hint_wait", lang)
                                     statement -> content.subjectText("hint_next", lang)
                                     else -> content.subjectText("hint_answer", lang)
                                 }
@@ -600,7 +601,7 @@ fun Stage(
                                         RailCard("wrong", content.subjectText("wrong", lang), stringResource(R.string.stage_wrong), answer.unsure, answer.onUnsure, chosen == "wrong") { onCard("wrong") }
                                     }
                                     // A camera, not an open palm, so nothing beside Stop looks like a stop sign.
-                                    if (canWrite && tracker != null) RailIcon(painterResource(R.drawable.ic_videocam), content.subjectText("sign", lang), stringResource(R.string.officer_read_signs), stage.tool, stage.onTool, tool = true, onClick = onStartSigning)
+                                    if ((canWrite || pending == null) && tracker != null) RailIcon(painterResource(R.drawable.ic_videocam), content.subjectText("sign", lang), stringResource(R.string.officer_read_signs), stage.tool, stage.onTool, tool = true, onClick = onStartSigning)
                                     RailCard("stop", content.subjectText("stop", lang), stringResource(R.string.stage_stop), answer.pause, answer.onPause, chosen == "stop", proposed = palm.value) { if (palm.value) onCue("palm"); onCard("stop") }
                                 }
                             }
