@@ -1,5 +1,6 @@
 package app.signsetu.ui.session
 
+import app.signsetu.ui.theme.LocalStageColors
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -368,9 +369,15 @@ private fun WaysOut(content: ContentBundle, lang: String, chosen: String?, onCar
         Way(DONT_UNDERSTAND, content.subjectText(DONT_UNDERSTAND, lang), stringResource(R.string.stage_dont_understand), answer.unsure, answer.onUnsure, chosen == DONT_UNDERSTAND) { onCard(DONT_UNDERSTAND) }
         Way("wrong", content.subjectText("wrong", lang), stringResource(R.string.stage_wrong), answer.unsure, answer.onUnsure, chosen == "wrong") { onCard("wrong") }
         onSign?.let {
-            val name = stringResource(R.string.officer_read_signs)
-            PressableSurface(onClick = it, shape = RoundedCornerShape(16.dp), color = Soft, modifier = Modifier.weight(1f).fillMaxSize().semantics { contentDescription = name }) {
-                Box(contentAlignment = Alignment.Center) { Icon(painterResource(R.drawable.ic_videocam), contentDescription = null, tint = OnSoft, modifier = Modifier.size(28.dp)) }
+            val word = content.subjectText("sign", lang)
+            val name = word ?: stringResource(R.string.officer_read_signs)
+            val stage = LocalStageColors.current
+            // A tool colour and a word, so the camera never reads as a second Stop beside it.
+            PressableSurface(onClick = it, shape = RoundedCornerShape(16.dp), color = stage.tool, border = BorderStroke(1.dp, stage.onTool.copy(alpha = 0.16f)), modifier = Modifier.weight(1f).fillMaxSize().semantics { contentDescription = name }) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                    Icon(painterResource(R.drawable.ic_videocam), contentDescription = null, tint = stage.onTool, modifier = Modifier.size(24.dp))
+                    word?.let { w -> Text(w, fontFamily = Baloo, fontWeight = FontWeight.Bold, fontSize = 11.sp, color = stage.onTool, maxLines = 1) }
+                }
             }
         }
         Way("stop", content.subjectText("stop", lang), stringResource(R.string.stage_stop), answer.pause, answer.onPause, chosen == "stop") { onCard("stop") }

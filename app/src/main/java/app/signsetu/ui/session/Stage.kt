@@ -360,7 +360,7 @@ fun Stage(
     }
     val caption = when {
         reacting -> content.subjectText("okay", lang)
-        drawingSent -> listOfNotNull(content.subjectText("thanks", lang), content.subjectText("give_back", lang)).joinToString(" ").ifEmpty { null }
+        drawingSent -> content.subjectText("thanks", lang)
         drawing -> content.subjectText("draw", lang)
         writing -> content.subjectText("write", lang)
         choices != null -> content.subjectText("is_this_it", lang)
@@ -376,6 +376,8 @@ fun Stage(
         BoxWithConstraints(
             Modifier
                 .fillMaxSize()
+                // The whole stage makes room for the keyboard, so the window never pans the character's face away.
+                .imePadding()
                 .graphicsLayer { rotationZ = if (ui.rotated) 180f else 0f }
                 // Covered by the pause layer: screen readers must not reach answers that cannot be tapped.
                 .then(if (paused) Modifier.clearAndSetSemantics {} else Modifier),
@@ -1183,7 +1185,7 @@ private fun WritingPanel(
     LaunchedEffect(Unit) { focus.requestFocus() }
     val answer = LocalAnswerColors.current
     val send = { if (text.isNotBlank()) onDone(text) }
-    Column(modifier.imePadding(), verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
         Surface(shape = RoundedCornerShape(20.dp), color = Color.White, border = TileEdge, shadowElevation = 2.dp, modifier = Modifier.weight(1f).fillMaxWidth()) {
             BasicTextField(
                 value = text,

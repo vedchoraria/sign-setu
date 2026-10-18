@@ -1,5 +1,6 @@
 package app.signsetu.ui.session
 
+import app.signsetu.data.content.givenOf
 import android.content.res.Resources
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.height
@@ -350,7 +351,8 @@ fun EventRow(e: SessionEvent, modifier: Modifier = Modifier, question: String? =
                 e.via != null -> "  ·  ${stringResource(R.string.report_via_stage)}"
                 else -> ""
             }
-            Text("${DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(e.ts))}  ·  ${stringResource(e.type.label())}$mark")
+            val kind = givenOf(e.reason)?.let { stringResource(it.first.label()).replaceFirstChar(Char::uppercase) } ?: stringResource(e.type.label())
+            Text("${DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(e.ts))}  ·  $kind$mark")
         },
         headlineContent = {
             val res = LocalResources.current
@@ -358,7 +360,7 @@ fun EventRow(e: SessionEvent, modifier: Modifier = Modifier, question: String? =
                 when (e.type) {
                     EventType.SYSTEM -> systemText(res, e.text)
                     EventType.ANSWER_SIGNED -> signedDisplay(res, e.text)
-                    else -> app.signsetu.ui.pair.linkText(e) ?: e.text ?: "—"
+                    else -> app.signsetu.ui.pair.linkText(e) ?: e.text ?: if (e.drawingId != null) res.getString(R.string.report_drawing) else "—"
                 },
             )
         },

@@ -1,5 +1,7 @@
 package app.signsetu.ui.session
 
+import app.signsetu.data.content.givenOf
+import app.signsetu.data.content.Method
 import androidx.compose.foundation.border
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
@@ -283,8 +285,9 @@ fun OfficerPane(
         }
     }
 
+    // The last thing the officer chose is what Send shows: an item picked after typing leaves the text in the box.
     val prepareTyped = {
-        if (ownText.isNotBlank()) {
+        if (ownText.isNotBlank() && (ui.pending == null || ui.pending is Pending.FreeText)) {
             val caption = suggestion?.caption ?: if (draftOff) null else hindi(ownText)
             vm.prepare(Pending.FreeText(ownText.trim(), attached.toList(), typedModes(modes, islReorder), caption))
             ownText = ""
@@ -464,7 +467,10 @@ fun OfficerPane(
             content = content,
             officerLang = officerLang,
             text = ownText,
-            onText = { ownText = it; suggestion = null; noHelp = false; if (it.isBlank()) draftOff = false },
+            onText = {
+                if (ownText.isBlank() && it.isNotBlank() && ui.pending != null && ui.pending !is Pending.FreeText) vm.prepare(null)
+                ownText = it; suggestion = null; noHelp = false; if (it.isBlank()) draftOff = false
+            },
             assistant = assistant != null,
             canRead = canReadSigns,
             thinking = thinking,
@@ -701,6 +707,8 @@ private fun Answered(
 ) {
     val colors = MaterialTheme.colorScheme
     val answer = LocalAnswerColors.current
+    // A phrase-board pick or a pad entry is not typed, so it is named by how it was given.
+    val given = givenOf(e.reason)
     val well = when {
         e.cardId == "yes" -> answer.yesContainer
         e.cardId == "no" -> answer.noContainer
@@ -720,6 +728,7 @@ private fun Answered(
                         when {
                             e.cardId != null -> CardImage(e.cardId, Modifier.padding(5.dp))
                             e.drawingId != null -> Icon(Icons.Filled.Create, contentDescription = null, modifier = Modifier.padding(10.dp))
+                            given?.first == Method.BOARD -> Icon(painterResource(R.drawable.ic_grid), contentDescription = null, modifier = Modifier.padding(10.dp))
                             e.type == EventType.ANSWER_TEXT -> Icon(Icons.Filled.Edit, contentDescription = null, modifier = Modifier.padding(10.dp))
                             else -> Icon(painterResource(R.drawable.ic_hand), contentDescription = null, modifier = Modifier.padding(10.dp))
                         }
@@ -740,8 +749,9 @@ private fun Answered(
             }
             e.drawingId?.let { DrawingThumb(it, drawing) }
             val mark = if (e.type == EventType.ANSWER_SIGNED) " · ${stringResource(signedMark(e))}" else ""
+            val kind = given?.let { stringResource(it.first.label()).replaceFirstChar(Char::uppercase) } ?: stringResource(e.type.label())
             Text(
-                "${stringResource(e.type.label())}$mark · ${timeOf(e)}",
+                "$kind$mark · ${timeOf(e)}",
                 style = MaterialTheme.typography.labelSmall,
                 color = colors.onSurfaceVariant,
                 modifier = Modifier.padding(top = 2.dp, start = 4.dp),
