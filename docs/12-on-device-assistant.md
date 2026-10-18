@@ -15,7 +15,7 @@ The assistant is skipped when the subject's language is English, or Hindi typed 
 
 | Item | Choice | Reason |
 | --- | --- | --- |
-| Runtime | llama.cpp v0.5.0 (MIT), built from source by CMake, the archive pinned by SHA-256 | Open source, CPU only, runs on arm64 phones and the x86_64 emulator |
+| Runtime | llama.cpp v0.5.0 (MIT), built from source by CMake, vendored in the repository at a pinned commit | Open source, CPU only, runs on arm64 phones and the x86_64 emulator |
 | Model | Gemma 3 1B instruction-tuned, Q4_K_M GGUF, 806 MB (Gemma Terms of Use) | Best Hindi of the small models tried; Qwen2.5-1.5B (Apache-2.0) mistranslated three of four test questions |
 | Decoding | Greedy, at most 120 tokens per direction, a 1,024-token context emptied per request, 2 to 4 threads; the prompt is fed in batches of 256 tokens | The same input always gives the same output; a small batch keeps the compute buffer small |
 | Native library | `libassistant.so`, arm64-v8a only in release (5.9 MB) | 32-bit phones cannot map the model |

@@ -496,4 +496,23 @@
     <string name="details_confirmed">Confirmed</string>
     <string name="details_yes">Yes</string>
     <string name="details_no">No</string>
+
+    <!-- ASL Experimental Gating -->
+    <string name="asl_experimental_badge">Experimental</string>
+    <string name="asl_experimental_title">ASL Recognition is Experimental</string>
+    <string name="asl_experimental_advisory">ASL word recognition has ~40% accuracy and is provided for testing only. ISL is recommended for field investigations. ASL fingerspelling and character animation remain fully supported.</string>
+    <string name="settings_asl_advisory">ASL recognition status</string>
+    <string name="settings_asl_advisory_summary">ASL word recognition is experimental (40% accuracy). ISL is the primary field pipeline. ASL fingerspelling and gestures remain active.</string>
+
+    <!-- Sandes Interpreter Handoff -->
+    <string name="sandes_handoff_title">Sandes Interpreter Contact</string>
+    <string name="sandes_handoff_body">Sandes requires initiating calls manually. Use the registered interpreter contact below. No subject or session data is transmitted.</string>
+    <string name="sandes_contact_label">Interpreter Contact</string>
+    <string name="sandes_copy_contact">Copy Contact</string>
+    <string name="sandes_contact_copied">Interpreter contact copied to clipboard</string>
+    <string name="sandes_launch">Launch Sandes</string>
+
+    <!-- Database Downgrade Warning -->
+    <string name="downgrade_reset_title">Database Downgrade Detected</string>
+    <string name="downgrade_reset_body">A software downgrade occurred, causing Room to recreate session tables. Earlier unexported session records were safely purged. New sessions work as normal.</string>
 </resources>

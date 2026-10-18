@@ -5,3 +5,4 @@
 *.png binary
 *.ogg binary
 *.mp4 binary
+app/src/main/cpp/third_party/** -text

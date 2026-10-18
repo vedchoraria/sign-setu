@@ -71,6 +71,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
@@ -336,7 +337,11 @@ fun OfficerPane(
                     Column(Modifier.padding(start = Spacing.md)) {
                         Text(stringResource(profileTitle(ui.session.profile)), style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         Text(
-                            listOf(subjectLanguage?.let { "${it.name} · ${it.english}" } ?: subjectLang, stringResource(roleTitle(ui.session.role))).joinToString(" · "),
+                            listOfNotNull(
+                                if (signLanguage == SignLanguage.ASL) "ASL (${stringResource(R.string.asl_experimental_badge)})" else null,
+                                subjectLanguage?.let { "${it.name} · ${it.english}" } ?: subjectLang,
+                                stringResource(roleTitle(ui.session.role)),
+                            ).joinToString(" · "),
                             style = MaterialTheme.typography.bodySmall,
                             color = ink.onBandMuted,
                             maxLines = 2,
@@ -365,7 +370,24 @@ fun OfficerPane(
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.officer_sign_language)) },
                             leadingIcon = { Icon(painterResource(R.drawable.ic_videocam), contentDescription = null) },
-                            trailingIcon = { Text(signLanguage.name) },
+                            trailingIcon = {
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    Text(signLanguage.name)
+                                    if (signLanguage == SignLanguage.ASL) {
+                                        Surface(
+                                            shape = RoundedCornerShape(4.dp),
+                                            color = MaterialTheme.colorScheme.errorContainer,
+                                            contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                                        ) {
+                                            Text(
+                                                stringResource(R.string.asl_experimental_badge),
+                                                style = MaterialTheme.typography.labelSmall,
+                                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
+                                            )
+                                        }
+                                    }
+                                }
+                            },
                             enabled = paired == null || ui.onStage == null,
                             onClick = {
                                 val langs = SignLanguage.entries.filter { it == SignLanguage.ISL || !vm.content.aslDisabled }
@@ -419,6 +441,7 @@ fun OfficerPane(
         }
 
         paired?.let { PairedBar(it, ui, content, officerLang) }
+        if (signLanguage == SignLanguage.ASL) AslExperimentalBanner()
 
         PrimaryTabRow(selectedTabIndex = page, containerColor = MaterialTheme.colorScheme.background) {
             Tab(selected = page == 0, onClick = { page = 0 }, text = { Text(stringResource(R.string.officer_tab_transcribe), style = MaterialTheme.typography.titleSmall) })
@@ -1449,5 +1472,33 @@ private fun DrawingThumb(id: Long, load: suspend (Long) -> ByteArray?) {
             text = { Image(img, contentDescription = name, modifier = Modifier.fillMaxWidth()) },
             confirmButton = { TextButton(onClick = { open = false }) { Text(stringResource(R.string.close)) } },
         )
+    }
+}
+
+@Composable
+private fun AslExperimentalBanner(modifier: Modifier = Modifier) {
+    Surface(
+        color = MaterialTheme.colorScheme.errorContainer,
+        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+        shape = RoundedCornerShape(12.dp),
+        modifier = modifier.fillMaxWidth().padding(horizontal = Spacing.lg, vertical = Spacing.xs),
+    ) {
+        Row(
+            Modifier.padding(Spacing.md),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+        ) {
+            Icon(Icons.Filled.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    stringResource(R.string.asl_experimental_title),
+                    style = MaterialTheme.typography.titleSmall,
+                )
+                Text(
+                    stringResource(R.string.asl_experimental_advisory),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        }
     }
 }

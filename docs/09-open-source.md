@@ -79,7 +79,7 @@ GPL and AGPL code is never shipped in the app (policy §2); it may be used as a 
 | | React 19.3.0, React DOM | MIT | Tool | Portal user interface |
 | | TypeScript 7.0.2 | Apache-2.0 | Tool | Native compiler; type checking of the portal and the rig port |
 | Symbols drawn for the app | Sign Setu original drawings (`content/symbols/sign-setu/`) | CC BY-SA 4.0 | Ship (assets) | Drawn in OpenMoji style for a card OpenMoji lacks ("Something else") |
-| On-device assistant (D-24) | llama.cpp v0.5.0 | MIT | Ship (native library) | Built from source by CMake; the archive is pinned by SHA-256 |
+| On-device assistant (D-24) | llama.cpp v0.5.0 | MIT | Ship (native library) | Built from source by CMake; the source is vendored in `app/src/main/cpp/third_party/llama.cpp` (provenance in `PROVENANCE.md`) |
 | | Gemma 3 1B instruction-tuned (GGUF) | Gemma Terms of Use | Ship (optional model file, not in the APK) | Free for government use, not OSI open source; see [on-device assistant](12-on-device-assistant.md) |
 | | Qwen2.5-1.5B-Instruct | Apache-2.0 | Not chosen | Fully open, but mistranslated three of four test questions into Hindi |
 

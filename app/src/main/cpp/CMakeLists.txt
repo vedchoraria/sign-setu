@@ -4,13 +4,12 @@ project(assistant LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# llama.cpp (MIT) at a pinned release, verified by hash before it is built (SEC-50).
-include(FetchContent)
-FetchContent_Declare(
-    llama
-    URL https://github.com/ggml-org/llama.cpp/archive/refs/tags/v0.5.0.tar.gz
-    URL_HASH SHA256=fef9ed754f4e031fb5c663c29260feda4ebc241abb68d64a81c0f1df5f1748e2
-)
+# llama.cpp (MIT) v0.5.0, vendored in third_party/llama.cpp so configuring needs no network (SEC-50).
+# The commit is fixed here because the build-info script would otherwise read this repository's history.
+set(LLAMA_BUILD_NUMBER 0 CACHE STRING "" FORCE)
+set(LLAMA_BUILD_COMMIT "7fe450e" CACHE STRING "" FORCE)
+set(GGML_BUILD_COMMIT "7fe450e" CACHE STRING "" FORCE)
+set(GIT_EXE "GIT_EXE-NOTFOUND" CACHE FILEPATH "Prevent git execution in vendored subdirectories" FORCE)
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 set(LLAMA_BUILD_COMMON OFF CACHE BOOL "" FORCE)
 set(LLAMA_BUILD_TESTS OFF CACHE BOOL "" FORCE)
@@ -32,7 +31,7 @@ if(ANDROID_ABI STREQUAL "x86_64")
     set(GGML_FMA ON CACHE BOOL "" FORCE)
     set(GGML_F16C ON CACHE BOOL "" FORCE)
 endif()
-FetchContent_MakeAvailable(llama)
+add_subdirectory(third_party/llama.cpp)
 
 add_library(assistant SHARED assistant.cpp)
 target_link_libraries(assistant llama log)

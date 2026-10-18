@@ -983,7 +983,12 @@ internal fun ChoiceTile(cardId: String, label: String?, chosen: Boolean, onClick
         shape = RoundedCornerShape(20.dp),
         color = Color.White,
         border = if (chosen) BorderStroke(4.dp, answer.selection) else if (pulse > 0f) BorderStroke(4.dp, answer.selection.copy(alpha = pulse)) else TileEdge,
-        modifier = modifier.heightIn(min = 96.dp).semantics { (label ?: name)?.let { contentDescription = it }; selected = chosen; suggested?.let { stateDescription = it } },
+        modifier = modifier.heightIn(min = 96.dp).semantics {
+            role = Role.Button
+            (label ?: name)?.let { contentDescription = it }
+            selected = chosen
+            suggested?.let { stateDescription = it }
+        },
     ) {
         Column(Modifier.padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             // Without a word in their language the picture carries the meaning alone, so it gets the room.
@@ -1001,7 +1006,11 @@ private fun NumberButton(digit: String, chosen: Boolean, onClick: () -> Unit, mo
         shape = CircleShape,
         color = if (chosen) answer.selection else Color.White,
         border = if (chosen) null else TileEdge,
-        modifier = modifier.aspectRatio(1f).semantics { selected = chosen },
+        modifier = modifier.aspectRatio(1f).semantics {
+            role = Role.Button
+            contentDescription = digit
+            selected = chosen
+        },
     ) {
         Box(contentAlignment = Alignment.Center) {
             Text(digit, fontFamily = Baloo, fontWeight = FontWeight.Bold, fontSize = 26.sp, color = if (chosen) answer.onSelection else Color(0xFF2B2118))
@@ -1053,7 +1062,12 @@ private fun ColumnScope.RailButton(label: String?, name: String, color: Color, o
         },
         // 64 dp fits an icon over two lines of Hindi; five in one rail on a 640 dp phone share the height, still above 48 dp.
         modifier = Modifier.weight(1f, fill = false).fillMaxWidth().height(64.dp)
-            .semantics { contentDescription = label ?: name; selected = chosen; suggested?.let { stateDescription = it } },
+            .semantics {
+                role = Role.Button
+                contentDescription = label ?: name
+                selected = chosen
+                suggested?.let { stateDescription = it }
+            },
     ) {
         Column(Modifier.padding(4.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
             icon()
@@ -1075,7 +1089,11 @@ internal fun StripAnswer(cardId: String, label: String?, name: String, chosen: B
         shape = RoundedCornerShape(20.dp),
         color = answer.unsure,
         border = if (chosen) BorderStroke(3.dp, answer.onUnsure) else null,
-        modifier = modifier.height(76.dp).semantics { contentDescription = label ?: name },
+        modifier = modifier.height(76.dp).semantics {
+            role = Role.Button
+            contentDescription = label ?: name
+            selected = chosen
+        },
     ) {
         Column(Modifier.padding(horizontal = 4.dp, vertical = 6.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
             CardImage(cardId, Modifier.size(if (label != null) 28.dp else 44.dp))
@@ -1096,7 +1114,11 @@ internal fun SmallAnswer(
         shape = RoundedCornerShape(50),
         color = color,
         border = if (chosen) BorderStroke(3.dp, onColor) else null,
-        modifier = modifier.height(height).semantics { contentDescription = label ?: name },
+        modifier = modifier.height(height).semantics {
+            role = Role.Button
+            contentDescription = label ?: name
+            selected = chosen
+        },
     ) {
         Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
             CardImage(cardId, Modifier.size(if (label != null) 30.dp else 40.dp))
@@ -1231,7 +1253,10 @@ private fun BackButton(content: ContentBundle, lang: String, onBack: () -> Unit)
         shape = CircleShape,
         color = stage.tool,
         border = BorderStroke(1.dp, stage.onTool.copy(alpha = 0.16f)),
-        modifier = Modifier.size(56.dp).semantics { contentDescription = content.subjectText("back", lang) ?: name },
+        modifier = Modifier.size(56.dp).semantics {
+            role = Role.Button
+            contentDescription = content.subjectText("back", lang) ?: name
+        },
     ) {
         Box(contentAlignment = Alignment.Center) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = stage.onTool) }
     }
@@ -1240,9 +1265,11 @@ private fun BackButton(content: ContentBundle, lang: String, onBack: () -> Unit)
 /** A name for a control whose word is missing in the subject's language, so a screen reader still has one. */
 @Composable
 private fun Modifier.named(@StringRes id: Int, needed: Boolean): Modifier {
-    if (!needed) return this
     val name = stringResource(id)
-    return semantics { contentDescription = name }
+    return semantics {
+        role = Role.Button
+        if (needed) contentDescription = name
+    }
 }
 
 @Composable

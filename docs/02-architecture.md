@@ -32,7 +32,7 @@ This document covers how the application is built.
 | Second screen | Bluetooth RFCOMM to bonded devices (`standard`); Google Nearby Connections in the optional `nearby` flavor (D-26) | No network, scanning or location in the reference build |
 | On-device assistant | llama.cpp v0.5.0 built with the NDK and CMake into `libassistant.so` (arm64-v8a; x86_64 for the emulator); an optional GGUF model file imported in Settings (D-24) | Offline translation with a back-translation; no network |
 | Type | Baloo 2 (SIL OFL), bundled, for headings and subject captions in Latin and Devanagari | Friendly, legible at arm's length; other scripts use the system Noto fonts |
-| Build | Gradle wrapper, version catalog, R8 full mode, dependency verification; CMake fetches llama.cpp pinned by SHA-256 | Size, startup, supply chain |
+| Build | Gradle wrapper, version catalog, R8 full mode, dependency verification; llama.cpp v0.5.0 vendored under `app/src/main/cpp/third_party` | Size, startup, supply chain |
 
 Not used: networking libraries, dependency-injection frameworks, Firebase, Google Play services (except Nearby Connections in the `nearby` flavor), analytics or crash SDKs, WebView, microphone APIs, and camera capture or recording (the camera is a mirror only, D-20). Exact versions are pinned in the version catalog.
 
