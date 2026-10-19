@@ -97,8 +97,13 @@ class HolisticTracker(private val context: Context) : LandmarkTracker {
         HolisticLandmarker.HolisticLandmarkerOptions.builder()
             .setBaseOptions(BaseOptions.builder().setModelAssetBuffer(model).setDelegate(delegate).build())
             .setRunningMode(RunningMode.VIDEO)
-            // 0.5 by default drops small or fast hands; the reader's own scores filter the weak ones.
+            // The 0.5 defaults drop small or fast hands, and a close selfie shows too little body for the pose that finds them;
+            // the readers' own scores filter the weak ones.
             .setMinHandLandmarksConfidence(0.3f)
+            .setMinPoseDetectionConfidence(0.3f)
+            .setMinPosePresenceConfidence(0.3f)
+            .setMinFaceDetectionConfidence(0.3f)
+            .setMinFacePresenceConfidence(0.3f)
             .build(),
     )
 

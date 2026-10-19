@@ -58,14 +58,13 @@ import kotlinx.coroutines.withContext
 import java.util.concurrent.Executors
 import kotlin.math.max
 
-/** Shows only the traced skeleton, never the picture: for subjects upset by their own face, and bystanders. */
-object SkeletonOnly {
-    val on = mutableStateOf(false)
+/** Whether the traced skeleton is drawn over the camera picture; the picture itself always shows. */
+object SkeletonOverlay {
+    val on = mutableStateOf(true)
 }
 
-/** Controls evidence image capturing mode: skeleton only (default) vs normal picture. */
+/** Whether a skeleton snapshot is kept as evidence when a signed answer is logged. */
 object EvidenceMode {
-    val skeletonOnly = mutableStateOf(true)
     val autoCapture = mutableStateOf(true)
 }
 
@@ -107,11 +106,10 @@ fun CameraMirror(
     var front by remember { mutableStateOf(true) }
     var failed by remember { mutableStateOf(false) }
     val permitted = remember { hasCameraPermission(context) }
-    val skeletonOnly = SkeletonOnly.on.value && tracker != null
 
     if (permitted) {
         // CameraX binds and sets surfaces on the main thread only; an effect resumes wherever its dispatcher says.
-        LaunchedEffect(owner, tracker, skeletonOnly) { withContext(Dispatchers.Main.immediate) {
+        LaunchedEffect(owner, tracker) { withContext(Dispatchers.Main.immediate) {
             // Opening the camera waits for the stage's first frame, so the question appears first (NFR-02).
             withFrameNanos { }
             val provider = ProcessCameraProvider.awaitInstance(context)
@@ -120,7 +118,7 @@ fun CameraMirror(
                 provider.hasCamera(CameraSelector.DEFAULT_BACK_CAMERA) -> CameraSelector.DEFAULT_BACK_CAMERA.also { front = false }
                 else -> { failed = true; return@withContext }
             }
-            val preview = if (skeletonOnly) null else Preview.Builder().setResolutionSelector(PREVIEW_RESOLUTION).build().apply { setSurfaceProvider { request = it } }
+            val preview = Preview.Builder().setResolutionSelector(PREVIEW_RESOLUTION).build().apply { setSurfaceProvider { request = it } }
             val frames = tracker?.let {
                 ImageAnalysis.Builder()
                     .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
@@ -204,18 +202,17 @@ fun CameraMirror(
     }
 
     val surface = request
-    if (!permitted || failed || (surface == null && !skeletonOnly)) {
+    if (!permitted || failed || surface == null) {
         Box(modifier) { placeholder() }
         return
     }
     val labels = rememberTextMeasurer()
     Box(modifier) {
         // TextureView-backed, so the rounded window around it clips the picture. Fit: the subject sees all the camera sees.
-        if (surface != null && !skeletonOnly) CameraXViewfinder(surface, Modifier.fillMaxSize(), implementationMode = ImplementationMode.EMBEDDED, contentScale = ContentScale.Fit)
-        else Box(Modifier.fillMaxSize().background(Color(0xFF1E2A33)))
+        CameraXViewfinder(surface, Modifier.fillMaxSize(), implementationMode = ImplementationMode.EMBEDDED, contentScale = ContentScale.Fit)
         // Landmarks are read in the draw phase only, so each analysed frame redraws this canvas without recomposing.
         Canvas(Modifier.fillMaxSize()) {
-            if (!showSkeleton && !skeletonOnly) return@Canvas
+            if (!showSkeleton || !SkeletonOverlay.on.value) return@Canvas
             // No body in view while signing is expected: a faint head and shoulders shows where to stand, without words.
             if (analysing && shown?.pose == null) {
                 val c = Offset(size.width / 2, size.height * 0.38f)
@@ -341,7 +338,7 @@ private val PREVIEW_RESOLUTION = ResolutionSelector.Builder().setAspectRatioStra
 
 private val ANALYSIS_RESOLUTION = ResolutionSelector.Builder()
     .setAspectRatioStrategy(AspectRatioStrategy.RATIO_16_9_FALLBACK_AUTO_STRATEGY)
-    .setResolutionStrategy(ResolutionStrategy(Size(640, 360), ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER))
+    .setResolutionStrategy(ResolutionStrategy(Size(848, 480), ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER))
     .build()
 
 /** The shape of the upright camera frame; windows that show the camera use it so nothing is cropped or letterboxed. */

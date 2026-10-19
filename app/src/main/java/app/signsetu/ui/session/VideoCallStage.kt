@@ -29,7 +29,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
@@ -150,7 +152,8 @@ fun VideoCallStage(
     var autoSignArmed by remember { mutableStateOf(true) }
 
     // Calming reassurance banner
-    var recentReaction by remember { mutableStateOf<String?>(null) }
+    // A string resource and its optional argument, resolved where it is drawn so a language change is followed.
+    var recentReaction by remember { mutableStateOf<Pair<Int, Any?>?>(null) }
     var showBreathingGuide by remember { mutableStateOf(false) }
     LaunchedEffect(recentReaction) {
         if (recentReaction != null) {
@@ -211,7 +214,7 @@ fun VideoCallStage(
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         val numCard = "n$fingers"
                         onCard(numCard)
-                        recentReaction = "🖐 $fingers fingers held: recorded"
+                        recentReaction = R.string.call_r_fingers to fingers
                         heldFingerSince = Long.MAX_VALUE / 2
                     }
                 } else {
@@ -291,7 +294,9 @@ fun VideoCallStage(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 10.dp),
+                    .statusBarsPadding()
+                    // The end stays clear for the officer's handle.
+                    .padding(start = 16.dp, end = 64.dp, top = 10.dp, bottom = 10.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -315,7 +320,7 @@ fun VideoCallStage(
                     Column {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text(
-                                text = "ISL Police Support Call",
+                                text = stringResource(R.string.app_name),
                                 fontFamily = Baloo,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 16.sp,
@@ -324,7 +329,7 @@ fun VideoCallStage(
                             Icon(Icons.Filled.Lock, contentDescription = null, tint = Color(0xFF38BDF8), modifier = Modifier.size(15.dp))
                         }
                         Text(
-                            text = "%02d:%02d • Confidential & Safe".format(callSeconds / 60, callSeconds % 60),
+                            text = "%02d:%02d".format(callSeconds / 60, callSeconds % 60),
                             fontSize = 12.sp,
                             color = Color(0xFF94A3B8),
                         )
@@ -352,7 +357,7 @@ fun VideoCallStage(
                                 fontSize = 12.sp,
                             )
                             Text(
-                                text = if (lang == "hi") "साँस लें" else "Breathe",
+                                text = stringResource(R.string.call_breathe),
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = Color(0xFF93C5FD),
@@ -360,25 +365,6 @@ fun VideoCallStage(
                         }
                     }
 
-                    Surface(
-                        shape = RoundedCornerShape(20.dp),
-                        color = Color(0xFF1E293B),
-                        border = BorderStroke(1.dp, Color(0xFF334155)),
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                            Icon(Icons.Filled.Lock, contentDescription = null, tint = Color(0xFF34D399), modifier = Modifier.size(13.dp))
-                            Text(
-                                text = if (lang == "hi") "सुरक्षित लाइन" else "Secure Call",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = Color(0xFFE2E8F0),
-                            )
-                        }
-                    }
                 }
             }
         }
@@ -392,7 +378,8 @@ fun VideoCallStage(
         Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(top = 70.dp, end = 14.dp)
+                .statusBarsPadding()
+                .padding(top = 100.dp, end = 14.dp)
                 .offset { IntOffset(pipOffsetX.roundToInt(), pipOffsetY.roundToInt()) }
                 .size(pipWidth, pipHeight)
                 .clip(RoundedCornerShape(20.dp))
@@ -423,31 +410,31 @@ fun VideoCallStage(
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         onCue("nod")
                         onYesNo(true)
-                        recentReaction = "✓ Yes (हाँ) acknowledged"
+                        recentReaction = R.string.call_r_yes to null
                     } else if (head == Head.Shake) {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         onCue("shake")
                         onYesNo(false)
-                        recentReaction = "✕ No (नहीं) acknowledged"
+                        recentReaction = R.string.call_r_no to null
                     }
                 },
                 onPoint = { pointId ->
                     haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     onCue("point")
                     onCard(pointId)
-                    recentReaction = "Pointed: $pointId"
+                    recentReaction = R.string.call_r_point to pointId
                 },
                 onStopPalm = {
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     onCue("palm")
                     onCard("stop")
-                    recentReaction = "✋ Hold / Stop requested"
+                    recentReaction = R.string.call_r_stop to null
                 },
                 onShrug = {
                     haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     onCue("shrug")
                     onCard("dont_know")
-                    recentReaction = "🤷 Don't know recorded"
+                    recentReaction = R.string.call_r_unsure to null
                 },
             ) {
                 Box(
@@ -488,7 +475,7 @@ fun VideoCallStage(
                     .padding(6.dp),
             ) {
                 Text(
-                    text = if (signing) "🔴 Signing..." else "You (ISL)",
+                    text = stringResource(if (signing) R.string.call_signing else R.string.call_you),
                     color = Color.White,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold,
@@ -503,7 +490,8 @@ fun VideoCallStage(
         Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 98.dp, start = 16.dp, end = 16.dp)
+                .navigationBarsPadding()
+                .padding(bottom = 124.dp, start = 16.dp, end = 16.dp)
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -523,7 +511,7 @@ fun VideoCallStage(
                     ) {
                         Text("👋", fontSize = 16.sp)
                         Text(
-                            text = "Live ISL: $liveTranscript",
+                            text = stringResource(R.string.call_live, liveTranscript),
                             fontFamily = Baloo,
                             fontWeight = FontWeight.Bold,
                             fontSize = 15.sp,
@@ -541,7 +529,7 @@ fun VideoCallStage(
                     border = BorderStroke(1.dp, Color(0xFF38BDF8)),
                 ) {
                     Text(
-                        text = recentReaction.orEmpty(),
+                        text = recentReaction?.let { (id, arg) -> if (arg == null) stringResource(id) else stringResource(id, arg) }.orEmpty(),
                         fontFamily = Baloo,
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp,
@@ -572,7 +560,7 @@ fun VideoCallStage(
                         textAlign = TextAlign.Center,
                     )
                     Text(
-                        text = if (lang == "hi") "इशारों में बताएं (हाथ हिलाएं या सिर हिलाएं)" else "Sign naturally (nod, shake or sign)",
+                        text = stringResource(R.string.call_sign_hint),
                         fontSize = 11.sp,
                         color = Color(0xFF94A3B8),
                         textAlign = TextAlign.Center,
@@ -592,11 +580,12 @@ fun VideoCallStage(
             shadowElevation = 12.dp,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
                 .padding(bottom = 16.dp, start = 16.dp, end = 16.dp),
         ) {
             Row(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 // 1. Water Need Button
@@ -608,7 +597,7 @@ fun VideoCallStage(
                     onClick = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         onCard("water")
-                        recentReaction = "Water requested 💧"
+                        recentReaction = R.string.call_r_water to null
                     },
                 )
 
@@ -621,7 +610,7 @@ fun VideoCallStage(
                     onClick = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         onCard("food")
-                        recentReaction = "Food / Hungry requested 🥪"
+                        recentReaction = R.string.call_r_food to null
                     },
                 )
 
@@ -634,7 +623,7 @@ fun VideoCallStage(
                     onClick = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         onYesNo(true)
-                        recentReaction = "✓ YES confirmed"
+                        recentReaction = R.string.call_r_yes to null
                     },
                 )
 
@@ -647,7 +636,7 @@ fun VideoCallStage(
                     onClick = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         onYesNo(false)
-                        recentReaction = "✕ NO confirmed"
+                        recentReaction = R.string.call_r_no to null
                     },
                 )
 
@@ -731,7 +720,7 @@ private fun CalmingBreathingGuide(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = if (lang == "hi") "शांति और साँस (Grounding)" else "Safe Space Breathing",
+                    text = stringResource(R.string.call_breath_title),
                     fontFamily = Baloo,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
@@ -774,7 +763,7 @@ private fun CalmingBreathingGuide(
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Text(
-                            text = if (breathScale > 1.05f) (if (lang == "hi") "छोड़ें" else "Exhale") else (if (lang == "hi") "साँस लें" else "Inhale"),
+                            text = stringResource(if (breathScale > 1.05f) R.string.call_exhale else R.string.call_inhale),
                             fontFamily = Baloo,
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp,
@@ -785,10 +774,7 @@ private fun CalmingBreathingGuide(
             }
 
             Text(
-                text = if (lang == "hi")
-                    "आप यहाँ पूरी तरह सुरक्षित हैं। धीरे-धीरे साँस लें और शांत महसूस करें।"
-                else
-                    "You are in a safe space. Breathe with the circle at your own pace.",
+                text = stringResource(R.string.call_breath_body),
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                 fontSize = 14.sp,
                 color = Color(0xFFE2E8F0),
@@ -802,7 +788,7 @@ private fun CalmingBreathingGuide(
                     .clickable(onClick = onDismiss),
             ) {
                 Text(
-                    text = if (lang == "hi") "मैं ठीक हूँ, आगे बढ़ें" else "I'm Ready to Continue",
+                    text = stringResource(R.string.call_ready),
                     fontFamily = Baloo,
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp,

@@ -20,3 +20,10 @@
 # Graph profiling and templates are not shipped in the library and never used here.
 -dontwarn com.google.mediapipe.proto.CalculatorProfileProto**
 -dontwarn com.google.mediapipe.proto.GraphTemplateProto**
+# Protobuf's message schemas are found by reflection on generated field names; shrinking them leaves MediaPipe's graph unable to open.
+-keep class com.google.protobuf.** { *; }
+-keepclassmembers class * extends com.google.protobuf.GeneratedMessageLite { <fields>; }
+-dontwarn com.google.protobuf.**
+# Flogger, which MediaPipe's Graph logs through, finds its caller by class name on the stack; renaming makes Graph fail to load.
+-keep class com.google.common.flogger.** { *; }
+-dontwarn com.google.common.flogger.**

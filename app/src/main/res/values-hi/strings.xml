@@ -7,10 +7,9 @@
     <string name="notice_aid">साइन सेतु बातचीत में मदद करता है। यह दुभाषिया नहीं है, और यह कभी बयान दर्ज नहीं करता।</string>
 
     <string name="lock_title">साइन सेतु लॉक है</string>
-    <string name="lock_body">फ़िंगरप्रिंट या फ़ोन पिन से खोलें। तब तक सत्र का रिकॉर्ड एन्क्रिप्ट रहता है।</string>
+    <string name="lock_body">साइन सेतु अपने रिकॉर्ड नहीं खोल सका। दोबारा कोशिश के लिए अनलॉक दबाएँ।</string>
     <string name="lock_button">खोलें</string>
     <string name="lock_failed">नहीं खुला। फिर कोशिश करें।</string>
-    <string name="no_lock_button">सुरक्षा सेटिंग खोलें</string>
 
     <string name="start_resume_title">अधूरा सत्र</string>
     <string name="start_resume_body">%1$s · %2$s · %3$s बजे शुरू</string>
@@ -174,10 +173,8 @@
     <string name="intro_done">शुरू करें</string>
     <string name="intro_aid_title">बातचीत में मदद करने वाला ऐप</string>
     <string name="intro_aid_body">साइन सेतु छोटे बच्चों, बधिर लोगों और दूसरी भाषा बोलने वालों से बात करने में मदद करता है: तस्वीरें, कैप्शन, रिकॉर्ड की गई आवाज़ और इशारे।\n\nयह दुभाषिया नहीं है। जो बात बयान बनेगी, उसके लिए योग्य दुभाषिया बुलाएँ।</string>
-    <string name="intro_private_title">कुछ भी इस फ़ोन से बाहर नहीं जाता</string>
-    <string name="intro_private_body">ऐप में इंटरनेट नहीं है। सत्र के रिकॉर्ड आपके स्क्रीन लॉक से एन्क्रिप्ट रहते हैं, और सत्र खत्म होने पर या ज़्यादा से ज़्यादा 24 घंटे में मिट जाते हैं।\n\nरिपोर्ट फ़ोन से तभी बाहर जाती है जब आप उसे एक्सपोर्ट करके शेयर करें, और वह उस पासवर्ड से सुरक्षित रहती है जो आप अलग से देते हैं।</string>
-    <string name="intro_pinning_title">ऐप पिनिंग चालू करें</string>
-    <string name="intro_pinning_body">जब आप फ़ोन सामने वाले को देते हैं, साइन सेतु खुद को पिन कर लेता है ताकि वे दूसरे ऐप न खोल सकें।\n\nफ़ोन की सुरक्षा सेटिंग्स में ऐप पिनिंग और \"अनपिन करने से पहले PIN पूछें\" चालू करें।</string>
+    <string name="intro_private_title">आपके रिकॉर्ड इसी फ़ोन में रहते हैं</string>
+    <string name="intro_private_body">सत्र के रिकॉर्ड इसी फ़ोन पर एन्क्रिप्ट रहते हैं, और सत्र खत्म होने पर या ज़्यादा से ज़्यादा 24 घंटे में हट जाते हैं।\n\nसेटिंग में ऑनलाइन AI चालू किए बिना कुछ भी कहीं नहीं भेजा जाता। चालू करने पर भी केवल छिपाया हुआ पाठ तीसरे पक्ष की सेवा को जाता है, और पहले नाम बदल दिए जाते हैं।\n\nरिपोर्ट तभी फ़ोन से बाहर जाती है जब आप उसे एक्सपोर्ट करके साझा करें; वह अलग से दिए पासवर्ड से सुरक्षित रहती है।</string>
     <string name="key_reset_title">पिछले सत्र मिटा दिए गए</string>
     <string name="key_reset_body">फ़ोन का स्क्रीन लॉक हटाया या बदला गया, इसलिए Android ने पिछले सत्र के रिकॉर्ड की सुरक्षा वाली कुंजी मिटा दी। वे खोले नहीं जा सकते थे और मिटा दिए गए हैं। नए सत्र सामान्य रूप से चलेंगे।</string>
     <string name="action_gesture">इशारा किया</string>
@@ -190,7 +187,7 @@
     <string name="officer_has_audio">उनकी भाषा में रिकॉर्ड की गई आवाज़</string>
     <string name="officer_media_missing">केवल तस्वीर और कैप्शन</string>
     <string name="officer_glance">स्टेज पर मेरी उलटी पट्टी</string>
-    <string name="officer_skeleton_only">केवल ढाँचा (तस्वीर छिपाएँ)</string>
+    <string name="officer_skeleton_show">कैमरे पर ढाँचा दिखाएँ</string>
     <string name="officer_sign_language">सांकेतिक भाषा</string>
     <string name="sign_isl">भारतीय (ISL)</string>
     <string name="sign_asl">अमेरिकी (ASL)</string>
@@ -326,7 +323,7 @@
     <string name="second_screen_asked_before">%1$s पर पूछा गया था। फिर पूछने के लिए दोबारा दबाएँ।</string>
     <string name="stage_use">स्टेज स्क्रीन बनाएँ</string>
     <string name="stage_unsupported">यह डिवाइस स्टेज स्क्रीन नहीं बन सकता।</string>
-    <string name="stage_checklist">पिन हटाने से पहले पिन माँगें चालू करें और स्क्रीन लॉक का समय कम रखें।</string>
+    <string name="stage_checklist">यह फ़ोन सत्र के दौरान केवल व्यक्ति की स्क्रीन दिखाएगा, सत्र आपके फ़ोन पर चलेगा। पहले स्क्रीन लॉक का समय कम रखें।</string>
     <string name="stage_checklist_open">सेटिंग खोलें</string>
     <string name="stage_continue">आगे बढ़ें</string>
     <string name="stage_waiting">अधिकारी के फ़ोन की प्रतीक्षा। यह डिवाइस: %1$s</string>
@@ -505,4 +502,22 @@
     <!-- Database Downgrade Warning -->
     <string name="downgrade_reset_title">डेटाबेस डाउनग्रेड मिला</string>
     <string name="downgrade_reset_body">ऐप डाउनग्रेड होने के कारण सत्र तालिकाएँ फिर से बनाई गई हैं। पहले के अनएक्सपोर्टेड रिकॉर्ड सुरक्षित रूप से हटा दिए गए हैं। नए सत्र सामान्य रूप से चलेंगे।</string>
+    <string name="call_breathe">साँस लें</string>
+    <string name="call_signing">इशारा हो रहा है…</string>
+    <string name="call_you">आप</string>
+    <string name="call_live">इशारे: %1$s</string>
+    <string name="call_sign_hint">इशारे से, या सिर हिलाकर हाँ-ना में जवाब दें</string>
+    <string name="call_breath_title">शांति से साँस</string>
+    <string name="call_inhale">साँस अंदर</string>
+    <string name="call_exhale">साँस बाहर</string>
+    <string name="call_breath_body">आप यहाँ सुरक्षित हैं। गोले के साथ अपनी गति से साँस लें।</string>
+    <string name="call_ready">मैं आगे बढ़ने के लिए तैयार हूँ</string>
+    <string name="call_r_fingers">%1$d उँगलियाँ दिखाईं</string>
+    <string name="call_r_yes">हाँ</string>
+    <string name="call_r_no">नहीं</string>
+    <string name="call_r_point">इशारा: %1$s</string>
+    <string name="call_r_stop">रुकें</string>
+    <string name="call_r_unsure">पता नहीं</string>
+    <string name="call_r_water">पानी</string>
+    <string name="call_r_food">खाना</string>
 </resources>

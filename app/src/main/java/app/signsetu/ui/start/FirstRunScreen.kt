@@ -68,10 +68,9 @@ private class Step(@StringRes val title: Int, @StringRes val body: Int, val gest
 private val STEPS = listOf(
     Step(R.string.intro_aid_title, R.string.intro_aid_body, "namaste") { rememberVectorPainter(Icons.Filled.Info) },
     Step(R.string.intro_private_title, R.string.intro_private_body, "me.chest") { rememberVectorPainter(Icons.Filled.Lock) },
-    Step(R.string.intro_pinning_title, R.string.intro_pinning_body, "you.palm") { painterResource(R.drawable.ic_pin) },
 )
 
-/** Shown once, before the first unlock (FR-61: first run guides the officer to turn on app pinning). */
+/** Shown once, before the first unlock. */
 @Composable
 fun FirstRunScreen(gestures: Map<String, Gesture>, onDone: () -> Unit) {
     var index by rememberSaveable { mutableIntStateOf(0) }
@@ -167,11 +166,6 @@ fun FirstRunScreen(gestures: Map<String, Gesture>, onDone: () -> Unit) {
                             ),
                         )
                     }
-                }
-            }
-            if (last) {
-                OutlinedButton(onClick = { context.startActivity(Intent(Settings.ACTION_SECURITY_SETTINGS)) }) {
-                    Text(stringResource(R.string.no_lock_button))
                 }
             }
         }

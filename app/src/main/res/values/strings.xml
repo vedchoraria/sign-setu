@@ -6,10 +6,9 @@
 
     <!-- Lock -->
     <string name="lock_title">Sign Setu is locked</string>
-    <string name="lock_body">Unlock with your fingerprint or phone PIN. Session records stay encrypted until you do.</string>
+    <string name="lock_body">Sign Setu could not open its records. Tap Unlock to try again.</string>
     <string name="lock_button">Unlock</string>
     <string name="lock_failed">Could not unlock. Try again.</string>
-    <string name="no_lock_button">Open security settings</string>
 
     <!-- Start -->
     <string name="start_resume_title">Unfinished session</string>
@@ -181,10 +180,8 @@
     <string name="intro_done">Get started</string>
     <string name="intro_aid_title">A communication aid</string>
     <string name="intro_aid_body">Sign Setu helps you talk with young children, deaf people and people who speak another language, using pictures, captions, recorded speech and gestures.\n\nIt is not an interpreter. For anything that will become a statement, call a qualified interpreter.</string>
-    <string name="intro_private_title">Nothing leaves this phone</string>
-    <string name="intro_private_body">The app has no internet access. Session records are encrypted with your screen lock, and deleted when the session ends or after 24 hours at most.\n\nA report leaves the phone only when you export and share it, and it is protected by a password you give separately.</string>
-    <string name="intro_pinning_title">Turn on app pinning</string>
-    <string name="intro_pinning_body">When you hand the phone over, Sign Setu pins itself so the person cannot open other apps.\n\nIn your phone\'s security settings, turn on App pinning and \"Ask for PIN before unpinning\".</string>
+    <string name="intro_private_title">Your records stay on this phone</string>
+    <string name="intro_private_body">Session records are encrypted on this phone and deleted when the session ends, or after 24 hours at most.\n\nNothing is sent anywhere unless you switch on Online AI in Settings. Then only masked text goes to a third-party service, with names replaced first.\n\nA report leaves the phone only when you export and share it, protected by a password you give separately.</string>
     <string name="key_reset_title">Earlier sessions were deleted</string>
     <string name="key_reset_body">The phone screen lock was removed or changed, so Android deleted the key that protected earlier session records. They could not be opened and have been deleted. New sessions work as normal.</string>
     <string name="action_gesture">They gestured</string>
@@ -197,7 +194,7 @@
     <string name="officer_has_audio">Recorded speech in their language</string>
     <string name="officer_media_missing">Picture and caption only</string>
     <string name="officer_glance">My upside-down strip on the stage</string>
-    <string name="officer_skeleton_only">Skeleton only (hide the picture)</string>
+    <string name="officer_skeleton_show">Show skeleton on camera</string>
     <string name="officer_sign_language">Sign language</string>
     <string name="sign_isl">Indian (ISL)</string>
     <string name="sign_asl">American (ASL)</string>
@@ -333,7 +330,7 @@
     <string name="second_screen_asked_before">Asked at %1$s. Tap again to ask again.</string>
     <string name="stage_use">Use as stage screen</string>
     <string name="stage_unsupported">This device cannot be a stage screen.</string>
-    <string name="stage_checklist">Turn on Ask for PIN before unpinning, and set a short screen-lock time.</string>
+    <string name="stage_checklist">This phone will show only the person\'s screen while you keep the session on yours. Set a short screen-lock time first.</string>
     <string name="stage_checklist_open">Open settings</string>
     <string name="stage_continue">Continue</string>
     <string name="stage_waiting">Waiting for the officer\'s phone. This device: %1$s</string>
@@ -512,4 +509,22 @@
     <!-- Database Downgrade Warning -->
     <string name="downgrade_reset_title">Database Downgrade Detected</string>
     <string name="downgrade_reset_body">A software downgrade occurred, causing Room to recreate session tables. Earlier unexported session records were safely purged. New sessions work as normal.</string>
+    <string name="call_breathe">Breathe</string>
+    <string name="call_signing">Signing…</string>
+    <string name="call_you">You</string>
+    <string name="call_live">Signing: %1$s</string>
+    <string name="call_sign_hint">Answer by signing, nodding or shaking your head</string>
+    <string name="call_breath_title">Calm breathing</string>
+    <string name="call_inhale">Breathe in</string>
+    <string name="call_exhale">Breathe out</string>
+    <string name="call_breath_body">You are safe here. Breathe with the circle at your own pace.</string>
+    <string name="call_ready">I am ready to go on</string>
+    <string name="call_r_fingers">%1$d fingers shown</string>
+    <string name="call_r_yes">Yes</string>
+    <string name="call_r_no">No</string>
+    <string name="call_r_point">Pointed: %1$s</string>
+    <string name="call_r_stop">Stop</string>
+    <string name="call_r_unsure">Not sure</string>
+    <string name="call_r_water">Water</string>
+    <string name="call_r_food">Food</string>
 </resources>

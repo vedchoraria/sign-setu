@@ -38,8 +38,8 @@ android {
 
     buildTypes {
         release {
-            // Officers' phones are 64-bit ARM; x86 libraries only serve the emulator in debug builds.
-            ndk { abiFilters += listOf("arm64-v8a") }
+            // Universal 64-bit build: ARM phones and x86_64 emulators/tablets.
+            ndk { abiFilters += listOf("arm64-v8a", "x86_64") }
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")

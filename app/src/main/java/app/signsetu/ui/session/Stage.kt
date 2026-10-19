@@ -376,8 +376,9 @@ fun Stage(
         else -> item.caption
     }
 
-    // The call view is the stage; drawing, writing, choices, lessons and the language finder keep their own panels below.
-    if (!drawing && !writing && pending != Pending.LanguageFinder && choices == null && lesson == null) {
+    // The call view is the stage. Items that need more than Yes or No (pictures, numbers, drawing), writing, lessons and the
+    // language finder keep their own panels below.
+    if (!drawing && !writing && pending != Pending.LanguageFinder && choices == null && lesson == null && item.choices.isEmpty() && !item.canDraw) {
         Box(Modifier.fillMaxSize()) {
             VideoCallStage(
                 ui = ui,
