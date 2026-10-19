@@ -228,7 +228,7 @@ data class ContentBundle(
 class ContentRepository(private val assets: AssetManager) {
     private val json = Json { ignoreUnknownKeys = true }
     private var bundle: ContentBundle? = null
-    private val images = LruCache<String, ImageBitmap>(48)
+    private val images = LruCache<String, ImageBitmap>(160)
 
     suspend fun load(): ContentBundle = bundle ?: withContext(Dispatchers.IO) {
         val manifestText = read("manifest.json")
@@ -270,8 +270,23 @@ class ContentRepository(private val assets: AssetManager) {
             signWords = verified<SignWordsFile>("sign_words.json", rejected)?.words.orEmpty(),
             version = MessageDigest.getInstance("SHA-256").digest(manifestText.toByteArray()).take(6).joinToString("") { "%02x".format(it) },
             states = states,
-        ).withSignedQuestions().also { bundle = it }
+        ).withSignedQuestions().also {
+            bundle = it
+            // Preload high-frequency essential cards into memory cache for instant, zero-latency response
+            preloadCards(listOf("yes", "no", "stop", "dont_know", "unclear", "wrong", "water", "food", "help", "pain_arm", "pain_head", "pain_chest", "pain_stomach", "safe", "hurt"))
+        }
     }
+
+    suspend fun preloadCards(cardIds: List<String>) = withContext(Dispatchers.IO) {
+        for (id in cardIds) {
+            if (images.get(id) == null) {
+                cardImage(id)
+            }
+        }
+    }
+
+    /** Memory-only peek, so a cached card paints on the first frame with no placeholder. */
+    fun cachedCardImage(id: String): ImageBitmap? = images.get(id)
 
     suspend fun cardImage(id: String): ImageBitmap? {
         images.get(id)?.let { return it }

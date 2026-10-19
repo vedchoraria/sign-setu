@@ -71,8 +71,13 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.togetherWith
+import app.signsetu.ui.components.ScreenSkeleton
 import app.signsetu.AppContainer
-import app.signsetu.DeviceGuard
 import app.signsetu.R
 import app.signsetu.data.content.ContentBundle
 import app.signsetu.data.content.SignLanguage
@@ -113,40 +118,34 @@ import app.signsetu.ui.pair.UseAsStageButton
 private const val SANDES_PACKAGE = "in.nic.gimkerala"
 
 @Composable
-fun AppRoot(container: AppContainer, guard: DeviceGuard) {
+fun AppRoot(container: AppContainer) {
     val repo by container.sessions.collectAsStateWithLifecycle()
     val content by produceState<ContentBundle?>(null) { value = container.content.load() }
     val settings by container.settings.settings.collectAsStateWithLifecycle(initialValue = null)
     val link by container.link.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
-    val title = stringResource(R.string.lock_prompt_title)
-    val subtitle = stringResource(R.string.lock_prompt_subtitle)
 
-    CompositionLocalProvider(LocalContentRepository provides container.content) { NoPersonalisedLearning {
+    CompositionLocalProvider(LocalContentRepository provides container.content, app.signsetu.ui.components.LocalCloudAi provides container.cloudAi) { NoPersonalisedLearning {
         SignSetuTheme {
             val r = repo
             val c = content
             val s = settings
             val stage = link?.takeIf { it.role == LinkRole.STAGE }
             when {
-                s == null -> Box(Modifier.fillMaxSize())
+                s == null -> ScreenSkeleton()
                 !s.firstRunDone -> FirstRunScreen(c?.gestures.orEmpty(), onDone = { scope.launch { container.settings.setFirstRunDone() } })
                 // A stage device never opens the session database or the navigation (D-26).
-                stage != null && c != null -> StageDeviceScreen(stage, c, container, guard)
-                // The key stays usable for a short while after the phone itself is unlocked, so try that before prompting.
+                stage != null && c != null -> StageDeviceScreen(stage, c, container)
+                // No credential prompt: LockScreen opens the database itself and only shows if that fails.
                 r == null -> LockScreen(
                     onUnlock = { onFailed ->
-                        val prompt = {
-                            guard.unlock(title, subtitle, { container.stageGuard.onStage(false); container.unlockAsync(onFailed) }, onFailed)
-                        }
-                        // Locked or killed mid-stage: the subject may be holding the phone, so never unlock silently.
-                        if (container.stageGuard.forceCredential) prompt() else container.unlockAsync(onFailed = prompt)
+                        container.stageGuard.onStage(false)
+                        container.unlockAsync(onFailed)
                     },
-                    autoPrompt = !s.stageDevice,
                     stageButton = { UseAsStageButton(container) },
                 )
-                c == null -> Box(Modifier.fillMaxSize())
-                else -> Navigation(r, c, s, guard, container)
+                c == null -> ScreenSkeleton()
+                else -> Navigation(r, c, s, container)
             }
             val keyReset by container.keyReset.collectAsStateWithLifecycle()
             if (keyReset && r != null) {
@@ -191,7 +190,7 @@ private fun NoPersonalisedLearning(content: @Composable () -> Unit) {
 }
 
 @Composable
-private fun Navigation(repo: SessionRepository, content: ContentBundle, settings: AppSettings, guard: DeviceGuard, container: AppContainer) {
+private fun Navigation(repo: SessionRepository, content: ContentBundle, settings: AppSettings, container: AppContainer) {
     val backStack = rememberNavBackStack(StartKey)
     val scope = rememberCoroutineScope()
     var pairing by remember { mutableStateOf(false) }
@@ -203,6 +202,9 @@ private fun Navigation(repo: SessionRepository, content: ContentBundle, settings
     if (pairing) SecondScreenSheet(container, onDismiss = { pairing = false })
     NavDisplay(
         backStack = backStack,
+        transitionSpec = { fadeIn(tween(220, 60)) + slideInHorizontally(tween(260)) { it / 12 } togetherWith fadeOut(tween(120)) },
+        popTransitionSpec = { fadeIn(tween(220, 60)) + slideInHorizontally(tween(260)) { -it / 12 } togetherWith fadeOut(tween(120)) },
+        predictivePopTransitionSpec = { fadeIn(tween(220, 60)) togetherWith fadeOut(tween(120)) },
         onBack = { backStack.removeLastOrNull() },
         entryDecorators = listOf(rememberSaveableStateHolderNavEntryDecorator(), rememberViewModelStoreNavEntryDecorator()),
         entryProvider = entryProvider {
@@ -223,7 +225,7 @@ private fun Navigation(repo: SessionRepository, content: ContentBundle, settings
             }
             entry<SessionKey> { key ->
                 SessionRoute(
-                    key.id, repo, content, settings, guard, container.report, tracker, reader,
+                    key.id, repo, content, settings, container.report, tracker, reader,
                     onFavourite = { id -> scope.launch { container.settings.toggleFavourite(id) } },
                     assistant = container.assistant,
                     onClosed = { backStack.removeLastOrNull() },
@@ -241,7 +243,6 @@ internal fun SessionRoute(
     repo: SessionRepository,
     content: ContentBundle,
     settings: AppSettings,
-    guard: DeviceGuard,
     report: SessionReport,
     tracker: LandmarkTracker?,
     reader: SignReader?,
@@ -266,9 +267,6 @@ internal fun SessionRoute(
     val signContent = remember(content, signLanguage) { content.forSignLanguage(signLanguage) }
     val conv by vm.auto.conv.collectAsStateWithLifecycle()
     val activity = LocalActivity.current
-    val title = stringResource(R.string.return_prompt_title)
-    val subtitle = stringResource(R.string.return_prompt_subtitle)
-    val cancel = stringResource(R.string.cancel)
     // The officer can turn the mirror off for one person, for example a child upset by seeing themself.
     var cameraOn by rememberSaveable { mutableStateOf(settings.cameraEnabled) }
     var sandesHandoffContact by rememberSaveable { mutableStateOf<String?>(null) }
@@ -287,27 +285,17 @@ internal fun SessionRoute(
             container.endLink(ByeReason.FALLBACK)
         })
     }
-    // A tap on the handle is the officer's way back; the screen lock is asked too only if the department wants it (D-23).
+    // Smooth transition back to officer without PIN or password prompt
     val backToOfficer = {
-        if (settings.pinToLeaveStage) guard.confirmOfficer(title, subtitle, cancel) { vm.returnToOfficer() } else vm.returnToOfficer()
+        vm.returnToOfficer()
     }
 
-    // From the first Show until the session ends, the app stays pinned so a subject cannot reach other apps (FR-61).
     val localStage = state.mode == Mode.SHOW && !paired
-    LaunchedEffect(localStage) {
-        // After the stage's first frame: pinning brings up system UI that would otherwise delay it (NFR-02).
-        if (localStage) {
-            withFrameNanos { }
-            guard.pin()
-        }
-    }
     ImmersiveWhile(activity, localStage)
     // The assistant's buffers would sit beside the camera and the landmark graph on a small phone.
     LaunchedEffect(localStage || state.signWindow != null) { if (localStage || state.signWindow != null) container.models.release() }
     // With a second screen the officer keeps this phone, so tilt and the volume keys do not hand it over.
     if (!paired) HandoverEffects(state, vm, settings.tiltToShow, settings.volumeKeys, container.hardKeys, container.stageGuard, backToOfficer)
-    // Leaving the session by Back skips onEndSession, so the pin would otherwise outlive the screen.
-    DisposableEffect(Unit) { onDispose { if (activity?.isChangingConfigurations != true) guard.unpin() } }
     // The app locking takes this screen away: landmarks go with it, though not on a mere configuration change.
     DisposableEffect(Unit) { onDispose { if (activity?.isChangingConfigurations != true) vm.wipeSigns() } }
 
@@ -331,7 +319,6 @@ internal fun SessionRoute(
                     if (settings.interpreterApp == InterpreterApp.SANDES) {
                         sandesHandoffContact = settings.interpreterContact
                     } else {
-                        guard.unpin()
                         activity?.let { callInterpreter(it, settings) }
                     }
                 }
@@ -339,21 +326,18 @@ internal fun SessionRoute(
                 null
             },
             onShare = { file ->
-                // Other apps cannot open while the app is pinned.
-                guard.unpin()
                 activity?.let { shareReport(it, file) }
             },
             onEndSession = {
                 vm.endSession {
                     officerLink?.let { container.endLink() }
-                    guard.unpin()
                     onClosed()
                 }
             },
         )
         Mode.SHOW -> {
-            // Back would let a subject leave the stage with one tap; only the handle leaves it.
-            BackHandler { if (settings.pinToLeaveStage) backToOfficer() else activity?.let { Toast.makeText(it, R.string.stage_back_blocked, Toast.LENGTH_SHORT).show() } }
+            // Back smoothly returns to officer
+            BackHandler { backToOfficer() }
             SubjectTheme {
                 Stage(
                     ui = state,
@@ -387,7 +371,6 @@ internal fun SessionRoute(
             contact = contact,
             onLaunch = {
                 sandesHandoffContact = null
-                guard.unpin()
                 activity?.let { launchSandes(it, settings) }
             },
             onDismiss = { sandesHandoffContact = null },

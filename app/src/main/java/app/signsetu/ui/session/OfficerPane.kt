@@ -232,6 +232,7 @@ fun OfficerPane(
     // Sheets and dialogs take Back first; on the page itself it steps to the first tab, then asks before ending.
     BackHandler { if (page != 0) page = 0 else askEnd = true }
     var export by remember { mutableStateOf<ExportState?>(null) }
+    val cloud = app.signsetu.ui.components.LocalCloudAi.current
     var aiReport by remember { mutableStateOf<String?>(null) }
     var aiExtracting by remember { mutableStateOf(false) }
     var stopSeen by rememberSaveable { mutableStateOf<Long?>(null) }
@@ -283,8 +284,8 @@ fun OfficerPane(
     var sayingBackId by rememberSaveable { mutableStateOf<Long?>(null) }
     val sayingBack = ui.events.firstOrNull { it.id == sayingBackId }
     val context = LocalContext.current
-    val runQuestions = run.mapNotNull { id -> content.questions.firstOrNull { it.id == id } }
-    val sensitiveGroups = content.groups.filter { it.sensitive }.map { it.id }
+    val runQuestions = remember(run, content) { run.mapNotNull { id -> content.questions.firstOrNull { it.id == id } } }
+    val sensitiveGroups = remember(content) { content.groups.filter { it.sensitive }.map { it.id } }
     val addToRun = { q: Question ->
         when {
             q.group in sensitiveGroups -> Toast.makeText(context, R.string.run_no_sensitive, Toast.LENGTH_SHORT).show()
@@ -371,12 +372,8 @@ fun OfficerPane(
                                 val sessionLog = ui.events.joinToString("\n") { ev ->
                                     "[${ev.type.name}] [${ev.source.name}] text=${ev.text ?: ""} card=${ev.cardId ?: ""} lang=${ev.lang ?: ""}"
                                 }
-                                val rep = app.signsetu.assistant.TokenRouterAiService.extractInvestigationReport(
-                                    sessionLogText = sessionLog,
-                                    role = ui.session.role.name,
-                                    regionalDialect = subjectLang,
-                                )
-                                aiReport = rep ?: "No extracted report generated. Verify network connectivity."
+                                val rep = cloud.report(sessionLog, ui.session.role.name, subjectLang, subjectNames(ui.events, content, officerLang))
+                                aiReport = rep
                                 aiExtracting = false
                             }
                         }
@@ -468,7 +465,7 @@ fun OfficerPane(
                             modifier = Modifier.toggleState(SkeletonOnly.on.value, Role.Switch),
                         )
                         DropdownMenuItem(
-                            text = { Text("Extract AI Police Report") },
+                            text = { Text(stringResource(R.string.menu_ai_report)) },
                             leadingIcon = { Icon(Icons.Filled.Star, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                             onClick = {
                                 menu = false
@@ -477,12 +474,8 @@ fun OfficerPane(
                                     val sessionLog = ui.events.joinToString("\n") { ev ->
                                         "[${ev.type.name}] [${ev.source.name}] text=${ev.text ?: ""} card=${ev.cardId ?: ""} lang=${ev.lang ?: ""}"
                                     }
-                                    val rep = app.signsetu.assistant.TokenRouterAiService.extractInvestigationReport(
-                                        sessionLogText = sessionLog,
-                                        role = ui.session.role.name,
-                                        regionalDialect = subjectLang,
-                                    )
-                                    aiReport = rep ?: "No extracted report generated. Verify network connectivity."
+                                    val rep = cloud.report(sessionLog, ui.session.role.name, subjectLang, subjectNames(ui.events, content, officerLang))
+                                    aiReport = rep
                                     aiExtracting = false
                                 }
                             },
@@ -775,7 +768,7 @@ fun OfficerPane(
                                 val sessionLog = ui.events.joinToString("\n") { ev ->
                                     "[${ev.type.name}] [${ev.source.name}] text=${ev.text ?: ""} card=${ev.cardId ?: ""} lang=${ev.lang ?: ""}"
                                 }
-                                app.signsetu.assistant.TokenRouterAiService.synthesizeOfflineForensicReport(sessionLog, ui.session.role.name, subjectLang)
+                                cloud.report(sessionLog, ui.session.role.name, subjectLang, subjectNames(ui.events, content, officerLang))
                             }.getOrNull()
                             export = runCatching { vm.exportReport(reportText(res, ui, content), recordDetail(res, content, officerLang, ui.events) { eventDetail(res, it, by, idle) }, section, reportSummary) }
                                 .fold({ (file, pass) -> ExportState.Ready(file, pass) }, { ExportState.Failed })
@@ -826,7 +819,7 @@ fun OfficerPane(
     if (aiExtracting) {
         GuardedAlertDialog(
             onDismissRequest = {},
-            title = { Text("Extracting Report via TokenRouter AI…") },
+            title = { Text(stringResource(R.string.ai_preparing)) },
             text = {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -1059,8 +1052,10 @@ private fun Dock(
     val pending = ui.pending
     val subjectLang = ui.session.subjectLang
     val asked = remember(ui.events) { ui.events.filter { it.type == EventType.QUESTION_SHOWN }.mapNotNull { it.text }.toSet() }
-    val quick = QuickQuestions.mapNotNull { id -> content.questions.firstOrNull { it.id == id } }
-        .filter { q -> q.text.pick(officerLang) !in asked || (pending as? Pending.Ask)?.question?.id == q.id }
+    val quick = remember(content, officerLang, asked, pending) {
+        QuickQuestions.mapNotNull { id -> content.questions.firstOrNull { it.id == id } }
+            .filter { q -> q.text.pick(officerLang) !in asked || (pending as? Pending.Ask)?.question?.id == q.id }
+    }
     Surface(color = colors.surfaceContainerLowest, shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp), shadowElevation = 8.dp) {
         Column(Modifier.navigationBarsPadding().padding(top = Spacing.md)) {
             AnimatedVisibility(!typing && quick.isNotEmpty(), enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
@@ -1072,7 +1067,8 @@ private fun Dock(
                 }
             }
 
-            // AI Autonomous Conversation Follow-up Prompts (Generated by Nemotron-3 Omni)
+            // Follow-up prompts: on-device rules, or the optional cloud AI when the officer has switched it on.
+            val cloud = app.signsetu.ui.components.LocalCloudAi.current
             var aiFollowUps by remember(ui.events.size) { mutableStateOf<List<String>>(emptyList()) }
             var aiLoadingFollowUps by remember { mutableStateOf(false) }
             val lastAnswerEvent = remember(ui.events.size) { ui.events.lastOrNull { it.type in AnswerEvents } }
@@ -1080,11 +1076,10 @@ private fun Dock(
             LaunchedEffect(lastAnswerEvent?.id) {
                 if (lastAnswerEvent != null && !typing) {
                     aiLoadingFollowUps = true
-                    val transcript = ui.events.takeLast(10).joinToString("\n") { "[${it.type.name}] ${it.text ?: it.cardId ?: ""}" }
-                    val suggestions = app.signsetu.assistant.TokenRouterAiService.suggestFollowUpQuestions(
-                        sessionTranscript = transcript,
-                        lastAnswer = lastAnswerEvent.text ?: lastAnswerEvent.cardId ?: "answered",
-                        isChild = ui.session.profile == Profile.YOUNG_CHILD,
+                    val suggestions = cloud.followUps(
+                        lastAnswerEvent.text ?: lastAnswerEvent.cardId ?: "answered",
+                        ui.session.profile == Profile.YOUNG_CHILD,
+                        subjectNames(ui.events, content, officerLang),
                     )
                     aiFollowUps = suggestions
                     aiLoadingFollowUps = false

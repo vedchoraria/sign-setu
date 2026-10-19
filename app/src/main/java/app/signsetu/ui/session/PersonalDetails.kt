@@ -44,6 +44,11 @@ fun personalDetails(events: List<SessionEvent>, content: ContentBundle, lang: St
     }
 }
 
+/** Names the subject gave (own, parents, teacher), for masking before any text leaves the phone. */
+fun subjectNames(events: List<SessionEvent>, content: ContentBundle, lang: String): List<String> =
+    personalDetails(events, content, lang).filter { it.field.contains("name", ignoreCase = true) || it.field.contains("नाम") }
+        .map { it.value }.filter { it.isNotBlank() }
+
 fun Method.label() = when (this) {
     Method.WRITTEN -> R.string.given_written
     Method.PAD -> R.string.given_pad

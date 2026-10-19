@@ -74,7 +74,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import app.signsetu.ui.components.GuardedAlertDialog
 
-private enum class Dialog { APP, CONTACT, RETENTION, CLEAR, LICENCES, LANGUAGE }
+private enum class Dialog { APP, CONTACT, RETENTION, CLEAR, LICENCES, LANGUAGE, CLOUD, AIKEY }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -182,12 +182,17 @@ fun SettingsScreen(store: SettingsStore, models: ModelStore, onBack: () -> Unit,
                     },
                 )
                 ListItem(
-                    headlineContent = { Text(stringResource(R.string.settings_pin_to_leave)) },
-                    supportingContent = { Text(stringResource(R.string.settings_pin_to_leave_summary)) },
+                    headlineContent = { Text(stringResource(R.string.settings_cloud_ai)) },
+                    supportingContent = { Text(stringResource(R.string.settings_cloud_ai_summary)) },
                     colors = ItemColors,
-                    trailingContent = { Switch(checked = s.pinToLeaveStage, onCheckedChange = null) },
-                    modifier = Modifier.toggleable(s.pinToLeaveStage, role = Role.Switch) { on -> scope.launch { store.setPinToLeaveStage(on) } },
+                    trailingContent = { Switch(checked = s.cloudAi, onCheckedChange = null) },
+                    modifier = Modifier.toggleable(s.cloudAi, role = Role.Switch) { on ->
+                        if (on) dialog = Dialog.CLOUD else scope.launch { store.setCloudAi(false) }
+                    },
                 )
+                if (s.cloudAi) {
+                    Item(stringResource(R.string.settings_cloud_ai_key), if (s.cloudAiKey.isBlank()) notSet else "••••••••") { dialog = Dialog.AIKEY }
+                }
                 ListItem(
                     headlineContent = { Text(stringResource(R.string.settings_allow_auto)) },
                     supportingContent = { Text(stringResource(R.string.settings_allow_auto_summary)) },
@@ -310,6 +315,36 @@ fun SettingsScreen(store: SettingsStore, models: ModelStore, onBack: () -> Unit,
             },
             dismissButton = { TextButton(onClick = { dialog = null }) { Text(stringResource(R.string.cancel)) } },
         )
+        Dialog.CLOUD -> GuardedAlertDialog(
+            onDismissRequest = { dialog = null },
+            title = { Text(stringResource(R.string.cloud_notice_title)) },
+            text = { Text(stringResource(R.string.cloud_notice_body)) },
+            confirmButton = {
+                TextButton(onClick = { scope.launch { store.setCloudAi(true) }; dialog = if (s.cloudAiKey.isBlank()) Dialog.AIKEY else null }) {
+                    Text(stringResource(R.string.cloud_notice_accept))
+                }
+            },
+            dismissButton = { TextButton(onClick = { dialog = null }) { Text(stringResource(R.string.cancel)) } },
+        )
+        Dialog.AIKEY -> {
+            var key by rememberSaveable { mutableStateOf("") }
+            GuardedAlertDialog(
+                onDismissRequest = { dialog = null },
+                title = { Text(stringResource(R.string.settings_cloud_ai_key)) },
+                text = {
+                    OutlinedTextField(
+                        value = key,
+                        onValueChange = { key = it },
+                        singleLine = true,
+                        visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                },
+                confirmButton = { TextButton(onClick = { scope.launch { store.setCloudAiKey(key) }; dialog = null }, enabled = key.isNotBlank()) { Text(stringResource(R.string.save)) } },
+                dismissButton = { TextButton(onClick = { dialog = null }) { Text(stringResource(R.string.cancel)) } },
+            )
+        }
         Dialog.LICENCES -> LicencesDialog(onDismiss = { dialog = null })
         Dialog.LANGUAGE -> ChoiceDialog(
             title = stringResource(R.string.settings_app_language),

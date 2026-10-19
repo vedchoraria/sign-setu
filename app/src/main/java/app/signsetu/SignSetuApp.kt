@@ -2,6 +2,7 @@ package app.signsetu
 
 import app.signsetu.assistant.ModelStore
 import app.signsetu.assistant.Assistant
+import app.signsetu.assistant.CloudAi
 import android.app.Application
 import android.content.ComponentCallbacks2
 import android.content.res.Configuration
@@ -64,7 +65,8 @@ class AppContainer(private val app: Application) : DefaultLifecycleObserver, Com
     val settings = SettingsStore(app)
     val report = SessionReport(app)
     val models = ModelStore(app)
-    val assistant = Assistant(models)
+    val cloudAi = CloudAi(app, settings)
+    val assistant = Assistant(models, cloudAi)
     val hardKeys = HardKeys()
     val stageGuard = StageGuard(app)
 

@@ -8,14 +8,8 @@
     <string name="lock_title">Sign Setu is locked</string>
     <string name="lock_body">Unlock with your fingerprint or phone PIN. Session records stay encrypted until you do.</string>
     <string name="lock_button">Unlock</string>
-    <string name="lock_prompt_title">Unlock Sign Setu</string>
-    <string name="lock_prompt_subtitle">Session records are encrypted on this phone</string>
     <string name="lock_failed">Could not unlock. Try again.</string>
-    <string name="no_lock_title">Set a screen lock first</string>
-    <string name="no_lock_body">Sign Setu encrypts session records with your phone\'s screen lock. Set a PIN, pattern or password, then come back.</string>
     <string name="no_lock_button">Open security settings</string>
-    <string name="return_prompt_title">Officer check</string>
-    <string name="return_prompt_subtitle">Return to the officer screen</string>
 
     <!-- Start -->
     <string name="start_resume_title">Unfinished session</string>
@@ -145,7 +139,6 @@
     <string name="report_drawing">Drawing</string>
     <string name="back">Back</string>
     <string name="skip">Skip</string>
-    <string name="stage_back_blocked">Back is off here. Tap the handle to hand the phone back.</string>
     <string name="save">Save</string>
     <string name="close">Close</string>
 
@@ -178,7 +171,6 @@
     <string name="settings_licences_summary">Symbols, voices and libraries in this app</string>
 
     <string name="call_missing">%1$s is not installed on this phone.</string>
-    <string name="call_sandes_hint">In Sandes, call %1$s.</string>
 
     <string name="start_expired_title">Update required</string>
     <string name="start_expired_body">This version is more than 180 days old and cannot start new sessions. Install the current version from your department. An unfinished session can still be continued, exported and ended.</string>
@@ -204,7 +196,6 @@
     <string name="officer_has_gesture">Character shows a gesture</string>
     <string name="officer_has_audio">Recorded speech in their language</string>
     <string name="officer_media_missing">Picture and caption only</string>
-    <string name="officer_camera">Camera mirror</string>
     <string name="officer_glance">My upside-down strip on the stage</string>
     <string name="officer_skeleton_only">Skeleton only (hide the picture)</string>
     <string name="officer_sign_language">Sign language</string>
@@ -222,6 +213,14 @@
     <string name="settings_large_captions_summary">Bigger words on the stage for people who read slowly</string>
     <string name="settings_slow_gestures">Slower gestures</string>
     <string name="settings_slow_gestures_summary">The character signs at three-quarter speed</string>
+    <string name="settings_cloud_ai">Online AI (third party)</string>
+    <string name="settings_cloud_ai_summary">When online, sends masked text to an outside AI service for reports and suggestions. Off by default.</string>
+    <string name="settings_cloud_ai_key">AI service key</string>
+    <string name="cloud_notice_title">Send text to a third party?</string>
+    <string name="cloud_notice_body">While this is on and the phone is online, session text goes to an outside AI service (TokenRouter), not to the department. The subject\'s names are replaced with \"Ravi\" and phone numbers are masked before sending; the real names are put back on this phone. Words the officer types as notes are not checked, so avoid names there. If the service cannot be reached, the on-device version is used.</string>
+    <string name="cloud_notice_accept">I understand, turn on</string>
+    <string name="menu_ai_report">Extract police report</string>
+    <string name="ai_preparing">Preparing report…</string>
     <string name="settings_isl_reorder">ISL word order</string>
     <string name="settings_isl_reorder_summary">Signs puts time first and the question word last; off signs words as typed</string>
     <string name="settings_lang_system">Same as the phone</string>
@@ -243,8 +242,6 @@
     <string name="mode_gestures">Gestures</string>
     <string name="mode_spell">Spell</string>
     <string name="mode_pictures">Pictures</string>
-    <string name="settings_pin_to_leave">Screen lock to leave the stage</string>
-    <string name="settings_pin_to_leave_summary">Tapping the lock leaves the stage. When on, the fingerprint or PIN is asked as well.</string>
     <!-- Handover -->
     <string name="settings_tilt">Tilt to show</string>
     <string name="settings_tilt_summary">Tip the top of the phone away from you, over toward the person, to show what is ready. The screen turns to face them.</string>

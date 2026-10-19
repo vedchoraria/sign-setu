@@ -17,8 +17,8 @@ android {
         applicationId = "in.signsetu"
         minSdk = 29
         targetSdk = 37
-        versionCode = 5
-        versionName = "0.4.1"
+        versionCode = 6
+        versionName = "0.4.2"
         buildConfigField("long", "BUILD_EPOCH_DAY", "${LocalDate.now().toEpochDay()}L")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // The on-device assistant (D-24) runs only on 64-bit phones; the x86_64 build serves the emulator.
@@ -85,7 +85,7 @@ android {
     }
 }
 
-// SEC-30, SEC-42, SEC-66: the build fails if any library brings a forbidden permission into the merged manifest.
+// INTERNET is allowed only for the optional online AI (CloudAi). SEC-30, SEC-42, SEC-66: the build fails if any library brings a forbidden permission into the merged manifest.
 // The nearby flavor needs scanning and, below Android 13, location for Nearby Connections; it keeps the rest.
 androidComponents {
     onVariants { variant ->
@@ -96,7 +96,6 @@ androidComponents {
             inputs.file(manifest)
             doLast {
                 val always = listOf(
-                    "android.permission.INTERNET",
                     "android.permission.RECORD_AUDIO",
                     "android.permission.ACCESS_BACKGROUND_LOCATION",
                 )
@@ -161,9 +160,6 @@ dependencies {
 
     implementation(libs.datastore.preferences)
     implementation(libs.work.runtime.ktx)
-    implementation(libs.biometric)
-    // biometric 1.1.0 brings a fragment library too old for permission requests through ActivityResult.
-    implementation(libs.androidx.fragment)
     implementation(libs.media3.exoplayer)
     implementation(libs.pdfbox.android)
     constraints {

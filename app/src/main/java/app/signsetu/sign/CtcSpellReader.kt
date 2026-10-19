@@ -71,23 +71,11 @@ class CtcSpellReader(spec: String, weights: ByteArray) {
         val x = features(frames) ?: return null
         val t = x.size / FEATURES
         var a = FloatArray(h * t)
-        for (j in 0 until t) for (o in 0 until h) {
-            var v = embedB[o]
-            for (i in 0 until FEATURES) v += embedW[o * FEATURES + i] * x[j * FEATURES + i]
-            a[o * t + j] = max(v, 0f)
-        }
+        embed(x, embedW, embedB, a, h, t, FEATURES)
         for ((n, d) in s.dilations.withIndex()) {
-            val w = convW[n]
-            val out = a.copyOf()
-            for (o in 0 until h) for (j in 0 until t) {
-                var v = convB[n][o]
-                for (i in 0 until h) for (q in 0 until k) {
-                    val src = j + (q - k / 2) * d
-                    if (src in 0 until t) v += w[(o * h + i) * k + q] * a[i * t + src]
-                }
-                out[o * t + j] += max(v, 0f)
-            }
-            a = out
+            val c = convRelu(a, convW[n], convB[n], h, t, k, d)
+            for (i in c.indices) c[i] += a[i]
+            a = c
         }
         return Array(t) { j ->
             FloatArray(classes) { c ->

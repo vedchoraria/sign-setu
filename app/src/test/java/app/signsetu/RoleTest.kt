@@ -92,8 +92,5 @@ class RoleTest {
         override suspend fun drawing(id: Long): ByteArray? = null
         override suspend fun deleteSession(id: String) = Unit
         override suspend fun deleteStartedBefore(cutoff: Long) = 0
-        override suspend fun sessionCount() = if (row != null) 1 else 0
-        override suspend fun eventCount() = 0
-        override suspend fun allSessions() = listOfNotNull(row)
     }
 }

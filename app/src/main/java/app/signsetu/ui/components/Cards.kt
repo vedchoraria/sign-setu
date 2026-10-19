@@ -23,6 +23,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
@@ -47,14 +56,18 @@ import app.signsetu.ui.theme.PictureWell
 import app.signsetu.ui.theme.Spacing
 import app.signsetu.ui.theme.SubjectCardMin
 
+val LocalCloudAi = staticCompositionLocalOf<app.signsetu.assistant.CloudAi> { error("CloudAi not provided") }
 val LocalContentRepository = staticCompositionLocalOf<ContentRepository> { error("ContentRepository not provided") }
 
 @Composable
 fun CardImage(cardId: String, modifier: Modifier = Modifier) {
     val repo = LocalContentRepository.current
-    val image by produceState<ImageBitmap?>(null, cardId) { value = repo.cardImage(cardId) }
+    val image by produceState(repo.cachedCardImage(cardId), cardId) { value = value ?: repo.cardImage(cardId) }
+    // Fade in only when the image arrives late; a cached one is already opaque.
+    val alpha by animateFloatAsState(if (image != null) 1f else 0f, tween(180), label = "card_fade")
     Box(modifier, contentAlignment = Alignment.Center) {
-        image?.let { Image(it, contentDescription = null, modifier = Modifier.fillMaxSize()) }
+        if (image == null) Box(Modifier.fillMaxSize().shimmer())
+        image?.let { Image(it, contentDescription = null, modifier = Modifier.fillMaxSize().graphicsLayer { this.alpha = alpha }) }
     }
 }
 
@@ -69,10 +82,22 @@ fun PictureCard(
     minSize: Dp = SubjectCardMin,
 ) {
     val answer = LocalAnswerColors.current
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val scale by animateFloatAsState(if (pressed) 0.95f else 1f, spring(dampingRatio = 0.6f, stiffness = 600f), label = "card_press")
+    val haptics = LocalHapticFeedback.current
     Surface(
-        onClick = onClick,
+        onClick = {
+            haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+            onClick()
+        },
+        interactionSource = interaction,
         modifier = modifier
             .heightIn(min = minSize)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
             .semantics {
                 role = Role.Button
                 this.selected = selected

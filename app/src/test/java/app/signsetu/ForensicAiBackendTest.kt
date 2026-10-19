@@ -1,6 +1,6 @@
 package app.signsetu
 
-import app.signsetu.assistant.TokenRouterAiService
+import app.signsetu.assistant.OfflineReport
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -22,7 +22,7 @@ class ForensicAiBackendTest {
             [NOTE] [OFFICER] text=Victim accompanied by aunt; appears shaken but communicative. card=null lang=en
         """.trimIndent()
 
-        val report = TokenRouterAiService.synthesizeOfflineForensicReport(
+        val report = OfflineReport.synthesizeOfflineForensicReport(
             sessionLogText = rawLog,
             role = "VICTIM",
             regionalDialect = "Chhattisgarhi / ISL",
@@ -48,19 +48,19 @@ class ForensicAiBackendTest {
     @Test
     fun offlineTraumaFollowUpSuggestionsProvideEmpatheticNonLeadingQuestions() {
         // Child in pain
-        val painChild = TokenRouterAiService.offlineTraumaFollowUps("pain in stomach", isChild = true)
+        val painChild = OfflineReport.offlineTraumaFollowUps("pain in stomach", isChild = true)
         assertTrue(painChild.isNotEmpty())
         assertTrue(painChild.all { it.endsWith("?") })
         assertTrue(painChild.any { it.contains("water") || it.contains("pain") || it.contains("rest") })
 
         // Scared adult
-        val fearAdult = TokenRouterAiService.offlineTraumaFollowUps("I am afraid", isChild = false)
+        val fearAdult = OfflineReport.offlineTraumaFollowUps("I am afraid", isChild = false)
         assertTrue(fearAdult.isNotEmpty())
         assertTrue(fearAdult.all { it.endsWith("?") })
         assertTrue(fearAdult.any { it.contains("safe") || it.contains("trusted") || it.contains("pace") })
 
         // Physical attack
-        val attackQuestions = TokenRouterAiService.offlineTraumaFollowUps("they hit me", isChild = false)
+        val attackQuestions = OfflineReport.offlineTraumaFollowUps("they hit me", isChild = false)
         assertTrue(attackQuestions.isNotEmpty())
         assertTrue(attackQuestions.all { it.endsWith("?") })
         assertTrue(attackQuestions.any { it.contains("safety") || it.contains("recently") || it.contains("happened") })
@@ -70,7 +70,7 @@ class ForensicAiBackendTest {
 
     @Test
     fun `school-related follow-ups for child`() {
-        val qs = TokenRouterAiService.offlineTraumaFollowUps("teacher at school", isChild = true)
+        val qs = OfflineReport.offlineTraumaFollowUps("teacher at school", isChild = true)
         assertTrue(qs.isNotEmpty())
         assertTrue(qs.all { it.endsWith("?") })
         assertTrue(qs.any { it.contains("school") || it.contains("teacher") })
@@ -78,7 +78,7 @@ class ForensicAiBackendTest {
 
     @Test
     fun `touch-related follow-ups for adult`() {
-        val qs = TokenRouterAiService.offlineTraumaFollowUps("bad touch", isChild = false)
+        val qs = OfflineReport.offlineTraumaFollowUps("bad touch", isChild = false)
         assertTrue(qs.isNotEmpty())
         assertTrue(qs.all { it.endsWith("?") })
         assertTrue(qs.any { it.contains("body map") || it.contains("recently") || it.contains("pause") })
@@ -86,94 +86,11 @@ class ForensicAiBackendTest {
 
     @Test
     fun `night and dark follow-ups for child`() {
-        val qs = TokenRouterAiService.offlineTraumaFollowUps("it happened at night in the dark", isChild = true)
+        val qs = OfflineReport.offlineTraumaFollowUps("it happened at night in the dark", isChild = true)
         assertTrue(qs.isNotEmpty())
         assertTrue(qs.all { it.endsWith("?") })
         assertTrue(qs.any { it.contains("dark") || it.contains("alone") || it.contains("sleeping") })
     }
 
     // ──── New: ISL gloss normalizer ────
-
-    @Test
-    fun `normalizeIslGloss deduplicates CTC repeats`() {
-        val result = TokenRouterAiService.normalizeIslGloss("HELLO HELLO WORLD WORLD WORLD")
-        assertEquals("HELLO WORLD", result)
-    }
-
-    @Test
-    fun `normalizeIslGloss strips filler tokens`() {
-        val result = TokenRouterAiService.normalizeIslGloss("UNK HELLO BLANK WORLD PAD NONE")
-        assertEquals("HELLO WORLD", result)
-    }
-
-    @Test
-    fun `normalizeIslGloss handles mixed case and punctuation`() {
-        val result = TokenRouterAiService.normalizeIslGloss("hello! world. test?")
-        assertEquals("HELLO WORLD TEST", result)
-    }
-
-    @Test
-    fun `normalizeIslGloss preserves distinct tokens`() {
-        val result = TokenRouterAiService.normalizeIslGloss("WATER FOOD WATER FOOD")
-        // Not consecutive repeats, so all four stay
-        assertEquals("WATER FOOD WATER FOOD", result)
-    }
-
-    // ──── New: conversation context builder ────
-
-    @Test
-    fun `buildConversationContext with few exchanges returns all`() {
-        val log = """
-            [QUESTION_SHOWN] [TEXT] text=Are you safe? card=null lang=en
-            [ANSWER_CARD] [SUBJECT] text=Yes card=yes lang=hi
-            [QUESTION_SHOWN] [TEXT] text=Does it hurt? card=null lang=en
-            [ANSWER_CARD] [SUBJECT] text=No card=no lang=hi
-        """.trimIndent()
-
-        val ctx = TokenRouterAiService.buildConversationContext(log, windowSize = 8)
-        assertTrue(ctx.contains("Are you safe?"))
-        assertTrue(ctx.contains("Yes"))
-        assertTrue(ctx.contains("Does it hurt?"))
-        assertTrue(ctx.contains("No"))
-    }
-
-    @Test
-    fun `buildConversationContext with many exchanges summarizes earlier ones`() {
-        val lines = (1..20).flatMap { i ->
-            listOf(
-                "[QUESTION_SHOWN] [TEXT] text=Question $i? card=null lang=en",
-                "[ANSWER_CARD] [SUBJECT] text=Answer $i card=a$i lang=hi",
-            )
-        }.joinToString("\n")
-
-        val ctx = TokenRouterAiService.buildConversationContext(lines, windowSize = 5)
-        assertTrue("Should contain summary marker", ctx.contains("[Earlier:"))
-        assertTrue("Should contain recent Q", ctx.contains("Question 20?"))
-        assertTrue("Should contain recent A", ctx.contains("Answer 20"))
-    }
-
-    // ──── New: structured timeline ────
-
-    @Test
-    fun `buildStructuredTimeline extracts entries`() {
-        val log = """
-            [QUESTION_SHOWN] [TEXT] text=Are you safe? card=safe lang=en
-            [ANSWER_CARD] [SUBJECT] text=Yes card=yes lang=hi
-        """.trimIndent()
-
-        val timeline = TokenRouterAiService.buildStructuredTimeline(log)
-        assertEquals(2, timeline.size)
-        assertEquals("QUESTION_SHOWN", timeline[0]["type"])
-        assertEquals("TEXT", timeline[0]["source"])
-        assertEquals("Are you safe?", timeline[0]["text"])
-        assertEquals("ANSWER_CARD", timeline[1]["type"])
-        assertEquals("SUBJECT", timeline[1]["source"])
-        assertEquals("Yes", timeline[1]["text"])
-    }
-
-    @Test
-    fun `buildStructuredTimeline handles empty log`() {
-        val timeline = TokenRouterAiService.buildStructuredTimeline("")
-        assertTrue(timeline.isEmpty())
-    }
 }

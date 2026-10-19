@@ -73,15 +73,6 @@ class StageEndToEndTest {
         }
     }
 
-    /** No screen pinning or prompt in a test activity; the department setting that would prompt is off here. */
-    private object TestGuard : DeviceGuard {
-        override fun unlock(title: String, subtitle: String, onSuccess: () -> Unit, onFailure: () -> Unit) = onSuccess()
-        override fun confirmOfficer(title: String, subtitle: String, cancel: String, onSuccess: () -> Unit) = onSuccess()
-        override fun confirmPinned(title: String, subtitle: String, cancel: String, onSuccess: () -> Unit) = onSuccess()
-        override fun pin() = Unit
-        override fun unpin() = Unit
-    }
-
     @Before
     fun setUp() {
         shell("settings put global animator_duration_scale 0")
@@ -120,7 +111,7 @@ class StageEndToEndTest {
         rule.setContent {
             CompositionLocalProvider(LocalContentRepository provides container.content) {
                 SignSetuTheme {
-                    SessionRoute(id, repo, content, settings, TestGuard, container.report, tracker, null, null, {}, {}, container, null)
+                    SessionRoute(id, repo, content, settings, container.report, tracker, null, null, {}, {}, container, null)
                 }
             }
         }

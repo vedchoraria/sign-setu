@@ -150,6 +150,7 @@ fun CameraMirror(
         val a = analysis
         if (a == null || tracker == null) return@DisposableEffect onDispose { shown = null }
         var lastPerson: Long? = null
+        val stable = Stabilizer()
         val cues = FaceCueTracker()
         val heads = HeadGestures(windowMs = 900L, swing = 0.10f)
         val thumbs = ThumbGestures(holdMs = 280L)
@@ -179,7 +180,7 @@ fun CameraMirror(
                 }
                 val aspect = bitmap.width.toFloat() / bitmap.height
                 busy = true
-                val frame = runCatching { tracker.track(bitmap, ms)?.copy(aspect = aspect)?.let(cues::mark)?.let(heads::mark)?.let(thumbs::mark)?.let(pointing::mark)?.let(palms::mark)?.let(shrugs::mark) }.getOrNull()
+                val frame = runCatching { tracker.track(bitmap, ms)?.copy(aspect = aspect)?.let(stable::mark)?.let(cues::mark)?.let(heads::mark)?.let(thumbs::mark)?.let(pointing::mark)?.let(palms::mark)?.let(shrugs::mark) }.getOrNull()
                 busy = false
                 if (!packed) bitmap.recycle()
                 if (frame?.pose != null) lastPerson = ms

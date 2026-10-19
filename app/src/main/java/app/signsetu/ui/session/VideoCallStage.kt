@@ -143,9 +143,6 @@ fun VideoCallStage(
     var pipOffsetX by remember { mutableFloatStateOf(0f) }
     var pipOffsetY by remember { mutableFloatStateOf(0f) }
 
-    // Audio & video call states
-    var micMuted by remember { mutableStateOf(false) }
-    var videoMuted by remember { mutableStateOf(!cameraOn) }
     var pipExpanded by remember { mutableStateOf(false) }
 
     // Gesture proposals & auto-response

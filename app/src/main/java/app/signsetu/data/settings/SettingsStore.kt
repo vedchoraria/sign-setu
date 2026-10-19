@@ -33,7 +33,6 @@ data class AppSettings(
     /** Gestures play at three-quarter speed by default (FR-51). */
     val slowGestures: Boolean = false,
     /** Leaving the stage asks for the screen lock as well as the handle; a department can turn it on (D-23). */
-    val pinToLeaveStage: Boolean = false,
     /** Tipping the phone over its top edge shows what is prepared. */
     val tiltToShow: Boolean = true,
     /** Volume up shows what is prepared; both keys held leave the stage. */
@@ -46,6 +45,9 @@ data class AppSettings(
     val allowAuto: Boolean = false,
     /** Signs reorders typed words into ISL order; off keeps them as typed, until Deaf reviewers confirm the rules. */
     val islReorder: Boolean = true,
+    /** Sends masked session text to a third-party AI while online; off until the officer accepts the notice. */
+    val cloudAi: Boolean = false,
+    val cloudAiKey: String = "",
 ) {
     val interpreterConfigured get() = interpreterApp != InterpreterApp.NONE && interpreterContact.isNotBlank()
 
@@ -67,13 +69,14 @@ class SettingsStore(private val context: Context) {
         val camera = booleanPreferencesKey("camera_enabled")
         val largeCaptions = booleanPreferencesKey("large_captions")
         val slowGestures = booleanPreferencesKey("slow_gestures")
-        val pinToLeave = booleanPreferencesKey("pin_to_leave_stage")
         val tiltToShow = booleanPreferencesKey("tilt_to_show")
         val volumeKeys = booleanPreferencesKey("volume_keys")
         val favourites = stringSetPreferencesKey("favourites")
         val stageDevice = booleanPreferencesKey("stage_device")
         val allowAuto = booleanPreferencesKey("allow_auto")
         val islReorder = booleanPreferencesKey("isl_reorder")
+        val cloudAi = booleanPreferencesKey("cloud_ai")
+        val cloudAiKey = stringPreferencesKey("cloud_ai_key")
     }
 
     val settings: Flow<AppSettings> = context.store.data.map { it.toSettings() }
@@ -90,10 +93,11 @@ class SettingsStore(private val context: Context) {
     suspend fun setCameraEnabled(on: Boolean) = context.store.edit { it[Keys.camera] = on }
     suspend fun setLargeCaptions(on: Boolean) = context.store.edit { it[Keys.largeCaptions] = on }
     suspend fun setSlowGestures(on: Boolean) = context.store.edit { it[Keys.slowGestures] = on }
-    suspend fun setPinToLeaveStage(on: Boolean) = context.store.edit { it[Keys.pinToLeave] = on }
     suspend fun setStageDevice() = context.store.edit { it[Keys.stageDevice] = true }
     suspend fun setAllowAuto(on: Boolean) = context.store.edit { it[Keys.allowAuto] = on }
     suspend fun setIslReorder(on: Boolean) = context.store.edit { it[Keys.islReorder] = on }
+    suspend fun setCloudAi(on: Boolean) = context.store.edit { it[Keys.cloudAi] = on }
+    suspend fun setCloudAiKey(key: String) = context.store.edit { it[Keys.cloudAiKey] = key.trim() }
     suspend fun setTiltToShow(on: Boolean) = context.store.edit { it[Keys.tiltToShow] = on }
     suspend fun setVolumeKeys(on: Boolean) = context.store.edit { it[Keys.volumeKeys] = on }
     suspend fun toggleFavourite(cardId: String) = context.store.edit {
@@ -110,13 +114,14 @@ class SettingsStore(private val context: Context) {
         cameraEnabled = this[Keys.camera] ?: true,
         largeCaptions = this[Keys.largeCaptions] ?: false,
         slowGestures = this[Keys.slowGestures] ?: false,
-        pinToLeaveStage = this[Keys.pinToLeave] ?: false,
         tiltToShow = this[Keys.tiltToShow] ?: true,
         volumeKeys = this[Keys.volumeKeys] ?: true,
         favourites = this[Keys.favourites].orEmpty(),
         stageDevice = this[Keys.stageDevice] ?: false,
         allowAuto = this[Keys.allowAuto] ?: false,
         islReorder = this[Keys.islReorder] ?: true,
+        cloudAi = this[Keys.cloudAi] ?: false,
+        cloudAiKey = this[Keys.cloudAiKey] ?: "",
     )
 }
 

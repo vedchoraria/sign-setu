@@ -72,14 +72,6 @@ object EvidenceIntegrity {
     }
 
     /**
-     * Validates whether the given events and session match the expected chain-of-custody hash.
-     */
-    fun verifyChain(session: Session, events: List<SessionEvent>, expectedChainHash: String): Boolean {
-        val actual = computeChainHash(session, events)
-        return actual.equals(expectedChainHash.trim(), ignoreCase = true)
-    }
-
-    /**
      * Aggregates key forensic metrics for the session.
      */
     fun computeSessionMetrics(session: Session, events: List<SessionEvent>, now: Long = System.currentTimeMillis()): SessionMetrics {

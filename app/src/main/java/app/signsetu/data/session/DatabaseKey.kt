@@ -67,7 +67,7 @@ class DatabaseKey(private val context: Context) {
     fun destroy() {
         context.deleteDatabase(DB_NAME)
         wrapped.delete()
-        runCatching { keystore().deleteEntry(ALIAS) }
+        runCatching { keystore().deleteEntry(ALIAS); keystore().deleteEntry(LEGACY_ALIAS) }
     }
 
     private fun kek(): SecretKey {
@@ -79,20 +79,7 @@ class DatabaseKey(private val context: Context) {
             .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
             .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
             .setKeySize(256)
-            .setUserAuthenticationRequired(true)
-            // Enrolling another fingerprint needs the device PIN, which unlocks the app anyway.
-            .setInvalidatedByBiometricEnrollment(false)
-            .apply {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    setUserAuthenticationParameters(
-                        AUTH_WINDOW_SECONDS,
-                        KeyProperties.AUTH_DEVICE_CREDENTIAL or KeyProperties.AUTH_BIOMETRIC_STRONG,
-                    )
-                } else {
-                    @Suppress("DEPRECATION")
-                    setUserAuthenticationValidityDurationSeconds(AUTH_WINDOW_SECONDS)
-                }
-            }
+            .setUserAuthenticationRequired(false)
             .build()
         return KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore").run {
             init(spec)
@@ -103,10 +90,11 @@ class DatabaseKey(private val context: Context) {
     private fun keystore() = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
 
     private companion object {
-        const val ALIAS = "signsetu.kek"
+        // Old "signsetu.kek" required screen-lock auth; a new alias avoids an unlock that can no longer prompt.
+        const val ALIAS = "signsetu.kek.open"
+        const val LEGACY_ALIAS = "signsetu.kek"
         const val DB_NAME = SessionDatabase.FILE_NAME
         const val TRANSFORM = "AES/GCM/NoPadding"
         const val IV_LEN = 12
-        const val AUTH_WINDOW_SECONDS = 30
     }
 }

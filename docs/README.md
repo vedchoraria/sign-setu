@@ -4,7 +4,7 @@ Sign Setu is an offline Android app that helps a police officer communicate with
 
 | Field | Value |
 | --- | --- |
-| Baseline | Release 1, application version 0.4.1 (version code 5), applicationId `in.signsetu` |
+| Baseline | Release 1, application version 0.4.2 (version code 6), applicationId `in.signsetu` |
 | Status | Release 1 baseline for departmental review |
 | Classification | Internal, for review |
 | Scope | Requirements, design, data protection, security controls, assurance, release and operation, with the data flow model and the architecture views |
@@ -1167,7 +1167,7 @@ Every push to `main` runs these jobs.
 | CI | All eight jobs pass on the baseline commit |
 | Unit tests | 201 per flavor passed locally; instrumented suite passed locally (76 of 76 at last full run) |
 | Portal tests | 918 passed |
-| Release smoke test | Signed 0.4.1 APK installs and runs on an arm64 phone and on the emulator without a crash |
+| Release smoke test | Signed 0.4.2 APK installs and runs on an arm64 phone and on the emulator without a crash |
 | Pipeline test (3 dictionary clips) | Hands and pose tracked in line with the desktop run; each clip segmented; true word in the top three for 2 of 3 clips |
 
 ### 7.4 Sign reader accuracy
@@ -1192,7 +1192,7 @@ The reader generalises poorly to people it has not seen. For that reason a readi
 | Source control | Git; `main` is the integration branch; the repository is public |
 | Reproducibility | Gradle wrapper, version catalog, dependency lockfile and checksum verification; vendored llama.cpp at a pinned version; `.gitattributes` forces LF so manifest hashes hold on every checkout |
 | Release build | R8 full mode with resource shrinking, not debuggable, log calls stripped, arm64 only; zipalign and apksigner with the release key (signature scheme v3). The key is held offline by the release manager and a second custodian |
-| Versioning | Semantic version in `app/build.gradle.kts` (0.4.1, code 5); a build refuses new sessions 180 days after its build date |
+| Versioning | Semantic version in `app/build.gradle.kts` (0.4.2, code 6); a build refuses new sessions 180 days after its build date |
 | Distribution | GitHub release asset for pilots; Mobile Seva AppStore or a department download page for production |
 
 ### 8.2 Installation and operation

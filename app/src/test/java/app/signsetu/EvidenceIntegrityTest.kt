@@ -86,25 +86,6 @@ class EvidenceIntegrityTest {
         assertTrue(hash.matches(Regex("[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}")))
     }
 
-    // ──── Chain verification ────
-
-    @Test
-    fun `verifyChain returns true for correct digest`() {
-        val digest = EvidenceIntegrity.computeChainHash(session, events)
-        assertTrue(EvidenceIntegrity.verifyChain(session, events, digest))
-    }
-
-    @Test
-    fun `verifyChain returns false for wrong digest`() {
-        assertFalse(EvidenceIntegrity.verifyChain(session, events, "0000-0000-0000-0000"))
-    }
-
-    @Test
-    fun `verifyChain is case insensitive`() {
-        val digest = EvidenceIntegrity.computeChainHash(session, events)
-        assertTrue(EvidenceIntegrity.verifyChain(session, events, digest.uppercase()))
-    }
-
     // ──── Session metrics ────
 
     @Test

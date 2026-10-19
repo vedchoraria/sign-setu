@@ -376,9 +376,8 @@ fun Stage(
         else -> item.caption
     }
 
-    var videoCallMode by rememberSaveable { mutableStateOf(profile == Profile.ISL_USER) }
-
-    if (videoCallMode && !drawing && !writing && pending != Pending.LanguageFinder && choices == null && lesson == null) {
+    // The call view is the stage; drawing, writing, choices, lessons and the language finder keep their own panels below.
+    if (!drawing && !writing && pending != Pending.LanguageFinder && choices == null && lesson == null) {
         Box(Modifier.fillMaxSize()) {
             VideoCallStage(
                 ui = ui,
@@ -396,39 +395,6 @@ fun Stage(
                 onPause = { onCard("stop") },
                 modifier = Modifier.fillMaxSize(),
             )
-            // Mode toggle pill
-            Surface(
-                shape = CircleShape,
-                color = Color(0x991E293B),
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .padding(top = 12.dp, start = 14.dp)
-                    .clickable { videoCallMode = false }
-                    .semantics { role = Role.Button; contentDescription = "Switch to Standard View" },
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    Icon(painterResource(R.drawable.ic_videocam), contentDescription = null, tint = Color(0xFF38BDF8), modifier = Modifier.size(16.dp))
-                    Text("Call View", fontSize = 11.sp, color = Color.White, fontWeight = FontWeight.SemiBold)
-                }
-            }
-
-            if (showExpressBoard) {
-                FullChildMuteCommunicationBoard(
-                    content = content,
-                    lang = lang,
-                    chosenCard = ui.answeredCard,
-                    onCard = { id ->
-                        onCard(id)
-                        reacting = true
-                    },
-                    onDismiss = { showExpressBoard = false },
-                    tts = tts,
-                )
-            }
             onOfficer?.let { OfficerHandle(it, Modifier.align(if (ui.rotated) Alignment.BottomStart else Alignment.TopEnd).safeDrawingPadding()) }
         }
         return
@@ -669,20 +635,6 @@ fun Stage(
                                 }
                             }
                         }
-                        if (!signing && !drawing && !writing && choices == null && pending != Pending.LanguageFinder && !saying) {
-                            ChildFriendlyNeedsBar(
-                                content = content,
-                                lang = lang,
-                                chosenCard = chosen,
-                                onCard = { id ->
-                                    onCard(id)
-                                    reacting = true
-                                },
-                                onOpenFullBoard = { showExpressBoard = true },
-                                tts = tts,
-                                modifier = Modifier.padding(top = 2.dp),
-                            )
-                        }
                     }
                 }
             }
@@ -715,25 +667,6 @@ fun Stage(
                 onDismiss = { showExpressBoard = false },
                 tts = tts,
             )
-        }
-        // Button to switch into immersive Video Call mode
-        Surface(
-            shape = CircleShape,
-            color = Color(0x99000000),
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(top = 12.dp, start = 14.dp)
-                .clickable { videoCallMode = true }
-                .semantics { role = Role.Button; contentDescription = "Switch to Video Call Mode" },
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Icon(painterResource(R.drawable.ic_videocam), contentDescription = null, tint = Color(0xFF10B981), modifier = Modifier.size(16.dp))
-                Text("Video Call", fontSize = 11.sp, color = Color.White, fontWeight = FontWeight.SemiBold)
-            }
         }
         onOfficer?.let { OfficerHandle(it, Modifier.align(if (ui.rotated) Alignment.BottomStart else Alignment.TopEnd).safeDrawingPadding()) }
         }
@@ -1260,7 +1193,10 @@ internal fun PressableSurface(
         border = border,
         shadowElevation = shadowElevation,
         interactionSource = interaction,
-        modifier = modifier.scale(scale),
+        modifier = modifier.graphicsLayer {
+            scaleX = scale
+            scaleY = scale
+        },
         content = content,
     )
 }

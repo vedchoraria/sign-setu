@@ -13,8 +13,6 @@ sqlcipher = "4.19.1"
 sqlite = "2.7.1"
 datastore = "1.2.1"
 work = "2.12.0"
-biometric = "1.1.0"
-fragment = "1.9.1"
 media3 = "1.11.1"
 serialization = "1.11.0"
 coroutines = "1.11.0"
@@ -52,8 +50,6 @@ sqlcipher-android = { module = "net.zetetic:sqlcipher-android", version.ref = "s
 androidx-sqlite-ktx = { module = "androidx.sqlite:sqlite-ktx", version.ref = "sqlite" }
 datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
 work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "work" }
-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
-androidx-fragment = { module = "androidx.fragment:fragment-ktx", version.ref = "fragment" }
 media3-exoplayer = { module = "androidx.media3:media3-exoplayer", version.ref = "media3" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }

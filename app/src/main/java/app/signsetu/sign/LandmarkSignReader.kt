@@ -55,11 +55,7 @@ class LandmarkSignReader(spec: String, weights: ByteArray, override val words: M
     fun logits(frames: List<LandmarkFrame>): FloatArray? {
         val x = features(frames) ?: return null
         var a = FloatArray(h * t)
-        for (j in 0 until t) for (o in 0 until h) {
-            var v = embedB[o]
-            for (i in 0 until FEATURES) v += embedW[o * FEATURES + i] * x[j * FEATURES + i]
-            a[o * t + j] = max(v, 0f)
-        }
+        embed(x, embedW, embedB, a, h, t)
         a = conv(a, conv1W, conv1B)
         a = conv(a, conv2W, conv2B)
         val pooled = FloatArray(2 * h)
@@ -77,24 +73,44 @@ class LandmarkSignReader(spec: String, weights: ByteArray, override val words: M
         }
     }
 
-    private fun conv(input: FloatArray, w: FloatArray, b: FloatArray): FloatArray {
-        val out = FloatArray(h * t)
-        val pad = k / 2
-        for (o in 0 until h) for (j in 0 until t) {
-            var v = b[o]
-            for (i in 0 until h) for (q in 0 until k) {
-                val src = j + q - pad
-                if (src in 0 until t) v += w[(o * h + i) * k + q] * input[i * t + src]
-            }
-            out[o * t + j] = max(v, 0f)
-        }
-        return out
-    }
+    private fun conv(input: FloatArray, w: FloatArray, b: FloatArray) = convRelu(input, w, b, h, t, k, 1)
 
     fun features(frames: List<LandmarkFrame>): FloatArray? = if (s.norm == "hands") handFeatures(frames, t) else signFeatures(frames, t)
 }
 
 private const val FEATURES = 98
+
+/** relu(embedding) of [t] frames of [FEATURES] values into [out] (channel-major). Zero inputs, absent hands, are skipped: adding 0 changes nothing. */
+internal fun embed(x: FloatArray, w: FloatArray, bias: FloatArray, out: FloatArray, h: Int, t: Int, features: Int = FEATURES) {
+    for (j in 0 until t) for (o in 0 until h) {
+        var v = bias[o]
+        val row = o * features
+        for (i in 0 until features) { val xi = x[j * features + i]; if (xi != 0f) v += w[row + i] * xi }
+        out[o * t + j] = max(v, 0f)
+    }
+}
+
+/**
+ * relu of a 1-D convolution over [t] steps, channel-major, same padding, step spacing [d]. The inner loop runs over time
+ * with the valid range worked out once, and adds in the same order as a per-output sum, so results are identical.
+ */
+internal fun convRelu(input: FloatArray, w: FloatArray, b: FloatArray, h: Int, t: Int, k: Int, d: Int): FloatArray {
+    val out = FloatArray(h * t)
+    for (o in 0 until h) {
+        val base = o * t
+        java.util.Arrays.fill(out, base, base + t, b[o])
+        for (i in 0 until h) for (q in 0 until k) {
+            val wv = w[(o * h + i) * k + q]
+            val shift = (q - k / 2) * d
+            val from = max(0, -shift)
+            val to = minOf(t, t - shift)
+            val src = i * t + shift
+            for (j in from until to) out[base + j] += wv * input[src + j]
+        }
+        for (j in 0 until t) out[base + j] = max(out[base + j], 0f)
+    }
+    return out
+}
 
 /** Shoulder-centred, shoulder-width-scaled landmarks, resampled to [t] frames of 98 values. */
 fun signFeatures(frames: List<LandmarkFrame>, t: Int): FloatArray? {

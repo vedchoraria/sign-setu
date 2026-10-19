@@ -2,7 +2,6 @@
 <!-- Draft Hindi: needs review by a fluent speaker under the content policy. -->
 <resources xmlns:tools="http://schemas.android.com/tools">
     <string name="skip">छोड़ें</string>
-    <string name="stage_back_blocked">यहाँ बैक बंद है। फ़ोन वापस देने के लिए हैंडल पर टैप करें।</string>
     <string name="app_name">साइन सेतु</string>
     <string name="cancel">रद्द करें</string>
     <string name="notice_aid">साइन सेतु बातचीत में मदद करता है। यह दुभाषिया नहीं है, और यह कभी बयान दर्ज नहीं करता।</string>
@@ -10,14 +9,8 @@
     <string name="lock_title">साइन सेतु लॉक है</string>
     <string name="lock_body">फ़िंगरप्रिंट या फ़ोन पिन से खोलें। तब तक सत्र का रिकॉर्ड एन्क्रिप्ट रहता है।</string>
     <string name="lock_button">खोलें</string>
-    <string name="lock_prompt_title">साइन सेतु खोलें</string>
-    <string name="lock_prompt_subtitle">सत्र का रिकॉर्ड इस फ़ोन पर एन्क्रिप्ट है</string>
     <string name="lock_failed">नहीं खुला। फिर कोशिश करें।</string>
-    <string name="no_lock_title">पहले स्क्रीन लॉक लगाएँ</string>
-    <string name="no_lock_body">साइन सेतु सत्र के रिकॉर्ड को फ़ोन के स्क्रीन लॉक से एन्क्रिप्ट करता है। पिन, पैटर्न या पासवर्ड लगाकर वापस आएँ।</string>
     <string name="no_lock_button">सुरक्षा सेटिंग खोलें</string>
-    <string name="return_prompt_title">अधिकारी जाँच</string>
-    <string name="return_prompt_subtitle">अधिकारी स्क्रीन पर लौटें</string>
 
     <string name="start_resume_title">अधूरा सत्र</string>
     <string name="start_resume_body">%1$s · %2$s · %3$s बजे शुरू</string>
@@ -171,7 +164,6 @@
     <string name="settings_licences_summary">इस ऐप के चिह्न, आवाज़ें और लाइब्रेरी</string>
 
     <string name="call_missing">%1$s इस फ़ोन पर इंस्टॉल नहीं है।</string>
-    <string name="call_sandes_hint">संदेस में %1$s को कॉल करें।</string>
 
     <string name="start_expired_title">अपडेट ज़रूरी है</string>
     <string name="start_expired_body">यह संस्करण 180 दिन से पुराना है और नया सत्र शुरू नहीं कर सकता। अपने विभाग से नया संस्करण इंस्टॉल करें। अधूरा सत्र अब भी जारी रखा, एक्सपोर्ट किया और खत्म किया जा सकता है।</string>
@@ -197,7 +189,6 @@
     <string name="officer_has_gesture">पात्र इशारा दिखाता है</string>
     <string name="officer_has_audio">उनकी भाषा में रिकॉर्ड की गई आवाज़</string>
     <string name="officer_media_missing">केवल तस्वीर और कैप्शन</string>
-    <string name="officer_camera">कैमरा आईना</string>
     <string name="officer_glance">स्टेज पर मेरी उलटी पट्टी</string>
     <string name="officer_skeleton_only">केवल ढाँचा (तस्वीर छिपाएँ)</string>
     <string name="officer_sign_language">सांकेतिक भाषा</string>
@@ -215,6 +206,14 @@
     <string name="settings_large_captions_summary">धीरे पढ़ने वालों के लिए स्टेज पर बड़े शब्द</string>
     <string name="settings_slow_gestures">धीमे इशारे</string>
     <string name="settings_slow_gestures_summary">पात्र तीन-चौथाई गति से इशारे करता है</string>
+    <string name="settings_cloud_ai">ऑनलाइन AI (तीसरा पक्ष)</string>
+    <string name="settings_cloud_ai_summary">ऑनलाइन होने पर रिपोर्ट और सुझावों के लिए छिपाया हुआ पाठ बाहरी AI सेवा को भेजता है। डिफ़ॉल्ट रूप से बंद।</string>
+    <string name="settings_cloud_ai_key">AI सेवा की कुंजी</string>
+    <string name="cloud_notice_title">पाठ तीसरे पक्ष को भेजें?</string>
+    <string name="cloud_notice_body">इसके चालू और फ़ोन के ऑनलाइन रहने पर, सत्र का पाठ विभाग को नहीं, एक बाहरी AI सेवा (TokenRouter) को जाता है। भेजने से पहले व्यक्ति के नाम \"Ravi\" से बदल दिए जाते हैं और फ़ोन नंबर छिपा दिए जाते हैं; असली नाम इसी फ़ोन पर वापस लगाए जाते हैं। अधिकारी के लिखे नोट जाँचे नहीं जाते, इसलिए उनमें नाम न लिखें। सेवा न मिले तो फ़ोन पर बना संस्करण इस्तेमाल होता है।</string>
+    <string name="cloud_notice_accept">मैं समझता/समझती हूँ, चालू करें</string>
+    <string name="menu_ai_report">पुलिस रिपोर्ट निकालें</string>
+    <string name="ai_preparing">रिपोर्ट बन रही है…</string>
     <string name="settings_isl_reorder">ISL शब्द-क्रम</string>
     <string name="settings_isl_reorder_summary">चालू होने पर समय पहले और प्रश्न-शब्द अंत में आता है; बंद होने पर शब्द जैसे लिखे वैसे</string>
     <string name="settings_lang_system">फ़ोन जैसी</string>
@@ -236,8 +235,6 @@
     <string name="mode_gestures">इशारे</string>
     <string name="mode_spell">वर्तनी</string>
     <string name="mode_pictures">चित्र</string>
-    <string name="settings_pin_to_leave">स्टेज छोड़ने के लिए स्क्रीन लॉक</string>
-    <string name="settings_pin_to_leave_summary">लॉक पर टैप करने से स्टेज बंद होता है। चालू होने पर फ़िंगरप्रिंट या पिन भी पूछा जाता है।</string>
     <!-- Handover -->
     <string name="settings_tilt">झुकाकर दिखाएँ</string>
     <string name="settings_tilt_summary">जो तैयार है उसे दिखाने के लिए फ़ोन का ऊपरी हिस्सा अपने से दूर, सामने वाले की ओर झुकाएँ। स्क्रीन अपने आप उनकी ओर घूम जाएगी।</string>

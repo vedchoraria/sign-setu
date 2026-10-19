@@ -3,7 +3,6 @@ package app.signsetu.ui.pair
 import androidx.compose.runtime.produceState
 import android.Manifest
 import android.app.ActivityManager
-import android.app.KeyguardManager
 import android.bluetooth.BluetoothManager
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -20,7 +19,6 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.biometric.BiometricManager
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.RowScope
@@ -73,7 +71,6 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.signsetu.AppContainer
-import app.signsetu.DeviceGuard
 import app.signsetu.R
 import app.signsetu.camera.LandmarkFrame
 import app.signsetu.camera.LandmarkTracker
@@ -108,12 +105,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/** Android 10 without a fingerprint can only confirm the officer by unpinning first, so it cannot be a stage. */
 fun canBeStage(context: Context, container: AppContainer): Boolean =
-    context.getSystemService(KeyguardManager::class.java).isDeviceSecure &&
-        container.pairTransport != null &&
-        (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R ||
-            BiometricManager.from(context).canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_WEAK) == BiometricManager.BIOMETRIC_SUCCESS)
+    container.pairTransport != null
 
 private fun bluetoothOn(context: Context) = context.getSystemService(BluetoothManager::class.java)?.adapter?.isEnabled == true
 
@@ -159,25 +152,18 @@ fun UseAsStageButton(container: AppContainer) {
  * stays pinned with no local exit; only a Bye from the officer, a lost link, or this device's own credential ends it.
  */
 @Composable
-fun StageDeviceScreen(link: StageLink, content: ContentBundle, container: AppContainer, guard: DeviceGuard) {
+fun StageDeviceScreen(link: StageLink, content: ContentBundle, container: AppContainer) {
     val state by link.state.collectAsStateWithLifecycle()
     val activity = LocalActivity.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var everLive by remember { mutableStateOf(false) }
-    val title = stringResource(R.string.return_prompt_title)
-    val subtitle = stringResource(R.string.return_prompt_subtitle)
-    val cancel = stringResource(R.string.cancel)
 
     LaunchedEffect(state) {
         if (state == LinkState.Live && !everLive) {
-            // Pinning after the first frame, as on a single phone (NFR-02).
-            withFrameNanos { }
-            guard.pin()
             everLive = true
             container.settings.setStageDevice()
         }
-        if (state is LinkState.Ended) guard.pin()
     }
     ImmersiveWhile(activity, everLive)
     // Back is swallowed once pinned: the stage has no local exit (D-26); Stop stays on the item and the officer ends it.
@@ -197,27 +183,11 @@ fun StageDeviceScreen(link: StageLink, content: ContentBundle, container: AppCon
             activity?.setTurnScreenOn(false)
         }
     }
-    // A non-owner app gets no callback when the system gesture unpins it, so the state is polled.
-    LaunchedEffect(everLive) {
-        if (!everLive) return@LaunchedEffect
-        val am = context.getSystemService(ActivityManager::class.java)
-        var seenPinned = false
-        while (true) {
-            delay(1_000)
-            val pinned = am.lockTaskModeState != ActivityManager.LOCK_TASK_MODE_NONE
-            if (pinned) seenPinned = true
-            if (!pinned && seenPinned && link.state.value !is LinkState.Ended) link.end(ByeReason.UNPINNED)
-            if (!pinned && link.state.value is LinkState.Ended) seenPinned = false
-        }
-    }
-    val exit = {
-        guard.confirmPinned(title, subtitle, cancel) {
-            link.end(ByeReason.EXIT)
-            guard.unpin()
-            activity?.finishAndRemoveTask()
-            // Process exit is the real wipe of anything left on the heap (SEC-69).
-            Handler(Looper.getMainLooper()).postDelayed({ Process.killProcess(Process.myPid()) }, 500)
-        }
+    val exit: () -> Unit = {
+        link.end(ByeReason.EXIT)
+        activity?.finishAndRemoveTask()
+        // Process exit is the real wipe of anything left on the heap (SEC-69).
+        Handler(Looper.getMainLooper()).postDelayed({ Process.killProcess(Process.myPid()) }, 500)
     }
 
     SubjectTheme {

@@ -11,7 +11,7 @@ data class Suggestion(val caption: String, val meaning: String)
  * The on-device assistant (D-24). It only translates the officer's own words into the subject's language and back;
  * it never answers, judges or adds anything, and the officer decides whether the caption is used.
  */
-class Assistant(private val models: ModelStore) {
+class Assistant(private val models: ModelStore, private val cloud: CloudAi? = null) {
     suspend fun suggest(text: String, language: Language): Suggestion? {
         if (!needsTranslation(text, language.code)) return null
         val local = models.use { model ->
@@ -20,17 +20,10 @@ class Assistant(private val models: ModelStore) {
             Suggestion(caption, meaning)
         }
         if (local != null) return local
-
-        // Online TokenRouter AI fallback (handles regional Chhattisgarhi 'hne', Gondi 'gon', Halbi 'hlb')
-        val remoteCaption = TokenRouterAiService.translateRegional(text, language.code)?.firstLine() ?: return null
-        val remoteMeaning = TokenRouterAiService.chat(
-            listOf(
-                ChatMessage("system", BACK_TO_ENGLISH),
-                ChatMessage("user", remoteCaption),
-            ),
-            maxTokens = 120,
-        )?.firstLine() ?: text
-        return Suggestion(remoteCaption, remoteMeaning)
+        // Only the officer's own sentence goes out; it holds no subject details.
+        val caption = cloud?.ask(toLanguage(language), text, emptyList(), 200)?.firstLine() ?: return null
+        val meaning = cloud.ask(BACK_TO_ENGLISH, caption, emptyList(), 120)?.firstLine() ?: text
+        return Suggestion(caption, meaning)
     }
 
     private fun toLanguage(language: Language) =
