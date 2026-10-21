@@ -15,6 +15,7 @@ from sqlalchemy.orm import sessionmaker
 
 from .config import Settings
 from .db import Device, Feedback, make_engine
+from .prompts import allowed
 from .security import DeviceDep, RateLimiter, audit, default_jwks, device_auth, new_token, reviewer_auth, sha256
 
 type Assist = Callable[[str, str, int], Awaitable[str]]
@@ -66,7 +67,7 @@ def create_app(settings: Settings | None = None, assist: Assist | None = None, j
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-        engine = make_engine(s.database_url)
+        engine = make_engine(s.database_url, s.require_persistent_db)
         app.state.sessions = sessionmaker(engine, expire_on_commit=False)
         yield
         engine.dispose()
@@ -135,7 +136,7 @@ def create_app(settings: Settings | None = None, assist: Assist | None = None, j
     async def assist_route(body: AssistIn, dev: DeviceDep):
         if len(body.user) > s.assist_max_chars:
             raise HTTPException(413, "too long")
-        if not body.system.strip().startswith(s.assist_prompt_openings):
+        if not allowed(body.system):
             raise HTTPException(403, "prompt not allowed")
         text = await run_assist(body.system, body.user, body.max_tokens)
         with app.state.sessions() as db:

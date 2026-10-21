@@ -728,7 +728,7 @@ Status: Proposed, Accepted, Superseded.
 
 ## D-51 Finished sessions are saved under the officer's name until deleted
 
-**Status:** Accepted; amends the retention default of SEC-08 and FR-06
+**Status:** Accepted; the default retention is superseded by D-52; amends the retention default of SEC-08 and FR-06
 
 **Context.** Ending a session deleted its record, and an export deleted it too. Officers found that strange: a report could not be made again, and a second look at what was said meant keeping the session open. The product owner chose to keep sessions until the officer deletes them.
 
@@ -739,3 +739,39 @@ Status: Proposed, Accepted, Superseded.
 - The name is free text and may hold a person's name; it lives in the encrypted database like every answer.
 
 **Consequences.** A lost or seized phone can hold many past sessions, protected by SQLCipher and the unlocked-device key (D-48); DPIA risk P-01 rises accordingly. Departments that want the old behaviour set a retention period.
+
+## D-52 Sessions are purged after 24 hours by default
+
+**Status:** Accepted; supersedes the default in D-51 [confirm with the product owner]
+
+**Context.** D-51 made "keep until deleted" the default, so a lost or seized phone could hold every past session, children's included. The data protection assessment (DPIA P-01) relies on short retention as a mitigation, and DPDP Act s.8(5) requires reasonable safeguards.
+
+**Decision.** The default retention is 24 hours from the session's start. "Keep until deleted" and 4 to 72 hours stay as the officer's or department's choice. Saved sessions are purged by the same rule; the purge runs at every unlock, and a background job destroys the store once even the newest session is past the period.
+
+**Alternatives.** Keeping D-51's default and relying on the lock (more data on a lost phone); purging by end time (a session left open would outlive the period).
+
+**Consequences.** A saved session disappears a day after it started unless the setting was changed; officers who want longer say so in Settings. Phones that already stored a retention value keep it.
+
+## D-53 A rooted phone keeps no history
+
+**Status:** Accepted [confirm with the department]
+
+**Context.** SEC-63 only warned about a rooted phone, while the security document promised that session history is disabled. A rooted phone can read an app's files, so stored sessions are not safe there.
+
+**Decision.** When the phone has test-keys or an su binary in a usual path, the start screen warns, lists no saved sessions, and finishing a session deletes it whatever name was typed; an export can be made first. The app still runs.
+
+**Alternatives.** Warn only (stored sessions stay readable by root); block the app (fails an officer in an emergency); hardware attestation (needs a server, D-47).
+
+**Consequences.** The check is a heuristic and a rooted phone can evade it; it reduces risk, not removes it. Unfinished sessions can still be resumed on a rooted phone until they end or expire.
+
+## D-54 The gateway accepts only the app's own prompts and caps wrong enrolment codes
+
+**Status:** Accepted; amends D-47
+
+**Context.** `/v1/assist` forwarded any system prompt, so an enrolled device could use the department's model key for anything. `/v1/enroll` had no limit, and a per-address limit is defeated by a forged forwarding header.
+
+**Decision.** A system prompt must match, in full, one of the app's seven prompt templates in `app_prompts.json`; slots for a language name accept one line of up to 80 characters. The Android unit test renders the templates from the prompt code and fails if the file is out of date, and the gateway tests send every template, and altered or extended ones, to the real route. Enrolment is limited per address and to 20 wrong codes a minute across all callers. Model files are hashed once per size and modification time, not on every download.
+
+**Alternatives.** A prompt identifier with the text held on the server (the app's prompts would live in two repositories); a per-address limit alone (spoofable).
+
+**Consequences.** Changing any word of a prompt means regenerating `app_prompts.json` and deploying the gateway before the new app version is used. An attacker who keeps sending wrong codes can block enrolment for that minute, but cannot guess codes faster than the cap. User text is still forwarded as given, so the gateway remains a translation and drafting proxy.

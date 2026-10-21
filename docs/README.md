@@ -34,13 +34,14 @@ Sign Setu is an offline Android app that helps a police officer communicate with
 | [03-ux.md](03-ux.md) | Officer and stage states, profiles, flows, accessibility, visual and content style |
 | [04-security.md](04-security.md) | Security controls (SEC-), keys, threats in scope |
 | [05-avatar-and-gestures.md](05-avatar-and-gestures.md) | Gesture and ISL lexicons, the two characters, motion pipelines, the code-drawn rig, validation |
-| [07-decisions.md](07-decisions.md) | Decision log (D-01 to D-51): context, choice, alternatives and consequences; changed only by adding a superseding entry |
+| [07-decisions.md](07-decisions.md) | Decision log (D-01 to D-54): context, choice, alternatives and consequences; changed only by adding a superseding entry |
 | [09-open-source.md](09-open-source.md) | Reusable open-source components per module, with licences and attribution |
 | [11-hand-model-integration.md](11-hand-model-integration.md) | The vision engine and sign reader, sign windows, and the contract for a replacement model |
 | [12-on-device-assistant.md](12-on-device-assistant.md) | The optional on-device translation assistant: model, installation, budgets |
 | [13-product-overview.md](13-product-overview.md) | One reference for explaining the product: features, mechanisms, character, sign reading, export, stack, frontend, readiness |
 | [14-screens.md](14-screens.md) | Catalogue of every screen, with screenshots in [screens/](screens/) |
 | [15-dpia.md](15-dpia.md) | Data protection impact assessment: processing, lawful basis, statutory recording and risks |
+| [17-attestation-and-pinning.md](17-attestation-and-pinning.md) | Assessment and design for certificate pinning and Key Attestation: threat model, safeguards, unresolved decisions; not built |
 
 ### 1.2 Other folders
 
@@ -1119,7 +1120,7 @@ Objectives: subject data is unreadable without the officer's credential; it does
 | Platform | FLAG_SECURE; only the launcher exported; overlay-touch filter; screen pinning; no notifications with subject data; no clipboard of session data |
 | Camera and landmarks | Analysis only in a sign window; landmarks in RAM; narratives drop face points |
 | Supply chain | Dependency lockfile and verification metadata; SBOM; Lint, semgrep, osv-scanner, gitleaks; content manifest checked before use; offline signing key |
-| Resilience | R8 full mode; rooted or test-key device warns the officer and disables history (department to confirm); build expiry 180 days; unreadable database deleted on key loss |
+| Resilience | R8 full mode; rooted or test-key device (heuristic, evadable) warns the officer, lists no saved sessions and deletes a session when it is finished (department to confirm); build expiry 180 days; unreadable database deleted on key loss |
 | Second screen | Bonded devices only; commit-then-reveal; typed code and check number; stage device stores nothing |
 
 ### 6.1 Threats addressed

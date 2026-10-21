@@ -6,6 +6,8 @@ from pathlib import Path
 @dataclass(frozen=True)
 class Settings:
     database_url: str = field(default_factory=lambda: os.environ.get("DATABASE_URL", "sqlite:///gateway.db"))
+    # Set to 1 where a restart must not lose enrolments: the gateway then refuses to start on SQLite.
+    require_persistent_db: bool = field(default_factory=lambda: os.environ.get("REQUIRE_PERSISTENT_DB", "") == "1")
     model_dir: Path = field(default_factory=lambda: Path(os.environ.get("MODEL_DIR", "models")))
     # SHA-256 hex of each valid one-time enrolment code, issued by the department with the device.
     enroll_hashes: frozenset[str] = field(default_factory=lambda: frozenset(filter(None, os.environ.get("ENROLL_HASHES", "").split(","))))
@@ -20,11 +22,3 @@ class Settings:
     enroll_per_minute: int = 10
     # Wrong codes across all callers: a spoofed X-Forwarded-For defeats the per-address limit, not this one.
     enroll_failures_per_minute: int = 20
-    # The app's system prompts open with one of these; anything else is not the app and is refused.
-    assist_prompt_openings: tuple[str, ...] = (
-        "Translate the sentence into ",
-        "Translate this sentence into English.",
-        "You are a trauma-informed child-protection police investigator.",
-        "Propose 2 to 3 non-leading follow-up questions",
-        "You are a gentle, trauma-informed helper",
-    )

@@ -71,11 +71,11 @@ class CloudAi(
         return true
     }
 
-    suspend fun ask(system: String, user: String, names: Collection<String>, maxTokens: Int = 800): String? {
+    suspend fun ask(system: String, user: String, names: Collection<String>, maxTokens: Int = 800, details: Collection<String> = emptyList()): String? {
         if (!available || !enabled()) return null
         val token = if (viaGateway) vault.get() ?: return null else direct!!.key
         if (!online()) return fallBack(Notice.FALLBACK_OFFLINE)
-        val mask = Pseudonymizer(names)
+        val mask = Pseudonymizer(names, details)
         val reply = withContext(Dispatchers.IO) {
             runCatching {
                 if (viaGateway) http.call("POST", "$base/v1/assist", json.encodeToString(AssistReq.serializer(), AssistReq(system, mask.mask(user), maxTokens)), token)
@@ -95,13 +95,12 @@ class CloudAi(
         return mask.restore(text)
     }
 
-    suspend fun report(sessionLog: String, role: String, dialect: String, names: Collection<String>, signLanguage: SignLanguage = SignLanguage.ISL): String =
-        ask(REPORT_PROMPT, "Role: $role\nLanguage: $dialect / ${signLanguage.title}\nSession log:\n$sessionLog", names, 1200)
+    suspend fun report(sessionLog: String, role: String, dialect: String, names: Collection<String>, signLanguage: SignLanguage = SignLanguage.ISL, details: Collection<String> = emptyList()): String =
+        ask(REPORT_PROMPT, "Role: $role\nLanguage: $dialect / ${signLanguage.title}\nSession log:\n$sessionLog", names, 1200, details)
             ?: OfflineReport.synthesizeOfflineForensicReport(sessionLog, role, dialect, signLanguage)
 
-    suspend fun followUps(lastAnswer: String, isChild: Boolean, names: Collection<String>): List<String> {
-        val tone = if (isChild) "a young traumatised child: short, gentle, simple" else "a vulnerable adult: factual, calm, no pressure"
-        val raw = ask(followUpPrompt(tone), "Latest answer: $lastAnswer", names, 300)
+    suspend fun followUps(lastAnswer: String, isChild: Boolean, names: Collection<String>, details: Collection<String> = emptyList()): List<String> {
+        val raw = ask(followUpPrompt(followUpTone(isChild)), "Latest answer: $lastAnswer", names, 300, details)
         val parsed = raw?.lines().orEmpty().map { it.trim().removePrefix("-").removePrefix("*").trim() }.filter { it.endsWith("?") }
         return parsed.ifEmpty { OfflineReport.offlineTraumaFollowUps(lastAnswer, isChild) }
     }
@@ -112,6 +111,9 @@ internal const val REPORT_PROMPT = "You are a trauma-informed child-protection p
     "3 welfare needs, 4 persons mentioned, 5 reliability (non-leading check), 6 recommended police and CWC actions. " +
     "Use only what the session log records. Never invent names, officers, places, dates, times, case numbers or events; " +
     "write Not recorded where the log has nothing. Keep the masked names exactly as given."
+
+internal fun followUpTone(child: Boolean) =
+    if (child) "a young traumatised child: short, gentle, simple" else "a vulnerable adult: factual, calm, no pressure"
 
 internal fun followUpPrompt(tone: String) =
     "Propose 2 to 3 non-leading follow-up questions for $tone. One question per line starting with '-', no preamble."

@@ -241,7 +241,7 @@ fun OfficerPane(
                     counselPrompt(subjectLanguage?.english ?: subjectLang, ui.session.profile == Profile.YOUNG_CHILD),
                     write = { system, transcript ->
                         val events = vm.ui.value?.events.orEmpty()
-                        cloud.ask(system, transcript, subjectNames(events, content, officerLang), 300)
+                        cloud.ask(system, transcript, subjectNames(events, content, officerLang), 300, subjectDetails(events, content, officerLang))
                     },
                     transcript = { counselTranscript(it, content) },
                 )
@@ -318,7 +318,7 @@ fun OfficerPane(
                         aiExtracting = true
                         scope.launch {
                             try {
-                                aiReport = cloud.report(sessionLog(ui.events), ui.session.role.name, subjectLang, subjectNames(ui.events, content, officerLang), signLanguage)
+                                aiReport = cloud.report(sessionLog(ui.events), ui.session.role.name, subjectLang, subjectNames(ui.events, content, officerLang), signLanguage, subjectDetails(ui.events, content, officerLang))
                             } finally {
                                 aiExtracting = false
                             }
@@ -506,7 +506,7 @@ fun OfficerPane(
                 val section = detailsSection(res, content, officerLang, ui.events)
                 // The officer waits behind a dialog that cannot be closed, so a slow network gets 8 s, then no summary.
                 val reportSummary = aiReport ?: runCatching {
-                    withTimeoutOrNull(8_000) { cloud.report(sessionLog(ui.events), ui.session.role.name, subjectLang, subjectNames(ui.events, content, officerLang), signLanguage) }
+                    withTimeoutOrNull(8_000) { cloud.report(sessionLog(ui.events), ui.session.role.name, subjectLang, subjectNames(ui.events, content, officerLang), signLanguage, subjectDetails(ui.events, content, officerLang)) }
                 }.getOrNull()
                 export = runCatching { vm.exportReport(reportText(res, ui, content), recordDetail(res, content, officerLang, ui.events) { eventDetail(res, it, by, idle) }, section, reportSummary) }
                     .fold({ (file, pass) -> ExportState.Ready(file, pass) }, { ExportState.Failed })

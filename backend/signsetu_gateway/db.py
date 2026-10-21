@@ -44,8 +44,23 @@ class Audit(Base):
     action: Mapped[str] = mapped_column(String(32))
 
 
-def make_engine(url: str) -> Engine:
-    kw = {"connect_args": {"check_same_thread": False}, "poolclass": StaticPool} if url.startswith("sqlite") else {}
+def normalise_url(url: str) -> str:
+    """Hosts hand out postgres:// or postgresql:// URLs; the installed driver is psycopg 3, which SQLAlchemy names explicitly."""
+    for scheme in ("postgres://", "postgresql://"):
+        if url.startswith(scheme):
+            return "postgresql+psycopg://" + url.removeprefix(scheme)
+    return url
+
+
+def is_sqlite(url: str) -> bool:
+    return url.startswith("sqlite")
+
+
+def make_engine(url: str, require_persistent: bool = False) -> Engine:
+    url = normalise_url(url)
+    if is_sqlite(url) and require_persistent:
+        raise RuntimeError("REQUIRE_PERSISTENT_DB is set, so DATABASE_URL must point at PostgreSQL, not a local SQLite file")
+    kw = {"connect_args": {"check_same_thread": False}, "poolclass": StaticPool} if is_sqlite(url) else {"pool_pre_ping": True}
     engine = create_engine(url, **kw)
     Base.metadata.create_all(engine)
     return engine

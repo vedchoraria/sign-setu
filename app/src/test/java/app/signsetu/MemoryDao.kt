@@ -21,7 +21,7 @@ class MemoryDao : SessionDao {
         sessions.update { all -> all[id]?.let { all + (id to change(it)) } ?: all }
 
     override suspend fun insertSession(session: SessionEntity) = sessions.update { it + (session.id to session) }
-    override suspend fun openSession() = sessions.value.values.firstOrNull()
+    override suspend fun openSession() = sessions.value.values.filter { it.endedAt == null }.maxByOrNull { it.startedAt }
     override fun session(id: String): Flow<SessionEntity?> = sessions.map { it[id] }
     override suspend fun setSubjectLang(id: String, lang: String) = edit(id) { it.copy(subjectLang = lang) }
     override suspend fun setProfile(id: String, profile: String) = edit(id) { it.copy(profile = profile) }

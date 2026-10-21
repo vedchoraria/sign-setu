@@ -108,7 +108,7 @@ With the online assistant on, a paired stage can host the **AI counsellor** for 
 | Keyboard | Every text field asks the keyboard not to learn from what is typed |
 | Integrity | Every content file, the vision and sign-reader models and the assistant model are checked by SHA-256 before use |
 | Landmarks | Biometric data: analysed only inside a sign window, kept in memory for the session, never stored or exported |
-| Expiry | A build refuses new sessions 180 days after it was made; rooted phones are warned |
+| Expiry | A build refuses new sessions 180 days after it was made; rooted phones are warned, list no saved sessions and delete a session when it is finished |
 | Excluded by design | Identity columns in the database (personal details exist only as the subject's own logged answers, purged with the session), statements, audio or video recording, identity recognition, thumb or open-palm signals for yes, no or stop, body maps for the subject |
 
 ## 4. Mechanisms

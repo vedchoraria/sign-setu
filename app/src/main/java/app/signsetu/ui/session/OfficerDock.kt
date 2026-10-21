@@ -155,6 +155,7 @@ internal fun Dock(
                         lastAnswerEvent.text ?: lastAnswerEvent.cardId ?: "answered",
                         ui.session.profile == Profile.YOUNG_CHILD,
                         subjectNames(ui.events, content, officerLang),
+                        subjectDetails(ui.events, content, officerLang),
                     )
                     aiFollowUps = suggestions
                     aiLoadingFollowUps = false
