@@ -47,8 +47,6 @@ import app.signsetu.ui.theme.LocalStageColors
 import app.signsetu.ui.theme.Spacing
 import kotlinx.coroutines.delay
 
-private val Ink = Color(0xFF2B2118)
-
 private const val SLOWER_CUE_MS = 3_000L
 
 /** A hairline round the white tiles, so they keep an edge on the light stage. */
@@ -80,7 +78,7 @@ internal fun SignChoicePanel(choices: List<SignChoice>, content: ContentBundle, 
             onClick = { onChoose(null) },
             shape = RoundedCornerShape(50),
             color = stage.tool,
-            border = BorderStroke(1.dp, stage.onTool.copy(alpha = 0.16f)),
+            border = stage.toolEdge,
             modifier = Modifier.fillMaxWidth().height(56.dp).semantics { contentDescription = none ?: noneName },
         ) {
             Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {

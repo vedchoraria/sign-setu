@@ -638,3 +638,51 @@ Status: Proposed, Accepted, Superseded.
 **Alternatives.** Making the assistant model mandatory (size and speed); a bundled phrase-based translation model (new dependency, still unreviewed output); word-by-word output with gaps (puts half-sentences in front of a frightened subject).
 
 **Consequences.** Every caption is still an unchecked draft under D-24 and is logged with the officer's words. Hindi reviewers should check the sentence patterns in `Translate.kt` with the content. Other subject languages still need the assistant.
+
+## D-45 Picture quality gate and one read policy, from the team's architecture sketches
+
+**Status:** Accepted; amends D-25
+
+**Context.** The team's sketches show a Flutter or Expo client with a FastAPI, Keycloak and PostgreSQL backend for optional clip upload, plus an on-device pipeline with a frame rate and blur check ahead of tracking and a policy step that abstains or asks for clarity. The app is native Android and offline by requirement (no INTERNET permission, D-20), so the backend, upload, accounts and cross-platform client are not adopted: clips are never uploaded, and the existing controls already match the rest (landmarks only in memory, SHA-256 verified model files, encrypted sessions, signed evidence export, abstaining reads that the subject confirms).
+
+**Decision.**
+- While a sign window is open, each analysed picture is scored for blur (variance of a Laplacian over the centre, against the best recent picture of the session). The score is a flag on the landmark frame; the picture is not kept.
+- A sign whose pictures are mostly blurred, or analysed at under about 8 frames a second, and whose best guess is below `READ_MIN_SCORE`, shows the existing "sign slower" cue, like fast or lost hands.
+- The step from reader output to the segment shown (home sign first, item context, three candidates, slower cue) moves out of the view model into `decideRead`, and the per-frame stages into `FramePipeline`, so each can be tested without the camera or a view model.
+
+**Alternatives.** A new "poor light" cue (new subject text needing review in every language); a cloud review queue (breaks the offline rule); measuring blur on every frame outside sign windows (cost with no use).
+
+**Consequences.** The blur ratio, peak decay and minimum peak in `FramePipeline.kt` are calibration knobs to tune on device. A sure read is never blamed on the picture.
+
+## D-46 Skeleton snapshots in the record are opt-in
+
+**Status:** Accepted; amends D-25 and SEC-71
+
+**Context.** Landmarks are biometric data (SEC-71) and are never to reach disk or the second-screen link. The skeleton evidence snapshot was switched on by default with no control, so every signed answer wrote a drawing of the subject's pose to the record, and the second screen sent one to the officer's phone. The team's sketches ask for the same rule in other words: nothing leaves memory without explicit authorisation.
+
+**Decision.** The snapshot is off at every start. The officer turns it on from the session menu ("Keep skeleton snapshot in record"). The second screen draws and sends one only when it is on, and the officer's phone drops a received one unless it is on.
+
+**Alternatives.** Keep it on and disclose it (conflicts with SEC-71); remove it (loses a record of what was read for officers who want one); a stored consent per subject (more state to protect, and the officer already decides what the session keeps).
+
+**Consequences.** Switching it on is an officer's decision per run of the app. The second screen has its own switch state, so a paired stage sends a snapshot only if its own switch is on.
+
+## D-47 Hybrid connectivity: offline always works, the department gateway adds to it when online
+
+**Status:** Accepted; supersedes D-15 for the network rule, implements D-07 and SEC-31 to SEC-34
+
+**Context.** The product must work with no connection and use a proper backend when there is one. The code already declared INTERNET for an optional online assistant that sent masked session text to a third-party service with a key typed on the phone, which broke D-07 (partner keys only in a project gateway) while the documents still said "no INTERNET". The team's sketches add a FastAPI, Keycloak and PostgreSQL backend.
+
+**Stacks checked before choosing (October 2026).** FastAPI 0.146.0 (0.x, so pinned exactly), SQLAlchemy 2.1.5, Pydantic 2.14, PostgreSQL 18, Keycloak 26.8.1 (13 October 2026), OkHttp 5.5.0 stable, AppAuth-Android 0.11.1 (last release December 2021). No beta or release-candidate component is used.
+
+**Decision.**
+- The app is offline first. The `CloudAi` client talks only to the gateway at `BuildConfig.GATEWAY_URL` (set with `-PgatewayUrl=https://...`). With no URL, no switch is shown and nothing connects. With one, a call is made only if the officer switched the assistant on, the device is enrolled, and the network is validated; any other case, any error and any 401 return null and the on-device path runs. A 401 clears the token.
+- Device identity is a one-time enrolment code issued by the department, traded for a random token the gateway stores only as a SHA-256 hash. The token is wrapped by a Keystore key. Accounts and passwords are not used on the phone, so AppAuth-Android (stale) is not needed.
+- The gateway (`backend/`) offers: enrolment, a model manifest with verified download, an assistant proxy that holds the AI key and stores no text, consented label feedback that refuses any extra field (no landmarks, pictures or statements), an audit table without subject data, rate limiting, and an admin read of feedback behind a Keycloak access token with the reviewer role.
+- Platform HTTP and the network security config are used instead of OkHttp: a handful of JSON calls do not justify a dependency, and the platform supports certificate pin sets. Revisit if streaming or HTTP/3 is needed.
+- Still offline by rule: video and landmarks never leave the phone; models are never replaced by downloaded ones until a signed manifest is verified on the phone (SEC-54, SEC-74).
+
+**Alternatives.** Two flavors, one with INTERNET (a second APK to review and ship); OkHttp 5.5.0 (a new dependency, no gain here); AppAuth with Keycloak for officers (stale library, passwords on personal phones); keeping the third-party service (keys and unreviewed processor).
+
+**Consequences.** The third-party key and its screen are gone. Certificate pins go into the network security config when the gateway host is fixed. Key Attestation at enrolment (D-07, SEC-61) is not built; the one-time code is the only enrolment check until then. Documents that still say "no INTERNET" are amended here: the build gate now refuses RECORD_AUDIO and background location only.
+- A build with no gateway URL but an assistant key (env `OPENROUTER_API_KEY` or `openrouterKey` in the untracked `local.properties`, model `nvidia/nemotron-3-ultra-550b-a55b:free`) calls that OpenRouter service directly, in its own format, under the same switch, masking, fallback and toasts. The settings text then says "third party" and names OpenRouter. The key is compiled into the APK and can be extracted from it; use a revocable, rate-limited key, and prefer a gateway build for fielded phones. The gateway reads the same service from `backend/.env` (`ASSIST_URL`, `ASSIST_MODEL`, `ASSIST_KEY`).
+- The officer sees a toast once when the online assistant falls back (no internet, gateway error, device no longer enrolled) and once when it returns, and after enrolling; an unenrolled or switched-off assistant stays silent.

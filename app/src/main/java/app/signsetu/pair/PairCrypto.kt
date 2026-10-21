@@ -2,14 +2,18 @@ package app.signsetu.pair
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.IOException
+import java.nio.ByteBuffer
 import java.security.KeyFactory
 import java.security.KeyPairGenerator
 import java.security.MessageDigest
+import java.security.PrivateKey
 import java.security.SecureRandom
 import java.security.interfaces.ECPublicKey
+import java.security.spec.ECFieldFp
 import java.security.spec.ECGenParameterSpec
 import java.security.spec.X509EncodedKeySpec
 import java.util.Base64
@@ -24,17 +28,17 @@ enum class Abort { PROTOCOL, VERSION, MODE, COMMIT, KEY, SIZE, CODE }
 
 class PairAbort(val reason: Abort) : IOException(reason.name)
 
-const val PLAIN_CAP = 4 * 1024
+private const val PLAIN_CAP = 4 * 1024
 const val FRAME_CAP = 1 shl 20
 private const val MAX_FRAMES = 1L shl 32
 
 /** RFC 5869 over HmacSHA256; the same construction as Ping's CryptoUtils, with any output length. */
-object Hkdf {
+private object Hkdf {
     fun extract(salt: ByteArray, ikm: ByteArray): ByteArray = mac(salt).doFinal(ikm)
 
     fun expand(prk: ByteArray, info: String, length: Int): ByteArray {
         val mac = mac(prk)
-        val out = java.io.ByteArrayOutputStream()
+        val out = ByteArrayOutputStream()
         var block = ByteArray(0)
         var i = 1
         while (out.size() < length) {
@@ -63,8 +67,8 @@ data class Identity(val versionCode: Int, val contentHash: String, val model: St
 @Serializable internal data class Reveal(val pk: String, val n: String)
 
 private val handshakeJson = Json { ignoreUnknownKeys = false }
-const val MODE_NEW = "new"
-const val MODE_RESUME = "resume"
+private const val MODE_NEW = "new"
+private const val MODE_RESUME = "resume"
 
 /**
  * Keys for one link; [code] is the 6 digits, [resumeKey] is set on new links only. [check] is shown on both screens
@@ -73,7 +77,7 @@ const val MODE_RESUME = "resume"
 class LinkKeys(val send: ByteArray, val receive: ByteArray, val code: String, val resumeKey: ByteArray?, val peerModel: String, val check: String)
 
 private val P256 by lazy {
-    (KeyPairGenerator.getInstance("EC").apply { initialize(ECGenParameterSpec("secp256r1")) }.generateKeyPair().public as ECPublicKey).params
+    (newKeyPair().public as ECPublicKey).params
 }
 
 /** An X.509 key that is a point on P-256, or an abort; the platform does not check the curve for us everywhere. */
@@ -82,7 +86,7 @@ internal fun decodeP256(bytes: ByteArray): ECPublicKey {
         ?: throw PairAbort(Abort.KEY)
     val p = P256
     if (key.params.curve != p.curve || key.params.generator != p.generator || key.params.order != p.order) throw PairAbort(Abort.KEY)
-    val prime = (p.curve.field as java.security.spec.ECFieldFp).p
+    val prime = (p.curve.field as ECFieldFp).p
     val x = key.w.affineX
     val y = key.w.affineY
     if (x.signum() < 0 || y.signum() < 0 || x >= prime || y >= prime) throw PairAbort(Abort.KEY)
@@ -120,7 +124,7 @@ internal fun derive(ss: ByteArray, transcript: ByteArray, resumeKey: ByteArray?,
     return if (officer) LinkKeys(o2s, s2o, code, newResume, peerModel, check) else LinkKeys(s2o, o2s, code, newResume, peerModel, check)
 }
 
-private fun ecdh(private: java.security.PrivateKey, peer: ECPublicKey): ByteArray =
+private fun ecdh(private: PrivateKey, peer: ECPublicKey): ByteArray =
     KeyAgreement.getInstance("ECDH").run { init(private); doPhase(peer, true); generateSecret() }
 
 private fun newKeyPair() = KeyPairGenerator.getInstance("EC").apply { initialize(ECGenParameterSpec("secp256r1")) }.generateKeyPair()
@@ -225,8 +229,8 @@ class LinkSession(private val input: DataInputStream, private val out: DataOutpu
         recvKey = null
     }
 
-    private fun iv(dir: Byte, counter: Long) = java.nio.ByteBuffer.allocate(12).put(dir).put(0).put(0).put(0).putLong(counter).array()
-    private fun aad(counter: Long) = java.nio.ByteBuffer.allocate(9).put(1).putLong(counter).array()
+    private fun iv(dir: Byte, counter: Long) = ByteBuffer.allocate(12).put(dir).put(0).put(0).put(0).putLong(counter).array()
+    private fun aad(counter: Long) = ByteBuffer.allocate(9).put(1).putLong(counter).array()
 }
 
 /** Constant-time check of the 6 digits the officer typed (SEC-67). */

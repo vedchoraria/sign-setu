@@ -32,7 +32,6 @@ data class AppSettings(
     val largeCaptions: Boolean = false,
     /** Gestures play at three-quarter speed by default (FR-51). */
     val slowGestures: Boolean = false,
-    /** Leaving the stage asks for the screen lock as well as the handle; a department can turn it on (D-23). */
     /** Tipping the phone over its top edge shows what is prepared. */
     val tiltToShow: Boolean = true,
     /** Volume up shows what is prepared; both keys held leave the stage. */
@@ -45,9 +44,8 @@ data class AppSettings(
     val allowAuto: Boolean = false,
     /** Signs reorders typed words into ISL order; off keeps them as typed, until Deaf reviewers confirm the rules. */
     val islReorder: Boolean = true,
-    /** Sends masked session text to a third-party AI while online; off until the officer accepts the notice. */
+    /** Sends masked session text to the department gateway while online; off until the officer accepts the notice. */
     val cloudAi: Boolean = false,
-    val cloudAiKey: String = "",
 ) {
     val interpreterConfigured get() = interpreterApp != InterpreterApp.NONE && interpreterContact.isNotBlank()
 
@@ -76,7 +74,6 @@ class SettingsStore(private val context: Context) {
         val allowAuto = booleanPreferencesKey("allow_auto")
         val islReorder = booleanPreferencesKey("isl_reorder")
         val cloudAi = booleanPreferencesKey("cloud_ai")
-        val cloudAiKey = stringPreferencesKey("cloud_ai_key")
     }
 
     val settings: Flow<AppSettings> = context.store.data.map { it.toSettings() }
@@ -97,7 +94,6 @@ class SettingsStore(private val context: Context) {
     suspend fun setAllowAuto(on: Boolean) = context.store.edit { it[Keys.allowAuto] = on }
     suspend fun setIslReorder(on: Boolean) = context.store.edit { it[Keys.islReorder] = on }
     suspend fun setCloudAi(on: Boolean) = context.store.edit { it[Keys.cloudAi] = on }
-    suspend fun setCloudAiKey(key: String) = context.store.edit { it[Keys.cloudAiKey] = key.trim() }
     suspend fun setTiltToShow(on: Boolean) = context.store.edit { it[Keys.tiltToShow] = on }
     suspend fun setVolumeKeys(on: Boolean) = context.store.edit { it[Keys.volumeKeys] = on }
     suspend fun toggleFavourite(cardId: String) = context.store.edit {
@@ -121,7 +117,6 @@ class SettingsStore(private val context: Context) {
         allowAuto = this[Keys.allowAuto] ?: false,
         islReorder = this[Keys.islReorder] ?: true,
         cloudAi = this[Keys.cloudAi] ?: false,
-        cloudAiKey = this[Keys.cloudAiKey] ?: "",
     )
 }
 

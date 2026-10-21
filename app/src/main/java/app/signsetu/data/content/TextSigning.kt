@@ -22,7 +22,13 @@ data class WordBeat(val range: IntRange, val card: String?, val letters: String?
 data class TextPlan(val gesture: Gesture?, val beats: List<WordBeat>, val motions: List<String> = emptyList())
 
 private const val GAP = 0.3f
-private val TOKEN = Regex("[\\p{L}\\p{M}\\p{N}]+(?:['’]\\p{L}+)?")
+/** One typed word, with a possessive or contraction ("Ravi's") kept on it. */
+internal val TOKEN = Regex("[\\p{L}\\p{M}\\p{N}]+(?:['’]\\p{L}+)?")
+
+/** The Unicode block Hindi is written in. */
+val DEVANAGARI = 'ऀ'..'ॿ'
+
+fun String.isDevanagari() = any { it in DEVANAGARI }
 
 /** Grammar words carry no sign of their own; spelling them out would only slow the sentence down. */
 private val FILLER = setOf(
@@ -156,7 +162,7 @@ fun glossToText(gloss: List<String>, words: Map<String, WordEntry>, lang: SignLa
     val english = enWords.joinToString(" ").replaceFirstChar { it.uppercase() } + if (question) "?" else "."
 
     fun hi(t: Pair<String, Boolean>) = if (t.second) t.first else HINDI[t.first]
-        ?: words[t.first]?.w?.firstOrNull { w -> w.any { it in 'ऀ'..'ॿ' } } ?: t.first
+        ?: words[t.first]?.w?.firstOrNull { w -> w.isDevanagari() } ?: t.first
     val hiRest = rest.map(::hi).toMutableList()
     // A past sign keeps the bare verb: the present forms below would change the tense.
     val verb = rest.lastOrNull()?.takeIf { !it.second && time.none { t -> t.first == "yesterday" } }?.let { HINDI_VERB[en(it)] }
@@ -166,7 +172,7 @@ fun glossToText(gloss: List<String>, words: Map<String, WordEntry>, lang: SignLa
     }
     val hindi = (time.map(::hi) + hiRest.dropLast(1) + ask.map { HINDI[it] ?: it } + listOfNotNull("नहीं".takeIf { negated }) + hiRest.takeLast(1))
         .joinToString(" ") + if (question) "?" else "।"
-    // Regional Chhattisgarhi synthesis (e.g. "मोला पानी चाही", "नइ")
+    // Chhattisgarhi as word swaps on the Hindi: "मोला पानी चाही".
     val chhattisgarhi = hindi
         .replace("मुझे", "मोला")
         .replace("आपको", "तोला")
@@ -179,7 +185,7 @@ fun glossToText(gloss: List<String>, words: Map<String, WordEntry>, lang: SignLa
 
 /** The letters to fingerspell: Latin as typed, Devanagari transliterated. */
 fun spelling(word: String): String =
-    (if (word.any { it in 'ऀ'..'ॿ' }) devanagariToLatin(word) else word).lowercase().filter { it in 'a'..'z' || it.isDigit() }
+    (if (word.isDevanagari()) devanagariToLatin(word) else word).lowercase().filter { it in 'a'..'z' || it.isDigit() }
 
 private val WH_WORDS = setOf(
     "what", "where", "who", "whom", "whose", "when", "why", "how", "which",
@@ -234,10 +240,10 @@ fun devanagariToLatin(word: String): String = buildString {
                 if (nukta) i++
                 val next = word.getOrNull(i + 1)
                 val vowelSign = next != null && next in SIGNS && next !in "ंँः"
-                val ends = next == null || next !in 'ऀ'..'ॿ'
+                val ends = next == null || next !in DEVANAGARI
                 if (!vowelSign && next != VIRAMA && !ends) append('a')
             }
-            else -> append(VOWELS[c] ?: SIGNS[c] ?: if (c in 'ऀ'..'ॿ') "" else c.toString())
+            else -> append(VOWELS[c] ?: SIGNS[c] ?: if (c in DEVANAGARI) "" else c.toString())
         }
         i++
     }

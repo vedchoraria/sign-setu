@@ -47,43 +47,8 @@ fun glossTranscript(segments: List<SignSegment>): String {
     }
 }
 
-/**
- * Splits a landmark stream into signs at pauses: hands gone or nearly still for [pauseMs]. Returns the index range of
- * each sign. A sign still open at the end is returned only when [final]; closed ranges never change as frames are added.
- * Scanning may start at [from], just after a closed range, and gives the same ranges as a scan from the start.
- */
-fun segmentSigns(
-    frames: List<LandmarkFrame>,
-    final: Boolean,
-    pauseMs: Long = 400,
-    stillSpeed: Float = 0.3f,
-    minMs: Long = 200,
-    from: Int = 0,
-): List<IntRange> {
-    val out = ArrayList<IntRange>()
-    var start = -1
-    var lastActive = -1
-    var activeFrames = 0
-    fun close() {
-        if (frames[lastActive].timestampMs - frames[start].timestampMs >= minMs && activeFrames >= 3) out.add(start..lastActive)
-        start = -1
-        activeFrames = 0
-    }
-    for (i in from until frames.size) {
-        val f = frames[i]
-        if (start >= 0 && f.timestampMs - frames[lastActive].timestampMs >= pauseMs) close()
-        if (moving(frames.getOrNull(i - 1), f, stillSpeed)) {
-            if (start < 0) start = maxOf(0, i - 1)
-            lastActive = i
-            activeFrames++
-        }
-    }
-    if (final && start >= 0) close()
-    return out
-}
-
 /** Any hand moving faster than [stillSpeed] frame-widths per second, measured over all its points; a hand appearing counts. */
-private fun moving(prev: LandmarkFrame?, f: LandmarkFrame, stillSpeed: Float): Boolean {
+internal fun moving(prev: LandmarkFrame?, f: LandmarkFrame, stillSpeed: Float): Boolean {
     val seconds = if (prev == null || f.timestampMs <= prev.timestampMs) 1f / 30 else (f.timestampMs - prev.timestampMs) / 1000f
     return handMoving(prev?.leftHand, f.leftHand, seconds, stillSpeed) || handMoving(prev?.rightHand, f.rightHand, seconds, stillSpeed)
 }
@@ -100,9 +65,9 @@ private fun handMoving(a: List<Offset>?, b: List<Offset>?, seconds: Float, still
 
 /**
  * Collects one sign window's frames in memory, capped at the window's limit, and hands out each sign once its pause
- * closes it. Hands leaving the frame briefly do not end the capture. Called from the camera's analysis thread and the
- * main thread, so every entry point is synchronised. Each frame is looked at once, as [segmentSigns] does in one pass,
- * so a long unbroken narrative costs the same per frame as a short answer.
+ * closes it: hands gone or nearly still for the window's pause. Hands leaving the frame briefly do not end the capture.
+ * Called from the camera's analysis thread and the main thread, so every entry point is synchronised. Each frame is
+ * looked at once, so a long unbroken narrative costs the same per frame as a short answer.
  */
 class SignCapture(private val window: SignWindow = SignWindow.ANSWER, private val limitMs: Long = window.limitMs) {
     private val frames = ArrayList<LandmarkFrame>()
@@ -141,4 +106,4 @@ class SignCapture(private val window: SignWindow = SignWindow.ANSWER, private va
     }
 }
 
-private const val STILL_SPEED = 0.3f
+internal const val STILL_SPEED = 0.3f

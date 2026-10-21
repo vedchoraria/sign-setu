@@ -4,27 +4,15 @@ import android.content.ContextWrapper
 import android.content.res.Resources
 import androidx.compose.ui.geometry.Offset
 import app.signsetu.camera.LandmarkFrame
-import app.signsetu.data.content.Card
-import app.signsetu.data.content.CardCategory
-import app.signsetu.data.content.ContentBundle
 import app.signsetu.data.content.Given
-import app.signsetu.data.content.Group
-import app.signsetu.data.content.IslSigns
 import app.signsetu.data.content.Method
-import app.signsetu.data.content.Question
 import app.signsetu.data.content.SignLanguage
 import app.signsetu.data.content.SignMode
-import app.signsetu.data.content.WordEntry
 import app.signsetu.data.content.glossToText
 import app.signsetu.data.content.signBack
-import app.signsetu.data.content.withSignedQuestions
-import app.signsetu.data.session.DrawingEntity
-import app.signsetu.data.session.EventEntity
 import app.signsetu.data.session.EventSource
 import app.signsetu.data.session.EventType
 import app.signsetu.data.session.Profile
-import app.signsetu.data.session.SessionDao
-import app.signsetu.data.session.SessionEntity
 import app.signsetu.data.session.SessionEvent
 import app.signsetu.data.session.SessionRepository
 import app.signsetu.export.SessionReport
@@ -32,9 +20,7 @@ import app.signsetu.export.recordDigest
 import app.signsetu.sign.SignReader
 import app.signsetu.sign.SignReaders
 import app.signsetu.sign.SignSegment
-import app.signsetu.sign.cardFor
 import app.signsetu.sign.glossOf
-import app.signsetu.ui.avatar.Gesture
 import app.signsetu.ui.session.Grade
 import app.signsetu.ui.session.Mode
 import app.signsetu.ui.session.Pending
@@ -49,8 +35,6 @@ import app.signsetu.ui.session.recordDetail
 import app.signsetu.ui.session.reopensInput
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
@@ -59,9 +43,6 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.builtins.MapSerializer
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -88,29 +69,8 @@ import java.io.File
 @OptIn(ExperimentalCoroutinesApi::class)
 class ConversationE2ETest {
 
-    @Serializable private data class Triage(val groups: List<Group>, val questions: List<Question>)
-    @Serializable private data class Cards(val categories: List<CardCategory>, val cards: List<Card>)
-    @Serializable private data class Words(val words: List<WordEntry>)
-    @Serializable private data class Gestures(val gestures: List<Gesture>)
-    @Serializable private data class SignWords(val words: Map<String, String>)
-
-    private val dir = File("src/main/assets/content")
-    private val json = Json { ignoreUnknownKeys = true }
-    private fun text(name: String) = File(dir, name).readText()
-    private val triage = json.decodeFromString<Triage>(text("triage.json"))
-    private val cards = json.decodeFromString<Cards>(text("cards.json"))
-    private val isl = json.decodeFromString<IslSigns>(text("isl_signs.json"))
-    private val content = ContentBundle(
-        groups = triage.groups, questions = triage.questions, categories = cards.categories, cards = cards.cards.associateBy { it.id },
-        lexicon = emptyMap(), languages = emptyList(),
-        subjectUi = json.decodeFromString(MapSerializer(String.serializer(), MapSerializer(String.serializer(), String.serializer())), text("subject_ui.json")),
-        rejected = emptySet(),
-        gestures = (listOf("gestures.json", "signs.json").flatMap { json.decodeFromString<Gestures>(text(it)).gestures } + isl.gestures.map { it.gesture }).associateBy { it.id },
-        words = json.decodeFromString<Words>(text("words.json")).words.flatMap { e -> e.w.map { it to e } }.toMap(),
-        isl = isl,
-        signWords = json.decodeFromString<SignWords>(text("sign_words.json")).words,
-    ).withSignedQuestions()
-    private val reader: SignReader = SignReaders.load(SignLanguage.ISL) { File(dir, it).readBytes() }!!
+    private val content = shipped
+    private val reader: SignReader = SignReaders.load(SignLanguage.ISL) { File(ASSETS, it).readBytes() }!!
 
     /** Strings from res/values by resource id, formatted as Android does, so record lines read as they ship. */
     private val res: Resources = run {
@@ -124,28 +84,6 @@ class ConversationE2ETest {
             override fun getString(id: Int, vararg formatArgs: Any?): String = getString(id).format(*formatArgs)
             override fun getQuantityString(id: Int, quantity: Int, vararg formatArgs: Any?): String = "$quantity unread"
         }
-    }
-
-    private class MemoryDao : SessionDao {
-        val sessions = MutableStateFlow<Map<String, SessionEntity>>(emptyMap())
-        val rows = MutableStateFlow<List<EventEntity>>(emptyList())
-        private var next = 1L
-        override suspend fun insertSession(session: SessionEntity) { sessions.value += session.id to session }
-        override suspend fun openSession() = sessions.value.values.firstOrNull()
-        override fun session(id: String): Flow<SessionEntity?> = sessions.map { it[id] }
-        override suspend fun setSubjectLang(id: String, lang: String) = Unit
-        override suspend fun setProfile(id: String, profile: String) = Unit
-        override suspend fun setRole(id: String, role: String) = Unit
-        override suspend fun insertEvent(event: EventEntity): Long = synchronized(this) {
-            val id = next++
-            rows.value += event.copy(id = id)
-            id
-        }
-        override fun events(sessionId: String): Flow<List<EventEntity>> = rows
-        override suspend fun insertDrawing(drawing: DrawingEntity) = next++
-        override suspend fun drawing(id: Long): ByteArray? = null
-        override suspend fun deleteSession(id: String) = Unit
-        override suspend fun deleteStartedBefore(cutoff: Long) = 0
     }
 
     @Before fun main() = Dispatchers.setMain(UnconfinedTestDispatcher())

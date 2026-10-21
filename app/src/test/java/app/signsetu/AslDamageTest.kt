@@ -7,10 +7,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AslDamageTest {
-    private fun bundle(vararg rejected: String) = ContentBundle(
-        groups = emptyList(), questions = emptyList(), categories = emptyList(), cards = emptyMap(), lexicon = emptyMap(),
-        languages = emptyList(), subjectUi = emptyMap(), rejected = rejected.toSet(),
-    )
+    private fun bundle(vararg rejected: String) = ContentBundle(rejected = rejected.toSet())
 
     @Test
     fun rejectedAslWordsDisablesAslOnly() {

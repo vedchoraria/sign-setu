@@ -14,15 +14,15 @@ sqlite = "2.7.1"
 datastore = "1.2.1"
 work = "2.12.0"
 media3 = "1.11.1"
-serialization = "1.11.0"
+serialization = "1.12.0"
 coroutines = "1.11.0"
 pdfbox = "2.0.27.0"
 camerax = "1.6.2"
 bouncycastle = "1.86"
 junit = "4.13.2"
 playServicesNearby = "19.5.1"
-mediapipe = "1.0.0"
-protobuf = "4.28.3"
+mediapipe = "1.1.1"
+protobuf = "4.36.2"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
@@ -36,8 +36,6 @@ androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", vers
 compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
 compose-ui = { module = "androidx.compose.ui:ui" }
 compose-ui-graphics = { module = "androidx.compose.ui:ui-graphics" }
-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
 compose-material3 = { module = "androidx.compose.material3:material3" }
 compose-material-icons-core = { module = "androidx.compose.material:material-icons-core", version.ref = "materialIcons" }
 compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
@@ -64,7 +62,7 @@ camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "cam
 camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camerax" }
 camera-compose = { module = "androidx.camera:camera-compose", version.ref = "camerax" }
 mediapipe-tasks-vision = { module = "com.google.mediapipe:tasks-vision", version.ref = "mediapipe" }
-protobuf-java = { module = "com.google.protobuf:protobuf-java", version.ref = "protobuf" }
+protobuf-javalite = { module = "com.google.protobuf:protobuf-javalite", version.ref = "protobuf" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

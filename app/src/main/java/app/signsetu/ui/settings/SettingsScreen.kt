@@ -63,6 +63,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.signsetu.BuildConfig
 import app.signsetu.R
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Surface
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import app.signsetu.ui.components.LocalCloudAi
 import app.signsetu.data.settings.AppSettings
 import app.signsetu.data.settings.InterpreterApp
 import app.signsetu.data.settings.SettingsStore
@@ -86,6 +90,8 @@ fun SettingsScreen(store: SettingsStore, models: ModelStore, onBack: () -> Unit,
     var dialog by rememberSaveable { mutableStateOf<Dialog?>(null) }
     val scroll = TopAppBarDefaults.pinnedScrollBehavior()
     val notSet = stringResource(R.string.settings_not_set)
+    val cloud = LocalCloudAi.current
+    var enrolled by remember { mutableStateOf(cloud.enrolled) }
     var modelState by remember { mutableStateOf(models.state()) }
     var importing by remember { mutableStateOf(false) }
     var badModel by remember { mutableStateOf(false) }
@@ -135,41 +141,17 @@ fun SettingsScreen(store: SettingsStore, models: ModelStore, onBack: () -> Unit,
                 }
             }
             Group(R.string.settings_stage) {
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.settings_camera)) },
-                    supportingContent = { Text(stringResource(R.string.settings_camera_summary)) },
-                    colors = ItemColors,
-                    trailingContent = { Switch(checked = s.cameraEnabled, onCheckedChange = null) },
-                    modifier = Modifier.toggleable(s.cameraEnabled, role = Role.Switch) { on -> scope.launch { store.setCameraEnabled(on) } },
-                )
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.settings_large_captions)) },
-                    supportingContent = { Text(stringResource(R.string.settings_large_captions_summary)) },
-                    colors = ItemColors,
-                    trailingContent = { Switch(checked = s.largeCaptions, onCheckedChange = null) },
-                    modifier = Modifier.toggleable(s.largeCaptions, role = Role.Switch) { on -> scope.launch { store.setLargeCaptions(on) } },
-                )
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.settings_slow_gestures)) },
-                    supportingContent = { Text(stringResource(R.string.settings_slow_gestures_summary)) },
-                    colors = ItemColors,
-                    trailingContent = { Switch(checked = s.slowGestures, onCheckedChange = null) },
-                    modifier = Modifier.toggleable(s.slowGestures, role = Role.Switch) { on -> scope.launch { store.setSlowGestures(on) } },
-                )
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.settings_isl_reorder)) },
-                    supportingContent = { Text(stringResource(R.string.settings_isl_reorder_summary)) },
-                    colors = ItemColors,
-                    trailingContent = { Switch(checked = s.islReorder, onCheckedChange = null) },
-                    modifier = Modifier.toggleable(s.islReorder, role = Role.Switch) { on -> scope.launch { store.setIslReorder(on) } },
-                )
+                SwitchItem(R.string.settings_camera, R.string.settings_camera_summary, s.cameraEnabled) { on -> scope.launch { store.setCameraEnabled(on) } }
+                SwitchItem(R.string.settings_large_captions, R.string.settings_large_captions_summary, s.largeCaptions) { on -> scope.launch { store.setLargeCaptions(on) } }
+                SwitchItem(R.string.settings_slow_gestures, R.string.settings_slow_gestures_summary, s.slowGestures) { on -> scope.launch { store.setSlowGestures(on) } }
+                SwitchItem(R.string.settings_isl_reorder, R.string.settings_isl_reorder_summary, s.islReorder) { on -> scope.launch { store.setIslReorder(on) } }
                 ListItem(
                     headlineContent = { Text(stringResource(R.string.settings_asl_advisory)) },
                     supportingContent = { Text(stringResource(R.string.settings_asl_advisory_summary)) },
                     colors = ItemColors,
                     trailingContent = {
-                        androidx.compose.material3.Surface(
-                            shape = androidx.compose.foundation.shape.RoundedCornerShape(4.dp),
+                        Surface(
+                            shape = RoundedCornerShape(4.dp),
                             color = MaterialTheme.colorScheme.errorContainer,
                             contentColor = MaterialTheme.colorScheme.onErrorContainer,
                         ) {
@@ -181,39 +163,21 @@ fun SettingsScreen(store: SettingsStore, models: ModelStore, onBack: () -> Unit,
                         }
                     },
                 )
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.settings_cloud_ai)) },
-                    supportingContent = { Text(stringResource(R.string.settings_cloud_ai_summary)) },
+                if (cloud.available) ListItem(
+                    headlineContent = { Text(stringResource(if (cloud.viaGateway) R.string.settings_cloud_ai else R.string.settings_cloud_ai_direct)) },
+                    supportingContent = { Text(stringResource(if (cloud.viaGateway) R.string.settings_cloud_ai_summary else R.string.settings_cloud_ai_summary_direct)) },
                     colors = ItemColors,
                     trailingContent = { Switch(checked = s.cloudAi, onCheckedChange = null) },
                     modifier = Modifier.toggleable(s.cloudAi, role = Role.Switch) { on ->
                         if (on) dialog = Dialog.CLOUD else scope.launch { store.setCloudAi(false) }
                     },
                 )
-                if (s.cloudAi) {
-                    Item(stringResource(R.string.settings_cloud_ai_key), if (s.cloudAiKey.isBlank()) notSet else "••••••••") { dialog = Dialog.AIKEY }
+                if (cloud.viaGateway && s.cloudAi) {
+                    Item(stringResource(R.string.settings_cloud_ai_key), if (enrolled) stringResource(R.string.settings_cloud_ai_enrolled) else notSet) { dialog = Dialog.AIKEY }
                 }
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.settings_allow_auto)) },
-                    supportingContent = { Text(stringResource(R.string.settings_allow_auto_summary)) },
-                    colors = ItemColors,
-                    trailingContent = { Switch(checked = s.allowAuto, onCheckedChange = null) },
-                    modifier = Modifier.toggleable(s.allowAuto, role = Role.Switch) { on -> scope.launch { store.setAllowAuto(on) } },
-                )
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.settings_tilt)) },
-                    supportingContent = { Text(stringResource(R.string.settings_tilt_summary)) },
-                    colors = ItemColors,
-                    trailingContent = { Switch(checked = s.tiltToShow, onCheckedChange = null) },
-                    modifier = Modifier.toggleable(s.tiltToShow, role = Role.Switch) { on -> scope.launch { store.setTiltToShow(on) } },
-                )
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.settings_volume_keys)) },
-                    supportingContent = { Text(stringResource(R.string.settings_volume_keys_summary)) },
-                    colors = ItemColors,
-                    trailingContent = { Switch(checked = s.volumeKeys, onCheckedChange = null) },
-                    modifier = Modifier.toggleable(s.volumeKeys, role = Role.Switch) { on -> scope.launch { store.setVolumeKeys(on) } },
-                )
+                SwitchItem(R.string.settings_allow_auto, R.string.settings_allow_auto_summary, s.allowAuto) { on -> scope.launch { store.setAllowAuto(on) } }
+                SwitchItem(R.string.settings_tilt, R.string.settings_tilt_summary, s.tiltToShow) { on -> scope.launch { store.setTiltToShow(on) } }
+                SwitchItem(R.string.settings_volume_keys, R.string.settings_volume_keys_summary, s.volumeKeys) { on -> scope.launch { store.setVolumeKeys(on) } }
             }
             Group(R.string.settings_assistant) {
                 ListItem(
@@ -317,10 +281,10 @@ fun SettingsScreen(store: SettingsStore, models: ModelStore, onBack: () -> Unit,
         )
         Dialog.CLOUD -> GuardedAlertDialog(
             onDismissRequest = { dialog = null },
-            title = { Text(stringResource(R.string.cloud_notice_title)) },
-            text = { Text(stringResource(R.string.cloud_notice_body)) },
+            title = { Text(stringResource(if (cloud.viaGateway) R.string.cloud_notice_title else R.string.cloud_notice_title_direct)) },
+            text = { Text(stringResource(if (cloud.viaGateway) R.string.cloud_notice_body else R.string.cloud_notice_body_direct)) },
             confirmButton = {
-                TextButton(onClick = { scope.launch { store.setCloudAi(true) }; dialog = if (s.cloudAiKey.isBlank()) Dialog.AIKEY else null }) {
+                TextButton(onClick = { scope.launch { store.setCloudAi(true) }; dialog = if (!enrolled) Dialog.AIKEY else null }) {
                     Text(stringResource(R.string.cloud_notice_accept))
                 }
             },
@@ -336,12 +300,12 @@ fun SettingsScreen(store: SettingsStore, models: ModelStore, onBack: () -> Unit,
                         value = key,
                         onValueChange = { key = it },
                         singleLine = true,
-                        visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                        visualTransformation = PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         modifier = Modifier.fillMaxWidth(),
                     )
                 },
-                confirmButton = { TextButton(onClick = { scope.launch { store.setCloudAiKey(key) }; dialog = null }, enabled = key.isNotBlank()) { Text(stringResource(R.string.save)) } },
+                confirmButton = { TextButton(onClick = { scope.launch { enrolled = cloud.enroll(key) || enrolled; dialog = null } }, enabled = key.isNotBlank()) { Text(stringResource(R.string.save)) } },
                 dismissButton = { TextButton(onClick = { dialog = null }) { Text(stringResource(R.string.cancel)) } },
             )
         }
@@ -389,6 +353,17 @@ private fun Group(@StringRes title: Int, content: @Composable ColumnScope.() -> 
             content = content,
         )
     }
+}
+
+@Composable
+private fun SwitchItem(@StringRes title: Int, @StringRes summary: Int, checked: Boolean, onChange: (Boolean) -> Unit) {
+    ListItem(
+        headlineContent = { Text(stringResource(title)) },
+        supportingContent = { Text(stringResource(summary)) },
+        colors = ItemColors,
+        trailingContent = { Switch(checked = checked, onCheckedChange = null) },
+        modifier = Modifier.toggleable(checked, role = Role.Switch, onValueChange = onChange),
+    )
 }
 
 private val ItemColors @Composable get() = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest)

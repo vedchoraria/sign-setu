@@ -44,8 +44,6 @@ class MainPageTest {
     private val wash = WordEntry(listOf("wash", "washing"), card = "wash")
     private val wait = WordEntry(listOf("wait"), gesture = "wait.palm")
     private val bundle = ContentBundle(
-        groups = emptyList(), questions = emptyList(), categories = emptyList(), cards = emptyMap(), lexicon = emptyMap(),
-        languages = emptyList(), subjectUi = emptyMap(), rejected = emptySet(),
         gestures = listOf("water.cup", "wait.palm").associateWith { Gesture(it, listOf(Key(0f))) },
         phrases = listOf(Phrase("want", mapOf("en" to "Do you want …?"), listOf("$"), listOf(PhraseSlot("water", "water.cup", mapOf("en" to "Do you want water?"))))),
         words = listOf(water, wash, wait).flatMap { e -> e.w.map { it to e } }.toMap(),

@@ -23,7 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -129,8 +129,8 @@ fun autoSuffix(res: Resources, e: SessionEvent, by: Map<Long, ShownBy>, idle: Se
 /** The officer's Manual or Auto switch and, in Auto, the next proposed item with its reason. */
 @Composable
 fun AutoPanel(auto: AutoPilot, ui: SessionUi, content: ContentBundle, officerLang: String, modifier: Modifier = Modifier) {
-    val conv by auto.conv.collectAsState()
-    val advance by auto.autoAdvance.collectAsState()
+    val conv by auto.conv.collectAsStateWithLifecycle()
+    val advance by auto.autoAdvance.collectAsStateWithLifecycle()
     Column(modifier.padding(horizontal = Spacing.lg, vertical = Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
         SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
             SegmentedButton(

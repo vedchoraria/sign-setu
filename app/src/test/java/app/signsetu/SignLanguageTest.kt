@@ -63,7 +63,7 @@ class SignLanguageTest {
         assertEquals("I want water.", i.en)
     }
 
-    private val assets = File("src/main/assets/content")
+    private val assets = ASSETS
     private fun open(path: String) = File(assets, path).takeIf { it.isFile }?.readBytes()
 
     @Test
@@ -85,7 +85,6 @@ class SignLanguageTest {
         val asl = IslSign("asl.water", "water", category = "Words", rec = "test/water/a.mp4", keys = g("asl.water", 0.9f).keys)
         val everyday = g("namaste", 0.4f)
         val bundle = ContentBundle(
-            emptyList(), emptyList(), emptyList(), emptyMap(), emptyMap(), emptyList(), emptyMap(), emptySet(),
             gestures = mapOf(isl.id to isl, everyday.id to everyday),
             words = words,
             everyday = mapOf(everyday.id to everyday),

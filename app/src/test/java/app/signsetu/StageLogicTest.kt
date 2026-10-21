@@ -143,14 +143,11 @@ class StageLogicTest {
     @Test
     fun everyOpeningStepAndStripAnswerHasWordsAndPictures() {
         val json = Json { ignoreUnknownKeys = true }
-        val content = File("src/main/assets/content")
+        val content = ASSETS
         val subjectUi = json.decodeFromString(MapSerializer(String.serializer(), MapSerializer(String.serializer(), String.serializer())), File(content, "subject_ui.json").readText())
         val triage = json.parseToJsonElement(File(content, "triage.json").readText()).jsonObject
         val questions = json.decodeFromJsonElement(ListSerializer(Question.serializer()), triage.getValue("questions"))
-        val bundle = ContentBundle(
-            groups = emptyList(), questions = questions, categories = emptyList(), cards = emptyMap(),
-            lexicon = emptyMap(), languages = emptyList(), subjectUi = subjectUi, rejected = emptySet(),
-        )
+        val bundle = ContentBundle(questions = questions, subjectUi = subjectUi)
         val gestures = File(content, "gestures.json").readText()
         RuleSteps.forEach { step ->
             listOf("en", "hi").forEach { assertNotNull("${step.key} $it", ruleText(bundle, step.key, it)) }

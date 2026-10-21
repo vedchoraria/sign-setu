@@ -1,43 +1,15 @@
 package app.signsetu
 
-import app.signsetu.data.content.Card
-import app.signsetu.data.content.CardCategory
-import app.signsetu.data.content.ContentBundle
-import app.signsetu.data.content.Group
-import app.signsetu.data.content.LexiconEntry
-import app.signsetu.data.content.Localized
 import app.signsetu.data.content.Made
-import app.signsetu.data.content.Phrase
-import app.signsetu.data.content.Question
-import app.signsetu.data.content.WordEntry
 import app.signsetu.data.content.glossToText
 import app.signsetu.data.content.toHindi
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
-import java.io.File
 
 class TranslateTest {
-    @Serializable private data class TriageFile(val groups: List<Group>, val questions: List<Question>)
-    @Serializable private data class CardsFile(val categories: List<CardCategory>, val cards: List<Card>)
-    @Serializable private data class LexiconFile(val entries: List<LexiconEntry>)
-    @Serializable private data class PhrasesFile(val phrases: List<Phrase>)
-    @Serializable private data class WordsFile(val words: List<WordEntry>)
-
-    private val dir = File("src/main/assets/content")
-    private val json = Json { ignoreUnknownKeys = true }
-    private inline fun <reified T> read(name: String) = json.decodeFromString<T>(File(dir, name).readText())
-    private val triage = read<TriageFile>("triage.json")
-    private val cardsFile = read<CardsFile>("cards.json")
-    private val words = read<WordsFile>("words.json").words.flatMap { e -> e.w.map { it to e } }.toMap()
-    private val content = ContentBundle(
-        groups = triage.groups, questions = triage.questions, categories = cardsFile.categories,
-        cards = cardsFile.cards.associateBy { it.id }, lexicon = read<LexiconFile>("lexicon.json").entries.associateBy { it.id },
-        languages = emptyList(), subjectUi = read<Map<String, Localized>>("subject_ui.json"), rejected = emptySet(),
-        phrases = read<PhrasesFile>("phrases.json").phrases, words = words,
-    )
+    private val content = shipped
+    private val words = shipped.words
 
     private fun check(cases: List<Pair<String, String>>, made: Made) {
         for ((en, hi) in cases) {

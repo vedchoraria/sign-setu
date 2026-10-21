@@ -1,12 +1,8 @@
 package app.signsetu.ui.session
 
-import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.signsetu.data.content.ContentBundle
-import app.signsetu.data.content.LexiconEntry
-import app.signsetu.data.content.Phrase
-import app.signsetu.data.content.PhraseSlot
 import app.signsetu.data.content.Question
 import app.signsetu.data.content.SignLanguage
 import app.signsetu.data.content.SignMode
@@ -31,8 +27,7 @@ import app.signsetu.pair.reencodeRemotePng
 import app.signsetu.sign.SignWindow
 import app.signsetu.sign.glossOf
 import app.signsetu.sign.glossTranscript
-import app.signsetu.sign.inContext
-import app.signsetu.sign.needsSlower
+import app.signsetu.sign.decideRead
 import app.signsetu.sign.signChoices
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -60,104 +55,13 @@ import app.signsetu.export.ReportText
 import app.signsetu.export.SessionReport
 import app.signsetu.export.recordDigest
 import java.io.File
+import java.util.Base64
+import app.signsetu.camera.EvidenceMode
+import app.signsetu.camera.renderSkeletonPng
+import kotlinx.coroutines.withContext
 
-/** What the officer has prepared but not yet shown (FR-15). */
-@Immutable
-sealed interface Pending {
-    data class Ask(val question: Question) : Pending
-    /** [caption] is the assistant's translation the officer accepted (D-24); the character still signs [text]. */
-    data class FreeText(
-        val text: String,
-        val cardIds: List<String>,
-        val modes: Set<SignMode> = emptySet(),
-        val caption: String? = null,
-        /** Set when the officer says an answer line back to the subject to confirm its meaning. */
-        val ref: Long? = null,
-        /** The picture of the officer's reading in a say-back; the subject picks among [cardIds]. */
-        val meant: String? = null,
-    ) : Pending
-    data class Cards(val cardIds: List<String>) : Pending
-    /** [choices] are the pictures offered, the entry's among them; fewer than two is a plain Yes or No. */
-    data class ShowBack(val entry: LexiconEntry, val choices: List<String> = emptyList()) : Pending
-    data class PhraseAsk(val phrase: Phrase, val slot: PhraseSlot) : Pending
-    data object LanguageFinder : Pending
-    data object Drawing : Pending
-    /** The opening: introduction, ground rules and a practice round, one step at a time (GroundRules.kt). */
-    data class GroundRules(val step: Int = 0) : Pending
-}
-
-enum class Mode { OFFICER, SHOW }
-
-/** A show-back or say-back that asks the subject to pick the meaning among pictures, not to say Yes to one. */
-val Pending?.asksChoice: Boolean get() = when (this) {
-    is Pending.ShowBack -> choices.size >= 2
-    is Pending.FreeText -> meant != null && cardIds.size >= 2
-    else -> false
-}
-
-/** Machine keys for SYSTEM events; the log shows them in the officer's language. */
-const val SYSTEM_LANGUAGE_FINDER = "language_finder"
-const val SYSTEM_DRAWING = "drawing"
-const val SYSTEM_READ_SIGNS = "read_signs"
-const val SYSTEM_BREAK_GIVEN = "break_given"
-const val LINK_FALLBACK = "fallback"
-const val VIA_STAGE = "stage"
-const val VIA_STAGE_LATE = "stage_late"
-const val SYSTEM_TELL_ME = "tell_me"
-/** The officer was shown the Juvenile Justice notice for an accused person. */
-const val SYSTEM_JJ_NOTICE = "jj_notice"
-/** The officer marked, or unmarked, an accused person as possibly under 18. */
-const val SYSTEM_JUVENILE = "juvenile"
-const val SYSTEM_JUVENILE_OFF = "juvenile_off"
-/** Rows a session may start with before anything is shown. */
-val StartRows = setOf(SYSTEM_JJ_NOTICE, SYSTEM_JUVENILE)
-/** Followed by "<shown>/<total>" when a question run ends before its last question. */
-const val SYSTEM_RUN_ENDED = "run_ended:"
-const val RUN_MAX = 5
 private const val RUN_STEP_MS = 1_400L
 private const val STAGE_CHECKS = 3
-
-/** A young child, or an accused the officer marked as possibly under 18: no adult arrest rights are offered. */
-val SessionUi.juvenile: Boolean
-    get() = session.profile == Profile.YOUNG_CHILD ||
-        events.lastOrNull { it.type == EventType.SYSTEM && (it.text == SYSTEM_JUVENILE || it.text == SYSTEM_JUVENILE_OFF) }?.text == SYSTEM_JUVENILE
-
-/** Followed by a [SignLanguage] name: the officer set the language the session is signed in. */
-const val SYSTEM_SIGN_LANGUAGE = "sign_language:"
-
-/** The session's sign language, ISL until the officer sets another; it selects the reader and the character's signs. */
-val SessionUi.signLanguage: SignLanguage
-    get() = events.lastOrNull { it.type == EventType.SYSTEM && it.text?.startsWith(SYSTEM_SIGN_LANGUAGE) == true }
-        ?.text?.removePrefix(SYSTEM_SIGN_LANGUAGE)?.let { n -> SignLanguage.entries.firstOrNull { it.name == n } } ?: SignLanguage.ISL
-
-@Immutable
-data class SessionUi(
-    val session: Session,
-    val selectedGroup: String,
-    val sensitiveUnlocked: Boolean,
-    val pending: Pending?,
-    val mode: Mode,
-    val rotated: Boolean,
-    /** Card or Yes/No the subject chose for the item currently on screen. */
-    val answeredCard: String?,
-    val answeredYes: Boolean?,
-    val chosenLanguage: String?,
-    val events: List<SessionEvent>,
-    /** Signs read so far while the subject is signing an answer; null when not reading. */
-    val reading: List<SignSegment>?,
-    /** Landmark frames of each signed answer, by event id: memory only, never stored or exported (D-25). */
-    val signed: Map<Long, List<SignSegment>>,
-    /** What is on the stage now, set only after it is logged; [pending] is the officer's draft (D-26). */
-    val onStage: Pending? = null,
-    /** The logged row of [onStage]; a second screen's answers name it. */
-    val itemId: Long? = null,
-    /** The open sign window, if any: the camera is analysed only inside one (D-25). */
-    val signWindow: SignWindow? = null,
-    /** Alternatives the subject is choosing between for a signed answer; only their tap records a meaning. */
-    val confirm: SignConfirm? = null,
-    /** How many questions the current question run started with; 0 when no run. */
-    val runTotal: Int = 0,
-)
 
 private data class Local(
     val selectedGroup: String = "safety",
@@ -197,7 +101,6 @@ class SessionViewModel(
     // Cards that answer the item shown when the window opened: the reader's guesses that match them come first.
     @Volatile private var context: Set<String> = emptySet()
     private val reads = mutableListOf<Job>()
-    // Sign reader inference dispatcher
     private val readDispatcher = Dispatchers.Default.limitedParallelism(2)
 
     val auto = AutoPilot(
@@ -309,10 +212,7 @@ class SessionViewModel(
         local.update { it.copy(reading = it.reading?.plus(segment)) }
         reads += viewModelScope.launch(readDispatcher) {
             val all = reader?.let { r -> runCatching { r.read(frames) }.getOrNull() }.orEmpty().sortedByDescending { it.score }
-            val home = homeSigns.match(frames)
-            // Only the top three are reordered: over every label some guess always fits the item, at any score.
-            val guesses = (listOfNotNull(home) + inContext(all.take(3), cards, reader?.words.orEmpty(), content.words)).distinctBy { it.word }.take(3)
-            val read = SignSegment(frames, guesses, needsSlower(frames, all), cards)
+            val read = decideRead(frames, all, homeSigns.match(frames), cards, reader?.words.orEmpty(), content.words)
             local.update { l -> l.copy(reading = l.reading?.map { if (it === segment) read else it }) }
         }
     }
@@ -354,13 +254,11 @@ class SessionViewModel(
     private suspend fun logSigned(segments: List<SignSegment>, words: List<String>, source: EventSource, lang: String, shownId: Long? = local.value.itemId): Long {
         val id = repo.log(sessionId, EventType.ANSWER_SIGNED, source, lang, text = words.joinToString(" "), shownId = shownId)
         local.update { it.copy(signed = it.signed + (id to segments)) }
-        if (app.signsetu.camera.EvidenceMode.autoCapture.value) {
+        if (EvidenceMode.autoCapture.value) {
             val keyFrame = segments.flatMap { it.frames }.firstOrNull { it.pose != null || it.leftHand != null || it.rightHand != null }
                 ?: segments.firstOrNull()?.frames?.firstOrNull()
             if (keyFrame != null) {
-                val png = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
-                    runCatching { app.signsetu.camera.renderSkeletonPng(keyFrame) }.getOrNull()
-                }
+                val png = withContext(Dispatchers.Default) { runCatching { renderSkeletonPng(keyFrame) }.getOrNull() }
                 if (png != null) {
                     repo.log(sessionId, EventType.ANSWER_DRAWING, source, drawingPng = png, shownId = shownId, reason = "evidence:skeleton")
                 }
@@ -553,8 +451,7 @@ class SessionViewModel(
             AnswerBody.Change -> if (current) hold(null, via)
             is AnswerBody.Text -> repo.log(sessionId, EventType.ANSWER_TEXT, EventSource.SUBJECT, ui.value?.session?.subjectLang, text = body.text.trim(), shownId = q, via = via)
             is AnswerBody.Drawing -> {
-                // Only a bitmap this phone re-encoded itself reaches the database and the report.
-                val png = runCatching { java.util.Base64.getDecoder().decode(body.png) }.getOrNull()?.let(reencodePng)
+                val png = remotePng(body.png)
                 if (png != null) {
                     repo.log(sessionId, EventType.ANSWER_DRAWING, EventSource.SUBJECT, drawingPng = png, shownId = q, via = via)
                 } else {
@@ -567,9 +464,8 @@ class SessionViewModel(
                 if (text.isNotBlank()) {
                     repo.log(sessionId, EventType.ANSWER_SIGNED, EventSource.SUBJECT, lang, text = text, shownId = q, via = via)
                 }
-                if (body.skeletonPng != null) {
-                    val png = runCatching { java.util.Base64.getDecoder().decode(body.skeletonPng) }.getOrNull()?.let(reencodePng)
-                    if (png != null) {
+                if (body.skeletonPng != null && EvidenceMode.autoCapture.value) {
+                    remotePng(body.skeletonPng)?.let { png ->
                         repo.log(sessionId, EventType.ANSWER_DRAWING, EventSource.SUBJECT, drawingPng = png, shownId = q, via = via, reason = "evidence:skeleton")
                     }
                 }
@@ -578,6 +474,9 @@ class SessionViewModel(
         remoteLogged += itemId to n
         return true
     }
+
+    /** Only a bitmap this phone re-encoded itself reaches the database and the report. */
+    private fun remotePng(base64: String): ByteArray? = runCatching { Base64.getDecoder().decode(base64) }.getOrNull()?.let(reencodePng)
 
     /** Lifecycle of the second screen, in the encrypted log; [key] is a machine key shown in the officer's language. */
     fun logLink(key: String, detail: String? = null) = viewModelScope.launch {
@@ -836,6 +735,7 @@ class SessionViewModel(
             events = events,
             chainDigest = chainDigest,
             recordDigest = recDigest,
+            signLanguage = currentUi?.signLanguage ?: SignLanguage.ISL,
         )
         return report.export(rows, text, { repo.drawing(it) }, section, aiSummary, certificate, chainDigest)
     }

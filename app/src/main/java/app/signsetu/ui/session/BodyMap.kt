@@ -88,7 +88,6 @@ private fun DrawScope.drawFigure(line: Color, fill: Color) {
         drawRoundRect(fill, Offset(x * w, 0.36f * h), Size(0.14f * w, 0.40f * h), CornerRadius(0.07f * w))
         drawRoundRect(line, Offset(x * w, 0.36f * h), Size(0.14f * w, 0.40f * h), CornerRadius(0.07f * w), style = stroke)
     }
-    // Torso and neck.
     drawRoundRect(fill, Offset(0.30f * w, 0.33f * h), Size(0.40f * w, 0.42f * h), CornerRadius(0.08f * w))
     drawRoundRect(line, Offset(0.30f * w, 0.33f * h), Size(0.40f * w, 0.42f * h), CornerRadius(0.08f * w), style = stroke)
     drawRect(fill, Offset(0.45f * w, 0.29f * h), Size(0.10f * w, 0.05f * h))

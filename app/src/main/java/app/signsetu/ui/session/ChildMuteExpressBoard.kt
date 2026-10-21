@@ -4,15 +4,11 @@ import android.content.Context
 import android.speech.tts.TextToSpeech
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -27,7 +23,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -35,38 +30,21 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
@@ -76,19 +54,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import app.signsetu.R
-import app.signsetu.data.content.ContentBundle
-import app.signsetu.data.content.pick
 import app.signsetu.ui.components.CardImage
 import app.signsetu.ui.theme.Baloo
 import java.util.Locale
 
-/**
- * An Expressive AAC Pictogram item tailored for children and mute persons.
- */
+/** A picture card on the express board, with its words and what is spoken when it is tapped. */
 data class ExpressPictogram(
     val id: String,
-    val iconRes: String? = null,
     val englishLabel: String,
     val hindiLabel: String,
     val speechPhrase: String,
@@ -96,7 +68,6 @@ data class ExpressPictogram(
     val category: ExpressCategory,
     val accentColor: Color,
     val textColor: Color = Color(0xFF1E293B),
-    val systemIcon: ImageVector? = null,
 )
 
 enum class ExpressCategory(val en: String, val hi: String) {
@@ -108,60 +79,52 @@ enum class ExpressCategory(val en: String, val hi: String) {
     BODY("Where it hurts", "कहाँ दर्द है"),
 }
 
-/** Pre-configured high-priority communication cards for children and mute victims */
+/** The board's cards, by category: the things a frightened child or a person who cannot speak most needs to say. */
 val ChildExpressCards = listOf(
-    // Urgent / Feelings
-    ExpressPictogram("pain", "pain", "I am Hurt / Pain", "दर्द हो रहा है", "I am in pain", "मुझे दर्द हो रहा है", ExpressCategory.FEELINGS, Color(0xFFFFD4D4), Color(0xFF8B1D1D)),
-    ExpressPictogram("scared", "scared", "I am Scared", "मुझे डर लग रहा है", "I feel scared", "मुझे डर लग रहा है", ExpressCategory.FEELINGS, Color(0xFFFFF1C2), Color(0xFF8C5800)),
-    ExpressPictogram("sick", "sick", "I Feel Sick", "तबीयत खराब है", "I feel sick", "मेरी तबीयत खराब है", ExpressCategory.FEELINGS, Color(0xFFFFE0D0), Color(0xFF8C2E00)),
-    ExpressPictogram("stop", "stop", "Please Stop", "कृपया रुकिए", "Please stop", "कृपया रुकिए", ExpressCategory.FEELINGS, Color(0xFFFFCDD2), Color(0xFFB71C1C)),
-    ExpressPictogram("police", "police", "Need Police Help", "पुलिस मदद", "I need police help", "मुझे पुलिस सहायता चाहिए", ExpressCategory.FEELINGS, Color(0xFFD6E4FF), Color(0xFF1D3B8B)),
-    ExpressPictogram("okay", "okay", "I Feel Safe", "मैं सुरक्षित हूँ", "I feel safe now", "मैं अब सुरक्षित हूँ", ExpressCategory.FEELINGS, Color(0xFFD1F2D9), Color(0xFF1B6B32)),
-    ExpressPictogram("sad", "sad", "I am Sad / Crying", "मैं उदास हूँ", "I am very sad", "मैं बहुत उदास हूँ", ExpressCategory.FEELINGS, Color(0xFFEDE9FE), Color(0xFF5B21B6)),
-    ExpressPictogram("angry", "angry", "Someone is Angry", "कोई गुस्सा कर रहा है", "Someone is angry with me", "मुझ पर कोई गुस्सा कर रहा है", ExpressCategory.FEELINGS, Color(0xFFFFEDD5), Color(0xFF9A3412)),
+    ExpressPictogram("pain", "I am Hurt / Pain", "दर्द हो रहा है", "I am in pain", "मुझे दर्द हो रहा है", ExpressCategory.FEELINGS, Color(0xFFFFD4D4), Color(0xFF8B1D1D)),
+    ExpressPictogram("scared", "I am Scared", "मुझे डर लग रहा है", "I feel scared", "मुझे डर लग रहा है", ExpressCategory.FEELINGS, Color(0xFFFFF1C2), Color(0xFF8C5800)),
+    ExpressPictogram("sick", "I Feel Sick", "तबीयत खराब है", "I feel sick", "मेरी तबीयत खराब है", ExpressCategory.FEELINGS, Color(0xFFFFE0D0), Color(0xFF8C2E00)),
+    ExpressPictogram("stop", "Please Stop", "कृपया रुकिए", "Please stop", "कृपया रुकिए", ExpressCategory.FEELINGS, Color(0xFFFFCDD2), Color(0xFFB71C1C)),
+    ExpressPictogram("police", "Need Police Help", "पुलिस मदद", "I need police help", "मुझे पुलिस सहायता चाहिए", ExpressCategory.FEELINGS, Color(0xFFD6E4FF), Color(0xFF1D3B8B)),
+    ExpressPictogram("okay", "I Feel Safe", "मैं सुरक्षित हूँ", "I feel safe now", "मैं अब सुरक्षित हूँ", ExpressCategory.FEELINGS, Color(0xFFD1F2D9), Color(0xFF1B6B32)),
+    ExpressPictogram("sad", "I am Sad / Crying", "मैं उदास हूँ", "I am very sad", "मैं बहुत उदास हूँ", ExpressCategory.FEELINGS, Color(0xFFEDE9FE), Color(0xFF5B21B6)),
+    ExpressPictogram("angry", "Someone is Angry", "कोई गुस्सा कर रहा है", "Someone is angry with me", "मुझ पर कोई गुस्सा कर रहा है", ExpressCategory.FEELINGS, Color(0xFFFFEDD5), Color(0xFF9A3412)),
 
-    // Basic Needs
-    ExpressPictogram("water", "water", "Need Water", "पानी चाहिए", "I need water please", "मुझे पानी चाहिए", ExpressCategory.NEEDS, Color(0xFFD8F3FF), Color(0xFF026AA7)),
-    ExpressPictogram("toilet", "toilet", "Washroom", "शौचालय जाना है", "I need the washroom", "मुझे शौचालय जाना है", ExpressCategory.NEEDS, Color(0xFFE8DEFF), Color(0xFF5521B5)),
-    ExpressPictogram("food", "food", "Hungry / Food", "भूख लगी है / खाना", "I am hungry, I need food", "मुझे भूख लगी है, खाना चाहिए", ExpressCategory.NEEDS, Color(0xFFFFECCC), Color(0xFF8C5500)),
-    ExpressPictogram("rest", "rest", "Tired / Rest", "आराम करना है", "I am tired, I need rest", "मैं थक गया हूँ, आराम चाहिए", ExpressCategory.NEEDS, Color(0xFFE2E8F0), Color(0xFF334155)),
-    ExpressPictogram("phone", "phone", "Call Family", "घर पर फोन करो", "Please call my family", "कृपया मेरे घर फोन कीजिए", ExpressCategory.NEEDS, Color(0xFFC7F9CC), Color(0xFF145A32)),
-    ExpressPictogram("medicine", "medicine", "Medicine", "दवा चाहिए", "I need medicine", "मुझे दवा चाहिए", ExpressCategory.NEEDS, Color(0xFFCCFBF1), Color(0xFF115E59)),
+    ExpressPictogram("water", "Need Water", "पानी चाहिए", "I need water please", "मुझे पानी चाहिए", ExpressCategory.NEEDS, Color(0xFFD8F3FF), Color(0xFF026AA7)),
+    ExpressPictogram("toilet", "Washroom", "शौचालय जाना है", "I need the washroom", "मुझे शौचालय जाना है", ExpressCategory.NEEDS, Color(0xFFE8DEFF), Color(0xFF5521B5)),
+    ExpressPictogram("food", "Hungry / Food", "भूख लगी है / खाना", "I am hungry, I need food", "मुझे भूख लगी है, खाना चाहिए", ExpressCategory.NEEDS, Color(0xFFFFECCC), Color(0xFF8C5500)),
+    ExpressPictogram("rest", "Tired / Rest", "आराम करना है", "I am tired, I need rest", "मैं थक गया हूँ, आराम चाहिए", ExpressCategory.NEEDS, Color(0xFFE2E8F0), Color(0xFF334155)),
+    ExpressPictogram("phone", "Call Family", "घर पर फोन करो", "Please call my family", "कृपया मेरे घर फोन कीजिए", ExpressCategory.NEEDS, Color(0xFFC7F9CC), Color(0xFF145A32)),
+    ExpressPictogram("medicine", "Medicine", "दवा चाहिए", "I need medicine", "मुझे दवा चाहिए", ExpressCategory.NEEDS, Color(0xFFCCFBF1), Color(0xFF115E59)),
 
-    // People & Family (Crucial for POCSO & Missing child welfare)
-    ExpressPictogram("mother", "mother", "Mother / Mummy", "माँ", "I want my mother", "मुझे मेरी माँ चाहिए", ExpressCategory.PEOPLE, Color(0xFFFFD6E0), Color(0xFF881337)),
-    ExpressPictogram("father", "father", "Father / Papa", "पिताजी", "I want my father", "मुझे मेरे पिताजी चाहिए", ExpressCategory.PEOPLE, Color(0xFFDBEAFE), Color(0xFF1E40AF)),
-    ExpressPictogram("brother", "brother", "Brother", "भाई", "My brother", "मेरा भाई", ExpressCategory.PEOPLE, Color(0xFFE0E7FF), Color(0xFF3730A3)),
-    ExpressPictogram("sister", "sister", "Sister", "बहन", "My sister", "मेरी बहन", ExpressCategory.PEOPLE, Color(0xFFFCE7F3), Color(0xFF9D174D)),
-    ExpressPictogram("friends", "friends", "Friend", "दोस्त", "My friend", "मेरा दोस्त", ExpressCategory.PEOPLE, Color(0xFFDCFCE7), Color(0xFF166534)),
-    ExpressPictogram("someone_else", "someone_else", "Strangers / Other Person", "अनजान व्यक्ति / कोई और", "An unknown person", "कोई अनजान व्यक्ति", ExpressCategory.PEOPLE, Color(0xFFFEE2E2), Color(0xFF991B1B)),
+    ExpressPictogram("mother", "Mother / Mummy", "माँ", "I want my mother", "मुझे मेरी माँ चाहिए", ExpressCategory.PEOPLE, Color(0xFFFFD6E0), Color(0xFF881337)),
+    ExpressPictogram("father", "Father / Papa", "पिताजी", "I want my father", "मुझे मेरे पिताजी चाहिए", ExpressCategory.PEOPLE, Color(0xFFDBEAFE), Color(0xFF1E40AF)),
+    ExpressPictogram("brother", "Brother", "भाई", "My brother", "मेरा भाई", ExpressCategory.PEOPLE, Color(0xFFE0E7FF), Color(0xFF3730A3)),
+    ExpressPictogram("sister", "Sister", "बहन", "My sister", "मेरी बहन", ExpressCategory.PEOPLE, Color(0xFFFCE7F3), Color(0xFF9D174D)),
+    ExpressPictogram("friends", "Friend", "दोस्त", "My friend", "मेरा दोस्त", ExpressCategory.PEOPLE, Color(0xFFDCFCE7), Color(0xFF166534)),
+    ExpressPictogram("someone_else", "Strangers / Other Person", "अनजान व्यक्ति / कोई और", "An unknown person", "कोई अनजान व्यक्ति", ExpressCategory.PEOPLE, Color(0xFFFEE2E2), Color(0xFF991B1B)),
 
-    // Places & Safety
-    ExpressPictogram("home", "home", "Home / Take me Home", "घर / मुझे घर जाना है", "I want to go home", "मुझे घर जाना है", ExpressCategory.PLACES, Color(0xFFFEF3C7), Color(0xFF92400E)),
-    ExpressPictogram("school", "school", "School", "स्कूल", "At my school", "मेरे स्कूल में", ExpressCategory.PLACES, Color(0xFFE0F2FE), Color(0xFF0369A1)),
-    ExpressPictogram("hospital", "hospital", "Hospital / Clinic", "अस्पताल", "Take me to hospital", "मुझे अस्पताल ले चलो", ExpressCategory.PLACES, Color(0xFFFFE4E6), Color(0xFF9F1239)),
-    ExpressPictogram("bus_stand", "bus_stand", "Bus / Train Stand", "बस / ट्रेन स्टैंड", "At the bus or train station", "बस या रेलवे स्टेशन पर", ExpressCategory.PLACES, Color(0xFFF1F5F9), Color(0xFF334155)),
-    ExpressPictogram("road", "road", "Road / Outside", "सड़क / बाहर", "On the road", "सड़क पर", ExpressCategory.PLACES, Color(0xFFF3F4F6), Color(0xFF374151)),
+    ExpressPictogram("home", "Home / Take me Home", "घर / मुझे घर जाना है", "I want to go home", "मुझे घर जाना है", ExpressCategory.PLACES, Color(0xFFFEF3C7), Color(0xFF92400E)),
+    ExpressPictogram("school", "School", "स्कूल", "At my school", "मेरे स्कूल में", ExpressCategory.PLACES, Color(0xFFE0F2FE), Color(0xFF0369A1)),
+    ExpressPictogram("hospital", "Hospital / Clinic", "अस्पताल", "Take me to hospital", "मुझे अस्पताल ले चलो", ExpressCategory.PLACES, Color(0xFFFFE4E6), Color(0xFF9F1239)),
+    ExpressPictogram("bus_stand", "Bus / Train Stand", "बस / ट्रेन स्टैंड", "At the bus or train station", "बस या रेलवे स्टेशन पर", ExpressCategory.PLACES, Color(0xFFF1F5F9), Color(0xFF334155)),
+    ExpressPictogram("road", "Road / Outside", "सड़क / बाहर", "On the road", "सड़क पर", ExpressCategory.PLACES, Color(0xFFF3F4F6), Color(0xFF374151)),
 
-    // Quick Answers
-    ExpressPictogram("yes", "yes", "YES", "हाँ", "Yes", "हाँ", ExpressCategory.ANSWERS, Color(0xFFC2F0C2), Color(0xFF0F5132)),
-    ExpressPictogram("no", "no", "NO", "नहीं", "No", "नहीं", ExpressCategory.ANSWERS, Color(0xFFFFC5C5), Color(0xFF842029)),
-    ExpressPictogram("dont_know", "dont_know", "Don't Know", "पता नहीं", "I don't know", "मुझे नहीं पता", ExpressCategory.ANSWERS, Color(0xFFE2E8F0), Color(0xFF475569)),
-    ExpressPictogram("dont_understand", "dont_understand", "Don't Understand", "समझ नहीं आया", "I do not understand", "मुझे समझ नहीं आया", ExpressCategory.ANSWERS, Color(0xFFFFF3CD), Color(0xFF664D03)),
-    ExpressPictogram("thank_you", "thank_you", "Thank You", "धन्यवाद", "Thank you", "धन्यवाद", ExpressCategory.ANSWERS, Color(0xFFE0F2FE), Color(0xFF0369A1)),
+    ExpressPictogram("yes", "YES", "हाँ", "Yes", "हाँ", ExpressCategory.ANSWERS, Color(0xFFC2F0C2), Color(0xFF0F5132)),
+    ExpressPictogram("no", "NO", "नहीं", "No", "नहीं", ExpressCategory.ANSWERS, Color(0xFFFFC5C5), Color(0xFF842029)),
+    ExpressPictogram("dont_know", "Don't Know", "पता नहीं", "I don't know", "मुझे नहीं पता", ExpressCategory.ANSWERS, Color(0xFFE2E8F0), Color(0xFF475569)),
+    ExpressPictogram("dont_understand", "Don't Understand", "समझ नहीं आया", "I do not understand", "मुझे समझ नहीं आया", ExpressCategory.ANSWERS, Color(0xFFFFF3CD), Color(0xFF664D03)),
+    ExpressPictogram("thank_you", "Thank You", "धन्यवाद", "Thank you", "धन्यवाद", ExpressCategory.ANSWERS, Color(0xFFE0F2FE), Color(0xFF0369A1)),
 
-    // Body Map Quick Pointers
-    ExpressPictogram("head", "head", "Head", "सिर", "My head hurts", "सिर में दर्द है", ExpressCategory.BODY, Color(0xFFFFE4E6), Color(0xFF9F1239)),
-    ExpressPictogram("throat", "throat", "Neck / Throat", "गला", "My throat hurts", "गले में दर्द है", ExpressCategory.BODY, Color(0xFFFEF3C7), Color(0xFF92400E)),
-    ExpressPictogram("stomach", "stomach", "Belly / Stomach", "पेट", "My stomach hurts", "पेट में दर्द है", ExpressCategory.BODY, Color(0xFFFFECCC), Color(0xFF8C5500)),
-    ExpressPictogram("arm", "arm", "Arm / Hand", "हाथ / बांह", "My arm hurts", "हाथ में चोट है", ExpressCategory.BODY, Color(0xFFE0E7FF), Color(0xFF3730A3)),
-    ExpressPictogram("leg", "leg", "Leg / Foot", "पैर", "My leg hurts", "पैर में चोट है", ExpressCategory.BODY, Color(0xFFDCFCE7), Color(0xFF166534)),
-    ExpressPictogram("back", "back", "Back", "पीठ", "My back hurts", "पीठ में दर्द है", ExpressCategory.BODY, Color(0xFFF3E8FF), Color(0xFF6B21A8)),
+    ExpressPictogram("head", "Head", "सिर", "My head hurts", "सिर में दर्द है", ExpressCategory.BODY, Color(0xFFFFE4E6), Color(0xFF9F1239)),
+    ExpressPictogram("throat", "Neck / Throat", "गला", "My throat hurts", "गले में दर्द है", ExpressCategory.BODY, Color(0xFFFEF3C7), Color(0xFF92400E)),
+    ExpressPictogram("stomach", "Belly / Stomach", "पेट", "My stomach hurts", "पेट में दर्द है", ExpressCategory.BODY, Color(0xFFFFECCC), Color(0xFF8C5500)),
+    ExpressPictogram("arm", "Arm / Hand", "हाथ / बांह", "My arm hurts", "हाथ में चोट है", ExpressCategory.BODY, Color(0xFFE0E7FF), Color(0xFF3730A3)),
+    ExpressPictogram("leg", "Leg / Foot", "पैर", "My leg hurts", "पैर में चोट है", ExpressCategory.BODY, Color(0xFFDCFCE7), Color(0xFF166534)),
+    ExpressPictogram("back", "Back", "पीठ", "My back hurts", "पीठ में दर्द है", ExpressCategory.BODY, Color(0xFFF3E8FF), Color(0xFF6B21A8)),
 )
 
-/**
- * Text-to-Speech manager for instant audio articulation of child/mute selections.
- */
+/** Speaks a tapped card aloud in the subject's language. */
 class ChildSpeechSynthesizer(context: Context) {
     private var tts: TextToSpeech? = null
     private var ready = false
@@ -169,25 +132,19 @@ class ChildSpeechSynthesizer(context: Context) {
     init {
         tts = TextToSpeech(context.applicationContext) { status ->
             if (status == TextToSpeech.SUCCESS) {
-                tts?.language = Locale("hi", "IN")
+                tts?.language = Hindi
                 ready = true
             }
         }
     }
 
-    fun speak(phrase: String, lang: String = "hi") {
+    fun speak(phrase: String, lang: String) {
         if (!ready || tts == null) return
-        val targetLocale = when (lang) {
-            "hi" -> Locale("hi", "IN")
+        tts?.language = when (lang) {
             "en" -> Locale.ENGLISH
-            "ta" -> Locale("ta", "IN")
-            "te" -> Locale("te", "IN")
-            "bn" -> Locale("bn", "IN")
-            "mr" -> Locale("mr", "IN")
-            "gu" -> Locale("gu", "IN")
-            else -> Locale("hi", "IN")
+            "ta", "te", "bn", "mr", "gu" -> Locale.forLanguageTag("$lang-IN")
+            else -> Hindi
         }
-        tts?.language = targetLocale
         tts?.speak(phrase, TextToSpeech.QUEUE_FLUSH, null, "child_aac_${System.currentTimeMillis()}")
     }
 
@@ -198,13 +155,11 @@ class ChildSpeechSynthesizer(context: Context) {
     }
 }
 
-/**
- * Fullscreen / Expanded Child & Mute Expressive Communication Board.
- * Features large pictograms, speech synthesis, categorized cards, and instant confirmation.
- */
+private val Hindi = Locale.forLanguageTag("hi-IN")
+
+/** The full-screen express board: large picture cards by category, each spoken aloud and sent as an answer. */
 @Composable
 fun FullChildMuteCommunicationBoard(
-    content: ContentBundle,
     lang: String,
     chosenCard: String?,
     onCard: (String) -> Unit,
@@ -227,7 +182,6 @@ fun FullChildMuteCommunicationBoard(
                 .fillMaxSize()
                 .padding(12.dp),
         ) {
-            // Header bar
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -274,7 +228,6 @@ fun FullChildMuteCommunicationBoard(
                 }
             }
 
-            // Reassurance announcement banner when a card is selected
             AnimatedVisibility(
                 visible = lastExpressed != null,
                 enter = fadeIn() + slideInVertically(),
@@ -314,7 +267,6 @@ fun FullChildMuteCommunicationBoard(
                 }
             }
 
-            // Category selector tabs
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -349,7 +301,6 @@ fun FullChildMuteCommunicationBoard(
                 }
             }
 
-            // Grid of Large, tactile communication pictograms
             val filteredCards = remember(selectedCategory) {
                 ChildExpressCards.filter { it.category == selectedCategory }
             }
@@ -408,7 +359,6 @@ fun FullChildMuteCommunicationBoard(
                 }
             }
 
-            // Gesture Guidance Hint Bar (How to gesture without words)
             Surface(
                 shape = RoundedCornerShape(16.dp),
                 color = Color(0xFFF8FAFC),

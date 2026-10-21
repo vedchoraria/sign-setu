@@ -3,6 +3,10 @@ package app.signsetu
 import app.signsetu.assistant.ModelStore
 import app.signsetu.assistant.Assistant
 import app.signsetu.assistant.CloudAi
+import app.signsetu.assistant.Direct
+import app.signsetu.net.KeystoreVault
+import app.signsetu.net.UrlHttp
+import app.signsetu.net.isOnline
 import android.app.Application
 import android.content.ComponentCallbacks2
 import android.content.res.Configuration
@@ -65,7 +69,7 @@ class AppContainer(private val app: Application) : DefaultLifecycleObserver, Com
     val settings = SettingsStore(app)
     val report = SessionReport(app)
     val models = ModelStore(app)
-    val cloudAi = CloudAi(app, settings)
+    val cloudAi = CloudAi({ settings.current().cloudAi }, BuildConfig.GATEWAY_URL, UrlHttp(), KeystoreVault(app), Direct(BuildConfig.ASSIST_URL, BuildConfig.ASSIST_MODEL, BuildConfig.ASSIST_KEY)) { isOnline(app) }
     val assistant = Assistant(models, cloudAi)
     val hardKeys = HardKeys()
     val stageGuard = StageGuard(app)
@@ -121,20 +125,15 @@ class AppContainer(private val app: Application) : DefaultLifecycleObserver, Com
         val repo = SessionRepository(db.dao(), onSessionStarted = { settings.setNewestSessionAt(it) })
         repo.purgeExpired(settings.current().retentionHours)
         // Exported reports are only needed while the share sheet hands them over.
-        File(app.cacheDir, "exports").deleteRecursively()
+        SessionReport.exportsDir(app).deleteRecursively()
         _sessions.value = repo
     }
 
-    private fun openDatabase(): SessionDatabase {
-        val unwrapped = databaseKey.unwrap()
-        return try {
-            if (unwrapped.reset) _keyReset.value = true
-            // SQLCipher clears the key bytes itself once the database is open.
-            SessionDatabase.open(app, unwrapped.key, onDestructiveMigration = { _downgraded.value = true }).also { db ->
-                runCatching { db.openHelper.writableDatabase }.onFailure { db.close(); throw it }
-            }
-        } finally {
-            unwrapped.wipe()
+    private fun openDatabase(): SessionDatabase = databaseKey.unwrap().use { unwrapped ->
+        if (unwrapped.reset) _keyReset.value = true
+        // SQLCipher clears the key bytes itself once the database is open.
+        SessionDatabase.open(app, unwrapped.key, onDestructiveMigration = { _downgraded.value = true }).also { db ->
+            runCatching { db.openHelper.writableDatabase }.onFailure { db.close(); throw it }
         }
     }
 
@@ -187,7 +186,7 @@ class AppContainer(private val app: Application) : DefaultLifecycleObserver, Com
         _sessions.value = null
         officerLink?.let { endLink() }
         scope.launch { models.release() }
-        landmarkTrackerOrNull()?.close()
+        landmarkTrackerOrNull()?.let { scope.launch(Dispatchers.Default) { it.close() } }
         val db = database
         database = null
         // Closed after the session screen has gone, so its last collectors do not query a closed file.
@@ -197,7 +196,7 @@ class AppContainer(private val app: Application) : DefaultLifecycleObserver, Com
     fun clearAllData() {
         lock()
         databaseKey.destroy()
-        File(app.cacheDir, "exports").deleteRecursively()
+        SessionReport.exportsDir(app).deleteRecursively()
     }
 
     init {
@@ -208,7 +207,7 @@ class AppContainer(private val app: Application) : DefaultLifecycleObserver, Com
     override fun onTrimMemory(level: Int) {
         if (level < ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW) return
         scope.launch { models.release() }
-        landmarkTrackerOrNull()?.close()
+        landmarkTrackerOrNull()?.let { scope.launch(Dispatchers.Default) { it.close() } }
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) = Unit

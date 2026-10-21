@@ -1,55 +1,27 @@
 package app.signsetu.ui.session
 
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.onClick
-import androidx.compose.ui.semantics.role
-import android.graphics.Bitmap
-import android.graphics.Paint
-import androidx.core.graphics.createBitmap
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -57,24 +29,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.annotation.StringRes
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Create
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -90,45 +53,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.RoundRect
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Outline
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.LayoutDirection
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.StrokeJoin
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.selected
-import androidx.compose.ui.semantics.stateDescription
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.em
-import androidx.compose.ui.unit.sp
 import app.signsetu.R
 import app.signsetu.camera.CameraMirror
 import app.signsetu.camera.LandmarkTracker
@@ -140,41 +70,22 @@ import app.signsetu.ui.avatar.chain
 import app.signsetu.data.content.signBack
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.withStyle
 import app.signsetu.data.session.Profile
 import app.signsetu.ui.avatar.Avatar
 import app.signsetu.ui.avatar.AVATAR_ASPECT
 import app.signsetu.data.content.questionKind
 import app.signsetu.ui.avatar.Character
-import app.signsetu.ui.components.CardImage
 import app.signsetu.ui.components.rememberSpeechPlayer
-import app.signsetu.ui.theme.Baloo
 import app.signsetu.ui.theme.LocalAnswerColors
 import app.signsetu.ui.theme.LocalStageColors
 import app.signsetu.ui.theme.Spacing
-import java.io.ByteArrayOutputStream
-import kotlinx.coroutines.delay
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.tween
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import app.signsetu.camera.CAMERA_ASPECT
 import app.signsetu.camera.Head
 import app.signsetu.camera.LandmarkFrame
-import app.signsetu.sign.SIGN_LIMIT_MS
 import app.signsetu.sign.SignChoice
-import app.signsetu.sign.SignSegment
 import app.signsetu.sign.SignWindow
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.ui.text.TextLayoutResult
-import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.runtime.movableContentOf
 import app.signsetu.data.content.WordBeat
 import app.signsetu.data.content.Given
@@ -384,16 +295,12 @@ fun Stage(
                 ui = ui,
                 content = content,
                 tracker = tracker,
-                cameraOn = cameraOn,
                 onCard = onCard,
                 onYesNo = onYesNo,
                 onSignFrame = onSignFrame,
                 onStartSigning = onStartSigning,
-                onDoneSigning = onDoneSigning,
                 onOpenExpressBoard = { showExpressBoard = true },
                 onCue = onCue,
-                onNext = onNext,
-                onPause = { onCard("stop") },
                 modifier = Modifier.fillMaxSize(),
             )
             onOfficer?.let { OfficerHandle(it, Modifier.align(if (ui.rotated) Alignment.BottomStart else Alignment.TopEnd).safeDrawingPadding()) }
@@ -658,7 +565,6 @@ fun Stage(
         if (paused) PauseLayer(content.subjectText("ready", lang), onPauseEnd, stop = stopInPause, modifier = Modifier.fillMaxSize().graphicsLayer { rotationZ = if (ui.rotated) 180f else 0f })
         if (showExpressBoard) {
             FullChildMuteCommunicationBoard(
-                content = content,
                 lang = lang,
                 chosenCard = ui.answeredCard,
                 onCard = { id ->
@@ -715,752 +621,3 @@ private fun speechFor(pending: Pending?, content: ContentBundle, lang: String): 
 
 /** Recorded speech below normal speed only goes to 0.75: slower than that, words smear. */
 private fun audioRate(pace: Float) = if (pace < 1f) 0.75f else 1f
-
-@Composable
-internal fun Backdrop(modifier: Modifier) {
-    val stage = LocalStageColors.current
-    Canvas(modifier) {
-        drawRect(Brush.verticalGradient(listOf(stage.skyTop, stage.skyBottom)))
-        // A low sun and a soft floor give the character a place to stand, without anything to look at instead.
-        drawCircle(stage.glow, size.minDimension * 0.42f, Offset(size.width * 0.86f, size.height * 0.16f), alpha = 0.55f)
-        drawCircle(stage.glow, size.minDimension * 0.18f, Offset(size.width * 0.08f, size.height * 0.42f), alpha = 0.35f)
-        drawOval(stage.ground, Offset(-size.width * 0.2f, size.height * 0.82f), Size(size.width * 1.4f, size.height * 0.5f))
-    }
-}
-
-private val BubbleTail = 12.dp
-
-/** Each side of the character: the replay pill on the left, a held card or letter tile on the right. */
-private val SideBand = 88.dp
-
-/** A speech bubble whose tail points down at the character. */
-private object BubbleShape : Shape {
-    override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
-        val tail = with(density) { BubbleTail.toPx() }
-        val r = with(density) { 22.dp.toPx() }
-        val path = Path().apply {
-            addRoundRect(RoundRect(0f, 0f, size.width, size.height - tail, CornerRadius(r, r)))
-            moveTo(size.width / 2f - tail, size.height - tail - 1f)
-            lineTo(size.width / 2f + tail * 0.2f, size.height)
-            lineTo(size.width / 2f + tail, size.height - tail - 1f)
-            close()
-        }
-        return Outline.Generic(path)
-    }
-}
-
-@Composable
-internal fun Bubble(text: String, large: Boolean = false, compact: Boolean = false, highlight: IntRange? = null, onWordTap: ((Int) -> Unit)? = null) {
-    val stage = LocalStageColors.current
-    val styled = buildAnnotatedString {
-        append(text)
-        highlight?.takeIf { it.last < text.length }?.let {
-            addStyle(SpanStyle(color = stage.onHighlight, background = stage.highlight, fontWeight = FontWeight.Bold), it.first, it.last + 1)
-        }
-    }
-    var layout by remember { mutableStateOf<TextLayoutResult?>(null) }
-    val replayName = stringResource(R.string.word_replay)
-    // The caller's lambda changes every frame of typed-text playback; the tap detector must not restart with it.
-    val onTap by rememberUpdatedState(onWordTap)
-    val tap = if (onWordTap == null) Modifier else Modifier
-        .pointerInput(Unit) { detectTapGestures { p -> layout?.let { onTap?.invoke(it.getOffsetForPosition(p)) } } }
-        .semantics { onClick(replayName) { onTap?.invoke(0); true } }
-    // Line height in em so a caption shrunk to fit gains lines instead of clipping.
-    val style = when {
-        large -> MaterialTheme.typography.headlineMedium
-        compact -> MaterialTheme.typography.titleMedium
-        else -> MaterialTheme.typography.titleLarge
-    }.copy(lineHeight = 1.2.em)
-    Surface(
-        shape = BubbleShape,
-        color = stage.bubble,
-        contentColor = stage.onBubble,
-        border = BorderStroke(1.dp, stage.onBubble.copy(alpha = 0.18f)),
-        shadowElevation = 3.dp,
-        modifier = Modifier.widthIn(max = 340.dp),
-    ) {
-        // A right or a question must be read to its end: the text shrinks to fit rather than being cut off.
-        Text(
-            styled,
-            style = style,
-            textAlign = TextAlign.Center,
-            maxLines = if (large) 6 else 5,
-            autoSize = TextAutoSize.StepBased(minFontSize = 12.sp, maxFontSize = style.fontSize, stepSize = 1.sp),
-            overflow = TextOverflow.Ellipsis,
-            onTextLayout = { layout = it },
-            modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 10.dp + BubbleTail).then(tap),
-        )
-    }
-}
-
-/** The picture the question is about, held up beside the character. */
-@Composable
-private fun HeldCard(cardId: String, label: String?, modifier: Modifier) {
-    Surface(
-        shape = RoundedCornerShape(18.dp),
-        color = Color.White,
-        shadowElevation = 4.dp,
-        modifier = modifier.rotate(-4f).size(width = SideBand, height = if (label != null) 108.dp else SideBand),
-    ) {
-        Column(Modifier.padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            CardImage(cardId, Modifier.fillMaxWidth().aspectRatio(1f))
-            label?.let {
-                Text(it, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis, color = Color(0xFF2B2118), modifier = Modifier.padding(top = 2.dp))
-            }
-        }
-    }
-}
-
-/** The word being fingerspelled, its current letter large, so a reader can follow the hands. */
-@Composable
-private fun LetterTile(letters: String, current: Int, modifier: Modifier) {
-    Surface(shape = RoundedCornerShape(18.dp), color = Color.White, shadowElevation = 4.dp, modifier = modifier.rotate(-4f).size(SideBand, 108.dp)) {
-        Column(Modifier.padding(horizontal = 8.dp, vertical = 6.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-            Text(
-                letters.getOrNull(current)?.uppercase() ?: "",
-                fontFamily = Baloo,
-                fontWeight = FontWeight.Bold,
-                fontSize = 44.sp,
-                lineHeight = 48.sp,
-                color = Color(0xFF2B2118),
-            )
-            Text(
-                buildAnnotatedString {
-                    letters.uppercase().forEachIndexed { i, c ->
-                        withStyle(SpanStyle(color = if (i == current) Color(0xFF2B2118) else Color(0xFFB8A99A), fontWeight = if (i == current) FontWeight.Bold else FontWeight.Normal)) { append(c) }
-                    }
-                },
-                style = MaterialTheme.typography.labelMedium,
-                letterSpacing = 1.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-    }
-}
-
-@Composable
-private fun OfficerHandle(onClick: () -> Unit, modifier: Modifier) {
-    val stage = LocalStageColors.current
-    // Small and quiet: the subject should not be drawn to it; the officer knows where it is.
-    Box(
-        modifier
-            .padding(6.dp)
-            .size(48.dp)
-            .clip(CircleShape)
-            .clickable(role = Role.Button, onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Surface(shape = CircleShape, color = stage.handle, modifier = Modifier.size(34.dp)) {
-            Icon(Icons.Filled.Lock, contentDescription = stringResource(R.string.show_officer), tint = stage.onHandle, modifier = Modifier.padding(8.dp))
-        }
-    }
-}
-
-@Composable
-private fun ReplayControls(pace: Float, onReplay: () -> Unit, onPace: () -> Unit, modifier: Modifier) {
-    val stage = LocalStageColors.current
-    Surface(
-        shape = RoundedCornerShape(28.dp),
-        color = stage.tool.copy(alpha = 0.9f),
-        contentColor = stage.onTool,
-        border = BorderStroke(1.dp, stage.onTool.copy(alpha = 0.14f)),
-        modifier = modifier.width(56.dp),
-    ) {
-        Column(Modifier.padding(vertical = 4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(Modifier.size(48.dp).clip(CircleShape).clickable(role = Role.Button, onClick = onReplay), contentAlignment = Alignment.Center) {
-                Icon(Icons.Filled.PlayArrow, contentDescription = stringResource(R.string.show_replay), modifier = Modifier.size(26.dp))
-            }
-            val shown = when { pace < 0.6f -> "½×"; pace < 0.9f -> "¾×"; else -> "1×" }
-            val paceName = stringResource(R.string.show_pace, shown)
-            Box(Modifier.size(48.dp).clip(CircleShape).clickable(role = Role.Button, onClick = onPace).semantics { contentDescription = paceName }, contentAlignment = Alignment.Center) {
-                Text(
-                    shown,
-                    fontFamily = Baloo,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    modifier = Modifier.clearAndSetSemantics { },
-                )
-            }
-        }
-    }
-}
-
-/** The mirror: the subject sees their own hands; choices sit at the bottom edge of it. */
-@Composable
-private fun MirrorWindow(
-    camera: @Composable (((LandmarkFrame) -> Unit)?) -> Unit,
-    cameraOn: Boolean,
-    choices: List<String>,
-    numbers: Boolean,
-    chosenCard: String?,
-    content: ContentBundle,
-    lang: String,
-    onCard: (String) -> Unit,
-    modifier: Modifier,
-    proposedCard: String? = null,
-) {
-    Box(modifier.mirrorFrame()) {
-        if (cameraOn) {
-            // Outside a sign window the mirror is preview only: no frame is analysed (D-25).
-            camera(null)
-        } else {
-            MirrorPlaceholder()
-        }
-        if (choices.isNotEmpty()) key(choices) {
-            Column(
-                Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .background(Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.55f))))
-                    .padding(Spacing.sm),
-                verticalArrangement = Arrangement.spacedBy(Spacing.sm),
-            ) {
-                if (numbers) {
-                    // Five to a row leaves each key under 48 dp in the camera window of a 360 dp phone.
-                    choices.chunked(4).forEach { row ->
-                        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.fillMaxWidth()) {
-                            row.forEach { id ->
-                                val delay = 40 * choices.indexOf(id)
-                                NumberButton(id.removePrefix("n"), chosenCard == id, { onCard(id) }, Modifier.weight(1f).popIn(rememberPopIn(delay)))
-                            }
-                            repeat(4 - row.size) { Spacer(Modifier.weight(1f)) }
-                        }
-                    }
-                } else {
-                    choices.chunked(3).forEach { row ->
-                        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.fillMaxWidth()) {
-                            row.forEach { id ->
-                                val delay = 70 * choices.indexOf(id)
-                                ChoiceTile(id, content.cards[id]?.label?.pick(lang), chosenCard == id, { onCard(id) }, Modifier.weight(1f).popIn(rememberPopIn(delay)), name = content.cards[id]?.label?.pick("en"), proposed = proposedCard == id)
-                            }
-                            repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun Modifier.mirrorFrame(): Modifier {
-    val stage = LocalStageColors.current
-    val shape = RoundedCornerShape(20.dp)
-    // The letterbox around the whole camera frame is the window colour, so the window reads as one calm pane.
-    return fillMaxWidth()
-        .shadow(3.dp, shape)
-        .clip(shape)
-        .background(stage.window)
-        .border(4.dp, stage.windowFrame.copy(alpha = 0.4f), shape)
-}
-
-/**
- * A sign window: a large mirror with the hand and arm skeleton, a dot per sign seen, and Done. Only landmarks are kept,
- * in memory (D-25). A short answer shows its time bar and, after a failed read, the "sign slower" cue; a [narrative]
- * shows neither, so nothing interrupts the person while they tell what happened.
- */
-@Composable
-private fun SigningPanel(
-    camera: @Composable (((LandmarkFrame) -> Unit)?) -> Unit,
-    segments: List<SignSegment>,
-    content: ContentBundle,
-    lang: String,
-    narrative: Boolean,
-    onFrame: (LandmarkFrame) -> Unit,
-    modifier: Modifier,
-) {
-    val answer = LocalAnswerColors.current
-    val used = remember { Animatable(0f) }
-    LaunchedEffect(Unit) { if (!narrative) used.animateTo(1f, tween(SIGN_LIMIT_MS.toInt(), easing = LinearEasing)) }
-    Box(modifier.mirrorFrame()) {
-        camera(onFrame)
-        if (!narrative) {
-            LinearProgressIndicator(
-                progress = { used.value },
-                color = answer.yes,
-                trackColor = Color.White.copy(alpha = 0.3f),
-                gapSize = 0.dp,
-                drawStopIndicator = {},
-                modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth().padding(horizontal = Spacing.lg, vertical = Spacing.md).height(6.dp).clip(CircleShape),
-            )
-            SignSlowerCue(segments.lastOrNull()?.takeIf { it.slower }, content, lang, Modifier.align(Alignment.TopCenter).padding(top = 30.dp, start = Spacing.sm, end = Spacing.sm))
-        }
-        SeenSigns(segments, Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(Spacing.md))
-    }
-}
-
-/** Entrance for things put in front of the subject: a short rise and settle, so a new picture is noticed. */
-@Composable
-private fun rememberPopIn(delayMillis: Int): Animatable<Float, AnimationVector1D> {
-    val progress = remember { Animatable(0f) }
-    LaunchedEffect(Unit) {
-        delay(delayMillis.toLong())
-        progress.animateTo(1f, spring(dampingRatio = 0.6f, stiffness = 380f))
-    }
-    return progress
-}
-
-private fun Modifier.popIn(progress: Animatable<Float, AnimationVector1D>) = graphicsLayer {
-    val p = progress.value
-    alpha = p.coerceIn(0f, 1f)
-    scaleX = 0.7f + 0.3f * p
-    scaleY = 0.7f + 0.3f * p
-    translationY = (1f - p) * 24.dp.toPx()
-}
-
-@Composable
-private fun MirrorPlaceholder() {
-    val stage = LocalStageColors.current
-    Box(Modifier.fillMaxSize().background(Brush.radialGradient(listOf(Color(0xFF4A4352), stage.window))), contentAlignment = Alignment.Center) {
-        Icon(painterResource(R.drawable.ic_videocam), contentDescription = null, tint = Color.White.copy(alpha = 0.45f), modifier = Modifier.size(56.dp))
-    }
-}
-
-@Composable
-internal fun ChoiceTile(cardId: String, label: String?, chosen: Boolean, onClick: () -> Unit, modifier: Modifier, name: String? = label, proposed: Boolean = false) {
-    val answer = LocalAnswerColors.current
-    val pulse = if (proposed && !chosen) rememberInfiniteTransition(label = "proposed").animateFloat(0.25f, 1f, infiniteRepeatable(tween(600), RepeatMode.Reverse), label = "ring").value else 0f
-    val suggested = if (proposed && !chosen) stringResource(R.string.stage_proposed) else null
-    PressableSurface(
-        onClick = onClick,
-        shape = RoundedCornerShape(20.dp),
-        color = Color.White,
-        border = if (chosen) BorderStroke(4.dp, answer.selection) else if (pulse > 0f) BorderStroke(4.dp, answer.selection.copy(alpha = pulse)) else TileEdge,
-        modifier = modifier.heightIn(min = 96.dp).semantics {
-            role = Role.Button
-            (label ?: name)?.let { contentDescription = it }
-            selected = chosen
-            suggested?.let { stateDescription = it }
-        },
-    ) {
-        Column(Modifier.padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            // Without a word in their language the picture carries the meaning alone, so it gets the room.
-            CardImage(cardId, Modifier.size(if (label != null) 58.dp else 76.dp))
-            label?.let { Text(it, style = MaterialTheme.typography.labelLarge, color = Color(0xFF2B2118), maxLines = 1, overflow = TextOverflow.Ellipsis) }
-        }
-    }
-}
-
-@Composable
-private fun NumberButton(digit: String, chosen: Boolean, onClick: () -> Unit, modifier: Modifier) {
-    val answer = LocalAnswerColors.current
-    PressableSurface(
-        onClick = onClick,
-        shape = CircleShape,
-        color = if (chosen) answer.selection else Color.White,
-        border = if (chosen) null else TileEdge,
-        modifier = modifier.aspectRatio(1f).semantics {
-            role = Role.Button
-            contentDescription = digit
-            selected = chosen
-        },
-    ) {
-        Box(contentAlignment = Alignment.Center) {
-            Text(digit, fontFamily = Baloo, fontWeight = FontWeight.Bold, fontSize = 26.sp, color = if (chosen) answer.onSelection else Color(0xFF2B2118))
-        }
-    }
-}
-
-
-@Composable
-private fun PauseRow(content: ContentBundle, lang: String, chosenCard: String?, onCard: (String) -> Unit, compact: Boolean = false) {
-    val answer = LocalAnswerColors.current
-    SmallAnswer("stop", content.subjectText("stop", lang), stringResource(R.string.stage_stop), answer.pause, answer.onPause, chosenCard == "stop", { onCard("stop") }, Modifier.fillMaxWidth(), height = if (compact) 48.dp else 52.dp)
-}
-
-/**
- * Yes, No and the answers that keep a conversation honest sit in narrow rails either side of the camera, always in the
- * same place with picture, word and colour (FR-20, NFR-21, ABE 2.104 to 2.108). Every tap is logged after the prompt shown.
- */
-@Composable
-private fun Rail(content: @Composable ColumnScope.() -> Unit) =
-    Column(Modifier.width(68.dp).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(Spacing.sm, Alignment.CenterVertically), content = content)
-
-@Composable
-private fun ColumnScope.RailCard(cardId: String, label: String?, name: String, color: Color, onColor: Color, chosen: Boolean, proposed: Boolean = false, onClick: () -> Unit) =
-    RailButton(label, name, color, onColor, chosen, false, onClick, proposed) { CardImage(cardId, Modifier.size(if (label != null) 28.dp else 34.dp)) }
-
-@Composable
-private fun ColumnScope.RailIcon(icon: ImageVector, label: String?, name: String, color: Color, onColor: Color, chosen: Boolean = false, tool: Boolean = false, proposed: Boolean = false, onClick: () -> Unit) =
-    RailIcon(rememberVectorPainter(icon), label, name, color, onColor, chosen, tool, proposed, onClick)
-
-@Composable
-private fun ColumnScope.RailIcon(icon: Painter, label: String?, name: String, color: Color, onColor: Color, chosen: Boolean = false, tool: Boolean = false, proposed: Boolean = false, onClick: () -> Unit) =
-    RailButton(label, name, color, onColor, chosen, tool, onClick, proposed) { Icon(icon, contentDescription = null, tint = onColor, modifier = Modifier.size(26.dp)) }
-
-@Composable
-private fun ColumnScope.RailButton(label: String?, name: String, color: Color, onColor: Color, chosen: Boolean, tool: Boolean, onClick: () -> Unit, proposed: Boolean = false, icon: @Composable () -> Unit) {
-    val pulse = if (proposed && !chosen) rememberInfiniteTransition(label = "proposed").animateFloat(0.25f, 1f, infiniteRepeatable(tween(600), RepeatMode.Reverse), label = "ring").value else 0f
-    // The pulse is the only sign of a proposal, so screen readers hear it too.
-    val suggested = if (proposed && !chosen) stringResource(R.string.stage_proposed) else null
-    PressableSurface(
-        onClick = onClick,
-        shape = RoundedCornerShape(18.dp),
-        color = color,
-        border = when {
-            chosen -> BorderStroke(3.dp, onColor)
-            pulse > 0f -> BorderStroke(4.dp, onColor.copy(alpha = pulse))
-            tool -> BorderStroke(1.dp, onColor.copy(alpha = 0.16f))
-            else -> null
-        },
-        // 68 dp fits an icon over two lines of Hindi; friendly touch target for children and mute users
-        modifier = Modifier.weight(1f, fill = false).fillMaxWidth().height(68.dp)
-            .semantics {
-                role = Role.Button
-                contentDescription = label ?: name
-                selected = chosen
-                suggested?.let { stateDescription = it }
-            },
-    ) {
-        Column(Modifier.padding(4.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-            icon()
-            label?.let { Text(it, fontFamily = Baloo, fontWeight = FontWeight.Bold, lineHeight = 12.sp, color = onColor, textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis, autoSize = TextAutoSize.StepBased(minFontSize = 8.sp, maxFontSize = 11.sp, stepSize = 0.5.sp)) }
-        }
-        // A tick as well as the ring: the chosen answer never relies on colour or a thin line alone.
-        if (chosen) Box(Modifier.fillMaxSize().padding(3.dp), contentAlignment = Alignment.TopEnd) {
-            Icon(Icons.Filled.Check, contentDescription = null, tint = color, modifier = Modifier.size(14.dp).background(onColor, CircleShape).padding(1.dp))
-        }
-    }
-}
-
-/** A picture over its word, for the three answers that keep a conversation honest. */
-@Composable
-internal fun StripAnswer(cardId: String, label: String?, name: String, chosen: Boolean, onClick: () -> Unit, modifier: Modifier) {
-    val answer = LocalAnswerColors.current
-    PressableSurface(
-        onClick = onClick,
-        shape = RoundedCornerShape(20.dp),
-        color = answer.unsure,
-        border = if (chosen) BorderStroke(3.dp, answer.onUnsure) else null,
-        modifier = modifier.height(76.dp).semantics {
-            role = Role.Button
-            contentDescription = label ?: name
-            selected = chosen
-        },
-    ) {
-        Column(Modifier.padding(horizontal = 4.dp, vertical = 6.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-            CardImage(cardId, Modifier.size(if (label != null) 28.dp else 44.dp))
-            label?.let {
-                Text(it, fontFamily = Baloo, fontWeight = FontWeight.Bold, fontSize = 14.sp, lineHeight = 16.sp, color = answer.onUnsure, textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            }
-        }
-    }
-}
-
-
-@Composable
-internal fun SmallAnswer(
-    cardId: String, label: String?, name: String, color: Color, onColor: Color, chosen: Boolean, onClick: () -> Unit, modifier: Modifier, height: Dp = 52.dp,
-) {
-    PressableSurface(
-        onClick = onClick,
-        shape = RoundedCornerShape(50),
-        color = color,
-        border = if (chosen) BorderStroke(3.dp, onColor) else null,
-        modifier = modifier.height(height).semantics {
-            role = Role.Button
-            contentDescription = label ?: name
-            selected = chosen
-        },
-    ) {
-        Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-            CardImage(cardId, Modifier.size(if (label != null) 30.dp else 40.dp))
-            label?.let { Text(it, style = MaterialTheme.typography.labelLarge, color = onColor, modifier = Modifier.padding(start = Spacing.sm)) }
-        }
-    }
-}
-
-/** Buttons squash softly and tick in the hand when pressed, so a child sees and feels the tap land. */
-@Composable
-internal fun PressableSurface(
-    onClick: () -> Unit,
-    shape: androidx.compose.ui.graphics.Shape,
-    color: Color,
-    modifier: Modifier = Modifier,
-    border: BorderStroke? = null,
-    shadowElevation: Dp = 0.dp,
-    content: @Composable () -> Unit,
-) {
-    val interaction = remember { MutableInteractionSource() }
-    val pressed by interaction.collectIsPressedAsState()
-    val scale by animateFloatAsState(if (pressed) 0.94f else 1f, spring(dampingRatio = 0.5f, stiffness = 600f), label = "press")
-    // A deaf child cannot hear the tap land; a short tick in the hand confirms it.
-    val haptics = LocalHapticFeedback.current
-    Surface(
-        onClick = { haptics.performHapticFeedback(HapticFeedbackType.Confirm); onClick() },
-        shape = shape,
-        color = color,
-        border = border,
-        shadowElevation = shadowElevation,
-        interactionSource = interaction,
-        modifier = modifier.graphicsLayer {
-            scaleX = scale
-            scaleY = scale
-        },
-        content = content,
-    )
-}
-
-@Composable
-private fun LanguageGrid(content: ContentBundle, chosen: String?, modifier: Modifier, onLanguage: (String) -> Unit) {
-    val answer = LocalAnswerColors.current
-    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-        content.languages.chunked(3).forEach { row ->
-            Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-                row.forEach { l ->
-                    val selected = chosen == l.code
-                    PressableSurface(
-                        onClick = { onLanguage(l.code) },
-                        shape = RoundedCornerShape(18.dp),
-                        color = Color.White,
-                        border = if (selected) BorderStroke(4.dp, answer.selection) else TileEdge,
-                        shadowElevation = 1.dp,
-                        modifier = Modifier.weight(1f).fillMaxHeight(),
-                    ) {
-                        Column(Modifier.padding(horizontal = 6.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                            Text(l.name, fontFamily = Baloo, fontWeight = FontWeight.SemiBold, fontSize = 19.sp, color = Color(0xFF2B2118), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            Text(l.english, fontSize = 11.sp, color = Color(0xFF6B5E50), maxLines = 1)
-                        }
-                    }
-                }
-                repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
-            }
-        }
-    }
-}
-
-private class DrawStroke(val points: List<Offset>, val color: Color = Ink)
-
-private val Ink = Color(0xFF2B2118)
-
-/** Dark ink, and red, blue, green and brown, so a person can mark where it hurts or what colour something was. */
-private val InkColors = listOf(Ink, Color(0xFFD32F2F), Color(0xFF1E5BD8), Color(0xFF2E7D32), Color(0xFF8D5524))
-
-private fun Offset.fraction(size: IntSize) = Offset(x / size.width.coerceAtLeast(1), y / size.height.coerceAtLeast(1))
-private fun Offset.scaled(size: IntSize) = Offset(x * size.width, y * size.height)
-
-/** The subject's own words, typed large on the stage; the keyboard opens at once and Done sends them. */
-@Composable
-private fun WritingPanel(
-    content: ContentBundle,
-    lang: String,
-    onDone: (String) -> Unit,
-    onBack: () -> Unit,
-    pauseRow: @Composable () -> Unit,
-    modifier: Modifier,
-) {
-    var text by rememberSaveable { mutableStateOf("") }
-    val focus = remember { FocusRequester() }
-    LaunchedEffect(Unit) { focus.requestFocus() }
-    val answer = LocalAnswerColors.current
-    val send = { if (text.isNotBlank()) onDone(text) }
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
-        Surface(shape = RoundedCornerShape(20.dp), color = Color.White, border = TileEdge, shadowElevation = 2.dp, modifier = Modifier.weight(1f).fillMaxWidth()) {
-            BasicTextField(
-                value = text,
-                // Input past the cap is ignored, never cut later: the receiver logs what was sent (D-26).
-                onValueChange = { if (it.length <= app.signsetu.pair.TEXT_CAP) text = it },
-                textStyle = MaterialTheme.typography.headlineSmall.copy(color = Color(0xFF2B2118)),
-                // SEC-05: nothing the subject writes is learned or suggested by the keyboard.
-                keyboardOptions = KeyboardOptions(autoCorrectEnabled = false, imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(onDone = { send() }),
-                cursorBrush = SolidColor(Color(0xFF2B2118)),
-                modifier = Modifier.fillMaxSize().padding(20.dp).focusRequester(focus),
-            )
-        }
-        if (text.length > app.signsetu.pair.TEXT_CAP - 200) {
-            Text(stringResource(R.string.write_count, text.length, app.signsetu.pair.TEXT_CAP), style = MaterialTheme.typography.labelLarge, modifier = Modifier.align(Alignment.End))
-        }
-        pauseRow()
-        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.md)) {
-            BackButton(content, lang, onBack)
-            PressableSurface(
-                onClick = send,
-                shape = RoundedCornerShape(50),
-                color = if (text.isNotBlank()) answer.yes else Color(0xFFBFD8CB),
-                modifier = Modifier.weight(1f).height(56.dp).named(R.string.stage_done, content.subjectText("done", lang) == null),
-            ) {
-                Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Filled.Check, contentDescription = null, tint = answer.onYes)
-                    content.subjectText("done", lang)?.let { Text(it, style = MaterialTheme.typography.labelLarge, color = answer.onYes, modifier = Modifier.padding(start = Spacing.sm)) }
-                }
-            }
-        }
-    }
-}
-
-/** Back to the question's answers, for a subject who opened writing or drawing by mistake. */
-@Composable
-private fun BackButton(content: ContentBundle, lang: String, onBack: () -> Unit) {
-    val name = stringResource(R.string.stage_back)
-    val stage = LocalStageColors.current
-    PressableSurface(
-        onClick = onBack,
-        shape = CircleShape,
-        color = stage.tool,
-        border = BorderStroke(1.dp, stage.onTool.copy(alpha = 0.16f)),
-        modifier = Modifier.size(56.dp).semantics {
-            role = Role.Button
-            contentDescription = content.subjectText("back", lang) ?: name
-        },
-    ) {
-        Box(contentAlignment = Alignment.Center) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = stage.onTool) }
-    }
-}
-
-/** A name for a control whose word is missing in the subject's language, so a screen reader still has one. */
-@Composable
-private fun Modifier.named(@StringRes id: Int, needed: Boolean): Modifier {
-    val name = stringResource(id)
-    return semantics {
-        role = Role.Button
-        if (needed) contentDescription = name
-    }
-}
-
-@Composable
-private fun DrawingPanel(content: ContentBundle, lang: String, strokes: SnapshotStateList<DrawStroke>, onDone: (ByteArray) -> Unit, onBack: (() -> Unit)?, modifier: Modifier) {
-    var current by remember { mutableStateOf<List<Offset>>(emptyList()) }
-    var canvasSize by remember { mutableStateOf(IntSize.Zero) }
-    var ink by remember { mutableStateOf(Ink) }
-    val paper = Color.White
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
-        Surface(
-            shape = RoundedCornerShape(20.dp),
-            color = paper,
-            border = TileEdge,
-            shadowElevation = 2.dp,
-            modifier = Modifier.weight(1f).fillMaxWidth(),
-        ) {
-            Canvas(
-                Modifier
-                    .fillMaxSize()
-                    .onSizeChanged { canvasSize = it }
-                    .pointerInput(Unit) {
-                        detectDragGestures(
-                            onDragStart = { current = listOf(it) },
-                            onDrag = { change, _ -> current = current + change.position },
-                            // Kept in canvas fractions, so a drawing survives the canvas changing size.
-                            onDragEnd = { strokes.add(DrawStroke(current.map { it.fraction(canvasSize) }, ink)); current = emptyList() },
-                            onDragCancel = { current = emptyList() },
-                        )
-                    },
-            ) {
-                (strokes.map { s -> DrawStroke(s.points.map { it.scaled(canvasSize) }, s.color) } + DrawStroke(current, ink)).forEach { s ->
-                    if (s.points.size < 2) return@forEach
-                    val path = Path().apply {
-                        moveTo(s.points[0].x, s.points[0].y)
-                        s.points.drop(1).forEach { lineTo(it.x, it.y) }
-                    }
-                    drawPath(path, s.color, style = Stroke(width = 8.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
-                }
-            }
-        }
-        val stage = LocalStageColors.current
-        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), verticalAlignment = Alignment.CenterVertically) {
-            InkColors.forEach { c ->
-                Box(
-                    Modifier.size(48.dp).clip(CircleShape).clickable(role = Role.RadioButton) { ink = c }.semantics { selected = ink == c },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Box(Modifier.size(if (ink == c) 40.dp else 32.dp).background(c, CircleShape).border(if (ink == c) 3.dp else 0.dp, Color.White, CircleShape))
-                }
-            }
-            Spacer(Modifier.weight(1f))
-            // Undo takes back one line; a slip of the finger should not cost the whole picture.
-            PressableSurface(
-                onClick = { if (strokes.isNotEmpty()) strokes.removeAt(strokes.lastIndex) }, shape = CircleShape, color = stage.tool, border = BorderStroke(1.dp, stage.onTool.copy(alpha = 0.16f)),
-                modifier = Modifier.size(48.dp).semantics { contentDescription = content.subjectText("undo", lang) ?: "Undo" },
-            ) {
-                Box(contentAlignment = Alignment.Center) { Icon(painterResource(R.drawable.ic_undo), contentDescription = null, tint = stage.onTool) }
-            }
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.md)) {
-            onBack?.let { BackButton(content, lang, it) }
-            PressableSurface(
-                onClick = { strokes.clear() }, shape = RoundedCornerShape(50), color = stage.tool, border = BorderStroke(1.dp, stage.onTool.copy(alpha = 0.16f)),
-                modifier = Modifier.weight(1f).height(56.dp).named(R.string.stage_clear, content.subjectText("clear", lang) == null),
-            ) {
-                Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Filled.Refresh, contentDescription = null, tint = stage.onTool)
-                    content.subjectText("clear", lang)?.let { Text(it, style = MaterialTheme.typography.labelLarge, color = stage.onTool, modifier = Modifier.padding(start = Spacing.sm)) }
-                }
-            }
-            val answer = LocalAnswerColors.current
-            PressableSurface(
-                onClick = { if (strokes.isNotEmpty()) onDone(renderPng(strokes.map { s -> DrawStroke(s.points.map { it.scaled(canvasSize) }, s.color) }, canvasSize, paper.toArgb())) },
-                shape = RoundedCornerShape(50),
-                color = if (strokes.isNotEmpty()) answer.yes else Color(0xFFBFD8CB),
-                modifier = Modifier.weight(1f).height(56.dp).named(R.string.stage_done, content.subjectText("done", lang) == null),
-            ) {
-                Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Filled.Check, contentDescription = null, tint = answer.onYes)
-                    content.subjectText("done", lang)?.let { Text(it, style = MaterialTheme.typography.labelLarge, color = answer.onYes, modifier = Modifier.padding(start = Spacing.sm)) }
-                }
-            }
-        }
-    }
-}
-
-private fun renderPng(strokes: List<DrawStroke>, size: IntSize, paper: Int): ByteArray {
-    val w = size.width.coerceAtLeast(1)
-    val h = size.height.coerceAtLeast(1)
-    val bitmap = createBitmap(w, h)
-    val canvas = android.graphics.Canvas(bitmap)
-    canvas.drawColor(paper)
-    val density = android.content.res.Resources.getSystem().displayMetrics.density
-    val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.STROKE
-        strokeCap = Paint.Cap.ROUND
-        strokeJoin = Paint.Join.ROUND
-        strokeWidth = 8 * density
-    }
-    strokes.forEach { s ->
-        if (s.points.size < 2) return@forEach
-        paint.color = s.color.toArgb()
-        val path = android.graphics.Path().apply {
-            moveTo(s.points[0].x, s.points[0].y)
-            s.points.drop(1).forEach { lineTo(it.x, it.y) }
-        }
-        canvas.drawPath(path, paint)
-    }
-    return ByteArrayOutputStream().use { out ->
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
-        bitmap.recycle()
-        out.toByteArray()
-    }
-}
-
-/** What to do now, in one short line over the top of the camera window. */
-@Composable
-private fun StageHint(text: String, modifier: Modifier) {
-    Text(
-        text, style = MaterialTheme.typography.labelLarge, color = Color.White, textAlign = TextAlign.Center, maxLines = 3,
-        modifier = modifier.fillMaxWidth().padding(Spacing.sm)
-            .background(Color.Black.copy(alpha = 0.55f), RoundedCornerShape(14.dp)).padding(horizontal = Spacing.sm, vertical = 6.dp),
-    )
-}
-
-/** After a requested drawing: thanks, the way back to the officer, and a way to add to it. */
-@Composable
-private fun HandBackPanel(content: ContentBundle, lang: String, onDrawMore: () -> Unit, modifier: Modifier) {
-    val stage = LocalStageColors.current
-    Column(modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.lg, Alignment.CenterVertically)) {
-        Surface(shape = CircleShape, color = LocalAnswerColors.current.yes, modifier = Modifier.size(96.dp)) {
-            Box(contentAlignment = Alignment.Center) { Icon(Icons.Filled.Check, contentDescription = null, tint = LocalAnswerColors.current.onYes, modifier = Modifier.size(56.dp)) }
-        }
-        content.subjectText("give_back", lang)?.let {
-            Text(it, fontFamily = Baloo, fontWeight = FontWeight.SemiBold, fontSize = 22.sp, textAlign = TextAlign.Center, color = stage.onBubble)
-        }
-        PressableSurface(
-            onClick = onDrawMore, shape = RoundedCornerShape(50), color = stage.tool, border = BorderStroke(1.dp, stage.onTool.copy(alpha = 0.16f)),
-            modifier = Modifier.height(56.dp).widthIn(min = 160.dp).named(R.string.stage_draw, content.subjectText("draw_more", lang) == null),
-        ) {
-            Row(Modifier.padding(horizontal = Spacing.lg), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Filled.Create, contentDescription = null, tint = stage.onTool)
-                content.subjectText("draw_more", lang)?.let { Text(it, style = MaterialTheme.typography.labelLarge, color = stage.onTool, modifier = Modifier.padding(start = Spacing.sm)) }
-            }
-        }
-    }
-}

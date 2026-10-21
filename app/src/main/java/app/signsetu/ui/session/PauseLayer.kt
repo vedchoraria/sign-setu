@@ -55,7 +55,7 @@ internal fun pauseSeconds(events: List<SessionEvent>, now: Long): Long? =
  * No score and no sound. The subject ends it with the big Ready button; the officer's lock stays above it.
  */
 @Composable
-internal fun PauseLayer(label: String?, onReady: () -> Unit, stop: (@Composable (Modifier) -> Unit)? = null, modifier: Modifier = Modifier) {
+internal fun PauseLayer(label: String?, onReady: () -> Unit, modifier: Modifier = Modifier, stop: (@Composable (Modifier) -> Unit)? = null) {
     val context = LocalContext.current
     val still = remember { Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f }
     val motion = rememberInfiniteTransition(label = "pause")

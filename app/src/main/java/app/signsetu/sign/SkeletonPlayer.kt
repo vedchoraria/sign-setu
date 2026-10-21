@@ -80,7 +80,17 @@ class ReplayState(segments: List<SignSegment>) {
     var playing by mutableStateOf(false)
     private var until = total
 
-    val frame: LandmarkFrame? get() = timeline.lastOrNull { it.first <= time }?.second
+    /** The last frame at or before the playhead; times only grow along the timeline, so it is found by halving. */
+    val frame: LandmarkFrame?
+        get() {
+            var lo = 0
+            var hi = timeline.size
+            while (lo < hi) {
+                val mid = (lo + hi) ushr 1
+                if (timeline[mid].first <= time) lo = mid + 1 else hi = mid
+            }
+            return timeline.getOrNull(lo - 1)?.second
+        }
     val segment: Int get() = starts.indexOfLast { it <= time }
 
     fun play(segment: Int? = null) {

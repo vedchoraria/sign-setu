@@ -1,13 +1,15 @@
 package app.signsetu.sign
 
 import android.content.Context
+import androidx.compose.ui.geometry.Offset
 import app.signsetu.camera.LandmarkFrame
 import app.signsetu.data.content.SignLanguage
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import kotlin.math.exp
 import java.security.MessageDigest
+import kotlin.math.exp
+import kotlin.math.hypot
 
 /** Creates the bundled sign reader for a language, or none when its models are missing or fail their check (D-25). */
 object SignReaders {
@@ -18,7 +20,7 @@ object SignReaders {
     fun load(lang: SignLanguage, open: (String) -> ByteArray?): SignReader? = runCatching {
         val files = Json.parseToJsonElement((open("manifest.json") ?: return null).decodeToString()).jsonObject.getValue("files").jsonObject
         fun verified(path: String): ByteArray? = open(path)?.takeIf { b ->
-            MessageDigest.getInstance("SHA-256").digest(b).joinToString("") { "%02x".format(it) } == files[path]?.jsonPrimitive?.content
+            MessageDigest.getInstance("SHA-256").digest(b).toHexString() == files[path]?.jsonPrimitive?.content
         }
         fun model(base: String, words: Map<String, String>): SignReader? = runCatching {
             LandmarkSignReader(verified("$base.json")!!.decodeToString(), verified("$base.bin")!!, words)
@@ -61,13 +63,13 @@ const val SPELL_MAX_REACH = 1f
 internal fun wristReach(frames: List<LandmarkFrame>): Float? {
     val p = frames.firstNotNullOfOrNull { it.pose?.takeIf { p -> p.size > 12 } } ?: return null
     val ky = 1f / frames.first().aspect
-    val sw = kotlin.math.hypot(p[11].x - p[12].x, (p[11].y - p[12].y) * ky).takeIf { it > 1e-6f } ?: return null
-    fun reach(hand: (LandmarkFrame) -> List<androidx.compose.ui.geometry.Offset>?): Float {
+    val sw = hypot(p[11].x - p[12].x, (p[11].y - p[12].y) * ky).takeIf { it > 1e-6f } ?: return null
+    fun reach(hand: (LandmarkFrame) -> List<Offset>?): Float {
         val w = frames.mapNotNull { hand(it)?.firstOrNull() }
         if (w.size < 3) return 0f
         val mx = w.map { it.x }.sorted()[w.size / 2]
         val my = w.map { it.y }.sorted()[w.size / 2]
-        return w.maxOf { kotlin.math.hypot(it.x - mx, (it.y - my) * ky) }
+        return w.maxOf { hypot(it.x - mx, (it.y - my) * ky) }
     }
     return maxOf(reach { it.leftHand }, reach { it.rightHand }) / sw
 }
@@ -84,8 +86,7 @@ private class CtcSpell(private val ctc: CtcSpellReader) : SignReader {
         val peaks = ArrayList<Float>()
         var last = 0
         for (row in logits) {
-            var best = 0
-            for (c in 1 until row.size) if (row[c] > row[best]) best = c
+            val best = argmax(row)
             val p = 1f / row.sumOf { exp((it - row[best]).toDouble()) }.toFloat()
             if (best != 0 && best != last) peaks += p else if (best != 0) peaks[peaks.lastIndex] = maxOf(peaks.last(), p)
             last = best

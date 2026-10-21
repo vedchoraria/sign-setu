@@ -1,7 +1,6 @@
 package app.signsetu.data.session
 
 import android.content.Context
-import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyPermanentlyInvalidatedException
 import android.security.keystore.KeyProperties
@@ -22,14 +21,9 @@ import javax.crypto.spec.GCMParameterSpec
 class DatabaseKey(private val context: Context) {
     private val wrapped = File(context.noBackupFilesDir, "dek.bin")
 
+    /** Closing wipes the key bytes. */
     class Unwrapped(val key: ByteArray, val reset: Boolean) : AutoCloseable {
-        fun wipe() {
-            key.fill(0)
-        }
-
-        override fun close() {
-            wipe()
-        }
+        override fun close() = key.fill(0)
     }
 
     /**

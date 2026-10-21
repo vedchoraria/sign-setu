@@ -27,7 +27,7 @@ The Gemma licence is free for government use but is not an OSI open-source licen
 - The department downloads the model once and hands it to officers as a file (SD card, USB, or a shared drive).
 - Settings, **On-device assistant**, **Import model file**: the app copies the file into its private storage and computes its SHA-256 while copying.
 - Only files whose hash is in `ModelStore.KNOWN_MODELS` are kept; any other file is deleted before it is parsed, so a swapped or damaged file never reaches the native parser.
-- The app has no INTERNET permission and gains none: it never downloads the model.
+- The app never downloads the model, even when it has a gateway (D-47).
 - **Remove the model** deletes it.
 
 | Model | SHA-256 |

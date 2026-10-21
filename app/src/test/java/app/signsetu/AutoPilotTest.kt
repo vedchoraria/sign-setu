@@ -1,16 +1,12 @@
 package app.signsetu
 
 import app.signsetu.data.content.ContentBundle
-import app.signsetu.data.content.Group
 import app.signsetu.data.content.Question
-import app.signsetu.data.session.DrawingEntity
 import app.signsetu.data.session.EventEntity
 import app.signsetu.data.session.EventSource
 import app.signsetu.data.session.EventType
 import app.signsetu.data.session.Profile
 import app.signsetu.data.session.Role
-import app.signsetu.data.session.SessionDao
-import app.signsetu.data.session.SessionEntity
 import app.signsetu.data.session.SessionRepository
 import app.signsetu.ui.session.AutoKey
 import app.signsetu.ui.session.AutoPilot
@@ -21,58 +17,24 @@ import app.signsetu.ui.session.reportMode
 import app.signsetu.data.session.SessionEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.io.File
 
 class AutoPilotTest {
 
-    @Serializable private data class Triage(val groups: List<Group>, val questions: List<Question>)
-
-    private val triage = Json { ignoreUnknownKeys = true }.decodeFromString<Triage>(File("src/main/assets/content/triage.json").readText())
-    private val bank = ContentBundle(
-        groups = triage.groups, questions = triage.questions, categories = emptyList(), cards = emptyMap(),
-        lexicon = emptyMap(), languages = emptyList(), subjectUi = emptyMap(), rejected = emptySet(),
-    )
-
-    private class Dao : SessionDao {
-        val rows = MutableStateFlow<List<EventEntity>>(emptyList())
-        val session = MutableStateFlow<SessionEntity?>(null)
-        var closed = false
-        override suspend fun insertSession(session: SessionEntity) { this.session.value = session }
-        override suspend fun openSession() = session.value
-        override fun session(id: String): Flow<SessionEntity?> = session
-        override suspend fun setSubjectLang(id: String, lang: String) = Unit
-        override suspend fun setProfile(id: String, profile: String) = Unit
-        override suspend fun setRole(id: String, role: String) { session.value = session.value?.copy(role = role) }
-        override suspend fun insertEvent(event: EventEntity): Long {
-            check(!closed) { "database closed" }
-            val id = rows.value.size + 1L
-            rows.value = rows.value + event.copy(id = id)
-            return id
-        }
-        override fun events(sessionId: String): Flow<List<EventEntity>> = rows
-        override suspend fun insertDrawing(drawing: DrawingEntity) = 0L
-        override suspend fun drawing(id: Long): ByteArray? = null
-        override suspend fun deleteSession(id: String) = Unit
-        override suspend fun deleteStartedBefore(cutoff: Long) = 0
-    }
+    private val bank = ContentBundle(groups = shipped.groups, questions = shipped.questions)
 
     /** The view model's side of auto mode, reduced to what the pilot calls. */
     private inner class Phone(private val test: TestScope) {
         // Not backgroundScope: advanceUntilIdle does not wait for background work.
         val scope = CoroutineScope(StandardTestDispatcher(test.testScheduler))
-        val dao = Dao()
+        val dao = MemoryDao()
         val repo = SessionRepository(dao, clock = { dao.rows.value.size.toLong() })
         var showing = false
         private var shownId: Long? = null

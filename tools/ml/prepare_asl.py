@@ -75,7 +75,7 @@ def fetch(name: str, out: pathlib.Path) -> pathlib.Path:
             while chunk := r.read(1 << 20):
                 f.write(chunk)
             if f.tell() != int(r.headers["Content-Length"]):
-                raise IOError(name + ": truncated download")
+                raise OSError(name + ": truncated download")
         path.with_suffix(".part").rename(path)
     return path
 
@@ -127,17 +127,16 @@ def shard(args) -> pathlib.Path:
     opts = vision.HolisticLandmarkerOptions(base_options=BaseOptions(model_asset_path=str(MODEL)),
                                             running_mode=vision.RunningMode.IMAGE)
     samples = []
-    with vision.HolisticLandmarker.create_from_options(opts) as lm:
-        with pq.ParquetFile(path) as f:
-            for g in range(f.num_row_groups):
-                for row in f.read_row_group(g, columns=["file", "text", "images"]).to_pylist():
-                    if limit and len(samples) >= limit:
-                        break
-                    if len(row["images"]) < 2:
-                        continue
-                    # Glosses keep their case (TV): asl_signs.json ids and asl_words.json keys use it.
-                    samples.append({"split": split, "label": row["text"].strip(), "rec": row["file"],
-                                    **clip(lm, row["images"])})
+    with vision.HolisticLandmarker.create_from_options(opts) as lm, pq.ParquetFile(path) as f:
+        for g in range(f.num_row_groups):
+            for row in f.read_row_group(g, columns=["file", "text", "images"]).to_pylist():
+                if limit and len(samples) >= limit:
+                    break
+                if len(row["images"]) < 2:
+                    continue
+                # Glosses keep their case (TV): asl_signs.json ids and asl_words.json keys use it.
+                samples.append({"split": split, "label": row["text"].strip(), "rec": row["file"],
+                                **clip(lm, row["images"])})
     out.parent.mkdir(parents=True, exist_ok=True)
     with open(out, "wb") as fo:
         pickle.dump(samples, fo)

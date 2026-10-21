@@ -2,8 +2,12 @@ package app.signsetu.ui.pair
 
 import androidx.compose.runtime.produceState
 import android.Manifest
+import android.bluetooth.BluetoothAdapter
+import android.content.pm.PackageManager
+import app.signsetu.camera.EvidenceMode
+import app.signsetu.camera.renderSkeletonPng
+import kotlinx.coroutines.CoroutineScope
 import android.app.ActivityManager
-import android.bluetooth.BluetoothManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -52,7 +56,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -97,18 +100,11 @@ import app.signsetu.ui.session.Stage
 import app.signsetu.ui.session.SmallAnswer
 import app.signsetu.ui.session.StripAnswer
 import app.signsetu.ui.theme.LocalAnswerColors
-import app.signsetu.ui.theme.LocalStageColors
 import app.signsetu.ui.theme.Spacing
 import app.signsetu.ui.theme.SubjectTheme
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-
-fun canBeStage(context: Context, container: AppContainer): Boolean =
-    container.pairTransport != null
-
-private fun bluetoothOn(context: Context) = context.getSystemService(BluetoothManager::class.java)?.adapter?.isEnabled == true
 
 /** On the lock screen: makes this device the subject's screen. Each tap shows the checklist again. */
 @Composable
@@ -116,16 +112,14 @@ fun UseAsStageButton(container: AppContainer) {
     if (container.pairTransport == null) return
     val context = LocalContext.current
     var checklist by remember { mutableStateOf(false) }
-    var unsupported by remember { mutableStateOf(false) }
     val enable = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { if (bluetoothOn(context)) container.startStage() }
-    val proceed = { if (bluetoothOn(context)) container.startStage() else enable.launch(Intent(android.bluetooth.BluetoothAdapter.ACTION_REQUEST_ENABLE)) }
+    val proceed = { if (bluetoothOn(context)) container.startStage() else enable.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)) }
     // The stage never passes the start screen, where the camera is otherwise asked for.
     val camera = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { proceed() }
     val link = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { granted ->
         if (granted.values.all { it }) camera.launch(Manifest.permission.CAMERA)
     }
-    TextButton(onClick = { if (canBeStage(context, container)) checklist = true else unsupported = true }) { Text(stringResource(R.string.stage_use)) }
-    if (unsupported) Text(stringResource(R.string.stage_unsupported), color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
+    TextButton(onClick = { checklist = true }) { Text(stringResource(R.string.stage_use)) }
     if (checklist) {
         GuardedAlertDialog(
             onDismissRequest = { checklist = false },
@@ -243,7 +237,7 @@ fun CheckValue(check: String) {
 }
 
 @Composable
-private fun LiveStage(link: StageLink, baseContent: ContentBundle, state: LinkState, exit: () -> Unit, scope: kotlinx.coroutines.CoroutineScope, container: AppContainer) {
+private fun LiveStage(link: StageLink, baseContent: ContentBundle, state: LinkState, exit: () -> Unit, scope: CoroutineScope, container: AppContainer) {
     // Landmarks drive the overlay and gesture proposals here (D-40); no sign is read on this phone and none leaves it.
     val tracker by produceState<LandmarkTracker?>(null) { value = withContext(Dispatchers.IO) { container.landmarkTracker } }
     var cue by remember { mutableStateOf<String?>(null) }
@@ -313,7 +307,7 @@ private fun LiveStage(link: StageLink, baseContent: ContentBundle, state: LinkSt
                     ui = ui,
                     content = content,
                     tracker = tracker,
-                    cameraOn = view.cameraOn && ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == android.content.pm.PackageManager.PERMISSION_GRANTED,
+                    cameraOn = view.cameraOn && ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED,
                     largeCaptions = view.largeCaptions,
                     gestureSpeed = view.gestureSpeed,
                     onCard = onCard,
@@ -335,10 +329,12 @@ private fun LiveStage(link: StageLink, baseContent: ContentBundle, state: LinkSt
                             val frames = signFrames.toList()
                             signFrames.clear()
                             val r = reader
-                            scope.launch(Dispatchers.Default) {
-                                val words = r?.read(frames)?.mapNotNull { it.word }?.filter { it != "?" }?.take(4).orEmpty()
-                                val keyFrame = frames.firstOrNull { it.leftHand != null || it.rightHand != null } ?: frames.firstOrNull()
-                                val skeletonPng = keyFrame?.let { app.signsetu.camera.renderSkeletonPng(it).b64() }
+                            scope.launch {
+                                val (words, skeletonPng) = withContext(Dispatchers.Default) {
+                                    val keyFrame = frames.firstOrNull { it.leftHand != null || it.rightHand != null } ?: frames.firstOrNull()
+                                    r?.read(frames)?.mapNotNull { it.word }?.filter { it != "?" }?.take(4).orEmpty() to
+                                        keyFrame?.takeIf { EvidenceMode.autoCapture.value }?.let { renderSkeletonPng(it).b64() }
+                                }
                                 if (words.isNotEmpty() || skeletonPng != null) {
                                     send(AnswerBody.Signed(words, skeletonPng))
                                 }

@@ -35,7 +35,7 @@ GPL and AGPL code is never shipped in the app (policy §2); it may be used as a 
 | | Filament, SceneView | Apache-2.0 | Ship (stage 2 only) | glTF with skinning and morph targets on Android |
 | | Rive runtime | MIT | Not chosen | 2D bone animation; editor is a hosted service, a dependency we avoid |
 | Sign recognition (D-25) | MediaPipe Tasks Vision 1.0.0 with the Holistic landmarker model | Apache-2.0 | Ship | On-device hand, face and pose landmarks, GPU then CPU; 64-bit native library only; usage-statistics upload backend excluded (D-33) |
-| | Protocol Buffers for Java 4.26.1 (`protobuf-java`) | BSD-3-Clause | Ship | Full runtime MediaPipe 1.0.0 is compiled against; replaces `protobuf-javalite` (D-38) |
+| | Protocol Buffers for Java 4.36.2 (`protobuf-javalite`) | BSD-3-Clause | Ship | Lite runtime MediaPipe 1.1.1 is built on, pinned past CVE-2024-7254 (D-49) |
 | | Sign reader (`LandmarkSignReader`), trained in `tools/ml` | Project code; weights derived from INCLUDE (CC BY 4.0) | Ship | Plain Kotlin forward pass; no inference library |
 | | ISL letter and digit reader (`isl_spell`, format 1, `"norm": "hands"`) | Project code; weights derived from the Multimodal ISL alphabet dataset (CC BY 4.0) and synthetic landmarks from the app's own keyframes | Ship | Hand-normalised features, so close-ups and the camera read alike. On ISLAN signers held out of training: top-1 0.41, top-3 0.49 (synthetic-only training gave 0.04 on ISLRTC signers) |
 | ISL letter data | Multimodal ISL dataset for English and Marathi alphabets (Hambir, Khandagale, Cherian, Gaikwad; doi:10.17632/2tj6c7pzfk.1) | CC BY 4.0 | Data | English A to Z and 0 to 9 photographs by four signers; hand landmarks extracted with MediaPipe Hand Landmarker (Apache 2.0, preparation only) |

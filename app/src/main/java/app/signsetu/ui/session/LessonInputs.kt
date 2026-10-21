@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -85,10 +87,10 @@ import app.signsetu.ui.theme.Spacing
 /** The bank group whose phrases the subject can say from the stage. */
 const val EVERYDAY = "everyday"
 
-private val Ink = Color(0xFF2B2118)
 private val Soft = Color(0xFFFFE7BF)
 private val OnSoft = Color(0xFF3D2700)
-private val Off = Color(0xFFBFD8CB)
+/** A Done that cannot be pressed yet. */
+internal val Off = Color(0xFFBFD8CB)
 
 /** The question on stage, when it takes a lesson-sheet answer input instead of the answer rails. */
 fun lessonQuestion(pending: Pending?): Question? = (pending as? Pending.Ask)?.question?.takeIf { it.answer != null }
@@ -196,9 +198,9 @@ private fun NumberPad(type: AnswerType, title: (@Composable () -> Unit)? = null,
                 }
             }
         }
-        // Direct one-tap finger counts for children (1..10) on age/count questions
+        // One tap on a held-up hand of 1 to 10 for a child who cannot work the pad.
         if (type == AnswerType.AGE || type == AnswerType.COUNT) {
-            androidx.compose.foundation.lazy.LazyRow(
+            LazyRow(
                 modifier = Modifier.fillMaxWidth().height(42.dp),
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -409,7 +411,7 @@ private fun WaysOut(content: ContentBundle, lang: String, chosen: String?, onCar
             val name = word ?: stringResource(R.string.officer_read_signs)
             val stage = LocalStageColors.current
             // A tool colour and a word, so the camera never reads as a second Stop beside it.
-            PressableSurface(onClick = it, shape = RoundedCornerShape(16.dp), color = stage.tool, border = BorderStroke(1.dp, stage.onTool.copy(alpha = 0.16f)), modifier = Modifier.weight(1f).fillMaxSize().semantics { contentDescription = name }) {
+            PressableSurface(onClick = it, shape = RoundedCornerShape(16.dp), color = stage.tool, border = stage.toolEdge, modifier = Modifier.weight(1f).fillMaxSize().semantics { contentDescription = name }) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                     Icon(painterResource(R.drawable.ic_videocam), contentDescription = null, tint = stage.onTool, modifier = Modifier.size(24.dp))
                     word?.let { w -> Text(w, fontFamily = Baloo, fontWeight = FontWeight.Bold, fontSize = 11.sp, color = stage.onTool, maxLines = 1) }
@@ -421,7 +423,7 @@ private fun WaysOut(content: ContentBundle, lang: String, chosen: String?, onCar
 }
 
 @Composable
-private fun androidx.compose.foundation.layout.RowScope.Way(cardId: String, label: String?, name: String, color: Color, onColor: Color, chosen: Boolean, onClick: () -> Unit) {
+private fun RowScope.Way(cardId: String, label: String?, name: String, color: Color, onColor: Color, chosen: Boolean, onClick: () -> Unit) {
     PressableSurface(
         onClick = onClick,
         shape = RoundedCornerShape(16.dp),

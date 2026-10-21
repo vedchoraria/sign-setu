@@ -12,7 +12,6 @@ import app.signsetu.sign.cardFor
 import app.signsetu.sign.inContext
 import app.signsetu.sign.needsSlower
 import app.signsetu.sign.parseSignWords
-import app.signsetu.sign.segmentSigns
 import app.signsetu.sign.signChoices
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -27,7 +26,7 @@ import org.junit.Test
 import java.io.File
 
 class SignIngestionTest {
-    private val content = File("src/main/assets/content")
+    private val content = ASSETS
     @Serializable private data class WordsFile(val words: List<WordEntry>)
     private val words = Json { ignoreUnknownKeys = true }.decodeFromString<WordsFile>(File(content, "words.json").readText())
         .words.flatMap { e -> e.w.map { it to e } }.toMap()

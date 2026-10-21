@@ -6,7 +6,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlin.math.abs
 import kotlin.math.hypot
-import kotlin.math.max
 
 /**
  * The bundled ASL fingerspelling reader (format 2), trained by tools/ml/spell_ctc.py: one hand's landmarks to letters
@@ -59,8 +58,7 @@ class CtcSpellReader(spec: String, weights: ByteArray) {
     fun decode(logits: Array<FloatArray>): String = buildString {
         var last = -1
         for (row in logits) {
-            var best = 0
-            for (c in 1 until row.size) if (row[c] > row[best]) best = c
+            val best = argmax(row)
             if (best != 0 && best != last) append(alphabet[best - 1])
             last = best
         }
@@ -125,4 +123,11 @@ class CtcSpellReader(spec: String, weights: ByteArray) {
     private companion object {
         const val FEATURES = 45
     }
+}
+
+/** The first index of the largest value. */
+internal fun argmax(row: FloatArray): Int {
+    var best = 0
+    for (c in 1 until row.size) if (row[c] > row[best]) best = c
+    return best
 }

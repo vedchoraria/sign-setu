@@ -3,7 +3,6 @@ package app.signsetu
 import androidx.compose.ui.geometry.Offset
 import app.signsetu.camera.LandmarkFrame
 import app.signsetu.sign.SignCapture
-import app.signsetu.sign.segmentSigns
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test

@@ -114,27 +114,16 @@ internal fun convRelu(input: FloatArray, w: FloatArray, b: FloatArray, h: Int, t
 
 /** Shoulder-centred, shoulder-width-scaled landmarks, resampled to [t] frames of 98 values. */
 fun signFeatures(frames: List<LandmarkFrame>, t: Int): FloatArray? {
-        if (frames.isEmpty()) return null
-        val ky = 1f / frames.first().aspect
-        var cx = 0f; var cy = 0f; var scale = 0f; var n = 0
-        for (f in frames) {
-            val p = f.pose?.takeIf { it.size > 16 } ?: continue
-            cx += (p[11].x + p[12].x) / 2; cy += (p[11].y + p[12].y) / 2 * ky
-            scale += hypot(p[11].x - p[12].x, (p[11].y - p[12].y) * ky); n++
-        }
-        if (n == 0 || scale / n < 1e-6f) return null
-        cx /= n; cy /= n; scale /= n
-        val out = FloatArray(t * FEATURES)
-        val last = frames.size - 1
-        for (j in 0 until t) {
-            val f = frames[(j * last * 2 + (t - 1)) / (2 * (t - 1))]
-            val row = j * FEATURES
-            fun put(at: Int, x: Float, y: Float) { out[row + at] = (x - cx) / scale; out[row + at + 1] = (y * ky - cy) / scale }
-            f.leftHand?.takeIf { it.size == 21 }?.let { hand -> hand.forEachIndexed { i, p -> put(2 * i, p.x, p.y) }; out[row + 96] = 1f }
-            f.rightHand?.takeIf { it.size == 21 }?.let { hand -> hand.forEachIndexed { i, p -> put(42 + 2 * i, p.x, p.y) }; out[row + 97] = 1f }
-            f.pose?.takeIf { it.size > 16 }?.let { p -> for (i in 0 until 6) put(84 + 2 * i, p[11 + i].x, p[11 + i].y) }
-        }
-        return out
+    if (frames.isEmpty()) return null
+    val ky = 1f / frames.first().aspect
+    var cx = 0f; var cy = 0f; var scale = 0f; var n = 0
+    for (f in frames) {
+        val p = f.pose?.takeIf { it.size > 16 } ?: continue
+        cx += (p[11].x + p[12].x) / 2; cy += (p[11].y + p[12].y) / 2 * ky
+        scale += hypot(p[11].x - p[12].x, (p[11].y - p[12].y) * ky); n++
+    }
+    if (n == 0 || scale / n < 1e-6f) return null
+    return resample(frames, t, cx / n, cy / n, scale / n, ky, withPose = true)
 }
 
 /** As tools/ml/features.py featurize_hands: centred on all hand points, scaled by mean wrist to middle-knuckle length. */
@@ -142,12 +131,17 @@ fun handFeatures(frames: List<LandmarkFrame>, t: Int): FloatArray? {
     if (frames.isEmpty()) return null
     val ky = 1f / frames.first().aspect
     var cx = 0f; var cy = 0f; var points = 0; var scale = 0f; var hands = 0
-    for (f in frames) for (h in listOfNotNull(f.leftHand?.takeIf { it.size == 21 }, f.rightHand?.takeIf { it.size == 21 })) {
+    for (f in frames) for (h in f.hands) {
+        if (h.size != 21) continue
         for (p in h) { cx += p.x; cy += p.y * ky; points++ }
         scale += hypot(h[0].x - h[9].x, (h[0].y - h[9].y) * ky); hands++
     }
     if (hands == 0 || scale / hands < 1e-6f) return null
-    cx /= points; cy /= points; scale /= hands
+    return resample(frames, t, cx / points, cy / points, scale / hands, ky, withPose = false)
+}
+
+/** [t] evenly picked frames: both hands (left then right, with a presence flag each) and, [withPose], the arms. */
+private fun resample(frames: List<LandmarkFrame>, t: Int, cx: Float, cy: Float, scale: Float, ky: Float, withPose: Boolean): FloatArray {
     val out = FloatArray(t * FEATURES)
     val last = frames.size - 1
     for (j in 0 until t) {
@@ -156,6 +150,7 @@ fun handFeatures(frames: List<LandmarkFrame>, t: Int): FloatArray? {
         fun put(at: Int, x: Float, y: Float) { out[row + at] = (x - cx) / scale; out[row + at + 1] = (y * ky - cy) / scale }
         f.leftHand?.takeIf { it.size == 21 }?.let { hand -> hand.forEachIndexed { i, p -> put(2 * i, p.x, p.y) }; out[row + 96] = 1f }
         f.rightHand?.takeIf { it.size == 21 }?.let { hand -> hand.forEachIndexed { i, p -> put(42 + 2 * i, p.x, p.y) }; out[row + 97] = 1f }
+        if (withPose) f.pose?.takeIf { it.size > 16 }?.let { p -> for (i in 0 until 6) put(84 + 2 * i, p[11 + i].x, p[11 + i].y) }
     }
     return out
 }

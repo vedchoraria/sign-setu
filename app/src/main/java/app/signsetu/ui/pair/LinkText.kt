@@ -6,6 +6,7 @@ import androidx.compose.ui.platform.LocalResources
 import app.signsetu.R
 import app.signsetu.data.session.EventType
 import app.signsetu.data.session.SessionEvent
+import app.signsetu.ui.session.LINK_FALLBACK
 import app.signsetu.ui.session.SYSTEM_BREAK_GIVEN
 
 /** LINK rows hold a machine key, then any detail (model, build, address hash) after a space. */
@@ -28,7 +29,7 @@ private val labels = mapOf(
     LinkKey.HOLD to R.string.link_hold,
     LinkKey.UNPINNED to R.string.link_unpinned,
     LinkKey.DISPLAY_NOT_CONFIRMED to R.string.link_display_not_confirmed,
-    app.signsetu.ui.session.LINK_FALLBACK to R.string.link_fallback,
+    LINK_FALLBACK to R.string.link_fallback,
     LinkKey.ENDED to R.string.link_ended,
 )
 

@@ -8,14 +8,10 @@ import app.signsetu.data.content.Phrase
 import app.signsetu.data.content.PhraseSlot
 import app.signsetu.data.content.Question
 import app.signsetu.data.content.SignMode
-import app.signsetu.data.session.DrawingEntity
-import app.signsetu.data.session.EventEntity
 import app.signsetu.data.session.EventSource
 import app.signsetu.data.session.EventType
 import app.signsetu.data.session.Profile
 import app.signsetu.data.session.Session
-import app.signsetu.data.session.SessionDao
-import app.signsetu.data.session.SessionEntity
 import app.signsetu.data.session.SessionRepository
 import app.signsetu.export.SessionReport
 import app.signsetu.pair.Abort
@@ -72,7 +68,6 @@ import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -330,9 +325,9 @@ class PairTest {
     private val slot = PhraseSlot("water", text = mapOf("en" to "Do you want water?"))
     private val phrase = Phrase("want", mapOf("en" to "Want"), listOf("want", Phrase.SLOT), listOf(slot))
     private val bundle = ContentBundle(
-        groups = emptyList(), questions = listOf(question), categories = emptyList(),
+        questions = listOf(question),
         cards = listOf("yes", "no", "water", "stop").associateWith { Card(it, "c", mapOf("en" to it)) },
-        lexicon = mapOf(entry.id to entry), languages = emptyList(), subjectUi = emptyMap(), rejected = emptySet(),
+        lexicon = mapOf(entry.id to entry),
         phrases = listOf(phrase),
     )
 
@@ -379,30 +374,6 @@ class PairTest {
         assertEquals(listOf("water"), app.signsetu.ui.session.readBackLabels(base.copy(confirm = confirm)))
         assertEquals(listOf("water"), app.signsetu.ui.session.readBackLabels(base.copy(pending = Pending.FreeText("paani", emptyList(), ref = 7L))))
         assertEquals(emptyList<String>(), app.signsetu.ui.session.readBackLabels(base.copy(pending = Pending.FreeText("paani", emptyList()))))
-    }
-
-    // ---- View model
-
-    private class MemoryDao : SessionDao {
-        val sessions = MutableStateFlow<Map<String, SessionEntity>>(emptyMap())
-        val rows = MutableStateFlow<List<EventEntity>>(emptyList())
-        private var next = 1L
-        override suspend fun insertSession(session: SessionEntity) { sessions.value += session.id to session }
-        override suspend fun openSession() = sessions.value.values.firstOrNull()
-        override fun session(id: String): Flow<SessionEntity?> = sessions.map { it[id] }
-        override suspend fun setSubjectLang(id: String, lang: String) = Unit
-        override suspend fun setProfile(id: String, profile: String) = Unit
-        override suspend fun setRole(id: String, role: String) = Unit
-        override suspend fun insertEvent(event: EventEntity): Long {
-            val id = next++
-            rows.value += event.copy(id = id)
-            return id
-        }
-        override fun events(sessionId: String): Flow<List<EventEntity>> = rows
-        override suspend fun insertDrawing(drawing: DrawingEntity) = next++
-        override suspend fun drawing(id: Long): ByteArray? = null
-        override suspend fun deleteSession(id: String) = Unit
-        override suspend fun deleteStartedBefore(cutoff: Long) = 0
     }
 
     @Before
@@ -539,6 +510,12 @@ class PairTest {
         val b64 = java.util.Base64.getEncoder().encodeToString(png)
         vm.reencodePng = { it }
         vm.logRemote(item, 0, AnswerBody.Signed(listOf("police", "help"), b64))
+        assertNull("snapshot is opt-in (D-46)", dao.rows.value.firstOrNull { it.type == EventType.ANSWER_DRAWING.name })
+
+        vm.show()
+        val on = app.signsetu.camera.EvidenceMode.autoCapture
+        on.value = true
+        try { vm.logRemote(item, 1, AnswerBody.Signed(listOf("police", "help"), b64)) } finally { on.value = false }
 
         val signedRow = dao.rows.value.firstOrNull { it.type == EventType.ANSWER_SIGNED.name }
         assertNotNull(signedRow)
@@ -591,8 +568,6 @@ class PairTest {
         assertFalse(drawingBoundsOk(0, 10))
         assertTrue(drawingBoundsOk(1080, 1920))
     }
-
-    // ---- The whole link over an in-process transport
 
     private class FakeHub {
         val waiting = Channel<Pipe>(Channel.UNLIMITED)

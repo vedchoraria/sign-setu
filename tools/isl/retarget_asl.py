@@ -66,7 +66,6 @@ def flag(g: dict) -> dict:
     return {**{k: v for k, v in out.items() if k != "keys"}, "keys": out["keys"]}
 
 
-# ---- Data ------------------------------------------------------------------------------------------------------
 
 def load(s: dict) -> dict:
     """One prepare_asl.py clip in retarget.load's layout, at the source 5 fps: its 15 fps upsampling keeps every
@@ -223,7 +222,6 @@ def right_dominant(rec: dict) -> dict:
             "has_L": rec["has_R"], "has_R": rec["has_L"]}
 
 
-# ---- Alphabet ----------------------------------------------------------------------------------------------------
 
 # One-hand ASL manual alphabet, right hand held up beside the shoulder ("c:" thumb, index, middle, ring, pinky,
 # thumbAcross, spread). Roll 0 shows the hand from the thumb side, for letters read in profile.
@@ -260,7 +258,6 @@ def letter_keys(ch: str) -> list[dict]:
     return [{"t": t, "R": hand, "L": {"at": "rest"}} for t in (0.0, 0.35)]
 
 
-# ---- Output -----------------------------------------------------------------------------------------------------
 
 def word_forms() -> set[str]:
     words = json.loads((CONTENT / "words.json").read_text(encoding="utf-8"))["words"]

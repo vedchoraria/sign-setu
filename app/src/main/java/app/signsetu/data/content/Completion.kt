@@ -5,8 +5,6 @@ enum class Signability { SIGN, GESTURE, PICTURE, SPELL }
 
 data class Completion(val form: String, val kind: Signability)
 
-private val TOKEN = Regex("[\\p{L}\\p{M}\\p{N}]+(?:['’]\\p{L}+)?")
-
 fun ContentBundle.signability(word: String): Signability {
     val w = word.lowercase().split('\'', '’').first()
     val entry = words[w]
@@ -22,7 +20,7 @@ fun ContentBundle.signability(word: String): Signability {
 /** Vocabulary forms starting with [prefix]: one per entry, signed first, then shorter. */
 fun ContentBundle.complete(prefix: String): List<Completion> {
     val p = prefix.lowercase()
-    val min = if (p.any { it in 'ऀ'..'ॿ' }) 1 else 2
+    val min = if (p.isDevanagari()) 1 else 2
     if (p.length < min) return emptyList()
     return words.entries
         .filter { (form, _) -> form.startsWith(p) && form != p }

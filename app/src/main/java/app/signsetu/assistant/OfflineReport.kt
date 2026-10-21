@@ -1,15 +1,15 @@
 package app.signsetu.assistant
 
+import app.signsetu.data.content.SignLanguage
+
 /** On-device report and follow-up question generation; nothing here leaves the phone. */
 object OfflineReport {
-    /**
-     * Rule-based forensic report built entirely on-device.
-     * Parses AAC card selections, ISL glosses, body pain pointings, and officer notes into a formal police report.
-     */
+    /** A report from rules alone: answers, pain pointed at, ages counted on fingers and officer notes in the log. */
     fun synthesizeOfflineForensicReport(
         sessionLogText: String,
         role: String,
         regionalDialect: String,
+        signLanguage: SignLanguage = SignLanguage.ISL,
     ): String {
         val lines = sessionLogText.lines().map { it.trim() }.filter { it.isNotEmpty() }
         val subjectStatements = mutableListOf<String>()
@@ -17,44 +17,25 @@ object OfflineReport {
         val painPoints = mutableListOf<String>()
         val childAges = mutableListOf<String>()
         val gestures = mutableListOf<String>()
-        val drawings = mutableListOf<String>()
+        var drawings = 0
         val officerNotes = mutableListOf<String>()
+
+        // A field the log line holds, or null when it is empty or "null".
+        fun String.field(key: String, before: String) = substringAfter(key).substringBefore(before).trim().takeIf { it.isNotBlank() && it != "null" }
 
         for (line in lines) {
             when {
-                line.contains("ANSWER_CARD") || line.contains("ANSWER_TEXT") || line.contains("ANSWER_SIGNED") || line.contains("ANSWER_GESTURE") -> {
-                    val textPart = line.substringAfter("text=").substringBefore(" card=").trim()
+                ANSWERS.any { it in line } -> {
+                    val textPart = line.field("text=", " card=")
                     val cardPart = line.substringAfter("card=").substringBefore(" lang=").trim()
-                    if (textPart.isNotBlank() && textPart != "null") {
-                        subjectStatements.add(textPart)
-                    } else if (cardPart.isNotBlank() && cardPart != "null") {
-                        subjectStatements.add(cardPart)
-                    }
-                    if (cardPart.startsWith("pain_") || cardPart in setOf("head", "arm", "chest", "stomach", "leg", "hand", "face", "throat")) {
-                        painPoints.add(cardPart.removePrefix("pain_"))
-                    }
-                    if (cardPart.matches(Regex("n\\d+"))) {
-                        childAges.add(cardPart.removePrefix("n"))
-                    }
-                    if (line.contains("cue:")) {
-                        gestures.add(line.substringAfter("cue:").substringBefore("]"))
-                    }
+                    (textPart ?: line.field("card=", " lang="))?.let(subjectStatements::add)
+                    if (cardPart.startsWith("pain_") || cardPart in BODY_PARTS) painPoints.add(cardPart.removePrefix("pain_"))
+                    if (cardPart.matches(COUNT_CARD)) childAges.add(cardPart.removePrefix("n"))
+                    if (line.contains("cue:")) gestures.add(line.substringAfter("cue:").substringBefore("]"))
                 }
-                line.contains("QUESTION_SHOWN") -> {
-                    val textPart = line.substringAfter("text=").substringBefore(" card=").trim()
-                    if (textPart.isNotBlank() && textPart != "null") {
-                        officerQuestions.add(textPart)
-                    }
-                }
-                line.contains("ANSWER_DRAWING") -> {
-                    drawings.add("Evidence drawing / gesture landmark snapshot recorded")
-                }
-                line.contains("NOTE") -> {
-                    val notePart = line.substringAfter("text=").substringBefore(" card=").trim()
-                    if (notePart.isNotBlank() && notePart != "null") {
-                        officerNotes.add(notePart)
-                    }
-                }
+                line.contains("QUESTION_SHOWN") -> line.field("text=", " card=")?.let(officerQuestions::add)
+                line.contains("ANSWER_DRAWING") -> drawings++
+                line.contains("NOTE") -> line.field("text=", " card=")?.let(officerNotes::add)
             }
         }
 
@@ -76,13 +57,13 @@ object OfflineReport {
 
             I. INCIDENT ESSENCE & CASE METADATA
             • Subject Classification : $subjectType
-            • Primary Communication  : $regionalDialect / Indian Sign Language (ISL)
+            • Primary Communication  : $regionalDialect / ${signLanguage.title}
             • Questions Formulated   : ${officerQuestions.size} structured non-leading items
-            • Evidentiary Responses  : ${subjectStatements.size} recorded answers, ${drawings.size} drawing/landmark exhibits
+            • Evidentiary Responses  : ${subjectStatements.size} recorded answers, $drawings drawing/landmark exhibits
             • Recorded Age Estimate  : $ageSummary
 
             II. STATEMENTS & ALLEGATIONS BY SUBJECT (EXACT AAC / ISL TRANSCRIPTION)
-               • $statementSummary
+               • {statements}
 
             III. INJURY, PAIN & IMMEDIATE MEDICAL EVALUATION
             • Pointed / Indicated Pain Areas : $painSummary
@@ -90,7 +71,7 @@ object OfflineReport {
             • Medical Attention Recommendation: Immediate MLC (Medico-Legal Certificate) examination mandated if physical trauma indicated.
 
             IV. RECORDED OFFICER OBSERVATIONS & CASE NOTES
-            ${if (officerNotes.isNotEmpty()) officerNotes.joinToString("\n") { "   • $it" } else "   • Direct statement capture completed without supplementary notes."}
+            {notes}
 
             V. FORENSIC ADMISSIBILITY & STATUTORY SAFEGUARDS
             • Compliance Standard : Section 164 CrPC / Section 183 Bharatiya Nagarik Suraksha Sanhita (BNSS).
@@ -105,8 +86,14 @@ object OfflineReport {
             4. Preserve session digital evidence and PDF export in the police investigation docket.
             ================================================================================
         """.trimIndent()
+            // Filled after trimIndent: multi-line values would otherwise change the common indent.
+            .replace("{statements}", statementSummary)
+            .replace("{notes}", if (officerNotes.isNotEmpty()) officerNotes.joinToString("\n") { "   • $it" } else "   • Direct statement capture completed without supplementary notes.")
     }
 
+    private val ANSWERS = listOf("ANSWER_CARD", "ANSWER_TEXT", "ANSWER_SIGNED", "ANSWER_GESTURE")
+    private val BODY_PARTS = setOf("head", "arm", "chest", "stomach", "leg", "hand", "face", "throat")
+    private val COUNT_CARD = Regex("n\\d+")
 
     /** Gentle, non-leading follow-up questions chosen from the subject's last answer. */
     fun offlineTraumaFollowUps(lastAnswer: String, isChild: Boolean): List<String> {

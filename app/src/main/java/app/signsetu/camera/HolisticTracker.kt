@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Build
+import android.util.Log
 import androidx.compose.ui.geometry.Offset
 import com.google.mediapipe.framework.image.BitmapImageBuilder
 import com.google.mediapipe.tasks.components.containers.NormalizedLandmark
@@ -15,6 +16,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import java.nio.ByteBuffer
+import java.util.concurrent.ConcurrentHashMap
 import java.io.FileInputStream
 import java.nio.channels.FileChannel
 import java.security.MessageDigest
@@ -43,7 +45,7 @@ class HolisticTracker(private val context: Context) : LandmarkTracker {
 
     private fun model(): HolisticLandmarker? = synchronized(lock) {
         if (!opened) {
-            landmarker = verifiedModel()?.let { runCatching { open(it) }.getOrNull() }
+            landmarker = verifiedModel()?.let { runCatching { open(it) }.onFailure { Log.w("HolisticTracker", "tracker did not open", it) }.getOrNull() }
             opened = true
         }
         landmarker
@@ -80,8 +82,14 @@ class HolisticTracker(private val context: Context) : LandmarkTracker {
     // The CPU managed about 9 frames a second on a mid-range phone; the GPU is tried first, the CPU when it fails.
     // Some GPUs run the graph yet find nothing, so the GPU is kept only if it finds the person in a bundled frame.
     private fun open(model: ByteBuffer): HolisticLandmarker {
-        if (delegate == Delegate.GPU && runCatching { open(model, Delegate.GPU).let { gpu -> try { findsPerson(gpu) } finally { gpu.close() } } }.getOrDefault(false)) {
-            runCatching { return open(model, Delegate.GPU) }
+        if (delegate == Delegate.GPU) {
+            val gpu = runCatching { open(model, Delegate.GPU) }.getOrNull()
+            if (gpu != null && runCatching { findsPerson(gpu) }.getOrDefault(false)) {
+                // The probe used timestamp 0 on this graph.
+                lastTimestampMs = 0
+                return gpu
+            }
+            runCatching { gpu?.close() }
         }
         delegate = Delegate.CPU
         return open(model, Delegate.CPU)
@@ -107,17 +115,7 @@ class HolisticTracker(private val context: Context) : LandmarkTracker {
             .build(),
     )
 
-    // Mapped, not copied: clean file pages the system can reclaim, instead of 13.7 MB of anonymous memory.
-    private fun verifiedModel(): ByteBuffer? = runCatching {
-        val manifest = context.assets.open("content/manifest.json").bufferedReader().use { it.readText() }
-        val expected = Json.parseToJsonElement(manifest).jsonObject["files"]?.jsonObject?.get(MODEL)?.jsonPrimitive?.content
-        val buffer = context.assets.openFd("content/$MODEL").use { fd ->
-            FileInputStream(fd.fileDescriptor).channel.use { it.map(FileChannel.MapMode.READ_ONLY, fd.startOffset, fd.length) }
-        }
-        val actual = MessageDigest.getInstance("SHA-256").apply { update(buffer.duplicate()) }.digest()
-            .joinToString("") { "%02x".format(it) }
-        buffer.takeIf { expected != null && actual == expected }
-    }.getOrNull()
+    private fun verifiedModel(): ByteBuffer? = verifiedAsset(context, MODEL)
 }
 
 /**
@@ -133,3 +131,20 @@ internal fun landmarkFrame(
 ) = LandmarkFrame(timestampMs, leftHand.points(), rightHand.points(), face.points(), pose.points())
 
 private fun List<NormalizedLandmark>.points(): List<Offset>? = takeIf { it.isNotEmpty() }?.map { Offset(it.x(), it.y()) }
+
+private val verified = ConcurrentHashMap.newKeySet<String>()
+
+/**
+ * A content asset mapped, not copied (clean pages the system can reclaim), once its SHA-256 matches the manifest (SEC-54).
+ * Assets cannot change while the app runs, so each is hashed once per process.
+ */
+internal fun verifiedAsset(context: Context, path: String): ByteBuffer? = runCatching {
+    val buffer = context.assets.openFd("content/$path").use { fd ->
+        FileInputStream(fd.fileDescriptor).channel.use { it.map(FileChannel.MapMode.READ_ONLY, fd.startOffset, fd.length) }
+    }
+    if (path in verified) return@runCatching buffer
+    val manifest = context.assets.open("content/manifest.json").bufferedReader().use { it.readText() }
+    val expected = Json.parseToJsonElement(manifest).jsonObject["files"]?.jsonObject?.get(path)?.jsonPrimitive?.content
+    val actual = MessageDigest.getInstance("SHA-256").apply { update(buffer.duplicate()) }.digest().toHexString()
+    buffer.takeIf { expected != null && actual == expected }?.also { verified += path }
+}.getOrNull()

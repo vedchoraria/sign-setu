@@ -1,5 +1,6 @@
 package app.signsetu.ui.session
 
+import androidx.core.content.edit
 import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -117,7 +118,7 @@ class StageGuard(context: Context) {
 
     // commit, not apply: the flag must be on disk before the subject holds the phone.
     fun onStage(live: Boolean) {
-        if (forceCredential != live) prefs.edit().putBoolean(KEY, live).commit()
+        if (forceCredential != live) prefs.edit(commit = true) { putBoolean(KEY, live) }
     }
 
     private companion object { const val KEY = "stage_live" }

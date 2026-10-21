@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: signsetu-gateway
+    runtime: docker
+    plan: free
+    rootDir: backend
+    healthCheckPath: /healthz
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: ENROLL_HASHES
+        sync: false
+      - key: ASSIST_URL
+        value: https://openrouter.ai/api/v1/chat/completions
+      - key: ASSIST_MODEL
+        value: nvidia/nemotron-3-ultra-550b-a55b:free
+      - key: ASSIST_KEY
+        sync: false

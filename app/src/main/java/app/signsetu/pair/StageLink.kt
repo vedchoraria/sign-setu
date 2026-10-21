@@ -4,6 +4,7 @@ import android.util.Log
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -19,6 +20,7 @@ import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
+import java.io.IOException
 
 enum class LinkRole { OFFICER, STAGE }
 
@@ -89,14 +91,12 @@ class StageLink(
     private var check: String? = null
     private var wrong = 0
 
-    // Officer side
     private val officerInbox = Channel<ToOfficer>(Channel.UNLIMITED)
     /** Answers, display confirmations and status from the stage. */
     val fromStage: Flow<ToOfficer> = officerInbox.receiveAsFlow()
     private var rev = 0L
     private var lastShow: ToStage.Show? = null
 
-    // Stage side
     private val _view = MutableStateFlow<ToStage.Show?>(null)
     /** The latest snapshot; the stage keeps nothing else. */
     val view: StateFlow<ToStage.Show?> = _view.asStateFlow()
@@ -104,8 +104,6 @@ class StageLink(
     private val _unacked = MutableStateFlow<List<ToOfficer.Answer>>(emptyList())
     val unacked: StateFlow<List<ToOfficer.Answer>> = _unacked.asStateFlow()
     private var nextN = 0
-
-    // ---- Officer API
 
     fun connect(peer: String) = scope.launch {
         if (!officer || _state.value is LinkState.Live) return@launch
@@ -156,8 +154,6 @@ class StageLink(
         }
     }
 
-    // ---- Stage API
-
     fun listen() = scope.launch {
         if (officer) return@launch
         relisten()
@@ -175,7 +171,7 @@ class StageLink(
     /** Queued until the officer acks it after logging, and resent after a resume. */
     fun answer(itemId: Long, body: AnswerBody) = scope.launch {
         if (officer || !body.fits()) return@launch
-        val live = _state.value == LinkState.Live || _state.value == LinkState.Hold
+        val live = up
         val a = ToOfficer.Answer(itemId, nextN++, body, late = !live)
         outbox[a.n] = a
         _unacked.value = outbox.values.toList()
@@ -188,29 +184,26 @@ class StageLink(
 
     private val up get() = _state.value == LinkState.Live || _state.value == LinkState.Hold
 
-    // ---- Both
-
     /** Sends Bye when keys exist, then closes and wipes. Idempotent. */
     fun end(reason: String) = scope.launch {
         if (_state.value is LinkState.Ended) return@launch
         val w = writer
-        outgoing?.let { it.trySend(if (officer) encodeToStage(ToStage.Bye(reason)) else encodeToOfficer(ToOfficer.Bye(reason))); it.close() }
+        outgoing?.let { it.trySend(bye(reason)); it.close() }
         withTimeoutOrNull(2_000) { w?.join() }
         finish(LinkState.Ended(reason))
     }
 
-    // ---- Internals
+    private fun bye(reason: String) = if (officer) encodeToStage(ToStage.Bye(reason)) else encodeToOfficer(ToOfficer.Bye(reason))
 
-    private suspend fun open(peer: String): Pipe = try {
-        withTimeout(timing.connectMs) { transport.connect(peer) }
-    } catch (e: CancellationException) {
-        if (e !is kotlinx.coroutines.TimeoutCancellationException) throw e
-        delay(1_000)
-        withTimeout(timing.connectMs) { transport.connect(peer) }
-    } catch (e: Exception) {
+    private suspend fun open(peer: String): Pipe {
+        try {
+            return withTimeout(timing.connectMs) { transport.connect(peer) }
+        } catch (e: Exception) {
+            if (e is CancellationException && e !is TimeoutCancellationException) throw e
+        }
         // The first connect after the stage re-registers its service often fails once.
         delay(1_000)
-        withTimeout(timing.connectMs) { transport.connect(peer) }
+        return withTimeout(timing.connectMs) { transport.connect(peer) }
     }
 
     private suspend fun relisten() {
@@ -260,7 +253,7 @@ class StageLink(
                     }
                 }
             } catch (e: CancellationException) {
-                if (g == gen && e is kotlinx.coroutines.TimeoutCancellationException) fault(g, e) else throw e
+                if (g == gen && e is TimeoutCancellationException) fault(g, e) else throw e
             } catch (e: Exception) {
                 fault(g, e)
             }
@@ -271,7 +264,7 @@ class StageLink(
         val ping = if (officer) encodeToStage(ToStage.Ping) else encodeToOfficer(ToOfficer.Ping)
         while (true) {
             delay(timing.pingMs)
-            if ((System.nanoTime() - lastRx) / 1_000_000 > timing.lostMs) throw java.io.IOException("silent")
+            if ((System.nanoTime() - lastRx) / 1_000_000 > timing.lostMs) throw IOException("silent")
             send(ping)
         }
     }
@@ -303,7 +296,7 @@ class StageLink(
 
     private suspend fun handle(bytes: ByteArray) {
         lastRx = System.nanoTime()
-        val live = _state.value == LinkState.Live || _state.value == LinkState.Hold
+        val live = up
         if (officer) {
             when (val m = decodeToOfficer(bytes)) {
                 ToOfficer.Confirm -> { peerConfirm = true; maybeLive() }
@@ -355,7 +348,7 @@ class StageLink(
 
     /** Before Live: the officer sees why; the stage goes back to waiting. */
     private fun abortPairing(reason: Abort?, sendBye: Boolean = true) {
-        if (sendBye) send(if (officer) encodeToStage(ToStage.Bye(ByeReason.CANCEL)) else encodeToOfficer(ToOfficer.Bye(ByeReason.CANCEL)))
+        if (sendBye) send(bye(ByeReason.CANCEL))
         val w = writer
         scope.launch {
             outgoing?.close()

@@ -8,7 +8,7 @@
     <!-- Answer codes felt by the officer holding the phone; a normal permission. -->
     <uses-permission android:name="android.permission.VIBRATE" />
 
-    <!-- Only the optional online AI uses it: off by default, HTTPS only, nothing else in the app opens a connection. -->
+    <!-- Only the department gateway client uses it (D-47): off by default, HTTPS only, nothing else in the app opens a connection. -->
     <uses-permission android:name="android.permission.INTERNET" />
 
     <!-- A second screen over bonded Bluetooth (D-26). No scan, advertise or bond: those permissions are refused by the build. -->

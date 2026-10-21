@@ -25,7 +25,7 @@ class RigFixtureTest {
 
     @Serializable private data class GesturesFile(val gestures: List<Gesture>)
 
-    private val content = File("src/main/assets/content")
+    private val content = ASSETS
     private val fixtures = File("../portal/src/rig-fixtures.json")
 
     @Test

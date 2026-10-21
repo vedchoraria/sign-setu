@@ -59,7 +59,7 @@ class SpellGateTest {
 
     @Test
     fun aslSpellingNeedsThreeSureLetters() {
-        val assets = File("src/main/assets/content")
+        val assets = ASSETS
         val reader = SignReaders.load(SignLanguage.ASL) { p -> File(assets, p).takeIf { it.isFile }?.readBytes() }!!
         val fixture = Json.parseToJsonElement(javaClass.getResource("/asl_spell_fixture.json")!!.readText()).jsonObject
         val aspect = fixture.getValue("aspect").jsonPrimitive.float

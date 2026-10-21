@@ -14,12 +14,14 @@
 # SecurityHandlerFactory instantiates handlers through reflection on their constructors.
 -keepclassmembers class com.tom_roush.pdfbox.pdmodel.encryption.** { <init>(...); }
 
-# MediaPipe: native graph code calls back into its Java classes; its full protobuf-java (javalite is excluded at build) reads fields reflectively.
+# MediaPipe: native graph code calls back into its Java classes; its lite protobuf reads fields reflectively.
 -keep class com.google.mediapipe.** { *; }
 -keep class * extends com.google.protobuf.GeneratedMessageLite { *; }
 # Graph profiling and templates are not shipped in the library and never used here.
 -dontwarn com.google.mediapipe.proto.CalculatorProfileProto**
 -dontwarn com.google.mediapipe.proto.GraphTemplateProto**
+# The LLM runtime behind ImageEmbedder is excluded at build; nothing here reaches it.
+-dontwarn com.google.ai.edge.litertlm.**
 # Protobuf's message schemas are found by reflection on generated field names; shrinking them leaves MediaPipe's graph unable to open.
 -keep class com.google.protobuf.** { *; }
 -keepclassmembers class * extends com.google.protobuf.GeneratedMessageLite { <fields>; }

@@ -4,6 +4,8 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.Paint
+import android.util.Log
 import android.util.Size
 import app.signsetu.BuildConfig
 import androidx.camera.compose.CameraXViewfinder
@@ -20,7 +22,6 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.lifecycle.awaitInstance
 import androidx.camera.viewfinder.core.ImplementationMode
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -55,6 +56,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
 import java.util.concurrent.Executors
 import kotlin.math.max
 
@@ -63,9 +65,9 @@ object SkeletonOverlay {
     val on = mutableStateOf(true)
 }
 
-/** Whether a skeleton snapshot is kept as evidence when a signed answer is logged. */
+/** Whether a skeleton snapshot (biometric landmarks) is kept in the record when a signed answer is logged; off unless the officer turns it on (SEC-71). */
 object EvidenceMode {
-    val autoCapture = mutableStateOf(true)
+    val autoCapture = mutableStateOf(false)
 }
 
 fun hasCameraPermission(context: Context) =
@@ -74,8 +76,8 @@ fun hasCameraPermission(context: Context) =
 /**
  * A live mirror of the subject's hands. Only Preview and, when a [tracker] is supplied, ImageAnalysis are bound:
  * no image is captured, recorded or saved (D-20). The skeleton, brows and lips are drawn whenever the camera shows;
- * frames go to [onFrame] for sign capture only inside a sign window (D-25), which also raises the analysis rate. The camera stops when this leaves the screen. [placeholder] shows instead when there
- * is no permission or no camera.
+ * frames go to [onFrame] for sign capture only inside a sign window (D-25), which also raises the analysis rate.
+ * The camera stops when this leaves the screen. [placeholder] shows instead when there is no permission or no camera.
  */
 @Composable
 fun CameraMirror(
@@ -148,13 +150,8 @@ fun CameraMirror(
         val a = analysis
         if (a == null || tracker == null) return@DisposableEffect onDispose { shown = null }
         var lastPerson: Long? = null
-        val stable = Stabilizer()
-        val cues = FaceCueTracker()
-        val heads = HeadGestures(windowMs = 900L, swing = 0.10f)
-        val thumbs = ThumbGestures(holdMs = 280L)
-        val pointing = BodyPointing(holdMs = 320L)
-        val palms = PalmGestures(holdMs = 380L)
-        val shrugs = ShrugGestures(holdMs = 350L)
+        val pipeline = FramePipeline()
+        val blur = BlurMeter()
         val executor = Executors.newSingleThreadExecutor()
         var lastMs: Long? = null
         var reused: Bitmap? = null
@@ -163,7 +160,7 @@ fun CameraMirror(
             proxy.use {
                 val ms = it.imageInfo.timestamp / 1_000_000
                 // An empty room outside a sign window is checked about three times a second, to save battery and heat.
-                val idle = lastPerson.let { it == null || ms - it > IDLE_AFTER_MS }
+                val idle = lastPerson.let { seenAt -> seenAt == null || ms - seenAt > IDLE_AFTER_MS }
                 val interval = if (analysing) ANALYSIS_INTERVAL_MS else if (idle) IDLE_INTERVAL_MS else PREVIEW_INTERVAL_MS
                 if (busy || !analysisDue(lastMs, ms, interval)) return@setAnalyzer
                 lastMs = ms
@@ -178,7 +175,9 @@ fun CameraMirror(
                 }
                 val aspect = bitmap.width.toFloat() / bitmap.height
                 busy = true
-                val frame = runCatching { tracker.track(bitmap, ms)?.copy(aspect = aspect)?.let(stable::mark)?.let(cues::mark)?.let(heads::mark)?.let(thumbs::mark)?.let(pointing::mark)?.let(palms::mark)?.let(shrugs::mark) }.getOrNull()
+                // Picture quality is judged only while a sign is being read; elsewhere it costs nothing.
+                val blurry = analysing && blur.blurry(bitmap)
+                val frame = runCatching { tracker.track(bitmap, ms)?.let { raw -> pipeline.mark(raw, aspect, blurry) } }.getOrNull()
                 busy = false
                 if (!packed) bitmap.recycle()
                 if (frame?.pose != null) lastPerson = ms
@@ -275,23 +274,27 @@ internal fun DrawScope.drawLandmarks(seen: LandmarkFrame, front: Boolean, analys
         for ((label, hand) in labelledHands(seen)) {
             for ((i, j) in HandBones) drawLine(handColor, map(hand[i]), map(hand[j]), stroke * 1.3f, StrokeCap.Round)
             for (p in hand) { drawCircle(Color.Black.copy(alpha = 0.5f), stroke * 1.4f, map(p)); drawCircle(Color.White, stroke * 1.1f, map(p)) }
-            drawText(labels, label, map(hand[0]) + Offset(stroke * 1.5f, stroke), TextStyle(color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold))
+            drawText(labels, label, map(hand[0]) + Offset(stroke * 1.5f, stroke), HandLabelStyle)
         }
-        // Visual gesture recognition cues for children and mute individuals
-        if (seen.head == Head.Nod) {
-            drawCircle(Color(0xFF22C55E), stroke * 3f, Offset(size.width / 2, size.height * 0.12f))
-            drawText(labels, "✓", Offset(size.width / 2 - stroke * 1.2f, size.height * 0.12f - stroke * 1.8f), TextStyle(color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold))
-        } else if (seen.head == Head.Shake) {
-            drawCircle(Color(0xFFEF4444), stroke * 3f, Offset(size.width / 2, size.height * 0.12f))
-            drawText(labels, "✕", Offset(size.width / 2 - stroke * 1.2f, size.height * 0.12f - stroke * 1.8f), TextStyle(color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold))
-        } else if (seen.stopPalm) {
-            drawCircle(Color(0xFFF59E0B), stroke * 3f, Offset(size.width / 2, size.height * 0.12f))
-            drawText(labels, "✋", Offset(size.width / 2 - stroke * 1.2f, size.height * 0.12f - stroke * 1.8f), TextStyle(color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold))
+        // A wordless mark of the gesture just read, for subjects who cannot read the caption.
+        val cue = when {
+            seen.head == Head.Nod -> Color(0xFF22C55E) to "✓"
+            seen.head == Head.Shake -> Color(0xFFEF4444) to "✕"
+            seen.stopPalm -> Color(0xFFF59E0B) to "✋"
+            else -> null
+        }
+        cue?.let { (color, glyph) ->
+            drawCircle(color, stroke * 3f, Offset(size.width / 2, size.height * 0.12f))
+            drawText(labels, glyph, Offset(size.width / 2 - stroke * 1.2f, size.height * 0.12f - stroke * 1.8f), CueStyle)
         }
     }
     // Debug builds show the raw cue values for calibrating on a real phone: adb shell setprop log.tag.SignSetuTuning DEBUG
-    if (BuildConfig.DEBUG && android.util.Log.isLoggable("SignSetuTuning", android.util.Log.DEBUG)) drawText(labels, tuningLine(seen), Offset(8f, 8f), TextStyle(color = Color.Yellow, fontSize = 11.sp, background = Color.Black.copy(alpha = 0.5f)))
+    if (BuildConfig.DEBUG && Log.isLoggable("SignSetuTuning", Log.DEBUG)) drawText(labels, tuningLine(seen), Offset(8f, 8f), TuningStyle)
 }
+
+private val HandLabelStyle = TextStyle(color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+private val CueStyle = TextStyle(color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+private val TuningStyle = TextStyle(color = Color.Yellow, fontSize = 11.sp, background = Color.Black.copy(alpha = 0.5f))
 
 internal enum class Edge { Top, Bottom, Left, Right }
 
@@ -325,7 +328,7 @@ internal fun overlayPoint(p: Offset, frameAspect: Float, viewW: Float, viewH: Fl
     return Offset((viewW - w) / 2f + (if (mirrored) 1f - x else x) * w, (viewH - h) / 2f + y * h)
 }
 
-// High responsiveness: up to 40 fps during sign windows, and 30 fps in preview for instant gesture identification.
+// About 40 frames a second inside a sign window, 30 in preview, 4 in an empty room.
 private const val ANALYSIS_INTERVAL_MS = 25L
 private const val PREVIEW_INTERVAL_MS = 33L
 private const val IDLE_INTERVAL_MS = 250L
@@ -354,51 +357,33 @@ internal fun tuningLine(f: LandmarkFrame): String {
     )
 }
 
-/**
- * Renders a landmark frame's skeleton lines and joints onto an Android Bitmap for evidence archiving.
- */
-fun renderSkeletonBitmap(seen: LandmarkFrame, width: Int = 360, height: Int = 480): android.graphics.Bitmap {
-    val bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
+/** The arms and hands of [seen] as a PNG, the skeleton snapshot kept with a signed answer when evidence mode is on. */
+fun renderSkeletonPng(seen: LandmarkFrame, width: Int = 360, height: Int = 480): ByteArray {
+    val bitmap = createBitmap(width, height)
     val canvas = android.graphics.Canvas(bitmap)
     canvas.drawColor(android.graphics.Color.rgb(30, 42, 51))
-    val bonePaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+    val bone = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = android.graphics.Color.rgb(255, 197, 107)
         strokeWidth = 6f
-        strokeCap = android.graphics.Paint.Cap.ROUND
+        strokeCap = Paint.Cap.ROUND
     }
-    val jointPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
-        color = android.graphics.Color.WHITE
-    }
-    fun mapX(p: Offset) = p.x * width
-    fun mapY(p: Offset) = p.y * height
+    val joint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = android.graphics.Color.WHITE }
+    fun line(a: Offset, b: Offset) = canvas.drawLine(a.x * width, a.y * height, b.x * width, b.y * height, bone)
+    fun dot(p: Offset, r: Float) = canvas.drawCircle(p.x * width, p.y * height, r, joint)
 
     seen.pose?.takeIf { it.size >= 33 }?.let { pose ->
-        for ((i, j) in ArmBones) {
-            canvas.drawLine(mapX(pose[i]), mapY(pose[i]), mapX(pose[j]), mapY(pose[j]), bonePaint)
-        }
-        for (i in 11..16) {
-            canvas.drawCircle(mapX(pose[i]), mapY(pose[i]), 7f, jointPaint)
-        }
+        for ((i, j) in ArmBones) line(pose[i], pose[j])
+        for (i in 11..16) dot(pose[i], 7f)
     }
-    for (hand in listOfNotNull(seen.leftHand, seen.rightHand)) {
-        if (hand.size >= 21) {
-            for ((i, j) in HandBones) {
-                canvas.drawLine(mapX(hand[i]), mapY(hand[i]), mapX(hand[j]), mapY(hand[j]), bonePaint)
-            }
-            for (p in hand) {
-                canvas.drawCircle(mapX(p), mapY(p), 4.5f, jointPaint)
-            }
-        }
+    for (hand in seen.hands) {
+        if (hand.size < 21) continue
+        for ((i, j) in HandBones) line(hand[i], hand[j])
+        for (p in hand) dot(p, 4.5f)
     }
-    return bitmap
-}
-
-/** Converts a LandmarkFrame skeleton snapshot to PNG bytes for storage in Room / drawing entities. */
-fun renderSkeletonPng(seen: LandmarkFrame, width: Int = 360, height: Int = 480): ByteArray {
-    val bmp = renderSkeletonBitmap(seen, width, height)
-    val stream = java.io.ByteArrayOutputStream()
-    bmp.compress(android.graphics.Bitmap.CompressFormat.PNG, 90, stream)
-    bmp.recycle()
-    return stream.toByteArray()
+    return try {
+        ByteArrayOutputStream().also { bitmap.compress(Bitmap.CompressFormat.PNG, 90, it) }.toByteArray()
+    } finally {
+        bitmap.recycle()
+    }
 }
 

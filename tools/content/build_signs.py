@@ -127,13 +127,11 @@ SIGNS |= {
     "morning": moving([r("palm_opp", "FLAT", "wrist", roll=-1, angle=-20, dy=14), r("palm_opp", "FLAT", "wrist", roll=-1, angle=-20, dy=-14)], base(shape="FLAT", roll=-1, angle=-90), step=0.5, face="smile"),
     "night": moving([r("palm_opp", "FLAT", "wrist", roll=-1, angle=40, dy=-20), r("palm_opp", "FLAT", "wrist", roll=-1, angle=80, dy=2)], base(shape="FLAT", roll=-1, angle=-90), step=0.5, face="sleepy"),
     "day": moving([r("side", angle=20, dy=-40), r("hair_side", angle=-10, dy=-14), r("head_top", angle=-40, dy=-14)], {"at": "rest"}, step=0.3),
-    # People.
     "man": moving([r("chin", "THUMB", "wrist", roll=0, angle=-20, dy=6), r("chin", "THUMB", "wrist", roll=0, angle=-20, dy=14)], {"at": "rest"}, step=0.4),
     "woman": held(r("nose_side", angle=-30), {"at": "rest"}, hold=0.6),
     "friend": moving([r("index_opp", "HOOK", angle=-80, dy=6), r("index_opp", "HOOK", angle=-80, dy=6)], base(shape="HOOK", roll=0, angle=-20), step=0.5, face="smile"),
     "name": moving([r("index_opp", "TWO", angle=-90, dy=4), r("index_opp", "TWO", angle=-90, dy=-4), r("index_opp", "TWO", angle=-90, dy=4)],
                    base(shape="TWO", roll=0, angle=-20), step=0.25),
-    # Actions.
     "give": moving([r("chest", "FLAT", "palm", roll=1, angle=-80, dx=10, dy=6), r("front", "FLAT", "palm", roll=1, angle=-80, dx=24, dy=-26)], {"at": "rest"}, step=0.45),
     "take": moving([r("front", "CLAW", "palm", roll=-1, angle=-60, dx=24, dy=-28), r("chest", "FIST", "palm", roll=-1, angle=-60, dx=8, dy=6)], {"at": "rest"}, step=0.45),
     "touch": moving([r("palm_opp", dy=-14, roll=0, angle=-80), r("palm_opp", dy=-2, roll=0, angle=-80)], base(shape="FLAT", roll=-1, angle=-90, dy=-6), step=0.4, face="concern"),
@@ -166,14 +164,11 @@ SIDE_BY_SIDE = r("index_opp", "POINT", "tip", roll=0, angle=-15, dx=6, dy=4)
 ROOF_R = r("index_opp", "FLAT", "tip", roll=0, angle=-35, dy=-6)
 ROOF_L = base(shape="FLAT", roll=0, angle=35, dy=-30)
 SIGNS |= {
-    # The person.
     "family": moving([r("front", "CUP", "wrist", roll=0, angle=-30, dx=4, dy=-26), r("front", "CUP", "wrist", roll=0, angle=-30, dx=30, dy=-18),
                       r("front", "CUP", "wrist", roll=0, angle=-30, dx=4, dy=-10)], base(shape="CUP", roll=0, angle=30), step=0.3),
     "brother": moving([r("chin", "THUMB", "wrist", roll=0, angle=-20, dy=6), SIDE_BY_SIDE], UPRIGHT_INDEX, step=0.45),
     "sister": moving([r("nose_side", angle=-30), SIDE_BY_SIDE], UPRIGHT_INDEX, step=0.45),
-    # Home and place.
     "city": moving([ROOF_R, {**ROOF_R, "dy": -18}, {**ROOF_R, "dx": 14}, {**ROOF_R, "dx": 14, "dy": -18}], ROOF_L, step=0.25),
-    # School.
     "teacher": moving([r("temple", angle=-30), r("front", "POINT", "tip", roll=0, angle=-50, dx=30, dy=-46)], {"at": "rest"}, step=0.45),
     "favourite": moving([r("chin", angle=-20), r("chin", angle=-20, dy=6), r("chin", angle=-20)], {"at": "rest"}, step=0.25, face="smile"),
     "subject": moving([r("palm_opp", "FLAT", "palm", roll=-1, angle=-90, dy=-4), r("palm_opp", "FLAT", "palm", roll=1, angle=-30, dx=16, dy=-8)], PALM_UP, step=0.45),

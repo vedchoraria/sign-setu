@@ -188,6 +188,7 @@
     <string name="officer_media_missing">केवल तस्वीर और कैप्शन</string>
     <string name="officer_glance">स्टेज पर मेरी उलटी पट्टी</string>
     <string name="officer_skeleton_show">कैमरे पर ढाँचा दिखाएँ</string>
+    <string name="officer_skeleton_keep">रिकॉर्ड में ढाँचे का चित्र रखें</string>
     <string name="officer_sign_language">सांकेतिक भाषा</string>
     <string name="sign_isl">भारतीय (ISL)</string>
     <string name="sign_asl">अमेरिकी (ASL)</string>
@@ -203,11 +204,22 @@
     <string name="settings_large_captions_summary">धीरे पढ़ने वालों के लिए स्टेज पर बड़े शब्द</string>
     <string name="settings_slow_gestures">धीमे इशारे</string>
     <string name="settings_slow_gestures_summary">पात्र तीन-चौथाई गति से इशारे करता है</string>
-    <string name="settings_cloud_ai">ऑनलाइन AI (तीसरा पक्ष)</string>
-    <string name="settings_cloud_ai_summary">ऑनलाइन होने पर रिपोर्ट और सुझावों के लिए छिपाया हुआ पाठ बाहरी AI सेवा को भेजता है। डिफ़ॉल्ट रूप से बंद।</string>
-    <string name="settings_cloud_ai_key">AI सेवा की कुंजी</string>
-    <string name="cloud_notice_title">पाठ तीसरे पक्ष को भेजें?</string>
-    <string name="cloud_notice_body">इसके चालू और फ़ोन के ऑनलाइन रहने पर, सत्र का पाठ विभाग को नहीं, एक बाहरी AI सेवा (TokenRouter) को जाता है। भेजने से पहले व्यक्ति के नाम \"Ravi\" से बदल दिए जाते हैं और फ़ोन नंबर छिपा दिए जाते हैं; असली नाम इसी फ़ोन पर वापस लगाए जाते हैं। अधिकारी के लिखे नोट जाँचे नहीं जाते, इसलिए उनमें नाम न लिखें। सेवा न मिले तो फ़ोन पर बना संस्करण इस्तेमाल होता है।</string>
+    <string name="settings_cloud_ai">ऑनलाइन सहायक (विभागीय गेटवे)</string>
+    <string name="settings_cloud_ai_summary">ऑनलाइन होने पर रिपोर्ट और सुझावों के लिए छिपाया हुआ पाठ विभागीय गेटवे को भेजता है। डिफ़ॉल्ट रूप से बंद; कनेक्शन न होने पर भी फ़ोन वैसे ही चलता है।</string>
+    <string name="settings_cloud_ai_key">नामांकन कोड</string>
+    <string name="settings_cloud_ai_enrolled">नामांकित</string>
+    <string name="settings_cloud_ai_direct">ऑनलाइन सहायक (तीसरा पक्ष)</string>
+    <string name="settings_cloud_ai_summary_direct">ऑनलाइन होने पर रिपोर्ट और सुझावों के लिए छिपाया हुआ पाठ बाहरी AI सेवा (OpenRouter) को भेजता है। डिफ़ॉल्ट रूप से बंद; कनेक्शन न होने पर भी फ़ोन वैसे ही चलता है।</string>
+    <string name="cloud_notice_title_direct">पाठ तीसरे पक्ष को भेजें?</string>
+    <string name="cloud_notice_body_direct">इसके चालू और फ़ोन के ऑनलाइन रहने पर, सत्र का पाठ विभाग को नहीं, एक बाहरी AI सेवा (OpenRouter) को जाता है। भेजने से पहले व्यक्ति के नाम \"Ravi\" से बदल दिए जाते हैं और फ़ोन नंबर छिपा दिए जाते हैं; असली नाम इसी फ़ोन पर वापस लगाए जाते हैं। अधिकारी के लिखे नोट जाँचे नहीं जाते, इसलिए उनमें नाम न लिखें। सेवा न मिले तो फ़ोन पर बना संस्करण इस्तेमाल होता है।</string>
+    <string name="notice_offline">इंटरनेट नहीं है। फ़ोन पर बना सहायक इस्तेमाल हो रहा है।</string>
+    <string name="notice_gateway_error">विभागीय गेटवे नहीं मिल रहा। फ़ोन पर बना सहायक इस्तेमाल हो रहा है।</string>
+    <string name="notice_revoked">यह फ़ोन अब नामांकित नहीं है। फ़ोन पर बना सहायक इस्तेमाल हो रहा है।</string>
+    <string name="notice_back_online">फिर ऑनलाइन। विभागीय गेटवे इस्तेमाल हो रहा है।</string>
+    <string name="notice_enrolled">फ़ोन विभागीय गेटवे में नामांकित हो गया।</string>
+    <string name="notice_enroll_failed">नामांकन नहीं हो सका। कोड और कनेक्शन जाँचें।</string>
+    <string name="cloud_notice_title">पाठ विभागीय गेटवे को भेजें?</string>
+    <string name="cloud_notice_body">इसके चालू और फ़ोन के ऑनलाइन रहने पर, सत्र का पाठ विभागीय गेटवे को जाता है, जो उसे एक AI सेवा तक पहुँचाता है। भेजने से पहले व्यक्ति के नाम \"Ravi\" से बदल दिए जाते हैं और फ़ोन नंबर छिपा दिए जाते हैं; असली नाम इसी फ़ोन पर वापस लगाए जाते हैं। अधिकारी के लिखे नोट जाँचे नहीं जाते, इसलिए उनमें नाम न लिखें। सेवा न मिले तो फ़ोन पर बना संस्करण इस्तेमाल होता है।</string>
     <string name="cloud_notice_accept">मैं समझता/समझती हूँ, चालू करें</string>
     <string name="menu_ai_report">पुलिस रिपोर्ट निकालें</string>
     <string name="ai_preparing">रिपोर्ट बन रही है…</string>
@@ -322,7 +334,6 @@
     <string name="second_screen_break_given">विराम दिया गया</string>
     <string name="second_screen_asked_before">%1$s पर पूछा गया था। फिर पूछने के लिए दोबारा दबाएँ।</string>
     <string name="stage_use">स्टेज स्क्रीन बनाएँ</string>
-    <string name="stage_unsupported">यह डिवाइस स्टेज स्क्रीन नहीं बन सकता।</string>
     <string name="stage_checklist">यह फ़ोन सत्र के दौरान केवल व्यक्ति की स्क्रीन दिखाएगा, सत्र आपके फ़ोन पर चलेगा। पहले स्क्रीन लॉक का समय कम रखें।</string>
     <string name="stage_checklist_open">सेटिंग खोलें</string>
     <string name="stage_continue">आगे बढ़ें</string>
@@ -520,4 +531,9 @@
     <string name="call_r_unsure">पता नहीं</string>
     <string name="call_r_water">पानी</string>
     <string name="call_r_food">खाना</string>
+    <string name="ai_report_title">मसौदा रिपोर्ट</string>
+    <string name="ai_report_note">सत्र रिकॉर्ड से बना मसौदा। उपयोग से पहले हर पंक्ति रिकॉर्ड से मिलाएँ।</string>
+    <string name="ai_followups_title">सुझाए गए अगले प्रश्न (बिना संकेत वाले)</string>
+    <string name="call_skeleton_on">ढाँचा</string>
+    <string name="call_skeleton_off">कैमरा</string>
 </resources>

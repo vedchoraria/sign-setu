@@ -1,0 +1,19 @@
+[project]
+name = "signsetu-gateway"
+version = "0.1.0"
+description = "Project gateway for Sign Setu: device enrolment, model manifest, assistant proxy, consented feedback labels."
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi==0.156.4",
+    "uvicorn==0.54.0",
+    "sqlalchemy==2.1.5",
+    "psycopg[binary]==3.3.6",
+    "httpx2==2.15.1",
+    "PyJWT[crypto]==2.15.1",
+]
+
+[project.optional-dependencies]
+test = ["pytest==9.1.1"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

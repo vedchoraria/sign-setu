@@ -53,7 +53,6 @@ for (const w of wordsFile.words as { w: string[]; sign?: string; gesture?: strin
   for (const id of [w.sign, w.gesture]) if (id && !wordFor.has(id)) wordFor.set(id, w.w[0]);
 }
 
-/** What a gesture means and how it is made, for the reviewer. */
 const ISLRTC = "https://huggingface.co/datasets/silentone0725/Indian_Sign_Language_Data.gov_Rencoded/resolve/main/";
 
 /** The original dictionary clip of a sign retargeted from ISLRTC, for the reviewer to compare against. */
@@ -62,6 +61,7 @@ export function sourceClip(id: string): string | undefined {
   return rec?.startsWith("ISLRTC/") ? ISLRTC + encodeURI(rec.slice("ISLRTC/".length)) : undefined;
 }
 
+/** What a gesture means and how it is made, for the reviewer. */
 export function meaning(id: string): { label: string; how: string } {
   const e = lexicon.get(id);
   if (e) return { label: e.label.en, how: e.how.en };

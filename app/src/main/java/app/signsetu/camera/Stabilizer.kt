@@ -47,7 +47,7 @@ class Stabilizer(private val holdMs: Long = HOLD_MS) {
     }
 
     companion object {
-        // Calibration knobs; tune on device. Speeds are frame widths per second, as in segmentSigns.
+        // Calibration knobs; tune on device. Speeds are frame widths per second, as in SignCapture.
         const val HOLD_MS = 100L
         const val RESET_MS = 1000L
         const val MIN_ALPHA = 0.4f

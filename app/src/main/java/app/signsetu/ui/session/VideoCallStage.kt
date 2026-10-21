@@ -1,18 +1,11 @@
 package app.signsetu.ui.session
 
-import androidx.compose.animation.AnimatedContent
+import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -20,40 +13,29 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -72,13 +54,10 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.signsetu.R
-import androidx.compose.runtime.saveable.rememberSaveable
-import app.signsetu.camera.CAMERA_ASPECT
 import app.signsetu.camera.CameraMirror
 import app.signsetu.camera.Head
 import app.signsetu.camera.LandmarkFrame
@@ -86,45 +65,31 @@ import app.signsetu.camera.LandmarkTracker
 import app.signsetu.camera.countOpenFingers
 import app.signsetu.data.content.AnswerType
 import app.signsetu.data.content.ContentBundle
-import app.signsetu.data.content.pick
 import app.signsetu.data.content.planText
 import app.signsetu.data.content.questionKind
-import app.signsetu.sign.SignChoice
-import app.signsetu.sign.SignSegment
 import app.signsetu.ui.avatar.AVATAR_ASPECT
 import app.signsetu.ui.avatar.Avatar
 import app.signsetu.ui.avatar.Character
 import app.signsetu.ui.components.CardImage
 import app.signsetu.ui.theme.Baloo
-import app.signsetu.ui.theme.Spacing
 import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
 /**
- * High-Empathy, Trauma-Informed Video Call Stage for ISL users.
- * Replaces technical, interrogative UI with a comforting, familiar 1-on-1 video call experience.
- *
- * Supports Zero-Tap Hands-Free Signing:
- * - Natural head gestures (Nod/Shake) auto-register answers.
- * - Palm stop automatically pauses.
- * - Pointing to pain locations registers location without touching the screen.
- * - Live video subtitles show avatar's questions and subject's recognized ISL signs.
+ * The stage as a one-to-one video call: the character is the caller, the subject's camera a small window. Head
+ * gestures, a palm, a shrug, pointing and held-up fingers only propose an answer; the subject's tap answers (FR-110).
  */
 @Composable
 fun VideoCallStage(
     ui: SessionUi,
     content: ContentBundle,
     tracker: LandmarkTracker?,
-    cameraOn: Boolean,
     onCard: (String) -> Unit,
     onYesNo: (Boolean) -> Unit,
     onSignFrame: (LandmarkFrame) -> Unit,
     onStartSigning: () -> Unit,
-    onDoneSigning: () -> Unit,
     onOpenExpressBoard: () -> Unit,
     onCue: (String) -> Unit,
-    onNext: (() -> Unit)?,
-    onPause: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val lang = ui.session.subjectLang
@@ -132,26 +97,10 @@ fun VideoCallStage(
     val signing = ui.reading != null
     val haptic = LocalHapticFeedback.current
 
-    // Video call timer
-    var callSeconds by remember { mutableLongStateOf(0L) }
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(1000L)
-            callSeconds++
-        }
-    }
-
-    // PiP position
     var pipOffsetX by remember { mutableFloatStateOf(0f) }
     var pipOffsetY by remember { mutableFloatStateOf(0f) }
-
     var pipExpanded by remember { mutableStateOf(false) }
 
-    // Gesture proposals & auto-response
-    var lastHandActiveMs by remember { mutableLongStateOf(0L) }
-    var autoSignArmed by remember { mutableStateOf(true) }
-
-    // Calming reassurance banner
     // A string resource and its optional argument, resolved where it is drawn so a language change is followed.
     var recentReaction by remember { mutableStateOf<Pair<Int, Any?>?>(null) }
     var showBreathingGuide by remember { mutableStateOf(false) }
@@ -161,8 +110,38 @@ fun VideoCallStage(
             recentReaction = null
         }
     }
+    fun react(@StringRes reaction: Int, arg: Any? = null, feel: HapticFeedbackType = HapticFeedbackType.LongPress) {
+        haptic.performHapticFeedback(feel)
+        recentReaction = reaction to arg
+    }
 
     var showVictimSkeleton by rememberSaveable { mutableStateOf(false) }
+
+    // The card a gesture proposed and the cue it came from; the cue is logged only if the subject taps it.
+    var proposal by remember { mutableStateOf<Pair<String, String?>?>(null) }
+    LaunchedEffect(pending) { proposal = null }
+    fun propose(card: String, cue: String?) {
+        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+        proposal = card to cue
+    }
+    fun answer(card: String, cue: String? = null) {
+        cue?.let(onCue)
+        when {
+            card == "yes" || card == "no" -> onYesNo(card == "yes")
+            else -> onCard(card)
+        }
+        when {
+            card == "yes" -> react(R.string.call_r_yes)
+            card == "no" -> react(R.string.call_r_no)
+            card == "stop" -> react(R.string.call_r_stop)
+            card == "dont_know" -> react(R.string.call_r_unsure, feel = HapticFeedbackType.TextHandleMove)
+            card == "water" -> react(R.string.call_r_water)
+            card == "food" -> react(R.string.call_r_food)
+            card.matches(FINGERS) -> react(R.string.call_r_fingers, card.drop(1).toInt())
+            else -> react(R.string.call_r_point, cardLabel(content, card, lang), HapticFeedbackType.TextHandleMove)
+        }
+        proposal = null
+    }
 
     val item = remember(pending, lang) { describeItem(pending, content, lang) }
     val plan = remember(pending, lang) {
@@ -176,16 +155,12 @@ fun VideoCallStage(
             else -> content.gestures["namaste"]
         }
     }
-
-    // Avatar voice / prompt text
     val promptText = (pending as? Pending.FreeText)?.let { it.caption ?: it.text } ?: item.caption ?: content.subjectText("hint_wait", lang) ?: "We are here with you."
-
-    // Recognized signs stream
     val liveTranscript = remember(ui.reading) {
         ui.reading?.mapNotNull { it.word }?.filter { it != "?" }?.joinToString(" ")
     }
 
-    // Hands-free finger counter for Age/Number questions
+    // Held-up fingers answer an age or count question without opening a keypad.
     val isNumberOrAgeQuestion = remember(pending) {
         val q = (pending as? Pending.Ask)?.question
         q?.answer == AnswerType.AGE || q?.answer == AnswerType.COUNT || q?.id in setOf("w_age", "p_siblings", "a_age")
@@ -193,28 +168,18 @@ fun VideoCallStage(
     var heldFingerCount by remember { mutableIntStateOf(-1) }
     var heldFingerSince by remember { mutableLongStateOf(0L) }
 
-    // Frame analyzer wrapper with zero-tap auto-sign and finger detection
     val onFrameAnalyzed: (LandmarkFrame) -> Unit = { frame ->
         onSignFrame(frame)
         val now = frame.timestampMs
         val handsVisible = frame.leftHand != null || frame.rightHand != null
-        if (handsVisible) {
-            lastHandActiveMs = now
-            if (!signing && autoSignArmed) {
-                onStartSigning()
-            }
-        }
-
-        // Automatic finger count ingestion for age/counts without opening keypads
+        if (handsVisible && !signing) onStartSigning()
         if (isNumberOrAgeQuestion && handsVisible) {
             val fingers = countOpenFingers(frame)
             if (fingers != null) {
                 if (fingers == heldFingerCount) {
                     if (now - heldFingerSince > 450L && heldFingerSince > 0L) {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        val numCard = "n$fingers"
-                        onCard(numCard)
-                        recentReaction = R.string.call_r_fingers to fingers
+                        propose("n$fingers", null)
+                        // Far in the future, so the same held count is sent once.
                         heldFingerSince = Long.MAX_VALUE / 2
                     }
                 } else {
@@ -228,39 +193,22 @@ fun VideoCallStage(
         }
     }
 
-    val pulseAlpha = rememberInfiniteTransition(label = "pulse").animateFloat(
-        initialValue = 0.4f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(1200, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label = "pulseAlpha",
-    ).value
-
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFF0F172A)), // Deep calming midnight slate
+            .background(Color(0xFF0F172A)),
     ) {
-        // ==========================================
-        // 1. MAIN PARTICIPANT: ISL Police Interpreter Avatar
-        // ==========================================
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(bottom = 90.dp, top = 64.dp),
             contentAlignment = Alignment.Center,
         ) {
-            // Warm studio call backdrop
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(
-                        Brush.radialGradient(
-                            listOf(Color(0xFF1E293B), Color(0xFF0F172A)),
-                        ),
-                    ),
+                    .background(Brush.radialGradient(listOf(Color(0xFF1E293B), Color(0xFF0F172A)))),
             )
-
-            // Animated Avatar Video Participant
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -282,115 +230,29 @@ fun VideoCallStage(
             }
         }
 
-        // ==========================================
-        // 2. VIDEO CALL TOP HEADER BAR
-        // ==========================================
-        Surface(
-            color = Color(0xCC0F172A),
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.TopCenter),
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .statusBarsPadding()
-                    // The end stays clear for the officer's handle.
-                    .padding(start = 16.dp, end = 64.dp, top = 10.dp, bottom = 10.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                // Officer / Interpreter Info
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Surface(
-                            shape = CircleShape,
-                            color = Color(0xFF10B981),
-                            modifier = Modifier.size(12.dp),
-                        ) {}
-                        Surface(
-                            shape = CircleShape,
-                            color = Color(0xFF10B981).copy(alpha = pulseAlpha),
-                            modifier = Modifier.size(20.dp),
-                        ) {}
-                    }
-                    Column {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text(
-                                text = stringResource(R.string.app_name),
-                                fontFamily = Baloo,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp,
-                                color = Color.White,
-                            )
-                            Icon(Icons.Filled.Lock, contentDescription = null, tint = Color(0xFF38BDF8), modifier = Modifier.size(15.dp))
-                        }
-                        Text(
-                            text = "%02d:%02d".format(callSeconds / 60, callSeconds % 60),
-                            fontSize = 12.sp,
-                            color = Color(0xFF94A3B8),
-                        )
-                    }
-                }
+        CallHeader(
+            onBreathe = { showBreathingGuide = !showBreathingGuide },
+            modifier = Modifier.align(Alignment.TopCenter),
+        )
 
-                // Safety & Encryption Pill & Calm Guide
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Surface(
-                        shape = RoundedCornerShape(20.dp),
-                        color = Color(0xFF1E3A8A).copy(alpha = 0.85f),
-                        border = BorderStroke(1.dp, Color(0xFF3B82F6)),
-                        modifier = Modifier.clickable { showBreathingGuide = !showBreathingGuide },
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                            Text(
-                                text = "🫁",
-                                fontSize = 12.sp,
-                            )
-                            Text(
-                                text = stringResource(R.string.call_breathe),
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = Color(0xFF93C5FD),
-                            )
-                        }
-                    }
-
-                }
-            }
-        }
-
-        // ==========================================
-        // 3. PICTURE-IN-PICTURE (PiP) SUBJECT CAMERA
-        // ==========================================
         val pipWidth = if (pipExpanded) 180.dp else 130.dp
-        val pipHeight = pipWidth * (16f / 9f)
-
+        val pipShape = RoundedCornerShape(20.dp)
         Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .statusBarsPadding()
                 .padding(top = 100.dp, end = 14.dp)
                 .offset { IntOffset(pipOffsetX.roundToInt(), pipOffsetY.roundToInt()) }
-                .size(pipWidth, pipHeight)
-                .clip(RoundedCornerShape(20.dp))
+                .size(pipWidth, pipWidth * (16f / 9f))
+                .clip(pipShape)
                 .border(
                     BorderStroke(
                         if (signing) 3.dp else 2.dp,
                         if (signing) Color(0xFF10B981) else Color(0x88FFFFFF),
                     ),
-                    RoundedCornerShape(20.dp),
+                    pipShape,
                 )
-                .shadow(8.dp, RoundedCornerShape(20.dp))
+                .shadow(8.dp, pipShape)
                 .pointerInput(Unit) {
                     detectDragGestures { change, dragAmount ->
                         change.consume()
@@ -406,36 +268,15 @@ fun VideoCallStage(
                 showSkeleton = showVictimSkeleton,
                 onFrame = onFrameAnalyzed,
                 onHead = { head ->
-                    if (head == Head.Nod) {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        onCue("nod")
-                        onYesNo(true)
-                        recentReaction = R.string.call_r_yes to null
-                    } else if (head == Head.Shake) {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        onCue("shake")
-                        onYesNo(false)
-                        recentReaction = R.string.call_r_no to null
+                    when (head) {
+                        Head.Nod -> propose("yes", "nod")
+                        Head.Shake -> propose("no", "shake")
+                        else -> Unit
                     }
                 },
-                onPoint = { pointId ->
-                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                    onCue("point")
-                    onCard(pointId)
-                    recentReaction = R.string.call_r_point to pointId
-                },
-                onStopPalm = {
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    onCue("palm")
-                    onCard("stop")
-                    recentReaction = R.string.call_r_stop to null
-                },
-                onShrug = {
-                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                    onCue("shrug")
-                    onCard("dont_know")
-                    recentReaction = R.string.call_r_unsure to null
-                },
+                onPoint = { pointId -> propose(pointId, "point") },
+                onStopPalm = { propose("stop", "palm") },
+                onShrug = { propose("dont_know", "shrug") },
             ) {
                 Box(
                     modifier = Modifier
@@ -447,7 +288,6 @@ fun VideoCallStage(
                 }
             }
 
-            // Victim Immersion: Skeleton vs Natural Camera Mirror Toggle
             Surface(
                 shape = RoundedCornerShape(12.dp),
                 color = if (showVictimSkeleton) Color(0xDD0F172A) else Color(0x99000000),
@@ -458,7 +298,7 @@ fun VideoCallStage(
                     .clickable { showVictimSkeleton = !showVictimSkeleton },
             ) {
                 Text(
-                    text = if (showVictimSkeleton) "🦴 Skel: ON" else "👤 Natural",
+                    text = stringResource(if (showVictimSkeleton) R.string.call_skeleton_on else R.string.call_skeleton_off),
                     fontSize = 9.sp,
                     color = if (showVictimSkeleton) Color(0xFFFDE68A) else Color(0xFFE2E8F0),
                     fontWeight = FontWeight.Bold,
@@ -466,7 +306,6 @@ fun VideoCallStage(
                 )
             }
 
-            // "You (Signing)" badge on PiP
             Surface(
                 shape = RoundedCornerShape(8.dp),
                 color = if (signing) Color(0xFF10B981) else Color(0xCC000000),
@@ -484,9 +323,6 @@ fun VideoCallStage(
             }
         }
 
-        // ==========================================
-        // 4. LIVE SUBTITLES & REASSURANCE BANNER
-        // ==========================================
         Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -496,7 +332,6 @@ fun VideoCallStage(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            // Live recognized signs caption
             if (!liveTranscript.isNullOrBlank()) {
                 Surface(
                     shape = RoundedCornerShape(16.dp),
@@ -521,7 +356,6 @@ fun VideoCallStage(
                 }
             }
 
-            // Gesture / action feedback pill
             AnimatedVisibility(visible = recentReaction != null) {
                 Surface(
                     shape = RoundedCornerShape(20.dp),
@@ -539,7 +373,6 @@ fun VideoCallStage(
                 }
             }
 
-            // Interpreter question speech bubble / CC
             Surface(
                 shape = RoundedCornerShape(24.dp),
                 color = Color(0xDD0F172A),
@@ -570,9 +403,32 @@ fun VideoCallStage(
             }
         }
 
-        // ==========================================
-        // 5. CALL CONTROLS FLOATING DOCK (Bottom)
-        // ==========================================
+        proposal?.let { (card, cue) ->
+            val label = cardLabel(content, card, lang)
+            Surface(
+                shape = RoundedCornerShape(24.dp),
+                color = Color(0xFF0E7490),
+                border = BorderStroke(2.dp, Color(0xFF67E8F9)),
+                shadowElevation = 12.dp,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .navigationBarsPadding()
+                    .padding(bottom = 104.dp)
+                    .clickable { answer(card, cue) }
+                    .semantics { role = Role.Button; contentDescription = label },
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 18.dp, vertical = 10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    if (content.hasCardImage(card)) CardImage(card, Modifier.size(36.dp))
+                    Text(label, fontFamily = Baloo, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color.White)
+                    content.subjectText("is_this_it", lang)?.let { Text(it, fontSize = 14.sp, color = Color(0xFFCFFAFE)) }
+                }
+            }
+        }
+
         Surface(
             shape = RoundedCornerShape(32.dp),
             color = Color(0xEE1E293B),
@@ -588,256 +444,41 @@ fun VideoCallStage(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                // 1. Water Need Button
-                CallActionButton(
-                    icon = "water",
-                    label = if (lang == "hi") "पानी" else "Water",
-                    backgroundColor = Color(0xFF0369A1),
-                    iconTint = Color.White,
-                    onClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        onCard("water")
-                        recentReaction = R.string.call_r_water to null
-                    },
-                )
-
-                // 2. Food Need Button (Vital for distressed children)
-                CallActionButton(
-                    icon = "food",
-                    label = if (lang == "hi") "खाना" else "Food",
-                    backgroundColor = Color(0xFFD97706),
-                    iconTint = Color.White,
-                    onClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        onCard("food")
-                        recentReaction = R.string.call_r_food to null
-                    },
-                )
-
-                // 3. Direct YES Gesture Quick Touch
-                CallActionButton(
-                    icon = "yes",
-                    label = if (lang == "hi") "हाँ" else "YES",
-                    backgroundColor = Color(0xFF15803D),
-                    iconTint = Color.White,
-                    onClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        onYesNo(true)
-                        recentReaction = R.string.call_r_yes to null
-                    },
-                )
-
-                // 4. Direct NO Gesture Quick Touch
-                CallActionButton(
-                    icon = "no",
-                    label = if (lang == "hi") "नहीं" else "NO",
-                    backgroundColor = Color(0xFFB91C1C),
-                    iconTint = Color.White,
-                    onClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        onYesNo(false)
-                        recentReaction = R.string.call_r_no to null
-                    },
-                )
-
-                // 5. Express Pictogram Board Opener
-                CallActionButton(
-                    icon = "express",
-                    label = if (lang == "hi") "मदद" else "Help",
-                    backgroundColor = Color(0xFF7C3AED),
-                    iconTint = Color.White,
-                    onClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        onOpenExpressBoard()
-                    },
-                )
-
-                // 6. Emergency Hold / Pause Call Button
-                CallActionButton(
-                    icon = "stop",
-                    label = if (lang == "hi") "रुकें" else "Hold",
-                    backgroundColor = Color(0xFFDC2626),
-                    iconTint = Color.White,
-                    onClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        onCard("stop")
-                        onPause()
-                    },
-                )
+                CallActionButton("water", cardLabel(content, "water", lang), Color(0xFF0369A1)) {
+                    answer("water")
+                }
+                CallActionButton("food", cardLabel(content, "food", lang), Color(0xFFD97706)) {
+                    answer("food")
+                }
+                CallActionButton("yes", cardLabel(content, "yes", lang), Color(0xFF15803D)) {
+                    answer("yes")
+                }
+                CallActionButton("no", cardLabel(content, "no", lang), Color(0xFFB91C1C)) {
+                    answer("no")
+                }
+                CallActionButton("express", cardLabel(content, "help", lang), Color(0xFF7C3AED)) {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onOpenExpressBoard()
+                }
+                CallActionButton("stop", cardLabel(content, "stop", lang), Color(0xFFDC2626)) {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    answer("stop")
+                }
             }
         }
 
-        // ==========================================
-        // 6. TRAUMA GROUNDING & BREATHING GUIDE OVERLAY
-        // ==========================================
         AnimatedVisibility(
             visible = showBreathingGuide,
             enter = fadeIn(tween(300)) + scaleIn(tween(300)),
             exit = fadeOut(tween(250)),
             modifier = Modifier.align(Alignment.Center),
         ) {
-            CalmingBreathingGuide(
-                lang = lang,
-                onDismiss = { showBreathingGuide = false },
-            )
+            CalmingBreathingGuide(onDismiss = { showBreathingGuide = false })
         }
     }
 }
 
-@Composable
-private fun CalmingBreathingGuide(
-    lang: String,
-    onDismiss: () -> Unit,
-) {
-    val infiniteTransition = rememberInfiniteTransition(label = "breathCycle")
-    val breathScale by infiniteTransition.animateFloat(
-        initialValue = 0.85f,
-        targetValue = 1.25f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(4000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse,
-        ),
-        label = "breathScale",
-    )
+private val FINGERS = Regex("n\\d+")
 
-    Surface(
-        shape = RoundedCornerShape(28.dp),
-        color = Color(0xFA0F172A),
-        border = BorderStroke(2.dp, Color(0xFF38BDF8)),
-        shadowElevation = 16.dp,
-        modifier = Modifier
-            .padding(24.dp)
-            .fillMaxWidth(0.92f),
-    ) {
-        Column(
-            modifier = Modifier.padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = stringResource(R.string.call_breath_title),
-                    fontFamily = Baloo,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
-                    color = Color.White,
-                )
-                Surface(
-                    shape = CircleShape,
-                    color = Color(0xFF334155),
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clickable(onClick = onDismiss),
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(Icons.Filled.Close, contentDescription = "Close", tint = Color.White, modifier = Modifier.size(18.dp))
-                    }
-                }
-            }
-
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .size(160.dp)
-                    .padding(vertical = 8.dp),
-            ) {
-                Surface(
-                    shape = CircleShape,
-                    color = Color(0xFF0284C7).copy(alpha = 0.25f),
-                    modifier = Modifier.size(150.dp * breathScale),
-                ) {}
-                Surface(
-                    shape = CircleShape,
-                    color = Color(0xFF38BDF8).copy(alpha = 0.45f),
-                    modifier = Modifier.size(110.dp * breathScale),
-                ) {}
-                Surface(
-                    shape = CircleShape,
-                    color = Color(0xFF0284C7),
-                    modifier = Modifier.size(72.dp),
-                    shadowElevation = 6.dp,
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text(
-                            text = stringResource(if (breathScale > 1.05f) R.string.call_exhale else R.string.call_inhale),
-                            fontFamily = Baloo,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp,
-                            color = Color.White,
-                        )
-                    }
-                }
-            }
-
-            Text(
-                text = stringResource(R.string.call_breath_body),
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                fontSize = 14.sp,
-                color = Color(0xFFE2E8F0),
-            )
-
-            Surface(
-                shape = RoundedCornerShape(16.dp),
-                color = Color(0xFF0369A1),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(onClick = onDismiss),
-            ) {
-                Text(
-                    text = stringResource(R.string.call_ready),
-                    fontFamily = Baloo,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp,
-                    color = Color.White,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                    modifier = Modifier.padding(vertical = 12.dp),
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun CallActionButton(
-    icon: String,
-    label: String,
-    backgroundColor: Color,
-    iconTint: Color,
-    onClick: () -> Unit,
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-        modifier = Modifier
-            .clickable(onClick = onClick)
-            .semantics { role = Role.Button; contentDescription = label },
-    ) {
-        Surface(
-            shape = CircleShape,
-            color = backgroundColor,
-            modifier = Modifier.size(50.dp),
-            shadowElevation = 4.dp,
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                when (icon) {
-                    "yes" -> Icon(Icons.Filled.Check, contentDescription = null, tint = iconTint, modifier = Modifier.size(26.dp))
-                    "no" -> Icon(Icons.Filled.Close, contentDescription = null, tint = iconTint, modifier = Modifier.size(26.dp))
-                    "express" -> Icon(Icons.Filled.Favorite, contentDescription = null, tint = iconTint, modifier = Modifier.size(24.dp))
-                    "stop" -> CardImage("stop", Modifier.size(28.dp))
-                    else -> CardImage(icon, Modifier.size(28.dp))
-                }
-            }
-        }
-        Text(
-            text = label,
-            fontFamily = Baloo,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFFE2E8F0),
-        )
-    }
-}
+private fun cardLabel(content: ContentBundle, card: String, lang: String): String =
+    content.cards[card]?.label?.let { it[lang] ?: it["en"] } ?: card.removePrefix("n").takeIf { card.matches(FINGERS) } ?: card

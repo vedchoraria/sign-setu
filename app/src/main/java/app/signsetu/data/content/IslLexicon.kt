@@ -43,17 +43,20 @@ const val ALPHABET = "Alphabet"
 private fun ContentBundle.signFor(label: String): Gesture? = (isl.gestures.firstOrNull { it.label == label }
     ?: isl.gestures.firstOrNull { it.label.equals(label, ignoreCase = true) })?.gesture
 
+/** The recorded sign for a typed word; homonyms and letters are never a typed word's sign. */
+private fun ContentBundle.typedSign(word: String): IslSign? = isl.gestures.firstOrNull { it.word == word && !it.homonym && !it.isLetter }
+
 /**
  * The sign recorded from a signer for a typed or read word: the word itself, else its concept's reader label
  * (sign_words.json), preferring the label written exactly as typed ("mobile" is cell phone, "phone" telephone).
  */
 fun ContentBundle.recordedSign(word: String, entry: WordEntry?): Gesture? {
-    isl.gestures.firstOrNull { it.word == word && !it.homonym && !it.isLetter }?.let { return it.gesture }
+    typedSign(word)?.let { return it.gesture }
     entry ?: return null
     val labels = signWords.filterValues { it in entry.w }
     val label = labels.entries.firstOrNull { it.value == word }?.key ?: labels.keys.firstOrNull()
     // Else any written form of the word that has a recorded sign: Hindi "यहाँ" finds the sign recorded as "here".
-    return label?.let(::signFor) ?: entry.w.firstNotNullOfOrNull { w -> isl.gestures.firstOrNull { it.word == w && !it.homonym && !it.isLetter } }?.gesture
+    return label?.let(::signFor) ?: entry.w.firstNotNullOfOrNull(::typedSign)?.gesture
 }
 
 /**
@@ -69,7 +72,7 @@ fun ContentBundle.motionFor(word: String, entry: WordEntry?, modes: Set<SignMode
 
 /** True when a run of typed words is one entry: an ISL sign ("thank you") or a vocabulary phrase ("how many"). */
 fun ContentBundle.isPhrase(words: String, modes: Set<SignMode>): Boolean =
-    words in this.words || (SignMode.SIGNS in modes && isl.gestures.any { it.word == words && !it.homonym && !it.isLetter })
+    words in this.words || (SignMode.SIGNS in modes && typedSign(words) != null)
 
 /** A reader label signed back for the subject to confirm (FR-86): its recorded sign, else the lexicon's, else spelled. */
 fun ContentBundle.signBack(label: String): Gesture? =
@@ -90,14 +93,11 @@ data class DictionaryEntry(
     val forms: List<String> = emptyList(),
 )
 
-private fun String.isDevanagari() = any { it in 'ऀ'..'ॿ' }
-
 /** Recorded signs by INCLUDE category, then the authored word signs as drafts. Letters and digits are left out. */
 fun ContentBundle.dictionary(): List<DictionaryEntry> {
-    val byForm = words
     val recorded = isl.gestures.filterNot { it.isLetter }.map { s ->
         // A sign with no reader label (ISLRTC words) takes its forms, and its Hindi, from the word's own entry.
-        val concept = (signWords[s.label] ?: s.word).let(byForm::get)?.w.orEmpty()
+        val concept = (signWords[s.label] ?: s.word).let(words::get)?.w.orEmpty()
         val hi = s.hi.ifEmpty { concept.firstOrNull { it.isDevanagari() }.orEmpty() }
         DictionaryEntry(s.id, s.word, hi, s.category, true, s.rec, s.static, s.oneHandSource, listOf(s.word, hi) + concept)
     }
@@ -120,9 +120,9 @@ fun List<DictionaryEntry>.search(query: String, category: String? = null): List<
  * The sign language a session is held in: which reader reads the subject, which signs the character makes. Paths are
  * under assets/content/; [spell] is the fingerspelling reader, if one of the same format exists.
  */
-enum class SignLanguage(val reader: String, val spell: String?, val words: String, val signs: String) {
-    ISL("models/sign_reader", "models/isl_spell", "sign_words.json", "signs.json"),
-    ASL("models/asl_reader", "models/asl_spell", "asl_words.json", "asl_signs.json"),
+enum class SignLanguage(val reader: String, val spell: String?, val words: String, val signs: String, val title: String) {
+    ISL("models/sign_reader", "models/isl_spell", "sign_words.json", "signs.json", "Indian Sign Language (ISL)"),
+    ASL("models/asl_reader", "models/asl_spell", "asl_words.json", "asl_signs.json", "American Sign Language (ASL)"),
 }
 
 /**

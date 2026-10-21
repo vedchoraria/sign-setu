@@ -65,7 +65,7 @@ import app.signsetu.ui.session.SheetTitle
 import app.signsetu.ui.theme.Spacing
 import kotlinx.coroutines.flow.flowOf
 
-private fun bluetoothOn(context: Context) = context.getSystemService(BluetoothManager::class.java)?.adapter?.isEnabled == true
+internal fun bluetoothOn(context: Context) = context.getSystemService(BluetoothManager::class.java)?.adapter?.isEnabled == true
 
 private fun granted(context: Context, perms: Array<String>) =
     perms.all { ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED }

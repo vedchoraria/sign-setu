@@ -28,12 +28,7 @@ fun parseSignWords(json: String): Map<String, String> =
 fun cardFor(label: String, signWords: Map<String, String>, words: Map<String, WordEntry>): String? =
     signWords[label]?.let { words[it]?.card }
 
-/**
- * Ranks guesses with context-aware scoring:
- * - Guesses whose concept matches the item on screen receive priority.
- * - Within and between groups, higher-confidence guesses take precedence.
- * - Preserves all guesses so no officer reading words are dropped.
- */
+/** Guesses whose concept answers the item on screen first, each group by score; none are dropped. */
 fun inContext(guesses: List<SignGuess>, context: Set<String>, signWords: Map<String, String>, words: Map<String, WordEntry>): List<SignGuess> {
     if (context.isEmpty()) return guesses
     return guesses.sortedWith(
@@ -73,7 +68,7 @@ fun signChoices(
 
 /** A failed read of hands that moved too fast or were lost: the only time the subject is asked to sign slower. */
 fun needsSlower(frames: List<LandmarkFrame>, guesses: List<SignGuess>): Boolean =
-    (guesses.firstOrNull()?.score ?: 0f) < READ_MIN_SCORE && (trackingLost(frames) || tooFast(frames))
+    (guesses.firstOrNull()?.score ?: 0f) < READ_MIN_SCORE && (trackingLost(frames) || tooFast(frames) || poorPicture(frames))
 
 internal fun trackingLost(frames: List<LandmarkFrame>): Boolean {
     if (frames.size < 2) return true

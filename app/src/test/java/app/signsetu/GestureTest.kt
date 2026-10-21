@@ -12,7 +12,6 @@ import app.signsetu.camera.region
 import app.signsetu.camera.shrug
 import app.signsetu.camera.thumb
 import app.signsetu.sign.HomeSigns
-import app.signsetu.sign.signFeatures
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull

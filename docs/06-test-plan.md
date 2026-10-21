@@ -98,7 +98,7 @@ Release build on the API 29 emulator with 3 GB RAM, then on a real Android 10 ph
 | ST-02 | Database file on a rooted test device is unreadable without the key | SEC-01 |
 | ST-03 | Screenshot and recording blocked; recents thumbnail blank | SEC-40 |
 | ST-04 | Logcat across a full session contains no personal data | SEC-04 |
-| ST-05 | Merged manifest: no INTERNET, RECORD_AUDIO or LOCATION permission; CAMERA present only for the mirror | SEC-30, SEC-42 |
+| ST-05 | Merged manifest: no RECORD_AUDIO or LOCATION permission; a build without a gateway URL makes no connection (CloudAiTest); CAMERA present only for the mirror | SEC-30, SEC-42 |
 | ST-07 | `dumpsys package`: only the launcher activity exported | SEC-41 |
 | ST-08 | Decompiled release APK: no keys, test code or debug flags; obfuscated | SEC-11, SEC-53, SEC-60 |
 | ST-09 | Lock after 5 minutes in background; key unusable while locked; run on API 29 and API 30+ | SEC-21, SEC-22 |

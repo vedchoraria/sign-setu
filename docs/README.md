@@ -108,7 +108,7 @@ Process decomposition is in [section 3.4](#34-level-2-stage-interaction); the me
 | Target devices | Android 10 (API 29) or later, arm64-v8a only, 3 GB RAM or more, 5 to 6.9 inch portrait |
 | Flavors | `standard` (reference, Bluetooth RFCOMM) and `nearby` (adds Nearby Connections) |
 | Release package | Signed APK, about 79 MB, nothing compressed; float32 sign readers; native libraries stored uncompressed (NFR-05, D-42) |
-| Permissions (standard) | `CAMERA` (mirror and sign window), `BLUETOOTH_CONNECT` (second screen), `VIBRATE`. No `INTERNET`, microphone or location (NFR-34, build gate) |
+| Permissions (standard) | `CAMERA` (mirror and sign window), `BLUETOOTH_CONNECT` (second screen), `VIBRATE`. `INTERNET` only for the department gateway (D-47); no microphone or location (NFR-34, build gate) |
 | Languages (17) | English, Hindi, Chhattisgarhi, Gondi, Halbi, Bengali, Nepali, Assamese, Odia, Tamil, Telugu, Kannada, Malayalam, Marathi, Gujarati, Punjabi, Urdu |
 
 ## 3. Data flow
@@ -634,13 +634,13 @@ Arrows point from caller to callee or from source to destination and are drawn a
 
 ### 4.2 System context
 
-Sign Setu Release 1 is one Android application. It has no server and declares no INTERNET permission. Content, vision and sign-reader models ship in the signed APK; session data stays in an encrypted database until the officer exports or clears it. An optional second phone shows the stage over Bluetooth and stores nothing. A static reviewer portal supports content sign-off and is not part of the app.
+Sign Setu Release 1 is one Android application. It needs no server; an optional department gateway is used only when the build has one and the phone is online (D-47). Content, vision and sign-reader models ship in the signed APK; session data stays in an encrypted database until the officer exports or clears it. An optional second phone shows the stage over Bluetooth and stores nothing. A static reviewer portal supports content sign-off and is not part of the app.
 
 ```mermaid
 %%{init: {"flowchart": {"curve": "step"}}}%%
 flowchart LR
   subgraph SOfficers["Officer's phone, Android 10+, arm64"]
-    APP["Sign Setu app<br/>in.signsetu<br/>no INTERNET permission"]:::comp
+    APP["Sign Setu app<br/>in.signsetu<br/>offline first, optional gateway"]:::comp
   end
   OFF["Police officer"]:::ext
   SUB["Subject"]:::ext
@@ -1004,7 +1004,7 @@ flowchart LR
 | Platform | minSdk 29, compileSdk and targetSdk 37; AGP 9.4.1 | Android 10 floor |
 | Database | Room 2.8.5 with SQLCipher 4.19.1 | Encrypted at rest |
 | Settings, work | DataStore 1.2.1, WorkManager 2.12 | No personal data; retention purge |
-| Camera, vision | CameraX 1.6.2; MediaPipe Tasks Vision 1.0.0 (Holistic); protobuf-java 4.28.3 | Hands, face and pose on the phone; 64-bit only |
+| Camera, vision | CameraX 1.6.2; MediaPipe Tasks Vision 1.1.1 (Holistic); protobuf-javalite 4.36.2 | Hands, face and pose on the phone; 64-bit only |
 | Sign readers | LandmarkSignReader in plain Kotlin; float32 weights in the APK | No inference library to audit; nothing quantised |
 | Characters | Compose Canvas 2D rig, keyframe motion files | No video; one motion file plays on both characters |
 | Audio | Media3 ExoPlayer 1.11.1, Opus | Normal and reduced speed |
@@ -1069,7 +1069,7 @@ Requirements are numbered and traced to controls, tests and decisions. The regis
 
 #### 5.2.1 Principles
 
-- **Offline only.** No Release 1 feature depends on a network.
+- **Offline first.** No feature depends on a network; online use is optional and falls back on any failure (D-47).
 - **Content is data.** Questions, cards, translations and motions are versioned asset files under review, not code.
 - **Write before show.** The database is written first; the screen follows.
 - **The subject owns meaning.** A reading is a proposal; the subject's tap is the answer.
@@ -1120,7 +1120,7 @@ Objectives: subject data is unreadable without the officer's credential; it does
 | Storage | SQLCipher database; DEK wrapped by a Keystore KEK; no backup; purge with VACUUM; drawings only inside the database | SEC-01 to SEC-08 |
 | Cryptography | Platform and SQLCipher cryptography only; AES-256 report with an 80-bit one-time passphrase and a record digest on every page; P-256 ECDH, HKDF-SHA256, AES-256-GCM link frames | SEC-10 to SEC-12, SEC-67, SEC-76 |
 | Authentication | Secure device lock required; BiometricPrompt (strong biometric or device credential); KEK bound to user authentication and not invalidated by new fingerprints | SEC-20 to SEC-22 |
-| Network | No INTERNET permission; the build fails if any variant's merged manifest declares INTERNET or RECORD_AUDIO; no WebView | SEC-30, SEC-43 |
+| Network | HTTPS to the one gateway host only, cleartext refused; the build fails if any variant's merged manifest declares RECORD_AUDIO; no WebView | SEC-30, SEC-43 |
 | Platform | FLAG_SECURE; only the launcher exported; overlay-touch filter; screen pinning; no notifications with subject data; no clipboard of session data | SEC-06, SEC-40 to SEC-46 |
 | Camera and landmarks | Analysis only in a sign window; landmarks in RAM; narratives drop face points | SEC-47, SEC-71 |
 | Supply chain | Dependency lockfile and verification metadata; SBOM; Lint, semgrep, osv-scanner, gitleaks; content manifest checked before use; offline signing key | SEC-50 to SEC-54, SEC-62 |

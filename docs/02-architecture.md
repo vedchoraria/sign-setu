@@ -2,13 +2,13 @@
 
 ## 1. Overview
 
-Release 1 is a single Android application that runs entirely on the officer's phone. It has no server, makes no network calls and declares no INTERNET permission. All content (questions, picture cards, character motions, audio, the vision and sign-reader models) ships inside the signed APK; all session data stays in an encrypted database on the device until the officer exports or clears it. An optional second phone or tablet can show the subject's stage over Bluetooth (§11); it stores nothing. The reviewer portal (§12) is a separate static web page for content sign-off and is not shipped in the app.
+Release 1 is a single Android application that runs entirely on the officer's phone. It works without a server; when the build has a department gateway URL and the phone is online it may also call that one host (D-47). All content (questions, picture cards, character motions, audio, the vision and sign-reader models) ships inside the signed APK; all session data stays in an encrypted database on the device until the officer exports or clears it. An optional second phone or tablet can show the subject's stage over Bluetooth (§11); it stores nothing. The reviewer portal (§12) is a separate static web page for content sign-off and is not shipped in the app.
 
 This document covers how the application is built.
 
 ## 2. Principles
 
-1. **Offline only.** Nothing in release 1 depends on a network. Online features arrive in release 1.1 behind the project gateway (§13).
+1. **Offline first.** Nothing depends on a network. Online features go through the project gateway only, are off until the officer switches them on, and fall back to the on-device path on any failure (D-47, §13).
 2. **Content is data.** Questions, cards, lexicon entries and translations live in versioned asset files reviewed under the content policy, not in code.
 3. **Write before show.** Every event is persisted before the interface reflects it (FR-34).
 4. **Small and boring.** One app module, platform libraries first, no frameworks the audit has to justify.
@@ -27,7 +27,7 @@ This document covers how the application is built.
 | PDF export | Android PdfDocument to compose, PdfBox-Android to encrypt (AES-256) | Readable in any PDF reader |
 | Characters | Compose Canvas, 2D rig, keyframes in `gestures.json`, `signs.json` and `isl_signs.json` (D-21, D-35) | No video files; one motion file plays on both characters |
 | Camera mirror | CameraX 1.6.2: Preview and ImageAnalysis on one 16:9 portrait frame (analysis 640 by 360, rotated upright); frames reach the tracker only inside a sign window (D-20, D-25, D-38) | Nothing captured or stored |
-| Vision engine | MediaPipe Tasks Vision 1.0.0: the Holistic landmarker in video mode, GPU delegate first with CPU fallback, model in the APK; full `protobuf-java` 4.26.1 runtime (D-25, D-38) | Hands, face and pose on the phone; 64-bit only |
+| Vision engine | MediaPipe Tasks Vision 1.1.1: the Holistic landmarker in video mode, GPU delegate first with CPU fallback, model in the APK; `protobuf-javalite` 4.36.2 runtime (D-25, D-38) | Hands, face and pose on the phone; 64-bit only |
 | Sign reader | `LandmarkSignReader`: a 262-word isolated-sign classifier in plain Kotlin, weights in the APK (D-25) | No inference library to ship or audit |
 | Second screen | Bluetooth RFCOMM to bonded devices (`standard`); Google Nearby Connections in the optional `nearby` flavor (D-26) | No network, scanning or location in the reference build |
 | On-device assistant | llama.cpp v0.5.0 built with the NDK and CMake into `libassistant.so` (arm64-v8a; x86_64 for the emulator); an optional GGUF model file imported in Settings (D-24) | Offline translation with a back-translation; no network |

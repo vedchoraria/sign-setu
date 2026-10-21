@@ -15,6 +15,8 @@ import app.signsetu.data.session.EventType
 import app.signsetu.data.session.SessionEvent
 import com.tom_roush.pdfbox.android.PDFBoxResourceLoader
 import com.tom_roush.pdfbox.pdmodel.PDDocument
+import com.tom_roush.pdfbox.pdmodel.PDPageContentStream
+import com.tom_roush.pdfbox.pdmodel.font.PDType1Font
 import com.tom_roush.pdfbox.pdmodel.encryption.AccessPermission
 import com.tom_roush.pdfbox.pdmodel.encryption.StandardProtectionPolicy
 import kotlinx.coroutines.Dispatchers
@@ -63,14 +65,14 @@ class SessionReport(private val context: Context) {
         chainDigest: String? = null,
     ): Pair<File, String> =
         withContext(Dispatchers.IO) {
-            purgeStaleExports(context)
+            purgeStaleExports()
             val plain = render(rows, text, drawing, section, aiSummary, certificateText, chainDigest)
             val passphrase = newPassphrase()
             PDFBoxResourceLoader.init(context)
-            val dir = File(context.cacheDir, "exports").apply { mkdirs() }
+            val dir = exportsDir(context).apply { mkdirs() }
             val file = File(dir, "sign-setu-report-${System.currentTimeMillis()}.pdf")
             PDDocument.load(plain).use { doc ->
-                val owner = ByteArray(24).also { SecureRandom().nextBytes(it) }.joinToString("") { "%02x".format(it) }
+                val owner = ByteArray(24).also { SecureRandom().nextBytes(it) }.toHexString()
                 val policy = StandardProtectionPolicy(owner, passphrase, AccessPermission()).apply { encryptionKeyLength = 256 }
                 doc.protect(policy)
                 doc.save(file)
@@ -84,9 +86,9 @@ class SessionReport(private val context: Context) {
         text: ReportText,
         drawing: suspend (Long) -> ByteArray?,
         section: ReportSection?,
-        aiSummary: String? = null,
-        certificateText: String? = null,
-        chainDigest: String? = null,
+        aiSummary: String?,
+        certificateText: String?,
+        chainDigest: String?,
     ): ByteArray {
         val pdf = PdfDocument()
         val pages = mutableListOf<PdfDocument.Page>()
@@ -237,19 +239,16 @@ class SessionReport(private val context: Context) {
         return numberPages(bytes, text, recordDigest(rows), chainDigest)
     }
 
-    private fun numberPages(bytes: ByteArray, text: ReportText, digest: String, chainDigest: String? = null): ByteArray {
+    private fun numberPages(bytes: ByteArray, text: ReportText, digest: String, chainDigest: String?): ByteArray {
         PDFBoxResourceLoader.init(context)
         val chainSuffix = if (!chainDigest.isNullOrBlank()) "   chain $chainDigest" else ""
         return PDDocument.load(bytes).use { doc ->
             val total = doc.numberOfPages
-            val font = com.tom_roush.pdfbox.pdmodel.font.PDType1Font.HELVETICA
             for (i in 0 until total) {
                 val label = text.page(i + 1, total).filter { it.code < 128 }.ifBlank { "${i + 1} / $total" } + "   record $digest$chainSuffix"
-                com.tom_roush.pdfbox.pdmodel.PDPageContentStream(
-                    doc, doc.getPage(i), com.tom_roush.pdfbox.pdmodel.PDPageContentStream.AppendMode.APPEND, true, true,
-                ).use { cs ->
+                PDPageContentStream(doc, doc.getPage(i), PDPageContentStream.AppendMode.APPEND, true, true).use { cs ->
                     cs.beginText()
-                    cs.setFont(font, 8f)
+                    cs.setFont(PDType1Font.HELVETICA, 8f)
                     cs.newLineAtOffset(MARGIN, MARGIN / 2)
                     cs.showText(label)
                     cs.endText()
@@ -259,30 +258,27 @@ class SessionReport(private val context: Context) {
         }
     }
 
-    companion object {
-        const val PAGE_W = 595
-        const val PAGE_H = 842
-        const val MARGIN = 40f
-        // Room for the page number and the not-a-statement notice under the last row.
-        const val FOOTER = 30f
-        // Crockford base32 without look-alike characters; 16 symbols = 80 bits.
-        const val ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
+    /** SEC-02: a report left behind by an earlier export is deleted after 15 minutes. */
+    private fun purgeStaleExports() {
+        val cutoff = System.currentTimeMillis() - 15 * 60 * 1000L
+        exportsDir(context).listFiles()?.forEach { if (it.isFile && it.lastModified() < cutoff) it.delete() }
+    }
 
-        fun newPassphrase(): String {
+    companion object {
+        private const val PAGE_W = 595
+        private const val PAGE_H = 842
+        private const val MARGIN = 40f
+        // Room for the page number and the not-a-statement notice under the last row.
+        private const val FOOTER = 30f
+        // Crockford base32 without look-alike characters; 16 symbols = 80 bits.
+        private const val ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
+
+        /** Where exports wait for the share sheet; only needed while it hands them over. */
+        fun exportsDir(context: Context) = File(context.cacheDir, "exports")
+
+        private fun newPassphrase(): String {
             val random = SecureRandom()
             return (1..16).map { ALPHABET[random.nextInt(ALPHABET.length)] }.chunked(4).joinToString("-") { it.joinToString("") }
-        }
-
-        /** SEC-02: Deletes cached exported PDF files older than maxAgeMs. */
-        fun purgeStaleExports(context: Context, maxAgeMs: Long = 15 * 60 * 1000L) {
-            val dir = File(context.cacheDir, "exports")
-            if (!dir.exists() || !dir.isDirectory) return
-            val cutoff = System.currentTimeMillis() - maxAgeMs
-            dir.listFiles()?.forEach { file ->
-                if (file.isFile && file.lastModified() < cutoff) {
-                    file.delete()
-                }
-            }
         }
     }
 }
@@ -294,5 +290,5 @@ fun recordDigest(rows: List<ReportRow>): String {
         md.update(listOf(id, ts, type, source, lang, text, cardId, lexiconId, drawingId, itemId, reason, shownId, via, r.detail).joinToString("").toByteArray())
         md.update(byteArrayOf(0x1e))
     }
-    return md.digest().take(8).joinToString("") { "%02x".format(it) }.chunked(4).joinToString("-")
+    return md.digest().copyOf(8).toHexString().chunked(4).joinToString("-")
 }

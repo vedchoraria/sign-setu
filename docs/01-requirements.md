@@ -27,7 +27,7 @@ The officer chooses a **subject profile** for each session; it decides what the 
 | Constraint | Detail |
 | --- | --- |
 | Devices | Android 10 (API 29) and later, 3 GB RAM or more, screens 5 to 6.9 inches, portrait. Officers' personal phones; no device management. |
-| Network | Release 1 works fully offline and declares no INTERNET permission (D-15). A second screen links over Bluetooth to an already paired device only (D-26). |
+| Network | Every feature works offline. INTERNET is declared only to reach the department gateway when the build has one and the phone is online (D-47, which supersedes D-15). A second screen links over Bluetooth to an already paired device only (D-26). |
 | Cost | Free and open-source components and free government services only (D-10). |
 | Platform | Native Android, Kotlin, Jetpack Compose (D-01). |
 | Distribution | Signed APK through the Mobile Seva AppStore or a department download page. |
@@ -206,7 +206,7 @@ Delivered early: FR-22 (on-device sign recognition) as FR-84 to FR-87 (D-25). Wi
 | NFR-31 | Opening the app and past sessions require device credential or strong biometric. | MUST |
 | NFR-32 | Screenshots, screen recording and recents thumbnails blocked. | MUST |
 | NFR-33 | No session data in backups or device transfer. | MUST |
-| NFR-34 | The standard build declares no INTERNET, RECORD_AUDIO or location permission. CAMERA is declared for the stage mirror and sign windows (D-20, D-25), BLUETOOTH_CONNECT for the second screen (D-26), and VIBRATE (a normal permission) for answer codes. The optional `nearby` flavor adds the discovery permissions of D-26 and nothing else. | MUST |
+| NFR-34 | No build declares RECORD_AUDIO or location; INTERNET is used only for the department gateway (D-47). CAMERA is declared for the stage mirror and sign windows (D-20, D-25), BLUETOOTH_CONNECT for the second screen (D-26), and VIBRATE (a normal permission) for answer codes. The optional `nearby` flavor adds the discovery permissions of D-26 and nothing else. | MUST |
 | NFR-36 | No third-party analytics, advertising or crash-reporting SDKs. | MUST |
 | NFR-37 | No personal data in logs, crash traces or notifications. | MUST |
 | NFR-40 | Under 1 crash per 100 sessions in the pilot. | MUST |

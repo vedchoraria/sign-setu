@@ -10,6 +10,7 @@ import app.signsetu.assistant.Assistant
 import android.app.Activity
 import android.content.Intent
 import android.widget.Toast
+import app.signsetu.assistant.Notice
 import androidx.core.net.toUri
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.foundation.layout.Arrangement
@@ -24,9 +25,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.toClipEntry
+import android.content.ClipData
+import android.content.Context
+import app.signsetu.ui.components.LocalCloudAi
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.signsetu.ui.theme.Spacing
@@ -46,15 +50,12 @@ import app.signsetu.export.SessionReport
 import java.io.File
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
@@ -117,6 +118,15 @@ import app.signsetu.ui.pair.UseAsStageButton
 
 private const val SANDES_PACKAGE = "in.nic.gimkerala"
 
+private fun noticeText(context: Context, n: Notice) = context.getString(when (n) {
+    Notice.FALLBACK_OFFLINE -> R.string.notice_offline
+    Notice.FALLBACK_ERROR -> R.string.notice_gateway_error
+    Notice.REVOKED -> R.string.notice_revoked
+    Notice.BACK_ONLINE -> R.string.notice_back_online
+    Notice.ENROLLED -> R.string.notice_enrolled
+    Notice.ENROLL_FAILED -> R.string.notice_enroll_failed
+})
+
 @Composable
 fun AppRoot(container: AppContainer) {
     val repo by container.sessions.collectAsStateWithLifecycle()
@@ -124,8 +134,15 @@ fun AppRoot(container: AppContainer) {
     val settings by container.settings.settings.collectAsStateWithLifecycle(initialValue = null)
     val link by container.link.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    DisposableEffect(container) {
+        container.cloudAi.onNotice = { n ->
+            context.mainExecutor.execute { Toast.makeText(context, noticeText(context, n), Toast.LENGTH_LONG).show() }
+        }
+        onDispose { container.cloudAi.onNotice = {} }
+    }
 
-    CompositionLocalProvider(LocalContentRepository provides container.content, app.signsetu.ui.components.LocalCloudAi provides container.cloudAi) { NoPersonalisedLearning {
+    CompositionLocalProvider(LocalContentRepository provides container.content, LocalCloudAi provides container.cloudAi) { NoPersonalisedLearning {
         SignSetuTheme {
             val r = repo
             val c = content
@@ -267,8 +284,7 @@ internal fun SessionRoute(
     val signContent = remember(content, signLanguage) { content.forSignLanguage(signLanguage) }
     val conv by vm.auto.conv.collectAsStateWithLifecycle()
     val activity = LocalActivity.current
-    // The officer can turn the mirror off for one person, for example a child upset by seeing themself.
-    var cameraOn by rememberSaveable { mutableStateOf(settings.cameraEnabled) }
+    val cameraOn = rememberSaveable { settings.cameraEnabled }
     var sandesHandoffContact by rememberSaveable { mutableStateOf<String?>(null) }
     // D-26: with a second screen the subject's stage is there, and this phone stays the officer's.
     val link by container.link.collectAsStateWithLifecycle()
@@ -285,10 +301,7 @@ internal fun SessionRoute(
             container.endLink(ByeReason.FALLBACK)
         })
     }
-    // Smooth transition back to officer without PIN or password prompt
-    val backToOfficer = {
-        vm.returnToOfficer()
-    }
+    val backToOfficer: () -> Unit = vm::returnToOfficer
 
     val localStage = state.mode == Mode.SHOW && !paired
     ImmersiveWhile(activity, localStage)
@@ -304,8 +317,6 @@ internal fun SessionRoute(
             ui = state,
             vm = vm,
             officerLang = officerLang,
-            cameraOn = cameraOn,
-            onCameraOn = { cameraOn = it },
             favourites = settings.favourites,
             onFavourite = onFavourite,
             assistant = assistant,
@@ -336,8 +347,7 @@ internal fun SessionRoute(
             },
         )
         Mode.SHOW -> {
-            // Back smoothly returns to officer
-            BackHandler { backToOfficer() }
+            BackHandler(onBack = backToOfficer)
             SubjectTheme {
                 Stage(
                     ui = state,
@@ -371,17 +381,14 @@ internal fun SessionRoute(
             contact = contact,
             onLaunch = {
                 sandesHandoffContact = null
-                activity?.let { launchSandes(it, settings) }
+                activity?.let(::launchSandes)
             },
             onDismiss = { sandesHandoffContact = null },
         )
     }
 }
 
-/**
- * FR-64 / Security: returns strictly the contact identifier for Sandes clipboard handoff,
- * ensuring zero session data, transcript contents, or PII ever reach the system clipboard.
- */
+/** FR-64: the only text the Sandes handoff puts on the clipboard is the interpreter's contact. */
 fun sanitizeSandesHandoffClipboard(contact: String): String = contact.trim()
 
 @Composable
@@ -390,8 +397,9 @@ internal fun SandesHandoffDialog(
     onLaunch: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val clipboard = LocalClipboardManager.current
+    val clipboard = LocalClipboard.current
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val copiedMessage = stringResource(R.string.sandes_contact_copied)
 
     GuardedAlertDialog(
@@ -431,9 +439,11 @@ internal fun SandesHandoffDialog(
             ) {
                 OutlinedButton(
                     onClick = {
-                        // ZERO session or transcript data is copied; ONLY the configured interpreter contact string.
-                        clipboard.setText(AnnotatedString(sanitizeSandesHandoffClipboard(contact)))
-                        Toast.makeText(context, copiedMessage, Toast.LENGTH_SHORT).show()
+                        // Only the configured contact reaches the clipboard, never session or transcript data.
+                        scope.launch {
+                            clipboard.setClipEntry(ClipData.newPlainText(null, sanitizeSandesHandoffClipboard(contact)).toClipEntry())
+                            Toast.makeText(context, copiedMessage, Toast.LENGTH_SHORT).show()
+                        }
                     },
                 ) {
                     Text(stringResource(R.string.sandes_copy_contact))
@@ -451,7 +461,7 @@ internal fun SandesHandoffDialog(
     )
 }
 
-private fun launchSandes(activity: Activity, settings: AppSettings) {
+private fun launchSandes(activity: Activity) {
     val intent = activity.packageManager.getLaunchIntentForPackage(SANDES_PACKAGE)
     val opened = intent != null && runCatching { activity.startActivity(intent) }.isSuccess
     if (!opened) {
@@ -460,13 +470,8 @@ private fun launchSandes(activity: Activity, settings: AppSettings) {
     }
 }
 
-/** Opens the messaging app at the interpreter's contact; no session data goes with it (FR-64). */
+/** Opens WhatsApp at the interpreter's number; no session data goes with it (FR-64). Sandes goes through its dialog. */
 private fun callInterpreter(activity: Activity, settings: AppSettings) {
-    val sandes = settings.interpreterApp == InterpreterApp.SANDES
-    if (sandes) {
-        launchSandes(activity, settings)
-        return
-    }
     val name = activity.getString(R.string.settings_whatsapp)
     val intent = whatsappNumber(settings.interpreterContact)?.let { Intent(Intent.ACTION_VIEW, "https://wa.me/$it".toUri()) }
     val opened = intent != null && runCatching { activity.startActivity(intent) }.isSuccess

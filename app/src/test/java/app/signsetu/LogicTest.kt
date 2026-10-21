@@ -29,14 +29,12 @@ class LogicTest {
         LexiconEntry(id, id, "card", locations, actions, mapOf("en" to id), mapOf("en" to ""))
 
     private val bundle = ContentBundle(
-        groups = emptyList(), questions = emptyList(), categories = emptyList(), cards = emptyMap(),
         lexicon = listOf(
             entry("mother.bindi", listOf(BodyLocation.FOREHEAD), listOf(HandAction.TOUCH)),
             entry("police.salute", listOf(BodyLocation.FOREHEAD), listOf(HandAction.FLAT_HAND)),
             entry("eat.fingers", listOf(BodyLocation.MOUTH), listOf(HandAction.TOUCH)),
             entry("home.roof", listOf(BodyLocation.AWAY), listOf(HandAction.BOTH_HANDS)),
         ).associateBy { it.id },
-        languages = emptyList(), subjectUi = emptyMap(), rejected = emptySet(),
     )
 
     @Test

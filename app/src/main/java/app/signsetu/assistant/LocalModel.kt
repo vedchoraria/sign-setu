@@ -8,6 +8,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.security.DigestInputStream
 import java.security.MessageDigest
 
 /** A llama.cpp model in memory; one request at a time, each starting from an empty context. */
@@ -64,18 +65,10 @@ class ModelStore(private val context: Context) {
             val partial = File(file.parentFile, "import.part").apply { parentFile?.mkdirs() }
             val digest = MessageDigest.getInstance("SHA-256")
             val ok = runCatching {
-                context.contentResolver.openInputStream(uri)!!.use { input ->
-                    partial.outputStream().use { output ->
-                        val buffer = ByteArray(1 shl 20)
-                        while (true) {
-                            val n = input.read(buffer)
-                            if (n < 0) break
-                            digest.update(buffer, 0, n)
-                            output.write(buffer, 0, n)
-                        }
-                    }
+                DigestInputStream(context.contentResolver.openInputStream(uri)!!, digest).use { input ->
+                    partial.outputStream().use { input.copyTo(it, 1 shl 20) }
                 }
-                digest.digest().joinToString("") { "%02x".format(it) } in KNOWN_MODELS
+                digest.digest().toHexString() in KNOWN_MODELS
             }.getOrDefault(false)
             if (ok) partial.renameTo(file) else partial.delete()
             ok
@@ -101,18 +94,12 @@ class ModelStore(private val context: Context) {
         model = null
     }
 
-    private fun enoughMemory(): Boolean {
-        val info = ActivityManager.MemoryInfo()
-        context.getSystemService(ActivityManager::class.java).getMemoryInfo(info)
-        return info.totalMem >= MIN_MEMORY_BYTES
-    }
+    private fun memory() = ActivityManager.MemoryInfo().also { context.getSystemService(ActivityManager::class.java).getMemoryInfo(it) }
+
+    private fun enoughMemory(): Boolean = memory().totalMem >= MIN_MEMORY_BYTES
 
     // Checked at load time: total memory says nothing about what the camera and the stage are using right now.
-    private fun roomToLoad(): Boolean {
-        val info = ActivityManager.MemoryInfo()
-        context.getSystemService(ActivityManager::class.java).getMemoryInfo(info)
-        return !info.lowMemory && info.availMem >= MIN_FREE_BYTES
-    }
+    private fun roomToLoad(): Boolean = memory().let { !it.lowMemory && it.availMem >= MIN_FREE_BYTES }
 
     companion object {
         // A 3 GB phone reports well under 3 GB; whether 0.9 GB is free for the model is checked when it loads.

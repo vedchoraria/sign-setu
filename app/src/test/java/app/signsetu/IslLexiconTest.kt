@@ -16,7 +16,6 @@ import app.signsetu.data.content.motionFor
 import app.signsetu.data.content.planText
 import app.signsetu.data.content.search
 import app.signsetu.data.content.signBack
-import app.signsetu.data.content.withSignedQuestions
 import app.signsetu.ui.avatar.AdultBuild
 import app.signsetu.ui.avatar.ChildBuild
 import app.signsetu.ui.avatar.Gesture
@@ -25,7 +24,6 @@ import app.signsetu.ui.avatar.HandShape
 import app.signsetu.ui.avatar.Key
 import app.signsetu.ui.avatar.Timeline
 import app.signsetu.ui.avatar.handShape
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
@@ -62,8 +60,6 @@ class IslLexiconTest {
     private val water = WordEntry(listOf("water", "pani"), sign = "sign.water", gesture = "water.cup")
     private val phone = WordEntry(listOf("phone", "mobile"), sign = "phone.ear", gesture = "phone.ear")
     private val small = ContentBundle(
-        groups = emptyList(), questions = emptyList(), categories = emptyList(), cards = emptyMap(), lexicon = emptyMap(),
-        languages = emptyList(), subjectUi = emptyMap(), rejected = emptySet(),
         gestures = listOf("sign.water", "water.cup", "phone.ear", "isl.telephone", "isl.cell phone", "isl.thank you", "isl.fall", "isl.teacher")
             .associateWith(::gesture),
         words = listOf(water, phone).flatMap { e -> e.w.map { it to e } }.toMap(),
@@ -125,22 +121,10 @@ class IslLexiconTest {
 
     // The real content: every lesson question signs, every reader label signs back, every motion stays in frame.
 
-    @Serializable private data class GesturesFile(val gestures: List<Gesture>)
-    @Serializable private data class WordsFile(val words: List<WordEntry>)
-    @Serializable private data class SignWordsFile(val words: Map<String, String>)
-
-    private val content = File("src/main/assets/content")
+    private val content = ASSETS
     private val json = Json { ignoreUnknownKeys = true }
-    private val islFile = json.decodeFromString<IslSigns>(File(content, "isl_signs.json").readText())
-    private val authored = listOf("gestures.json", "signs.json").flatMap { json.decodeFromString<GesturesFile>(File(content, it).readText()).gestures }
-    private val bundle = ContentBundle(
-        groups = emptyList(), questions = emptyList(), categories = emptyList(), cards = emptyMap(), lexicon = emptyMap(),
-        languages = emptyList(), subjectUi = emptyMap(), rejected = emptySet(),
-        gestures = (authored + islFile.gestures.map { it.gesture }).associateBy { it.id },
-        words = json.decodeFromString<WordsFile>(File(content, "words.json").readText()).words.flatMap { e -> e.w.map { it to e } }.toMap(),
-        isl = islFile,
-        signWords = json.decodeFromString<SignWordsFile>(File(content, "sign_words.json").readText()).words,
-    )
+    private val bundle = shipped
+    private val islFile = bundle.isl
 
     @Test
     fun everyIncludeWordIsRetargetedWithAttribution() {
@@ -160,14 +144,7 @@ class IslLexiconTest {
         for (label in labels) assertNotNull("cannot sign back $label", bundle.signBack(label))
     }
 
-    @Serializable private data class TriageFile(val questions: List<Question>)
-
-    private val asl = bundle.copy(
-        questions = json.decodeFromString<TriageFile>(File(content, "triage.json").readText()).questions,
-        everyday = json.decodeFromString<GesturesFile>(File(content, "gestures.json").readText()).gestures.associateBy { it.id },
-        aslSigns = json.decodeFromString<IslSigns>(File(content, "asl_signs.json").readText()),
-        aslWords = json.decodeFromString<SignWordsFile>(File(content, "asl_words.json").readText()).words,
-    ).withSignedQuestions().forSignLanguage(SignLanguage.ASL)
+    private val asl = bundle.forSignLanguage(SignLanguage.ASL)
 
     private val manifest = json.parseToJsonElement(File(content, "manifest.json").readText()).jsonObject["files"]!!.jsonObject.keys
 
@@ -266,7 +243,8 @@ class IslLexiconTest {
     fun everySignStaysInFrameAndAuthoredSignsKeepEachHandOnItsSide() {
         // Hugging yourself crosses the arms on purpose; recorded signers cross where the sign does.
         val crossing = setOf("cold.hug")
-        for (g in bundle.gestures.values) for (build in listOf(ChildBuild, AdultBuild)) {
+        // Signed questions (q.*) are chains of the signs checked here.
+        for (g in bundle.gestures.values.filterNot { it.id.startsWith("q.") }) for (build in listOf(ChildBuild, AdultBuild)) {
             val timeline = Timeline(g, build)
             val used = { side: (Key) -> HandKey? -> g.keys.any { side(it)?.at?.let { at -> at != "rest" } == true } }
             val r = used { it.R }

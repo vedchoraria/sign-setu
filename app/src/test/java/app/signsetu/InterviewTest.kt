@@ -39,14 +39,11 @@ class InterviewTest {
     @Serializable private data class Gestures(val gestures: List<Ids>)
 
     private val json = Json { ignoreUnknownKeys = true }
-    private fun asset(name: String) = File("src/main/assets/content/$name").readText()
+    private fun asset(name: String) = File(ASSETS, name).readText()
     private val triage = json.decodeFromString<Triage>(asset("triage.json"))
     private val bank = bundle(triage.groups, triage.questions)
 
-    private fun bundle(groups: List<Group>, questions: List<Question>) = ContentBundle(
-        groups = groups, questions = questions, categories = emptyList(), cards = emptyMap(),
-        lexicon = emptyMap(), languages = emptyList(), subjectUi = emptyMap(), rejected = emptySet(),
-    )
+    private fun bundle(groups: List<Group>, questions: List<Question>) = ContentBundle(groups = groups, questions = questions)
 
     /** A session log built by hand, the way the view model writes it. */
     private class Log {

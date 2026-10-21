@@ -22,7 +22,7 @@ import kotlin.math.abs
 import kotlin.math.roundToInt
 
 class SignReaderTest {
-    private val models = File("src/main/assets/content/models")
+    private val models = File(ASSETS, "models")
     private fun reader(name: String) = LandmarkSignReader(File(models, "$name.json").readText(), File(models, "$name.bin").readBytes())
     private val reader = reader("sign_reader")
 
@@ -81,7 +81,7 @@ class SignReaderTest {
 
     @Test
     fun alteredModelBytesGiveNoReader() {
-        val content = File("src/main/assets/content")
+        val content = ASSETS
         fun load(lang: SignLanguage, altered: String?) = SignReaders.load(lang) { path ->
             File(content, path).readBytes().let { if (path == altered) it.also { b -> b[0] = (b[0] + 1).toByte() } else it }
         }

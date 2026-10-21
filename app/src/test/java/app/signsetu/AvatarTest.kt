@@ -37,7 +37,7 @@ class AvatarTest {
 
     @Serializable private data class GesturesFile(val gestures: List<Gesture>)
 
-    private val content = File("src/main/assets/content")
+    private val content = ASSETS
     private val json = Json { ignoreUnknownKeys = true }
     private val gestures = listOf("gestures.json", "signs.json").flatMap { json.decodeFromString<GesturesFile>(File(content, it).readText()).gestures }
     private val recorded = json.decodeFromString<GesturesFile>(File(content, "isl_signs.json").readText()).gestures
@@ -135,8 +135,6 @@ class AvatarTest {
 
     private val bundle by lazy {
         ContentBundle(
-            groups = emptyList(), questions = emptyList(), categories = emptyList(), cards = emptyMap(), lexicon = emptyMap(),
-            languages = emptyList(), subjectUi = emptyMap(), rejected = emptySet(),
             gestures = gestures.associateBy { it.id },
             words = json.decodeFromString<WordsFile>(File(content, "words.json").readText()).words.flatMap { e -> e.w.map { it to e } }.toMap(),
         )

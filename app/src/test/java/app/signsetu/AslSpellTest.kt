@@ -19,7 +19,7 @@ import kotlin.math.abs
 
 /** The fingerspelling runtime against tools/ml/spell_ctc.py's fixture: same per-frame logits, same letters. */
 class AslSpellTest {
-    private val models = File("src/main/assets/content/models")
+    private val models = File(ASSETS, "models")
     private val reader = CtcSpellReader(File(models, "asl_spell.json").readText(), File(models, "asl_spell.bin").readBytes())
     private val fixture = Json.parseToJsonElement(javaClass.getResource("/asl_spell_fixture.json")!!.readText()).jsonObject
     private val aspect = fixture.getValue("aspect").jsonPrimitive.float

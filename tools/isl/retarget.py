@@ -62,7 +62,6 @@ def load(path: pathlib.Path) -> dict:
     return out
 
 
-# ---- Hand shape -------------------------------------------------------------------------------------------------
 
 def _angle(u: np.ndarray, v: np.ndarray) -> float:
     c = np.dot(u, v) / (np.linalg.norm(u) * np.linalg.norm(v) + 1e-9)
@@ -113,7 +112,6 @@ def shape_code(h: np.ndarray) -> str:
     return "c:" + ",".join(str(int(round(v * 20)) * 5) for v in vals)
 
 
-# ---- Placement --------------------------------------------------------------------------------------------------
 
 def body_frame(pose: np.ndarray) -> tuple[np.ndarray, float]:
     """Shoulder midpoint and width, medians over the recording so one bad frame does not move the body."""
@@ -175,7 +173,6 @@ def elbow_offsets(pose: np.ndarray, side: str) -> np.ndarray:
     return arm * (UPPER_ARM / full) / np.maximum(n / full, 1.0) * [SIGN[side], 1.0]
 
 
-# ---- Time -------------------------------------------------------------------------------------------------------
 
 def fill_gaps(x: np.ndarray, present: np.ndarray) -> np.ndarray:
     """Linear interpolation over frames where the hand was not detected; ends hold the nearest detection."""
@@ -226,7 +223,6 @@ def key_frames(track: np.ndarray, fps: float = FPS, gap: float = 0.5, min_gap: f
     return sorted(set(filled))
 
 
-# ---- Recording choice ------------------------------------------------------------------------------------------
 
 def used_hands(rec: dict) -> list[str]:
     """Hands that sign: detected in most frames and raised above the lower chest at some point."""
@@ -258,7 +254,6 @@ def pick(recs: list[tuple[str, dict]]) -> tuple[str, dict, list[str]]:
     return rid, rec, hands
 
 
-# ---- One sign ---------------------------------------------------------------------------------------------------
 
 def prepare(rec: dict, hands: list[str], fps: float = FPS, first: bool = False, visible: bool = False) -> dict:
     """Gap-filled, smoothed hands in source pixels and wrists in rig units, cut to the signing, with key frames."""

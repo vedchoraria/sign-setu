@@ -1,38 +1,26 @@
 package app.signsetu
 
 import app.signsetu.data.content.AnswerType
-import app.signsetu.data.content.Card
-import app.signsetu.data.content.CardCategory
 import app.signsetu.data.content.ContentBundle
 import app.signsetu.data.content.Given
-import app.signsetu.data.content.Group
 import app.signsetu.data.content.Method
 import app.signsetu.data.content.SignMode
 import app.signsetu.data.content.planText
-import app.signsetu.data.content.Question
-import app.signsetu.data.content.State
-import app.signsetu.data.content.WordEntry
 import app.signsetu.data.content.answerText
 import app.signsetu.data.content.givenOf
 import app.signsetu.data.content.groupPhone
 import app.signsetu.data.content.padPress
 import app.signsetu.data.content.reason
 import app.signsetu.data.content.valid
-import app.signsetu.data.content.withSignedQuestions
 import app.signsetu.data.session.EventSource
 import app.signsetu.data.session.EventType
 import app.signsetu.data.session.Profile
 import app.signsetu.data.session.Role
 import app.signsetu.data.session.SessionEvent
-import app.signsetu.ui.avatar.Gesture
 import app.signsetu.ui.session.Detail
 import app.signsetu.ui.session.EVERYDAY
 import app.signsetu.ui.session.REF_PREFIX
 import app.signsetu.ui.session.personalDetails
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.builtins.MapSerializer
-import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -43,26 +31,7 @@ import java.io.File
 /** The lesson-sheet questions end to end: content, answer checks, read-back text, report rows, and who is asked what. */
 class LessonTest {
 
-    @Serializable private data class Triage(val groups: List<Group>, val questions: List<Question>)
-    @Serializable private data class Cards(val categories: List<CardCategory>, val cards: List<Card>)
-    @Serializable private data class Places(val states: List<State>)
-    @Serializable private data class Words(val words: List<WordEntry>)
-    @Serializable private data class Gestures(val gestures: List<Gesture>)
-
-    private val dir = File("src/main/assets/content")
-    private val json = Json { ignoreUnknownKeys = true }
-    private fun text(name: String) = File(dir, name).readText()
-    private val triage = json.decodeFromString<Triage>(text("triage.json"))
-    private val cards = json.decodeFromString<Cards>(text("cards.json"))
-    private val content = ContentBundle(
-        groups = triage.groups, questions = triage.questions, categories = cards.categories, cards = cards.cards.associateBy { it.id },
-        lexicon = emptyMap(), languages = emptyList(),
-        subjectUi = json.decodeFromString(MapSerializer(String.serializer(), MapSerializer(String.serializer(), String.serializer())), text("subject_ui.json")),
-        rejected = emptySet(),
-        gestures = listOf("gestures.json", "signs.json").flatMap { json.decodeFromString<Gestures>(text(it)).gestures }.associateBy { it.id },
-        words = json.decodeFromString<Words>(text("words.json")).words.flatMap { e -> e.w.map { it to e } }.toMap(),
-        states = json.decodeFromString<Places>(text("places.json")).states,
-    ).withSignedQuestions()
+    private val content = shipped
 
     private fun q(id: String) = content.question(id)!!
 
@@ -75,9 +44,9 @@ class LessonTest {
             listOf("en", "hi").forEach { assertNotNull("$id $it", q.text[it]) }
             q.field?.let { f -> listOf("en", "hi").forEach { assertNotNull("$id field $it", f[it]) } }
             if (q.answer != null) assertNotNull("$id has no field", q.field)
-            q.cards.filter { it != "draw" }.forEach { assertTrue("$id: $it", it in content.cards && File(dir, "cards/$it.webp").exists()) }
+            q.cards.filter { it != "draw" }.forEach { assertTrue("$id: $it", it in content.cards && File(ASSETS, "cards/$it.webp").exists()) }
         }
-        assertEquals(triage.questions.size, triage.questions.map { it.id }.toSet().size)
+        assertEquals(content.questions.size, content.questions.map { it.id }.toSet().size)
         assertEquals(12, q("f1").cards.size)
         assertEquals(8, content.questions.count { it.group == EVERYDAY })
     }
@@ -216,7 +185,7 @@ class LessonTest {
     fun lessonQuestionsAreSignedInDraftIslOrder() {
         for (q in content.questions.filter { it.signed }) assertNotNull("${q.id} has no motion", content.gestureFor(q))
         val name = content.planTextIds("What is your name?")
-        assertEquals(listOf("you.palm", "sign.name", "sign.what"), name)
+        assertEquals(listOf("isl.you", "sign.name", "sign.what"), name)
         val siblings = content.planTextIds("How many brothers and sisters do you have?")
         assertFalse("sign.how" in siblings)
         assertTrue(siblings.indexOf("sign.how_many") > siblings.indexOf("sign.sister"))

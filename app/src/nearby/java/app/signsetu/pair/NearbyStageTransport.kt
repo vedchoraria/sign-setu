@@ -37,7 +37,7 @@ import java.util.concurrent.ConcurrentHashMap
  */
 class NearbyStageTransport(context: Context) : StageTransport {
     private val client: ConnectionsClient = Nearby.getConnectionsClient(context)
-    private val name = "Display-" + ByteArray(2).also(SecureRandom()::nextBytes).joinToString("") { "%02X".format(it) }
+    private val name = "Display-" + ByteArray(2).also(SecureRandom()::nextBytes).toHexString(HexFormat.UpperCase)
     private val found = MutableStateFlow<Map<String, String>>(emptyMap())
     private val links = ConcurrentHashMap<String, Link>()
     private val names = ConcurrentHashMap<String, String>()

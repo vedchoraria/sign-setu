@@ -75,6 +75,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.signsetu.R
+import app.signsetu.ui.pair.linkText
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import app.signsetu.data.content.BodyLocation
 import app.signsetu.data.content.ContentBundle
 import app.signsetu.data.content.HandAction
@@ -107,6 +109,9 @@ import app.signsetu.sign.rememberReplayState
 import kotlin.math.roundToInt
 
 private const val FAVOURITES = "*favourites"
+
+/** Keeps a picked or typed list across rotation and process death. */
+internal fun <T : Any> stateListSaver() = listSaver<SnapshotStateList<T>, T>(save = { it.toList() }, restore = { it.toMutableStateList() })
 
 /** Fills a phrase-bank sentence: the officer picks what it is about (FR-62). */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -144,7 +149,7 @@ fun BoardSheet(
     var query by rememberSaveable { mutableStateOf("") }
     // Favourites open first once the officer has starred any (FR-19).
     var category by rememberSaveable { mutableStateOf(if (favourites.isNotEmpty()) FAVOURITES else null) }
-    val chosen = rememberSaveable(saver = listSaver(save = { l -> l.toList() }, restore = { l -> l.toMutableStateList() })) { initial.toMutableStateList() }
+    val chosen = rememberSaveable(saver = stateListSaver()) { initial.toMutableStateList() }
     val cards = content.cards.values.filter { c ->
         (category == null || c.category == category || (category == FAVOURITES && c.id in favourites)) &&
             (query.isBlank() || c.label.values.any { it.contains(query.trim(), ignoreCase = true) })
@@ -360,7 +365,7 @@ fun EventRow(e: SessionEvent, modifier: Modifier = Modifier, question: String? =
                 when (e.type) {
                     EventType.SYSTEM -> systemText(res, e.text)
                     EventType.ANSWER_SIGNED -> signedDisplay(res, e.text)
-                    else -> app.signsetu.ui.pair.linkText(e) ?: e.text ?: if (e.drawingId != null) res.getString(R.string.report_drawing) else "—"
+                    else -> linkText(e) ?: e.text ?: if (e.drawingId != null) res.getString(R.string.report_drawing) else "—"
                 },
             )
         },
@@ -512,7 +517,7 @@ fun SignedSheet(
     onDraft: (List<String>) -> Unit = {},
 ) {
     val replay = rememberReplayState(segments)
-    val words = rememberSaveable(segments, saver = listSaver(save = { l -> l.toList() }, restore = { l -> l.toMutableStateList() })) {
+    val words = rememberSaveable(segments, saver = stateListSaver()) {
         (draft?.takeIf { it.size == segments.size } ?: segments.map { s -> s.word?.takeIf { it != "?" }.orEmpty() }).toMutableStateList()
     }
     val colors = MaterialTheme.colorScheme

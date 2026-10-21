@@ -2,6 +2,7 @@ package app.signsetu.assistant
 
 import androidx.compose.runtime.Immutable
 import app.signsetu.data.content.Language
+import app.signsetu.data.content.isDevanagari
 
 /** A machine-made caption and what it says back in English, so the officer can see a wrong translation before Send. */
 @Immutable
@@ -39,4 +40,4 @@ class Assistant(private val models: ModelStore, private val cloud: CloudAi? = nu
 
 /** English needs no translation, and nor does Hindi already typed in Devanagari. */
 fun needsTranslation(text: String, langCode: String): Boolean =
-    langCode != "en" && !(langCode == "hi" && text.any { it in 'ऀ'..'ॿ' })
+    langCode != "en" && !(langCode == "hi" && text.isDevanagari())

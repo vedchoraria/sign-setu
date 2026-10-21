@@ -57,7 +57,7 @@ fun askedAt(events: List<SessionEvent>, p: Pending, officerLang: String): Long? 
 
 /** Model, build, content and the last 4 hex of the hashed address: never the Bluetooth name, which may name a person. */
 private fun connectedDetail(link: StageLink, contentHash: String): String {
-    val address = sha256(link.pinned.orEmpty().toByteArray()).joinToString("") { "%02x".format(it) }.takeLast(4)
+    val address = sha256(link.pinned.orEmpty().toByteArray()).toHexString().takeLast(4)
     return "${link.peerModel.orEmpty()} v${BuildConfig.VERSION_CODE} ${contentHash.take(8)} $address"
 }
 

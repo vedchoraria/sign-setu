@@ -45,8 +45,8 @@ Target: OWASP MASVS v2 with the MAS-L2 testing profile, plus the CERT-In require
 
 | ID | Control |
 | --- | --- |
-| SEC-30 | The app declares no INTERNET permission; the build fails if the merged manifest of any variant contains it, RECORD_AUDIO or ACCESS_BACKGROUND_LOCATION. |
-| SEC-31 to SEC-34 | Release 1.1 only: TLS 1.2+, certificate pinning to the project gateway, server-side validation, partner keys only in the gateway. |
+| SEC-30 | INTERNET is declared only for the department gateway (D-47): one HTTPS host fixed at build time, cleartext refused by the network security config and by `UrlHttp`, nothing connects when the build has no gateway or the phone is offline, and nothing is sent inside a sign window. The gateway token is wrapped by a Keystore key (`KeystoreVault`). The build fails if the merged manifest of any variant contains RECORD_AUDIO or ACCESS_BACKGROUND_LOCATION. |
+| SEC-31 to SEC-34 | Gateway: TLS (platform default, 1.2+), certificate pin set for the gateway host in the network security config once the host is fixed, server-side validation of every request (extra fields refused), partner keys only in the gateway. |
 
 ### 2.5 Platform interaction
 
@@ -97,7 +97,7 @@ Target: OWASP MASVS v2 with the MAS-L2 testing profile, plus the CERT-In require
 
 | ID | Control | Source |
 | --- | --- | --- |
-| SEC-71 | Landmarks are biometric data. Frames are analysed for the stage overlay while the camera shows, at most 10 a second outside a sign window, and reach sign capture only inside an explicit sign window (FR-84, D-40). Landmarks live only in view-model memory, for the session, and are wiped when the session ends, the app locks or the view model is cleared; they are never written to disk, logged, exported or sent over the second-screen link. A narrative keeps hands and pose only. Signs learned in a session (D-40) are feature sequences held under the same rules. The subject's stage draws hands, arms, brows and lips, never the face oval or eyes. | D-25, D-27; DPDP s.8 |
+| SEC-71 | Landmarks are biometric data. Frames are analysed for the stage overlay while the camera shows, at most 10 a second outside a sign window, and reach sign capture only inside an explicit sign window (FR-84, D-40). Landmarks live only in view-model memory, for the session, and are wiped when the session ends, the app locks or the view model is cleared; they are never written to disk, logged, exported or sent over the second-screen link, except a one-frame skeleton drawing (no picture of the person) that the officer has switched on for the session with "Keep skeleton snapshot in record" (off at every start, D-46). A narrative keeps hands and pose only. Signs learned in a session (D-40) are feature sequences held under the same rules. The subject's stage draws hands, arms, brows and lips, never the face oval or eyes. | D-25, D-27; DPDP s.8 |
 | SEC-72 | MediaPipe's usage-statistics upload backend is excluded from the build and replaced by a stub destination that drops every event on the device (D-33). | SEC-30 |
 | SEC-73 | Build flavors: `standard` is the reference build and keeps every rule; `nearby` adds only the Nearby Connections permissions of D-26, uses its own application ID, and is offered only to departments whose phones have Play services. The permission gate runs for every variant before packaging (`check<Variant>Permissions`). | CERT-In 6.2.6 |
 | SEC-74 | The holistic model, the sign reader and its word map are verified against the content manifest before they load (`HolisticTracker.verifiedModel`, `SignReaders.create`); a failed model is not used and the stage keeps a plain mirror. | SEC-54 |

@@ -9,7 +9,7 @@ Sign Setu is an offline Android application that helps a police officer communic
 | Property | Value |
 | --- | --- |
 | Platform | Android 10 (API 29) and later; sign reading on 64-bit phones |
-| Network | None: the application declares no INTERNET permission and the build fails if one is added |
+| Network | Optional: only the department gateway, only when the build has one and the phone is online; everything works without it |
 | Languages for the subject | 17 in the language finder, including Chhattisgarhi, Gondi and Halbi; every stage word, question, phrase and picture label in all 17 (drafts beyond English and Hindi, D-43); typed English captioned in Hindi on the phone (D-44); sign languages ISL and ASL |
 | Officer interface languages | English, Hindi |
 | Release APK | 67.6 MiB (70,891,654 bytes, standard build, unsigned), nothing compressed for size (D-42) |
@@ -98,7 +98,7 @@ A second phone or tablet, paired once in system Bluetooth settings, shows the su
 
 | Control | Description |
 | --- | --- |
-| Offline | No INTERNET, RECORD_AUDIO or location permission in the standard build; enforced by a build gate for every variant |
+| Offline | Every feature works with no connection; no RECORD_AUDIO or location permission, enforced by a build gate for every variant |
 | Encrypted record | SQLCipher (AES-256) under a random key wrapped by an Android Keystore key that works only after the phone's own lock |
 | Relock | After five minutes away from the app; after a crash mid-stage the full credential is always asked |
 | Retention | Sessions deleted on end or after the retention period; "Delete all data" destroys the keys |
@@ -269,7 +269,7 @@ Export works without a network. The PDF is written on the phone and handed to An
 | User interface | Jetpack Compose (BOM 2026.09.00), Material 3, Material Icons 1.7.8, Activity Compose 1.13.0, Fragment 1.9.1, Navigation 3 (1.2.0), Lifecycle 2.11.0, Core KTX 1.19.1 |
 | Graphics | Compose Canvas for the characters, overlays, skeleton replay and drawing pad |
 | Media | Media3 ExoPlayer 1.11.1 |
-| Camera and vision | CameraX 1.6.2 with `camera-compose`; MediaPipe Tasks Vision 1.0.0 (Holistic landmarker) with `protobuf-java` 4.26.1 |
+| Camera and vision | CameraX 1.6.2 with `camera-compose`; MediaPipe Tasks Vision 1.1.1 (Holistic landmarker) with `protobuf-javalite` 4.36.2 |
 | Sign reader | Plain Kotlin forward pass; trained with Python tools in `tools/ml` |
 | Second screen | Bluetooth RFCOMM (standard); Google Play services Nearby Connections 19.5.1 (`nearby` flavor only) |
 | Storage | Room 2.8.5 (database version 3), SQLCipher for Android 4.19.1, androidx.sqlite 2.7.1, DataStore 1.2.1 |

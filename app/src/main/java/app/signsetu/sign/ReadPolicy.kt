@@ -1,0 +1,38 @@
+package app.signsetu.sign
+
+import app.signsetu.camera.LandmarkFrame
+import app.signsetu.data.content.WordEntry
+
+/** Share of a sign's frames flagged blurry above which the picture is too smeared to read. */
+const val BLUR_SHARE = 0.5f
+
+/** Median gap between analysed frames above which the rate is too low for the reader: under about 8 frames a second. */
+const val LOW_RATE_GAP_MS = 125L
+
+/**
+ * Whether the pictures behind a sign were too poor to read, whatever the hands did: smeared, or analysed too rarely.
+ * A sign this poor is handled like fast hands, by asking the subject to sign slower.
+ */
+internal fun poorPicture(frames: List<LandmarkFrame>): Boolean {
+    if (frames.size < 2) return false
+    val gaps = frames.zipWithNext { a, b -> b.timestampMs - a.timestampMs }.sorted()
+    return frames.count { it.blurry } > frames.size * BLUR_SHARE || gaps[gaps.size / 2] > LOW_RATE_GAP_MS
+}
+
+/**
+ * The one place a read becomes something the subject is shown: the reader's guesses [all] (best first), a matched home
+ * sign, and the item on screen [cards] go in; a segment with at most three candidates and the slower cue comes out.
+ * A candidate is a suggestion only; nothing here confirms a meaning (FR-66).
+ */
+fun decideRead(
+    frames: List<LandmarkFrame>,
+    all: List<SignGuess>,
+    home: SignGuess?,
+    cards: Set<String>,
+    signWords: Map<String, String>,
+    words: Map<String, WordEntry>,
+): SignSegment {
+    // Only the top three are reordered: over every label some guess always fits the item, at any score.
+    val guesses = (listOfNotNull(home) + inContext(all.take(3), cards, signWords, words)).distinctBy { it.word }.take(3)
+    return SignSegment(frames, guesses, needsSlower(frames, all), cards)
+}

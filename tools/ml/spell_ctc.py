@@ -53,7 +53,6 @@ class SpellNet(nn.Module):
         return self.head(h.transpose(1, 2))
 
 
-# ---- Data -------------------------------------------------------------------------------------------------------
 
 def prepare(data: pathlib.Path, per_letter: int = 0) -> None:
     api = f"https://huggingface.co/api/datasets/{REPO}"
@@ -197,7 +196,6 @@ def cer(predict, letters, aspect, n: int = 400, seed: int = 99) -> float:
     return errors / chars
 
 
-# ---- Train and export ---------------------------------------------------------------------------------------------
 
 def load(data: pathlib.Path):
     with open(data / "asl_now.pkl", "rb") as f:

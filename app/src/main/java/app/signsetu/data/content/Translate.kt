@@ -40,7 +40,6 @@ internal fun normalise(text: String): String = text.lowercase().replace('’', '
 private fun ContentBundle.bank(): Bank = cached?.takeIf { it.first === this }?.second ?: makeBank().also { cached = this to it }
 
 private fun clean(s: String) = s.substringBefore(" (").substringBefore(" / ").trim()
-private fun devanagari(s: String) = s.any { it in 'ऀ'..'ॿ' }
 
 private fun ContentBundle.makeBank(): Bank {
     val labels = cards.values.map { it.label } + lexicon.values.map { it.label } + categories.map { it.label }
@@ -58,7 +57,7 @@ private fun ContentBundle.makeBank(): Bank {
         if (en.isNotEmpty() && en !in STOP && en.count { it == ' ' } < 3) l["hi"]?.let { nouns.putIfAbsent(en, clean(it)) }
     }
     for ((form, e) in words) if (form !in STOP && form.all { it in 'a'..'z' || it == ' ' }) {
-        (e.card?.let { cards[it]?.label?.get("hi") }?.let(::clean) ?: e.w.firstOrNull(::devanagari)?.let(::clean))?.let { nouns.putIfAbsent(form, it) }
+        (e.card?.let { cards[it]?.label?.get("hi") }?.let(::clean) ?: e.w.firstOrNull { it.isDevanagari() }?.let(::clean))?.let { nouns.putIfAbsent(form, it) }
     }
     return Bank(sentences, nouns)
 }

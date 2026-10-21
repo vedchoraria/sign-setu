@@ -14,6 +14,7 @@ import app.signsetu.ui.avatar.Gesture
 import app.signsetu.ui.avatar.chain
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import java.io.InputStream
 import java.security.MessageDigest
 
 typealias Localized = Map<String, String>
@@ -140,15 +141,15 @@ private val LANGUAGE_FILES = setOf(SignLanguage.ASL.words, SignLanguage.ASL.sign
 
 @Immutable
 data class ContentBundle(
-    val groups: List<Group>,
-    val questions: List<Question>,
-    val categories: List<CardCategory>,
-    val cards: Map<String, Card>,
-    val lexicon: Map<String, LexiconEntry>,
-    val languages: List<Language>,
-    val subjectUi: Map<String, Localized>,
+    val groups: List<Group> = emptyList(),
+    val questions: List<Question> = emptyList(),
+    val categories: List<CardCategory> = emptyList(),
+    val cards: Map<String, Card> = emptyMap(),
+    val lexicon: Map<String, LexiconEntry> = emptyMap(),
+    val languages: List<Language> = emptyList(),
+    val subjectUi: Map<String, Localized> = emptyMap(),
     /** Files whose hash did not match the manifest; never shown to a subject (SEC-54). */
-    val rejected: Set<String>,
+    val rejected: Set<String> = emptySet(),
     /** Every verified file in the bundle, relative to `assets/content/`. */
     val files: Set<String> = emptySet(),
     val gestures: Map<String, Gesture> = emptyMap(),
@@ -225,14 +226,18 @@ data class ContentBundle(
     }
 }
 
-class ContentRepository(private val assets: AssetManager) {
+/** Loads the bundle from [open], which opens a file by its path under `assets/content/`. */
+class ContentRepository(private val open: (String) -> InputStream) {
+    constructor(assets: AssetManager) : this({ assets.open("content/$it") })
+
     private val json = Json { ignoreUnknownKeys = true }
     private var bundle: ContentBundle? = null
     private val images = LruCache<String, ImageBitmap>(160)
 
     suspend fun load(): ContentBundle = bundle ?: withContext(Dispatchers.IO) {
-        val manifestText = read("manifest.json")
-        val manifest = json.decodeFromString<Manifest>(manifestText)
+        val manifestBytes = open("manifest.json").use { it.readBytes() }
+        val manifestDigest = MessageDigest.getInstance("SHA-256").digest(manifestBytes)
+        val manifest = json.decodeFromString<Manifest>(manifestBytes.decodeToString())
         val rejected = manifest.files.filter { (path, hash) -> eagerlyChecked(path) && sha256(path) != hash }.keys
         // A file that fails its check is never parsed: no content beats wrong content (SEC-54).
         val triage = verified("triage.json", rejected) ?: TriageFile(emptyList(), emptyList())
@@ -265,23 +270,15 @@ class ContentRepository(private val assets: AssetManager) {
             aslWords = aslWords,
             phrases = phrases,
             words = words.flatMap { e -> e.w.map { it to e } }.toMap(),
-            manifestHash = sha256("manifest.json").orEmpty(),
+            manifestHash = manifestDigest.toHexString(),
             isl = isl,
             signWords = verified<SignWordsFile>("sign_words.json", rejected)?.words.orEmpty(),
-            version = MessageDigest.getInstance("SHA-256").digest(manifestText.toByteArray()).take(6).joinToString("") { "%02x".format(it) },
+            version = manifestDigest.copyOf(6).toHexString(),
             states = states,
         ).withSignedQuestions().also {
             bundle = it
-            // Preload high-frequency essential cards into memory cache for instant, zero-latency response
-            preloadCards(listOf("yes", "no", "stop", "dont_know", "unclear", "wrong", "water", "food", "help", "pain_arm", "pain_head", "pain_chest", "pain_stomach", "safe", "hurt"))
-        }
-    }
-
-    suspend fun preloadCards(cardIds: List<String>) = withContext(Dispatchers.IO) {
-        for (id in cardIds) {
-            if (images.get(id) == null) {
-                cardImage(id)
-            }
+            // The answers every session offers paint on their first frame.
+            for (id in PRELOADED_CARDS) cardImage(id)
         }
     }
 
@@ -293,19 +290,17 @@ class ContentRepository(private val assets: AssetManager) {
         if (bundle?.hasCardImage(id) == false) return null
         return withContext(Dispatchers.IO) {
             runCatching {
-                assets.open("content/cards/$id.webp").use { BitmapFactory.decodeStream(it) }.asImageBitmap()
+                open("cards/$id.webp").use { BitmapFactory.decodeStream(it) }.asImageBitmap()
             }.getOrNull()?.also { images.put(id, it) }
         }
     }
 
     private inline fun <reified T> verified(name: String, rejected: Set<String>): T? =
-        if (name in rejected) null else json.decodeFromString<T>(read(name))
-
-    private fun read(name: String): String = assets.open("content/$name").bufferedReader().use { it.readText() }
+        if (name in rejected) null else json.decodeFromString<T>(open(name).bufferedReader().use { it.readText() })
 
     private fun sha256(path: String): String? = runCatching {
         val digest = MessageDigest.getInstance("SHA-256")
-        assets.open("content/$path").use { input ->
+        open(path).use { input ->
             val buffer = ByteArray(16 * 1024)
             while (true) {
                 val n = input.read(buffer)
@@ -313,6 +308,11 @@ class ContentRepository(private val assets: AssetManager) {
                 digest.update(buffer, 0, n)
             }
         }
-        digest.digest().joinToString("") { "%02x".format(it) }
+        digest.digest().toHexString()
     }.getOrNull()
 }
+
+private val PRELOADED_CARDS = listOf(
+    "yes", "no", "stop", "dont_know", "unclear", "wrong", "water", "food", "help", "pain_arm", "pain_head", "pain_chest",
+    "pain_stomach", "safe", "hurt",
+)

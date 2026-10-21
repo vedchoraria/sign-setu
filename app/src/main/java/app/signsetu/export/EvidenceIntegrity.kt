@@ -1,6 +1,7 @@
 package app.signsetu.export
 
 import android.os.Build
+import app.signsetu.data.content.SignLanguage
 import app.signsetu.data.session.EventType
 import app.signsetu.data.session.Session
 import app.signsetu.data.session.SessionEvent
@@ -9,9 +10,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-/**
- * Detailed forensic metrics of an inquiry session.
- */
+/** Counts of what a session recorded, for the certificate. */
 data class SessionMetrics(
     val sessionId: String,
     val startedAt: Long,
@@ -27,30 +26,21 @@ data class SessionMetrics(
 )
 
 /**
- * Cryptographic Chain of Custody and Evidence Admissibility Engine.
- *
- * Implements backward-chained SHA-256 Merkle hashes across the session timeline
- * and synthesizes the statutory Certificate of Admissibility under:
- * - Section 63 of Bharatiya Sakshya Adhiniyam (BSA), 2023
- * - Section 65B of Indian Evidence Act, 1872
+ * A SHA-256 hash chain over the session timeline, and the certificate for electronic evidence under Section 63 of the
+ * Bharatiya Sakshya Adhiniyam, 2023 (formerly Section 65B of the Indian Evidence Act, 1872).
  */
 object EvidenceIntegrity {
 
-    private fun sha256Hex(data: ByteArray): String =
-        MessageDigest.getInstance("SHA-256").digest(data).joinToString("") { "%02x".format(it) }
+    private fun sha256Hex(data: ByteArray): String = MessageDigest.getInstance("SHA-256").digest(data).toHexString()
 
     /**
-     * Computes an incremental backward-chained cryptographic hash.
-     * H_0 = SHA-256("GENESIS" || sessionId || startedAt || role || subjectLang)
-     * H_i = SHA-256(H_{i-1} || event.id || event.ts || event.type || event.source || text || cardId || drawingId || itemId)
-     * Returns a formatted 64-bit digest (e.g. "a1b2-c3d4-e5f6-7a8b") for verification seals.
+     * H0 hashes the session's id, start, role and language; each event in time order hashes the previous hash with its
+     * own fields. The last hash's first 64 bits, as "a1b2-c3d4-e5f6-7a8b", seal the record.
      */
     fun computeChainHash(session: Session, events: List<SessionEvent>): String {
         val genesis = "GENESIS|${session.id}|${session.startedAt}|${session.role.name}|${session.subjectLang}"
         var currentHash = sha256Hex(genesis.toByteArray(Charsets.UTF_8))
-
-        val sortedEvents = events.sortedWith(compareBy({ it.ts }, { it.id }))
-        for (event in sortedEvents) {
+        for (event in events.sortedWith(compareBy({ it.ts }, { it.id }))) {
             val payload = listOf(
                 currentHash,
                 event.id.toString(),
@@ -71,14 +61,10 @@ object EvidenceIntegrity {
         return currentHash.take(16).chunked(4).joinToString("-")
     }
 
-    /**
-     * Aggregates key forensic metrics for the session.
-     */
+    /** The session runs from its start to its latest event, or to [now] while it has none. */
     fun computeSessionMetrics(session: Session, events: List<SessionEvent>, now: Long = System.currentTimeMillis()): SessionMetrics {
-        val sorted = events.sortedBy { it.ts }
-        val start = session.startedAt
-        val end = sorted.lastOrNull()?.ts ?: now
-        val duration = ((end - start).coerceAtLeast(0L)) / 1000L
+        val end = events.maxOfOrNull { it.ts } ?: now
+        val duration = (end - session.startedAt).coerceAtLeast(0L) / 1000L
 
         var questions = 0
         var answers = 0
@@ -98,10 +84,10 @@ object EvidenceIntegrity {
                         "yes", "c_yes" -> yesCount++
                         "no", "c_no" -> noCount++
                         "stop", "dont_know", "unclear", "dont_understand" -> unclearOrStop++
+                        else -> if (e.type == EventType.ANSWER_UNCLEAR) unclearOrStop++
                     }
                     if (e.type == EventType.ANSWER_DRAWING || e.drawingId != null) drawings++
                     if (e.type == EventType.ANSWER_SIGNED) signed++
-                    if (e.type == EventType.ANSWER_UNCLEAR) unclearOrStop++
                 }
                 else -> {}
             }
@@ -122,14 +108,13 @@ object EvidenceIntegrity {
         )
     }
 
-    /**
-     * Synthesizes the formal Section 63 BSA 2023 / Section 65B Indian Evidence Act Certificate.
-     */
+    /** The certificate's text; the officer signs the printed copy. */
     fun generateSection63Certificate(
         session: Session,
         events: List<SessionEvent>,
         chainDigest: String,
         recordDigest: String,
+        signLanguage: SignLanguage = SignLanguage.ISL,
         officerName: String = "Investigating Officer",
         officerRank: String = "Sub-Inspector / Inspector of Police",
         policeStation: String = "Designated Police Station",
@@ -150,7 +135,7 @@ object EvidenceIntegrity {
             1. CASE & SESSION PARTICULARS:
             • Electronic Session ID   : ${session.id}
             • Session Started At       : $sessionStartDate
-            • Subject Communication    : ${session.subjectLang.uppercase()} / Indian Sign Language (ISL)
+            • Subject Communication    : ${session.subjectLang.uppercase()} / ${signLanguage.title}
             • Inquiry Role             : ${session.role.name}
             • Producing Officer        : $officerName ($officerRank)
             • Police Station / Unit    : $policeStation
@@ -163,8 +148,8 @@ object EvidenceIntegrity {
             (b) The said electronic device was under my lawful custody and direct personal control
                 during the entire duration of the communication recording.
             (c) During the ordinary course of the inquiry, the device was used to display structured,
-                non-leading Augmentative and Alternative Communication (AAC) cards, Indian Sign Language
-                avatar demonstrations, and to record genuine touch selections, drawings, and ISL gestures.
+                non-leading Augmentative and Alternative Communication (AAC) cards, sign language
+                avatar demonstrations, and to record the subject's touch selections, drawings and signs.
             (d) No unauthorized interception, electronic alteration, file tampering, or data substitution
                 occurred during or subsequent to the production of this electronic record.
 
@@ -173,13 +158,13 @@ object EvidenceIntegrity {
             • Non-Leading Inquiries    : ${metrics.questionCount}
             • Subject Direct Answers   : ${metrics.answerCount} (Affirmative: ${metrics.affirmativeCount}, Negative: ${metrics.negativeCount})
             • Graphic Exhibits/Drawings: ${metrics.drawingCount}
-            • ISL Signed Recognitions  : ${metrics.signedCount}
+            • Signed Answers          : ${metrics.signedCount}
             • Active Session Duration  : ${metrics.durationSeconds} seconds
 
             4. CRYPTOGRAPHIC SEAL & CHAIN OF CUSTODY INTEGRITY:
             • Terminal Chained Hash    : $chainDigest (SHA-256 Backward Chained Digest)
             • PDF Record Digest        : $recordDigest (SHA-256 Export Integrity Digest)
-            • Evidentiary Chain Status : 100% VERIFIED & TAMPER-EVIDENT
+            • Evidentiary Chain Status : Hash-chained; verify by recomputing both digests above
 
             5. STATUTORY SOLEMN AFFIRMATION (SECTION 63(4) BSA 2023):
             I hereby certify that the contents of this electronic record and accompanying report
