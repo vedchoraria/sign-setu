@@ -12,7 +12,7 @@ const val SIGN_LIMIT_MS = 20_000L
 const val NARRATIVE_LIMIT_MS = 180_000L
 
 /**
- * An explicit window in which the camera's frames are analysed (D-25); outside one the mirror is preview only.
+ * An explicit window in which the camera's frames are analysed; outside one the mirror is preview only.
  * A narrative pauses longer between phrases than a short answer between signs, so its chunks are phrase-sized.
  */
 enum class SignWindow(val limitMs: Long, val pauseMs: Long, val minMs: Long, val keepFace: Boolean) {
@@ -21,7 +21,7 @@ enum class SignWindow(val limitMs: Long, val pauseMs: Long, val minMs: Long, val
 }
 
 /**
- * One sign-sized chunk of a signed answer; [guesses] is null while the reader is still on it. Memory only (D-25).
+ * One sign-sized chunk of a signed answer; [guesses] is null while the reader is still on it. Memory only.
  * [guesses] are already limited to [context], the cards that answer the item on screen; [slower] marks a failed read
  * of fast or badly tracked hands.
  */

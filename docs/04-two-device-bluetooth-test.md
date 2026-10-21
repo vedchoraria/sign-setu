@@ -1,4 +1,4 @@
-# 04. Bluetooth Two-Device Acceptance Testing (TC-41) Protocol
+# 04. Bluetooth Two-Device Acceptance Testing Protocol
 
 ## 1. Scope & Objective
 
@@ -6,15 +6,15 @@ The Sign Setu reference architecture (`standard` flavor) provides an optional tw
 - **Device A (Officer Device):** Holds the encrypted SQLite database (`session.db`), Keystore DEK, audit logs, and question controls.
 - **Device B (Stage Display):** Serves as an interactive visual terminal for the deaf or non-verbal subject.
 
-Communication is conducted exclusively over **bonded RFCOMM Bluetooth**, using P-256 ECDH key negotiation and AES-256-GCM authenticated frame encryption. The Stage device **must store zero session data** (SEC-69).
+Communication is conducted exclusively over **bonded RFCOMM Bluetooth**, using P-256 ECDH key negotiation and AES-256-GCM authenticated frame encryption. The Stage device **must store zero session data**.
 
-This document establishes the official test cases, acceptance criteria, and physical QA verification procedure for TC-41.
+This document establishes the official test cases, acceptance criteria, and physical QA verification procedure.
 
 ---
 
 ## 2. Test Case Specifications
 
-### TC-41.1: Bonded RFCOMM Pairing without Scan/Location Permissions
+### 1: Bonded RFCOMM Pairing without Scan/Location Permissions
 - **Principle:** Android 12+ requires runtime `BLUETOOTH_SCAN` and `ACCESS_FINE_LOCATION` only when discovering unbonded devices. Sign Setu uses pre-bonded devices via Android OS settings (`BluetoothAdapter.bondedDevices`), completely eliminating location tracking or discovery permissions from the release manifest.
 - **Preconditions:** Officer phone and Stage phone are paired and bonded in Android OS Bluetooth Settings.
 - **Procedure:**
@@ -25,8 +25,8 @@ This document establishes the official test cases, acceptance criteria, and phys
 
 ---
 
-### TC-41.2: Commit-Then-Reveal Cryptographic Handshake & PIN Verification
-- **Principle:** Neither side should be able to force a predictable confirmation PIN. The Officer device commits to its public key hash first before receiving the Stage's public key (SEC-67).
+### 2: Commit-Then-Reveal Cryptographic Handshake & PIN Verification
+- **Principle:** Neither side should be able to force a predictable confirmation PIN. The Officer device commits to its public key hash first before receiving the Stage's public key.
 - **Procedure:**
   1. Trigger pairing from Officer device.
   2. Both devices compute and display a 6-digit confirmation code (`%06d`) and a 4-digit verification check code (`%04d`).
@@ -37,7 +37,7 @@ This document establishes the official test cases, acceptance criteria, and phys
 
 ---
 
-### TC-41.3: Real-Time Event Transmission & Stage Responsiveness
+### 3: Real-Time Event Transmission & Stage Responsiveness
 - **Procedure:**
   1. Establish active link between Officer and Stage devices.
   2. Officer selects a question card (e.g., "WATER", "FOOD", "FAMILY").
@@ -49,7 +49,7 @@ This document establishes the official test cases, acceptance criteria, and phys
 
 ---
 
-### TC-41.4: Ephemeral Zero-Data Security Audit on Stage Device (SEC-69)
+### 4: Ephemeral Zero-Data Security Audit on Stage Device
 - **Principle:** If the Stage device is stolen, dropped, or examined forensically, **zero case data or subject answers must exist on its flash memory**.
 - **Audit Procedure:**
   1. Complete a 15-minute mock interview with 20 questions, cards, and drawings on the two-device setup.
@@ -67,7 +67,7 @@ This document establishes the official test cases, acceptance criteria, and phys
 
 ---
 
-### TC-41.5: Connection Interruption, Recovery & Graceful Fallback
+### 5: Connection Interruption, Recovery & Graceful Fallback
 - **Procedure:**
   1. While a question is active on Stage device, walk Officer phone out of Bluetooth range (> 15 meters) or toggle Bluetooth OFF on Stage device.
   2. Observe state on Officer phone.

@@ -1,5 +1,18 @@
 package app.signsetu.ui.start
 
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.clickable
+import app.signsetu.ui.session.defaultTitle
+import androidx.compose.ui.platform.LocalResources
+import android.widget.Toast
+import androidx.compose.runtime.key
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.material.icons.filled.Delete
 import app.signsetu.ui.session.SYSTEM_SIGN_LANGUAGE
 import app.signsetu.data.content.SignLanguage
 import app.signsetu.ui.components.GuardedAlertDialog
@@ -44,11 +57,6 @@ import app.signsetu.data.session.EventSource
 import app.signsetu.data.session.EventType
 import app.signsetu.ui.session.SYSTEM_JJ_NOTICE
 import app.signsetu.ui.session.SYSTEM_JUVENILE
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -98,7 +106,6 @@ import app.signsetu.ui.theme.Spacing
 import kotlinx.coroutines.launch
 import java.text.DateFormat
 import java.util.Date
-import app.signsetu.ui.components.FilterObscuredTouches
 
 /**
  * Home: the character greets on top; below, one quick choice of who is being helped and in which language.
@@ -193,24 +200,13 @@ fun StartScreen(
                     if (content.aslDisabled) Notice(null, stringResource(R.string.start_asl_off), MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onTertiaryContainer)
                     if (rooted) Notice(null, stringResource(R.string.start_rooted), MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onTertiaryContainer)
                     open?.let { session ->
-                        var ending by remember(session.id) { mutableStateOf(false) }
+                        val res = LocalResources.current
                         ResumeCard(
                             session = session,
                             languageName = content.language(session.subjectLang)?.name ?: session.subjectLang,
                             onResume = { onOpenSession(session.id) },
-                            onEnd = { ending = true },
-                        )
-                        // Ending erases the record, so one stray tap must not do it; Continue leads to the export.
-                        if (ending) GuardedAlertDialog(
-                            onDismissRequest = { ending = false },
-                            title = { Text(stringResource(R.string.end_title)) },
-                            text = { Text(stringResource(R.string.end_body)) },
-                            confirmButton = {
-                                TextButton(onClick = { ending = false; scope.launch { repo.purge(session.id); refresh++ } }) {
-                                    Text(stringResource(R.string.end_no_export), color = MaterialTheme.colorScheme.error)
-                                }
-                            },
-                            dismissButton = { TextButton(onClick = { ending = false }) { Text(stringResource(R.string.cancel)) } },
+                            // Nothing is lost: it joins the saved sessions under its start time.
+                            onEnd = { scope.launch { repo.end(session.id, defaultTitle(res, session.startedAt)); refresh++ } },
                         )
                     }
                     // Profile, language and role are one decision, so they share one card.
@@ -253,6 +249,11 @@ fun StartScreen(
                     if (role == SessionRole.ACCUSED) {
                         JuvenileNotice(underAge || profile == Profile.YOUNG_CHILD, enabled = profile != Profile.YOUNG_CHILD, onChecked = { underAge = it })
                     }
+                    // Below the start card: starting a session is the main job of this screen.
+                    SavedSessions(repo, onOpen = { id ->
+                        if (open != null) Toast.makeText(context, R.string.saved_finish_open_first, Toast.LENGTH_SHORT).show()
+                        else scope.launch { repo.reopen(id); onOpenSession(id) }
+                    })
                 }
                 BrandButton(
                     onClick = onStart,
@@ -350,33 +351,105 @@ private fun ResumeCard(session: Session, languageName: String, onResume: () -> U
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+private const val SAVED_SHOWN = 5
+
+/** Finished sessions under the officer's names for them: open one to read, export or finish again, or delete it. */
 @Composable
-fun LanguagePicker(content: ContentBundle, selected: String, onPick: (String) -> Unit, modifier: Modifier = Modifier, label: String? = null) {
-    var expanded by remember { mutableStateOf(false) }
-    val current = content.language(selected)
-    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }, modifier = modifier) {
-        OutlinedTextField(
-            value = current?.let { "${it.name}  ·  ${it.english}" } ?: selected,
-            onValueChange = {},
-            readOnly = true,
-            singleLine = true,
-            label = label?.let { { Text(it) } },
-            leadingIcon = { Icon(painterResource(R.drawable.ic_translate), contentDescription = null) },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-            shape = MaterialTheme.shapes.medium,
-            modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
-        )
-        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            FilterObscuredTouches()
-            content.languages.forEach { l ->
-                DropdownMenuItem(
-                    text = { Text("${l.name}  ·  ${l.english}") },
-                    onClick = { onPick(l.code); expanded = false },
-                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-                )
+private fun SavedSessions(repo: SessionRepository, onOpen: (String) -> Unit) {
+    val saved by repo.saved().collectAsStateWithLifecycle(emptyList())
+    if (saved.isEmpty()) return
+    val scope = rememberCoroutineScope()
+    var deleting by remember { mutableStateOf<Session?>(null) }
+    var all by rememberSaveable { mutableStateOf(false) }
+    OfficerCard {
+        Text(stringResource(R.string.saved_title), style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
+        (if (all) saved else saved.take(SAVED_SHOWN)).forEach { s ->
+            key(s.id) {
+                Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(s.title.orEmpty(), style = MaterialTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                        Text(
+                            DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(Date(s.endedAt ?: s.startedAt)),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    IconButton(onClick = { deleting = s }) {
+                        Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.saved_delete_confirm), tint = MaterialTheme.colorScheme.error)
+                    }
+                    FilledTonalButton(onClick = { onOpen(s.id) }, shape = MaterialTheme.shapes.medium, modifier = Modifier.heightIn(min = 48.dp)) {
+                        Text(stringResource(R.string.saved_open))
+                    }
+                }
             }
         }
+        if (saved.size > SAVED_SHOWN) {
+            TextButton(onClick = { all = !all }, modifier = Modifier.heightIn(min = 48.dp)) {
+                Text(if (all) stringResource(R.string.saved_fewer) else stringResource(R.string.saved_all, saved.size))
+            }
+        }
+    }
+    deleting?.let { s ->
+        GuardedAlertDialog(
+            onDismissRequest = { deleting = null },
+            title = { Text(stringResource(R.string.saved_delete_title)) },
+            text = { Text(stringResource(R.string.saved_delete_body)) },
+            confirmButton = {
+                TextButton(onClick = { deleting = null; scope.launch { repo.purge(s.id) } }) {
+                    Text(stringResource(R.string.saved_delete_confirm), color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = { TextButton(onClick = { deleting = null }) { Text(stringResource(R.string.cancel)) } },
+        )
+    }
+}
+
+/**
+ * The subject's language: a field that opens a list. A dialog, not a dropdown menu, so seventeen languages never
+ * open upward over the header or misplace inside a bottom sheet.
+ */
+@Composable
+fun LanguagePicker(content: ContentBundle, selected: String, onPick: (String) -> Unit, modifier: Modifier = Modifier, label: String? = null) {
+    var open by remember { mutableStateOf(false) }
+    val current = content.language(selected)
+    val text = current?.let { "${it.name}  ·  ${it.english}" } ?: selected
+    Surface(
+        shape = MaterialTheme.shapes.medium,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        modifier = modifier.fillMaxWidth().heightIn(min = 56.dp).clip(MaterialTheme.shapes.medium)
+            .clickable(role = Role.Button, onClickLabel = label) { open = true }
+            .semantics { label?.let { stateDescription = text } },
+    ) {
+        Row(Modifier.padding(horizontal = Spacing.md, vertical = Spacing.sm), verticalAlignment = Alignment.CenterVertically) {
+            Icon(painterResource(R.drawable.ic_translate), contentDescription = null)
+            Column(Modifier.weight(1f).padding(horizontal = Spacing.md)) {
+                label?.let { Text(it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary) }
+                Text(text, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+            Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
+        }
+    }
+    if (open) {
+        GuardedAlertDialog(
+            onDismissRequest = { open = false },
+            title = label?.let { { Text(it) } },
+            text = {
+                LazyColumn(Modifier.heightIn(max = 420.dp)) {
+                    items(content.languages, key = { it.code }) { l ->
+                        Row(
+                            Modifier.fillMaxWidth().heightIn(min = 52.dp).clip(MaterialTheme.shapes.small)
+                                .selectable(l.code == selected, role = Role.RadioButton) { onPick(l.code); open = false }
+                                .padding(horizontal = Spacing.sm),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text("${l.name}  ·  ${l.english}", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                            if (l.code == selected) Icon(Icons.Filled.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+                }
+            },
+            confirmButton = { TextButton(onClick = { open = false }) { Text(stringResource(R.string.cancel)) } },
+        )
     }
 }
 

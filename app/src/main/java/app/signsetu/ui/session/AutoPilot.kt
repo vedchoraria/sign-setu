@@ -212,7 +212,7 @@ class AutoPilot(
         advanceOn.value = false
     }
 
-    // ponytail: the outcome row and the QUESTION_SHOWN after it are two inserts, not one transaction; a crash between
+    // The outcome row and the QUESTION_SHOWN after it are two inserts, not one transaction; a crash between
     // them leaves an approval with nothing shown, which the sequencer reads as not shown.
     private suspend fun mark(type: EventType, source: EventSource, q: Question, reason: String? = null) {
         repo.log(sessionId, type, source, officerLang, text = q.text.pick(officerLang), itemId = q.id, reason = reason)

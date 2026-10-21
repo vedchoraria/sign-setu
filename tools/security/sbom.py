@@ -1,4 +1,4 @@
-"""Writes a CycloneDX SBOM of what ships in the release APK (SEC-51).
+"""Writes a CycloneDX SBOM of what ships in the release APK.
 
 Only libraries on the release runtime classpath ship; build tools such as Android Lint do not, so they are left out.
 Needs Syft (https://github.com/anchore/syft, Apache-2.0):

@@ -36,5 +36,8 @@ class MemoryDao : SessionDao {
     override suspend fun insertDrawing(drawing: DrawingEntity) = synchronized(this) { next++ }
     override suspend fun drawing(id: Long): ByteArray? = null
     override suspend fun deleteSession(id: String) = Unit
+    override suspend fun endSession(id: String, endedAt: Long, title: String) = edit(id) { it.copy(endedAt = endedAt, title = title) }
+    override suspend fun reopen(id: String) = edit(id) { it.copy(endedAt = null) }
+    override fun saved(): Flow<List<SessionEntity>> = sessions.map { all -> all.values.filter { it.endedAt != null }.sortedByDescending { it.endedAt } }
     override suspend fun deleteStartedBefore(cutoff: Long) = 0
 }

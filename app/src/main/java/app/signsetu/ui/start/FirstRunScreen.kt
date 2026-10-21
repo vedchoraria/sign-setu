@@ -147,7 +147,7 @@ fun FirstRunScreen(gestures: Map<String, Gesture>, onDone: () -> Unit) {
             )
             Text(stringResource(step.body), style = MaterialTheme.typography.bodyLarge)
             if (index == 0) {
-                // FR-50: the officer picks the language of the app before anything else.
+                // the officer picks the language of the app before anything else.
                 val current = OfficerLocale.get(context)
                 Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                     OfficerLocale.CHOICES.forEach { tag ->

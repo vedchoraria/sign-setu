@@ -11,7 +11,7 @@ import java.security.MessageDigest
 import kotlin.math.exp
 import kotlin.math.hypot
 
-/** Creates the bundled sign reader for a language, or none when its models are missing or fail their check (D-25). */
+/** Creates the bundled sign reader for a language, or none when its models are missing or fail their check. */
 object SignReaders {
     fun create(context: Context, lang: SignLanguage = SignLanguage.ISL): SignReader? =
         load(lang) { path -> runCatching { context.assets.open("content/$path").use { it.readBytes() } }.getOrNull() }

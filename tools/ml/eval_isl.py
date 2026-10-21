@@ -6,6 +6,7 @@ The real rows read ISLRTC dictionary signers (prepare_islrtc.py, evaluation only
     python tools/ml/eval_isl.py [include.pkl] [isl_spell.pkl] [islrtc.pkl]
 """
 import json
+import os
 import pathlib
 import pickle
 import sys
@@ -16,9 +17,12 @@ from prepare_islrtc import ACRONYMS, DIGITS
 from runtime import reader, topk
 from train import features
 
-INCLUDE = "C:/Users/Yash/dev/ml-data/include_pose/include.pkl"
-SPELL = "C:/Users/Yash/dev/ml-data/isl_spell/isl_spell.pkl"
-ISLRTC = "C:/Users/Yash/dev/ml-data/islrtc/islrtc.pkl"
+# Training and evaluation data stay outside the repository.
+DATA_ROOT = pathlib.Path(os.environ.get("SIGNSETU_DATA", "ml-data"))
+
+INCLUDE = str(DATA_ROOT / "include_pose/include.pkl")
+SPELL = str(DATA_ROOT / "isl_spell/isl_spell.pkl")
+ISLRTC = str(DATA_ROOT / "islrtc/islrtc.pkl")
 CONTENT = pathlib.Path(__file__).resolve().parents[2] / "app" / "src" / "main" / "assets" / "content"
 
 # Mirrors TextSigning.kt; keep the two in step.

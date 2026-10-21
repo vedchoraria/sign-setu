@@ -80,7 +80,7 @@ fun recordDetail(res: Resources, content: ContentBundle, lang: String, events: L
     }
 }
 
-/** How a tapped answer followed a gesture the app proposed (D-40), e.g. "(after a nod or thumbs up)". */
+/** How a tapped answer followed a gesture the app proposed, e.g. "(after a nod or thumbs up)". */
 fun cueText(res: Resources, e: SessionEvent): String? = when (e.reason?.takeIf { e.type == EventType.ANSWER_CARD }) {
     "cue:nod" -> R.string.cue_nod
     "cue:shake" -> R.string.cue_shake

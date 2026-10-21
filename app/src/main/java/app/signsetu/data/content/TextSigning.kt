@@ -70,7 +70,7 @@ private fun islRank(word: String, entry: WordEntry?) = when {
 private val PAUSE = Gesture("pause", listOf(Key(0f), Key(0.6f)))
 
 /**
- * Turns free text into one gesture, word by word (FR-13 as amended by D-22): a sign or gesture where the vocabulary
+ * Turns free text into one gesture, word by word: a sign or gesture where the vocabulary
  * has one, otherwise fingerspelling, with Hindi spelled in Latin letters. A question mark adds the asking face.
  */
 fun ContentBundle.planText(text: String, modes: Set<SignMode>): TextPlan {
@@ -244,7 +244,7 @@ private const val NUKTA_SIGN = '़'
 /**
  * Hindi in the Latin letters Deaf signers fingerspell (पानी to pani). The inherent vowel is dropped at the end of a
  * word, as Hindi speech drops it.
- * ponytail: word-final schwa deletion only; medial deletion (समझना as samjhna) needs a syllable model if reviewers ask.
+ * Word-final schwa deletion only; medial deletion (समझना as samjhna) needs a syllable model if reviewers ask.
  */
 fun devanagariToLatin(word: String): String = buildString {
     var i = 0

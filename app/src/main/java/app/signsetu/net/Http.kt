@@ -22,7 +22,8 @@ class UrlHttp : Http {
         val conn = (URL(url).openConnection() as HttpURLConnection).apply {
             requestMethod = method
             connectTimeout = 10_000
-            readTimeout = 25_000
+            // A full report from the free gateway model takes 30 to 45 s; the officer waits behind a progress dialog.
+            readTimeout = 60_000
             setRequestProperty("Content-Type", "application/json")
             bearer?.let { setRequestProperty("Authorization", "Bearer $it") }
             if (body != null) doOutput = true

@@ -41,8 +41,8 @@ class LocalModel private constructor(private var handle: Long) {
 }
 
 /**
- * The model file on this phone (D-24). It is imported once from a file the department hands out, and accepted only if
- * its hash is one the app knows, so a swapped or damaged file is never parsed (SEC-54 applied to the model).
+ * The model file on this phone. It is imported once from a file the department hands out, and accepted only if
+ * its hash is one the app knows, so a swapped or damaged file is never parsed.
  */
 class ModelStore(private val context: Context) {
     private val file = File(context.noBackupFilesDir, "models/assistant.gguf")

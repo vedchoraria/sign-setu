@@ -23,7 +23,7 @@ internal class FramePipeline {
 /**
  * Judges whether a camera picture is smeared, from its own edges: the variance of a Laplacian over the centre of the
  * frame. Sharpness depends on the scene, so a frame is blurry only against the best recent frame, never in absolute terms.
- * Reads pixels into a reused buffer and keeps nothing of the picture (D-20).
+ * Reads pixels into a reused buffer and keeps nothing of the picture.
  */
 internal class BlurMeter {
     private var peak = 0f

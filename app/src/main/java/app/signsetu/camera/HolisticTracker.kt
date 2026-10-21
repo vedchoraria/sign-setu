@@ -31,8 +31,8 @@ fun holisticTracker(context: Context): LandmarkTracker? =
     } else null
 
 /**
- * MediaPipe Holistic in video mode (D-25), on the GPU first with CPU fallback. The model is mapped from the uncompressed asset, checked against
- * the content manifest and opened by [warm] or the first frame; if the check fails the tracker reports nothing (SEC-54).
+ * MediaPipe Holistic in video mode, on the GPU first with CPU fallback. The model is mapped from the uncompressed asset, checked against
+ * the content manifest and opened by [warm] or the first frame; if the check fails the tracker reports nothing.
  * [close] frees the graph, and the next use opens it again.
  */
 class HolisticTracker(private val context: Context) : LandmarkTracker {
@@ -135,7 +135,7 @@ private fun List<NormalizedLandmark>.points(): List<Offset>? = takeIf { it.isNot
 private val verified = ConcurrentHashMap.newKeySet<String>()
 
 /**
- * A content asset mapped, not copied (clean pages the system can reclaim), once its SHA-256 matches the manifest (SEC-54).
+ * A content asset mapped, not copied (clean pages the system can reclaim), once its SHA-256 matches the manifest.
  * Assets cannot change while the app runs, so each is hashed once per process.
  */
 internal fun verifiedAsset(context: Context, path: String): ByteBuffer? = runCatching {

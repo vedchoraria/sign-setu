@@ -23,20 +23,30 @@ the browser's local storage, per role, and **Export JSON** downloads them all.
 
 ## Run
 
-Needs Node 26 (or 22.18+ / 24.11+).
+Needs Node 22.18+, 24.11+ or 26+ (the range `vite-plus` declares). From `portal/`, after `npm install`:
 
-```
-cd portal
-npm install
-npx vp dev      # local server with live reload
-npx vp check    # format, lint and type check
-npx vp test     # unit tests, including the rig comparison with Rig.kt
-npx vp build    # static site in portal/dist
-npx vp preview  # serves portal/dist
-```
+| Command          | Same as           | Does                                                 |
+| ---------------- | ----------------- | ---------------------------------------------------- |
+| `npx vp dev`     | `npm run dev`     | Local server with live reload                        |
+| `npx vp check`   | `npm run check`   | Format, lint and type check                          |
+| `npx vp test`    | `npm test`        | Unit tests, including the rig comparison with Rig.kt |
+| `npx vp build`   | `npm run build`   | Static site in `portal/dist`                         |
+| `npx vp preview` | `npm run preview` | Serves `portal/dist`                                 |
 
 The built `dist/` folder can be copied to any machine and served by any static file server. Content changes in the
 app need a rebuild.
+
+## Key files
+
+| Path                             | Contents                                                        |
+| -------------------------------- | --------------------------------------------------------------- |
+| `src/content.ts`                 | Imports the app's content JSON at build time                    |
+| `src/App.tsx`, `src/screens.tsx` | Roles, tabs and the review screens                              |
+| `src/rig.ts`, `src/draw.ts`      | TypeScript port of the app's rig and its drawing                |
+| `src/flags.ts`                   | Child-welfare wording hints                                     |
+| `src/missing.ts`                 | Missing-caption check for language reviewers                    |
+| `src/reviews.ts`                 | Verdict storage and the JSON export format                      |
+| `src/rig-fixtures.json`          | Poses written by `RigFixtureTest`, checked by `src/rig.test.ts` |
 
 ## Keeping the verdicts
 
@@ -48,3 +58,5 @@ The exported JSON file is the review record: keep it with the release it reviewe
 writes `src/rig-fixtures.json` (poses of every gesture on both characters at three moments) and fails when Rig.kt no
 longer produces it; `src/rig.test.ts` checks the TypeScript rig against the same file. After a deliberate change to
 Rig.kt, delete the fixture file, run `RigFixtureTest` to write it again, and update `rig.ts` until `vp test` passes.
+
+The portal's place in the architecture is in [docs/02-architecture.md](../docs/02-architecture.md), section 12.

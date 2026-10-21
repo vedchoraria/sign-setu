@@ -1,4 +1,4 @@
-# Strip android.util.Log calls from release builds (SEC-04).
+# Strip android.util.Log calls from release builds.
 -assumenosideeffects class android.util.Log {
     public static int v(...);
     public static int d(...);

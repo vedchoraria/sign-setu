@@ -70,7 +70,7 @@ internal fun bluetoothOn(context: Context) = context.getSystemService(BluetoothM
 private fun granted(context: Context, perms: Array<String>) =
     perms.all { ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED }
 
-/** Officer side: pick a device paired in system settings, then type the code it shows (D-26). */
+/** Officer side: pick a device paired in system settings, then type the code it shows. */
 @Composable
 fun SecondScreenSheet(container: AppContainer, onDismiss: () -> Unit) {
     val transport = container.pairTransport ?: return

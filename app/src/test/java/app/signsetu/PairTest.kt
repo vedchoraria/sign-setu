@@ -510,7 +510,7 @@ class PairTest {
         val b64 = java.util.Base64.getEncoder().encodeToString(png)
         vm.reencodePng = { it }
         vm.logRemote(item, 0, AnswerBody.Signed(listOf("police", "help"), b64))
-        assertNull("snapshot is opt-in (D-46)", dao.rows.value.firstOrNull { it.type == EventType.ANSWER_DRAWING.name })
+        assertNull("snapshot is opt-in", dao.rows.value.firstOrNull { it.type == EventType.ANSWER_DRAWING.name })
 
         vm.show()
         val on = app.signsetu.camera.EvidenceMode.autoCapture

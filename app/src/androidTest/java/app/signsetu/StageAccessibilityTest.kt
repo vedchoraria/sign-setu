@@ -41,7 +41,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
-/** Accessibility Test Framework checks (labels, contrast, target size) on every stage state and the picture board, in both themes (AT-01). */
+/** Accessibility Test Framework checks (labels, contrast, target size) on every stage state and the picture board, in both themes. */
 @RunWith(Parameterized::class)
 class StageAccessibilityTest(private val dark: Boolean) {
 

@@ -30,7 +30,7 @@ object Spacing {
     val xxl: Dp = 32.dp
 }
 
-/** Minimum size of a subject-facing card (NFR-20). */
+/** Minimum size of a subject-facing card. */
 val SubjectCardMin: Dp = 96.dp
 
 val LocalAnswerColors = staticCompositionLocalOf { AnswerLight }

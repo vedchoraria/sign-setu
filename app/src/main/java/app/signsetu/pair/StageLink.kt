@@ -52,7 +52,7 @@ class LinkTiming(
 )
 
 /**
- * One officer-to-stage link (D-26). All logic runs on [scope], which must be single-threaded; blocking reads and
+ * One officer-to-stage link. All logic runs on [scope], which must be single-threaded; blocking reads and
  * writes go to the IO dispatcher. Nothing here is persisted, and the only log lines are exception class names.
  */
 class StageLink(
@@ -110,7 +110,7 @@ class StageLink(
         start(resume = false) { open(peer) }
     }
 
-    /** No code and no tap: the resume key proves both sides (SEC-68). */
+    /** No code and no tap: the resume key proves both sides. */
     fun reconnect() = scope.launch {
         val peer = pinned
         if (!officer || _state.value != LinkState.Lost || peer == null || resumeKey == null) return@launch

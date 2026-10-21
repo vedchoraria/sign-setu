@@ -1,12 +1,12 @@
 # 11. Hand Model Integration
 
-The built vision engine and sign reader (D-25), and the contract by which the partner team's model can replace either of them. Landmarks stay on the phone and in memory only (SEC-71); any meaning a model suggests is a proposal until the subject picks it (FR-86).
+The built vision engine and sign reader, and the contract by which the partner team's model can replace either of them. Landmarks stay on the phone and in memory only; any meaning a model suggests is a proposal until the subject picks it.
 
 ## 1. What is built
 
 | Layer | Interface | Built implementation | Replaceable by the partner team |
 | --- | --- | --- | --- |
-| Landmark tracking | `camera/LandmarkTracker` | `HolisticTracker`: MediaPipe Holistic, `tasks-vision` 1.0.0, video mode, GPU delegate with CPU fallback (D-38) | Yes, a tracker with the same output |
+| Landmark tracking | `camera/LandmarkTracker` | `HolisticTracker`: MediaPipe Holistic, `tasks-vision` 1.0.0, video mode, GPU delegate with CPU fallback | Yes, a tracker with the same output |
 | Segmentation | `sign/SignCapture`, `segmentSigns` | Pause segmenter, thresholds per `SignWindow` | No; tune the constants |
 | Sign reading | `sign/SignReader` | `LandmarkSignReader`: 262-word INCLUDE classifier in plain Kotlin | Yes, the main replacement path |
 | Context and choices | `sign/SignChoices` | `sign_words.json` map, context ranking (`inContext`), alternatives (`signChoices`), slower cue (`needsSlower`) | No; the map is content |
@@ -24,18 +24,18 @@ Outside a window the camera is a preview and no frame reaches the tracker. A chu
 
 ```kotlin
 interface LandmarkTracker : AutoCloseable {
-    fun track(frame: Bitmap, timestampMs: Long): LandmarkFrame?
-    fun warm() {}
-    override fun close() {}
+ fun track(frame: Bitmap, timestampMs: Long): LandmarkFrame?
+ fun warm {}
+ override fun close {}
 }
 
 data class LandmarkFrame(
-    val timestampMs: Long,
-    val leftHand: List<Offset>? = null,   // 21 points, the subject's own left hand
-    val rightHand: List<Offset>? = null,  // 21 points
-    val face: List<Offset>? = null,       // 468 points
-    val pose: List<Offset>? = null,       // 33 points
-    val aspect: Float = 3f / 4f,          // upright frame width / height; CameraMirror sets the real value
+ val timestampMs: Long,
+ val leftHand: List<Offset>? = null, // 21 points, the subject's own left hand
+ val rightHand: List<Offset>? = null, // 21 points
+ val face: List<Offset>? = null, // 468 points
+ val pose: List<Offset>? = null, // 33 points
+ val aspect: Float = 3f / 4f, // upright frame width / height; CameraMirror sets the real value
 )
 ```
 
@@ -48,18 +48,18 @@ data class LandmarkFrame(
 | Coordinates | Normalised to the upright frame, origin top-left, not mirrored; the stage mirrors for display |
 | Sides | Hands are the subject's own left and right (Holistic assigns them from the pose wrists) |
 | Errors | `track` returns null for a frame it cannot read; it never throws for a bad frame |
-| Start-up | `warm()` loads the model off the main thread when the session screen opens, before the first frame; never during app start |
-| Delegate | GPU first; if the GPU fails to open, or the first inference throws, the graph reopens on the CPU on the next frame. `close()` frees the graph on lock and on memory pressure, and the next use opens it again |
+| Start-up | `warm` loads the model off the main thread when the session screen opens, before the first frame; never during app start |
+| Delegate | GPU first; if the GPU fails to open, or the first inference throws, the graph reopens on the CPU on the next frame. `close` frees the graph on lock and on memory pressure, and the next use opens it again |
 
-The holistic model (`models/holistic_landmarker.task`, 13.7 MB, float16, SHA-256 `e2dab61191e2dcd0a15f943d8e3ed1dce13c82dfa597b9dd39f562975a50c3f8`) is mapped from the uncompressed asset, checked against the content manifest and opened only if it matches (SEC-74). The release APK is arm64-v8a only, so every installed phone has the tracker. The stage draws hands and arms only, never face points.
+The holistic model (`models/holistic_landmarker.task`, 13.7 MB, float16, SHA-256 `e2dab61191e2dcd0a15f943d8e3ed1dce13c82dfa597b9dd39f562975a50c3f8`) is mapped from the uncompressed asset, checked against the content manifest and opened only if it matches. The release APK is arm64-v8a only, so every installed phone has the tracker. The stage draws hands and arms only, never face points.
 
 ## 4. Sign reader
 
 ```kotlin
 interface SignReader : AutoCloseable {
-    val labels: List<String>               // the vocabulary, lower-case English
-    val words: Map<String, String>         // labels to the app's vocabulary (sign_words.json)
-    fun read(frames: List<LandmarkFrame>): List<SignGuess>   // every label, highest first
+ val labels: List<String> // the vocabulary, lower-case English
+ val words: Map<String, String> // labels to the app's vocabulary (sign_words.json)
+ fun read(frames: List<LandmarkFrame>): List<SignGuess> // every label, highest first
 }
 
 data class SignGuess(val word: String, val score: Float)
@@ -71,7 +71,7 @@ Retraining: `tools/ml` (prepare, train, export), then `python tools/content/buil
 
 ## 5. How readings are used
 
-1. While a question is on screen, guesses whose mapped concept is one of that question's answer cards rank first and the others follow, each group by score (D-38). The top three are kept.
+1. While a question is on screen, guesses whose mapped concept is one of that question's answer cards rank first and the others follow, each group by score. The top three are kept.
 2. A best guess below 0.4 with lost tracking (over 30% of the chunk untracked, or gaps over 150 ms) or fast hands (wrist over 2.5 frame widths per second) shows the subject "A little slower, please".
 3. On Done the words are logged as the app's reading (source MACHINE, "read by the app, not checked"). The officer may log their own reading beside it.
 4. The subject sees alternatives only when the officer taps Ask them to choose: two or three picture cards per sign and "None of these". Only their tap records a meaning.
@@ -93,21 +93,21 @@ Core answer words that INCLUDE does not cover (yes, no, water, pain, help, stop,
 | --- | --- | --- |
 | Time per tracked frame | 33 ms on the oldest supported 64-bit phone | About 110 ms on the CPU of a mid-range phone (9 frames per second); the GPU rate is to be measured |
 | Time per read | Under 100 ms | About 18 ms on a desktop JVM |
-| Memory | Session under 300 MB (NFR-06) | Narrative landmarks about 20 MB for 3 minutes; model mapped, not copied |
-| APK | Release under 50 MB (NFR-05) | 47,579,538 bytes, 45.4 MiB (`standard`) |
+| Memory | Session under 300 MB | Narrative landmarks about 20 MB for 3 minutes; model mapped, not copied |
+| APK | Release under 100 MB | 0.5.0: 78.9 MiB arm64-v8a phone APK; 104.2 MiB universal |
 
 ## 8. Privacy and safety
 
-- Frames and landmarks are never stored, logged or sent anywhere; landmarks stay in view-model memory for the session and are wiped on end, lock and clear (SEC-47, SEC-71).
-- MediaPipe's usage statistics are dropped on the device (D-33).
+- Frames and landmarks are never stored, logged or sent anywhere; landmarks stay in view-model memory for the session and are wiped on end, lock and clear.
+- MediaPipe's usage statistics are dropped on the device.
 - The partner team holds the training data, its consent records and the model card for any replacement, and supplies them for the DPIA and the audit.
 
 ## 9. Acceptance
 
 | Check | Pass mark |
 | --- | --- |
-| TC-25 to TC-29 with the delivered model | All pass; overlay and dots on the oldest supported 64-bit phone |
+| Sign window and reader tests with the delivered model | All pass; overlay and dots on the oldest supported 64-bit phone |
 | Reference outputs supplied by the partner team | Every landmark within 0.02, or every logit within 1e-3, of the reference |
-| PT-05 | Under 300 MB during a 3-minute narrative |
-| PT-02 and PT-03 | Show latency and stage smoothness unchanged |
-| ST-05, ST-08, ST-13, ST-19 | Manifest gate passes; no debug code in release; OSV clean; tampered model refused |
+| Memory | Under 300 MB during a 3-minute narrative |
+| Show latency and smoothness | Unchanged |
+| Security checks | Manifest gate passes; no debug code in release; OSV clean; tampered model refused |

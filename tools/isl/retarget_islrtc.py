@@ -7,6 +7,7 @@ retarget.py keeps them when it rebuilds the INCLUDE signs. Draft until Deaf revi
     python tools/content/build_content.py --manifest-only
 """
 import json
+import os
 import pathlib
 import sys
 import urllib.parse
@@ -16,6 +17,9 @@ import numpy as np
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import retarget as rt  # noqa: E402
+
+# Training and evaluation data stay outside the repository.
+DATA_ROOT = pathlib.Path(os.environ.get("SIGNSETU_DATA", "ml-data"))
 
 BASE = "https://huggingface.co/datasets/silentone0725/Indian_Sign_Language_Data.gov_Rencoded/resolve/main/"
 MODEL = rt.ROOT / "app" / "src" / "main" / "assets" / "content" / "models" / "holistic_landmarker.task"
@@ -103,4 +107,4 @@ def main(targets: pathlib.Path, data: pathlib.Path) -> None:
 
 
 if __name__ == "__main__":
-    main(pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2] if len(sys.argv) > 2 else "C:/Users/Yash/dev/ml-data/islrtc"))
+    main(pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2] if len(sys.argv) > 2 else str(DATA_ROOT / "islrtc")))

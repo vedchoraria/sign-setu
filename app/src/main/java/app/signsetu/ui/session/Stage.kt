@@ -90,7 +90,7 @@ import androidx.compose.runtime.movableContentOf
 import app.signsetu.data.content.WordBeat
 import app.signsetu.data.content.Given
 
-/** FR-86: the reader's top labels a signed answer's confirm or say-back signs back before asking. */
+/** the reader's top labels a signed answer's confirm or say-back signs back before asking. */
 fun readBackLabels(ui: SessionUi): List<String> {
     val confirm = ui.confirm?.takeIf { it.queue.isNotEmpty() }
     val sayBack = ui.pending as? Pending.FreeText
@@ -142,7 +142,7 @@ fun Stage(
     onPauseEnd: () -> Unit = {},
     /** Lesson-sheet answers and phrases (LessonInputs.kt); null hides them. */
     onGiven: ((Given?) -> Unit)? = null,
-    /** Called just before a tap that matches a gesture proposal (D-40): nod, shake, point or palm. */
+    /** Called just before a tap that matches a gesture proposal: nod, shake, point or palm. */
     onCue: (String) -> Unit = {},
 ) {
     val stage = LocalStageColors.current
@@ -191,7 +191,7 @@ fun Stage(
 
     val speech = rememberSpeechPlayer()
     val audio = speechFor(pending, content, lang)
-    // Speech plays by itself only for subjects who hear and may not read; ISL users never get sound (NFR-24).
+    // Speech plays by itself only for subjects who hear and may not read; ISL users never get sound.
     LaunchedEffect(pending, lang) { if (audio != null && profile in AutoSpeech) speech.play(audio) }
     LaunchedEffect(pending) { withFrameNanos { }; ShowTiming.firstFrame() }
 

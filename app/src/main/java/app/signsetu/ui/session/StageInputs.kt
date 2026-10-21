@@ -111,10 +111,10 @@ internal fun WritingPanel(
         Surface(shape = RoundedCornerShape(20.dp), color = Color.White, border = TileEdge, shadowElevation = 2.dp, modifier = Modifier.weight(1f).fillMaxWidth()) {
             BasicTextField(
                 value = text,
-                // Input past the cap is ignored, never cut later: the receiver logs what was sent (D-26).
+                // Input past the cap is ignored, never cut later: the receiver logs what was sent.
                 onValueChange = { if (it.length <= TEXT_CAP) text = it },
                 textStyle = MaterialTheme.typography.headlineSmall.copy(color = Ink),
-                // SEC-05: nothing the subject writes is learned or suggested by the keyboard.
+                // nothing the subject writes is learned or suggested by the keyboard.
                 keyboardOptions = KeyboardOptions(autoCorrectEnabled = false, imeAction = ImeAction.Done),
                 keyboardActions = KeyboardActions(onDone = { send() }),
                 cursorBrush = SolidColor(Ink),

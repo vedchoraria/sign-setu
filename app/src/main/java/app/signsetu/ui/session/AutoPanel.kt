@@ -122,6 +122,7 @@ fun autoHeader(res: Resources, events: List<SessionEvent>): List<Pair<String, St
 /** What the report adds to a row: a rights mark, who chose a shown item, and suggestions left alone. */
 fun autoSuffix(res: Resources, e: SessionEvent, by: Map<Long, ShownBy>, idle: Set<Long>): String = buildString {
     if (e.reason == SHOWN_RIGHTS) append(" (").append(res.getString(R.string.rights_shown_mark)).append(')')
+    if (e.reason == SHOWN_AI) append(" (").append(res.getString(R.string.report_by_ai)).append(')')
     by[e.id]?.let { append(" · ").append(res.getString(it.report)) }
     if (e.id in idle) append(" (").append(res.getString(R.string.report_not_acted)).append(')')
 }

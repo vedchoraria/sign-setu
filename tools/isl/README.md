@@ -2,15 +2,45 @@
 
 `retarget.py` turns the INCLUDE signers' MediaPipe Holistic landmarks (AI4Bharat, Sridhar et al. 2020, OpenHands
 pose release, CC BY 4.0) into `app/src/main/assets/content/isl_signs.json`, one sign per word, ids `isl.<word>`.
-Every sign is a draft until Deaf review.
+Every sign is a draft until Deaf review. Run from the repository root; data stays outside the repository, and each
+script takes its data folder as an argument (the defaults below are one developer's paths).
 
-    C:/Users/Yash/dev/venvs/signsetu-ml/Scripts/python tools/isl/retarget.py   # data in C:/Users/Yash/dev/ml-data/include_pose
-    C:/Users/Yash/dev/venvs/signsetu-ml/Scripts/python tools/isl/test_retarget.py
+| Script | Input | Writes |
+| --- | --- | --- |
+| `retarget.py [data_dir]` | INCLUDE pose release | `isl_signs.json` (keeps ISLRTC entries) |
+| `retarget_islrtc.py <targets.json> [data_dir]` | ISLRTC dictionary clips | ISLRTC entries in `isl_signs.json` |
+| `retarget_asl.py` | PopSign landmark cache | `asl_signs.json`, `asl_words.json` |
+| `test_retarget.py` | Synthetic landmarks | Unit tests of the retarget maths |
+
+After any of them, refresh the content manifest with `python tools/content/build_content.py --manifest-only`.
+
+    python tools/isl/retarget.py   # data in $SIGNSETU_DATA/include_pose
+    python tools/isl/test_retarget.py
     python tools/content/build_content.py --manifest-only
 
 `retarget_asl.py` does the same for ASL into `asl_signs.json` (ids `asl.<word>`, PopSign ASL v1.0, CC BY 4.0, from
 the cache `tools/ml/prepare_asl.py` builds) and adds the one-handed ASL alphabet (`asl.letter.<c>`) from ASLNow! static
 hands (MIT). It also writes `asl_words.json`, the ASL reader's labels that are words the app knows.
+
+## ISLRTC words
+
+`retarget_islrtc.py` adds words the app could otherwise only fingerspell, from the ISLRTC Indian Sign Language
+Dictionary (Government of India, Government Open Data License - India; clips from
+huggingface.co/datasets/silentone0725/Indian_Sign_Language_Data.gov_Rencoded). It runs the app's own Holistic model
+(`models/holistic_landmarker.task`) over each clip, so it needs the MediaPipe venv (`signsetu-mp`: mediapipe, OpenCV,
+NumPy). Only keyframes on the character ship, never video.
+
+`targets.json` maps each word (as written in `words.json`) to a clip path inside that dataset, for example
+`{"address": "A/Address.mp4"}`. Clips are downloaded into `<data_dir>/words` and their landmarks cached beside them.
+Words INCLUDE already signs are skipped; a clip with too little pose, or signing shorter than 0.3 s or longer than
+6 s, is skipped and the word stays spelled. Entries are written with `rec: "ISLRTC/<clip>"` and category `ISLRTC`.
+Each run replaces every ISLRTC entry, so `targets.json` (kept outside the repository) must list all of them.
+
+    python -I tools/isl/retarget_islrtc.py targets.json   # clips in $SIGNSETU_DATA/islrtc
+    python tools/content/build_content.py --manifest-only
+
+`SignPipelineDeviceTest` plays three of these clips (`app/src/androidTest/assets/islrtc/`) through the app's camera
+pipeline and compares the frames with a hand against what this script found on a PC.
 
 ## Method
 
@@ -44,6 +74,9 @@ where no clip has one it is drawn with the right hand alone and marked `one_hand
 authored in the script as keyframes (`asl.letter.a` to `asl.letter.z`). `asl_words.json` pairs reader labels with
 words.json.
 
-    C:/Users/Yash/dev/venvs/signsetu-mp/Scripts/python -I tools/ml/prepare_asl.py   # landmarks in C:/Users/Yash/dev/ml-data/popsign/landmarks
-    C:/Users/Yash/dev/venvs/signsetu-mp/Scripts/python tools/isl/retarget_asl.py
+    python -I tools/ml/prepare_asl.py   # landmarks in $SIGNSETU_DATA/popsign/landmarks
+    python tools/isl/retarget_asl.py
     python tools/content/build_content.py --manifest-only
+
+The rig, the lexicons and how signs are validated are described in
+[docs/05-avatar-and-gestures.md](../../docs/05-avatar-and-gestures.md).

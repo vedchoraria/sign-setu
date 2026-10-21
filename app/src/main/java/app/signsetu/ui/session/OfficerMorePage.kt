@@ -77,6 +77,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Face
 
 internal enum class Tool { GESTURE, BOARD, DRAW, LANGUAGE, ATTACH, RULES, DICTIONARY }
 
@@ -97,6 +98,7 @@ internal fun MorePage(
     onChange: () -> Unit,
     onSecondScreen: (() -> Unit)?,
     onFinish: () -> Unit,
+    onCounsel: (() -> Unit)?,
     modifier: Modifier,
     onTell: (() -> Unit)? = null,
 ) {
@@ -113,7 +115,7 @@ internal fun MorePage(
                 if (content.phrases.isNotEmpty()) {
                     item(key = PHRASES) { CategoryChip(stringResource(R.string.officer_phrases), ui.selectedGroup == PHRASES, locked = false, onClick = onPhrases) }
                 }
-                // Sensitive groups stay last and locked until confirmed (FR-12).
+                // Sensitive groups stay last and locked until confirmed.
                 items(content.groupsFor(ui.session.role, ui.juvenile).filter { it.sensitive }, key = { it.id }) { g ->
                     CategoryChip(g.label.pick(officerLang) ?: g.id, ui.selectedGroup == g.id, locked = !ui.sensitiveUnlocked) { onGroup(g) }
                 }
@@ -164,8 +166,9 @@ internal fun MorePage(
         SectionLabel(stringResource(R.string.more_session), Modifier.padding(horizontal = Spacing.lg).padding(top = Spacing.md))
         OfficerCard(Modifier.padding(horizontal = Spacing.lg), padding = 0.dp) {
             // Up to three minutes of signing with nothing on screen to interrupt; replayed later with an interpreter.
-            onTell?.let { MoreRow(painterResource(R.drawable.ic_hand), stringResource(R.string.tell_me_long), null, first = true, onClick = it) }
-            MoreRow(rememberVectorPainter(Icons.Filled.Search), stringResource(if (ui.signLanguage == SignLanguage.ASL) R.string.asl_dictionary else R.string.isl_dictionary), null, first = onTell == null) { onTool(Tool.DICTIONARY) } // ISL hook
+            onCounsel?.let { MoreRow(rememberVectorPainter(Icons.Filled.Face), stringResource(R.string.ai_counsellor_start), null, first = true, onClick = it) }
+            onTell?.let { MoreRow(painterResource(R.drawable.ic_hand), stringResource(R.string.tell_me_long), null, first = onCounsel == null, onClick = it) }
+            MoreRow(rememberVectorPainter(Icons.Filled.Search), stringResource(if (ui.signLanguage == SignLanguage.ASL) R.string.asl_dictionary else R.string.isl_dictionary), null, first = onTell == null && onCounsel == null) { onTool(Tool.DICTIONARY) } // ISL hook
             MoreRow(rememberVectorPainter(Icons.AutoMirrored.Filled.List), stringResource(R.string.officer_log), answers.takeIf { it > 0 }?.toString(), onClick = onLog)
             MoreRow(rememberVectorPainter(Icons.Filled.Person), stringResource(R.string.officer_change), null, onClick = onChange)
             onSecondScreen?.let { MoreRow(rememberVectorPainter(Icons.Filled.Phone), stringResource(R.string.second_screen), null, onClick = it) }
@@ -244,7 +247,7 @@ private fun QuestionRow(
     }
 }
 
-/** A prepared question or phrase: its picture, its words, and what the subject will get (FR-17). */
+/** A prepared question or phrase: its picture, its words, and what the subject will get. */
 @Composable
 internal fun Suggestion(
     cardId: String?,

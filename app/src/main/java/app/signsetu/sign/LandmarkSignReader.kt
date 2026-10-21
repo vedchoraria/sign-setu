@@ -10,7 +10,7 @@ import kotlin.math.hypot
 import kotlin.math.max
 
 /**
- * The bundled isolated-sign classifier (D-25), trained by tools/ml on INCLUDE. Features and forward pass must match
+ * The bundled isolated-sign classifier, trained by tools/ml on INCLUDE. Features and forward pass must match
  * tools/ml/features.py and export.py exactly.
  */
 class LandmarkSignReader(spec: String, weights: ByteArray, override val words: Map<String, String> = emptyMap(),
@@ -157,7 +157,7 @@ private fun resample(frames: List<LandmarkFrame>, t: Int, cx: Float, cy: Float, 
     return out
 }
 
-/** Little-endian weights as floats; "float16" files hold half precision (NFR-05). */
+/** Little-endian weights as floats; "float16" files hold half precision. */
 internal fun weightFloats(weights: ByteArray, dtype: String): FloatArray {
     val bytes = ByteBuffer.wrap(weights).order(ByteOrder.LITTLE_ENDIAN)
     if (dtype != "float16") return FloatArray(weights.size / 4).also { bytes.asFloatBuffer().get(it) }

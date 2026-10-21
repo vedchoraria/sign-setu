@@ -9,7 +9,7 @@ import app.signsetu.data.content.isDevanagari
 data class Suggestion(val caption: String, val meaning: String)
 
 /**
- * The on-device assistant (D-24). It only translates the officer's own words into the subject's language and back;
+ * The on-device assistant. It only translates the officer's own words into the subject's language and back;
  * it never answers, judges or adds anything, and the officer decides whether the caption is used.
  */
 class Assistant(private val models: ModelStore, private val cloud: CloudAi? = null) {

@@ -16,7 +16,7 @@ import javax.crypto.spec.GCMParameterSpec
 
 /**
  * The database key (DEK) is random, and stored only wrapped by a non-exportable Keystore key (KEK).
- * The KEK needs no prompt but only works while the phone is unlocked (SEC-01, SEC-22, D-48).
+ * The KEK needs no prompt but only works while the phone is unlocked.
  */
 class DatabaseKey(private val context: Context) {
     private val wrapped = File(context.noBackupFilesDir, "dek.bin")

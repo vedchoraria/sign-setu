@@ -279,7 +279,7 @@ internal fun MirrorWindow(
 ) {
     Box(modifier.mirrorFrame()) {
         if (cameraOn) {
-            // Outside a sign window the mirror is preview only: no frame is analysed (D-25).
+            // Outside a sign window the mirror is preview only: no frame is analysed.
             camera(null)
         } else {
             MirrorPlaceholder()
@@ -334,7 +334,7 @@ private fun Modifier.mirrorFrame(): Modifier {
 
 /**
  * A sign window: a large mirror with the hand and arm skeleton, a dot per sign seen, and Done. Only landmarks are kept,
- * in memory (D-25). A short answer shows its time bar and, after a failed read, the "sign slower" cue; a [narrative]
+ * in memory. A short answer shows its time bar and, after a failed read, the "sign slower" cue; a [narrative]
  * shows neither, so nothing interrupts the person while they tell what happened.
  */
 @Composable

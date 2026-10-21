@@ -5,6 +5,7 @@ The combined rows read the same segments through both models and the app's sign-
 the gate rows weigh SPELL_MIN_PEAK by the real PopSign word reads it costs against the spelled reads it keeps.
     python tools/ml/eval_asl.py [asl.pkl] [asl_spell_dir]
 """
+import os
 import pathlib
 import pickle
 import sys
@@ -17,7 +18,10 @@ from runtime import reader, speller
 from spell_ctc import DATA, cer, greedy, load, sequence, texts, word_list
 from train import features
 
-ASL = "C:/Users/Yash/dev/ml-data/popsign/asl.pkl"
+# Training and evaluation data stay outside the repository.
+DATA_ROOT = pathlib.Path(os.environ.get("SIGNSETU_DATA", "ml-data"))
+
+ASL = str(DATA_ROOT / "popsign/asl.pkl")
 SPELL_MIN_LETTERS, SPELL_MIN_PEAK = 3, 0.9  # SignReaders.kt
 
 

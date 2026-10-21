@@ -249,7 +249,7 @@ internal fun Dock(
     }
 }
 
-/** What Send will show, with what the subject will get (FR-15, FR-17). */
+/** What Send will show, with what the subject will get. */
 @Composable
 internal fun Ready(pending: Pending, content: ContentBundle, officerLang: String, subjectLang: String, profile: Profile, onClear: () -> Unit) {
     val colors = MaterialTheme.colorScheme
@@ -296,7 +296,7 @@ private fun Composer(
                 value = text,
                 onValueChange = onText,
                 textStyle = MaterialTheme.typography.bodyLarge.copy(color = colors.onSurface),
-                // SEC-05: the keyboard should not learn or suggest from what is typed about a subject.
+                // the keyboard should not learn or suggest from what is typed about a subject.
                 keyboardOptions = KeyboardOptions(autoCorrectEnabled = false, imeAction = ImeAction.Send),
                 keyboardActions = KeyboardActions(onSend = { if (canSend) onSend() }),
                 cursorBrush = SolidColor(colors.primary),
@@ -376,7 +376,7 @@ private fun AssistChip(thinking: Boolean, onClick: () -> Unit) {
     }
 }
 
-/** A machine caption shown before Send, always marked as unchecked (D-24, D-41); [meaning] is the assistant's English back. */
+/** A machine caption shown before Send, always marked as unchecked; [meaning] is the assistant's English back. */
 @Composable
 private fun AssistantCard(caption: String, meaning: String?, languageName: String, onDiscard: () -> Unit) {
     val colors = MaterialTheme.colorScheme
@@ -417,7 +417,7 @@ private fun ModeChip(label: String, on: Boolean, onClick: () -> Unit) {
     }
 }
 
-/** What the subject will get for this question; anything missing is named before the officer shows it (FR-17). */
+/** What the subject will get for this question; anything missing is named before the officer shows it. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun MediaSummary(question: Question, content: ContentBundle, subjectLang: String, profile: Profile) {

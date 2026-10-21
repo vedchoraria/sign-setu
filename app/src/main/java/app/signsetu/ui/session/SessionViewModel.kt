@@ -113,7 +113,7 @@ class SessionViewModel(
         SessionUi(s, l.selectedGroup, l.sensitiveUnlocked, l.pending, l.mode, l.rotated, l.answeredCard, l.answeredYes, l.chosenLanguage, events, l.reading, l.signed, l.onStage, l.itemId, l.signWindow, l.confirm, l.runTotal)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
-    /** A second screen shows the stage; this phone stays with the officer (D-26). */
+    /** A second screen shows the stage; this phone stays with the officer. */
     @Volatile var paired = false
     private val shown = mutableMapOf<Long, Pending>()
     private val remoteLogged = mutableSetOf<Pair<Long, Int>>()
@@ -124,7 +124,7 @@ class SessionViewModel(
         viewModelScope.launch {
             val session = repo.session(sessionId).first() ?: return@launch
             // Starting a session is the officer's confirmation of its opening: the stage greets the person first,
-            // or, for someone who speaks another language, lets them find it (FR-63).
+            // or, for someone who speaks another language, lets them find it.
             if (repo.events(sessionId).first().all { it.type == EventType.SYSTEM && (it.text in StartRows || it.text?.startsWith(SYSTEM_SIGN_LANGUAGE) == true) }) {
                 val opening = if (session.profile == Profile.OTHER_LANGUAGE) Pending.LanguageFinder
                 else Pending.GroundRules().takeIf { content.question(RuleSteps.first().key) != null }
@@ -179,6 +179,12 @@ class SessionViewModel(
     }
     private var showing = false
 
+    /** The AI counsellor; it shows its lines only on a paired second screen (OfficerPane starts it). */
+    val counsellor = Counsellor(viewModelScope, ui, send = { line ->
+        prepare(Pending.FreeText(line.say, emptyList(), setOf(SignMode.SIGNS, SignMode.GESTURES, SignMode.PICTURES), line.caption, byAi = true))
+        show()
+    })
+
     /** Officer-side drafts and sign modes; the officer pane leaves composition while the stage is shown. */
     val drafts = androidx.compose.runtime.mutableStateMapOf<String, String>()
     private val modes = androidx.compose.runtime.mutableStateListOf<SignMode>()
@@ -189,7 +195,7 @@ class SessionViewModel(
         return modes
     }
 
-    /** Shows what is prepared, if anything, and reads the subject's signed answer, or their account for NARRATIVE (D-25). */
+    /** Shows what is prepared, if anything, and reads the subject's signed answer, or their account for NARRATIVE. */
     fun readSigns(window: SignWindow = SignWindow.ANSWER) {
         val state = ui.value ?: return
         val pending = local.value.pending
@@ -235,7 +241,7 @@ class SessionViewModel(
         }
     }
 
-    /** The subject is done signing: the words read are logged as the app's reading, never as confirmed (FR-66). */
+    /** The subject is done signing: the words read are logged as the app's reading, never as confirmed. */
     fun finishReading() {
         val c = capture ?: return
         capture = null
@@ -251,7 +257,7 @@ class SessionViewModel(
             if (segments.isEmpty()) return@launch
             val words = segments.map { it.word ?: "?" }
             val id = logSigned(segments, words, EventSource.MACHINE, "en")
-            // The subject checks the reading straight away by picking what each sign meant; only their tap counts (FR-66).
+            // The subject checks the reading straight away by picking what each sign meant; only their tap counts.
             if (!narrative && !paired) confirmOnStage(id)
             val signWords = reader?.words.orEmpty()
             val gloss = segments.flatMap { s -> glossOf(s.guesses?.firstOrNull(), signWords) }
@@ -298,7 +304,7 @@ class SessionViewModel(
     }
 
     /**
-     * The subject chooses what each sign meant, from the officer's reading and the reader's guesses (FR-66). Each set of
+     * The subject chooses what each sign meant, from the officer's reading and the reader's guesses. Each set of
      * choices is logged before it is shown.
      */
     fun askSubject(eventId: Long, words: List<String>) {
@@ -353,7 +359,7 @@ class SessionViewModel(
         repo.log(sessionId, EventType.PROMPT, EventSource.OFFICER, lang, text = shown.encode())
     }
 
-    /** Landmarks are biometric: they go when the session ends, the app locks or this model is cleared (D-25). */
+    /** Landmarks are biometric: they go when the session ends, the app locks or this model is cleared. */
     fun wipeSigns() {
         capture = null
         reads.forEach { it.cancel() }
@@ -394,7 +400,10 @@ class SessionViewModel(
                 itemId = pending.question.id, reason = shownReason(content, pending.question, lang),
             )
             // A machine-made caption is logged next to the officer's own words, so the record shows both.
-            is Pending.FreeText -> repo.log(sessionId, EventType.QUESTION_SHOWN, EventSource.TEXT, lang, text = listOfNotNull(pending.text, pending.caption).joinToString("\n"))
+            is Pending.FreeText -> repo.log(
+                sessionId, EventType.QUESTION_SHOWN, if (pending.byAi) EventSource.MACHINE else EventSource.TEXT, lang,
+                text = listOfNotNull(pending.text, pending.caption).joinToString("\n"), reason = SHOWN_AI.takeIf { pending.byAi },
+            )
             is Pending.Cards -> repo.log(
                 sessionId, EventType.QUESTION_SHOWN, EventSource.BOARD, lang,
                 text = pending.cardIds.joinToString { id -> content.cards[id]?.label?.pick(officerLang) ?: id },
@@ -516,7 +525,7 @@ class SessionViewModel(
         local.update { it.copy(mode = Mode.OFFICER, onStage = null, itemId = null) }
     }
 
-    // A proposal the subject's next tap matched (D-40), for the record; used once.
+    // A proposal the subject's next tap matched, for the record; used once.
     private var cue: String? = null
 
     fun noteCue(c: String) { cue = c }
@@ -560,7 +569,7 @@ class SessionViewModel(
 
     /**
      * Answers to a show-back or say-back. A meaning becomes the subject's only when they pick it among two or more
-     * pictures; a Yes to a single reading is logged as their Yes, and the reading stays the officer's (FR-66).
+     * pictures; a Yes to a single reading is logged as their Yes, and the reading stays the officer's.
      * Returns false for an answer that is not about the reading, such as Stop, which is logged as usual.
      */
     private suspend fun logChecked(item: Pending?, card: String?, yes: Boolean?, shownId: Long?, via: String? = null): Boolean {
@@ -655,7 +664,7 @@ class SessionViewModel(
         }
     }
 
-    /** Called after the officer re-authenticates (FR-61). */
+    /** Called after the officer re-authenticates. */
     fun returnToOfficer() {
         finishReading()
         local.update { it.copy(confirm = null) }
@@ -764,10 +773,12 @@ class SessionViewModel(
         return events.withQuestions().map { (e, q) -> ReportRow(e, q, detail(e), reading = grades[e.id]?.isReading == true) }
     }
 
-    fun endSession(onDone: () -> Unit) {
+    /** Saves the session under [title], or deletes it when [title] is null. */
+    fun endSession(title: String?, onDone: () -> Unit) {
         wipeSigns()
+        counsellor.takeOver()
         viewModelScope.launch {
-            repo.purge(sessionId)
+            if (title == null) repo.purge(sessionId) else repo.end(sessionId, title)
             onDone()
         }
     }

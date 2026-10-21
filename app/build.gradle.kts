@@ -24,16 +24,16 @@ android {
         applicationId = "in.signsetu"
         minSdk = 29
         targetSdk = 37
-        versionCode = 6
-        versionName = "0.4.2"
+        versionCode = 7
+        versionName = "0.5.0"
         buildConfigField("long", "BUILD_EPOCH_DAY", "${LocalDate.now().toEpochDay()}L")
-        // The department's gateway (D-47): -PgatewayUrl=https://... or gatewayUrl in local.properties.
+        // The department's gateway: -PgatewayUrl=https://... or gatewayUrl in local.properties.
         buildConfigField("String", "GATEWAY_URL", "\"$gatewayUrl\"")
         buildConfigField("String", "ASSIST_KEY", "\"$openrouterKey\"")
         buildConfigField("String", "ASSIST_URL", "\"https://openrouter.ai/api/v1/chat/completions\"")
         buildConfigField("String", "ASSIST_MODEL", "\"nvidia/nemotron-3-ultra-550b-a55b:free\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        // The on-device assistant (D-24) runs only on 64-bit phones; the x86_64 build serves the emulator.
+        // The on-device assistant runs only on 64-bit phones; the x86_64 build serves the emulator.
         externalNativeBuild { cmake { abiFilters += listOf("arm64-v8a", "x86_64"); arguments += "-DCMAKE_BUILD_TYPE=Release" } }
     }
 
@@ -50,15 +50,15 @@ android {
 
     buildTypes {
         release {
-            // Universal 64-bit build: ARM phones and x86_64 emulators/tablets.
-            ndk { abiFilters += listOf("arm64-v8a", "x86_64") }
+            // Universal 64-bit build by default (ARM phones, x86_64 emulators and tablets); -Pabi=arm64-v8a for phones only.
+            ndk { abiFilters += (providers.gradleProperty("abi").orNull?.split(",") ?: listOf("arm64-v8a", "x86_64")) }
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
 
-    // D-26: the second screen links over bonded Bluetooth by default; "nearby" swaps in Google Nearby Connections for
+    // the second screen links over bonded Bluetooth by default; "nearby" swaps in Google Nearby Connections for
     // departments whose phones have Play services. Only "standard" is the reference build that keeps every rule.
     flavorDimensions += "transport"
     productFlavors {
@@ -97,7 +97,7 @@ android {
     }
 }
 
-// INTERNET is allowed only for the department gateway (CloudAi, D-47). SEC-30, SEC-42, SEC-66: the build fails if any library brings a forbidden permission into the merged manifest.
+// INTERNET is allowed only for the department gateway (CloudAi). the build fails if any library brings a forbidden permission into the merged manifest.
 // The nearby flavor needs scanning and, below Android 13, location for Nearby Connections; it keeps the rest.
 androidComponents {
     onVariants { variant ->
@@ -131,7 +131,7 @@ androidComponents {
     }
 }
 
-// SEC-50: every resolved version is pinned in gradle.lockfile; update with --write-locks.
+// every resolved version is pinned in gradle.lockfile; update with --write-locks.
 dependencyLocking {
     lockAllConfigurations()
 }
@@ -177,7 +177,7 @@ dependencies {
     implementation(libs.camera.lifecycle)
     implementation(libs.camera.compose)
     implementation(libs.mediapipe.tasks.vision) {
-        // This backend uploads MediaPipe usage statistics and brings INTERNET (SEC-30); a stub destination replaces it.
+        // This backend uploads MediaPipe usage statistics and brings INTERNET; a stub destination replaces it.
         exclude(group = "com.google.android.datatransport", module = "transport-backend-cct")
         // Only ImageEmbedder uses this 20 MB on-device LLM runtime; the holistic landmarker never loads it.
         exclude(group = "com.google.ai.edge.litertlm", module = "litertlm-android")
@@ -186,7 +186,7 @@ dependencies {
     implementation(libs.protobuf.javalite)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.coroutines.android)
-    // Play services only in the nearby flavor; the standard build has none (D-26).
+    // Play services only in the nearby flavor; the standard build has none.
     "nearbyImplementation"(libs.play.services.nearby)
 
     testImplementation(libs.junit)

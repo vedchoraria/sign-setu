@@ -24,7 +24,7 @@ In accordance with project requirements (Android 10+, >= 3 GB RAM, arm64-v8a arc
 
 ### 3.1 Cold Startup Latency
 - **Objective:** Ensure the application launches and presents the interactive Start / Unlock interface without perceptibly lagging an officer in an emergency triage situation.
-- **Requirement:** NFR-01 (Cold start < 2.0 s; target on Tier 1 hardware < 1.2 s).
+- **Requirement:** (Cold start < 2.0 s; target on Tier 1 hardware < 1.2 s).
 - **Execution Command:**
   ```bash
   adb shell am force-stop in.signsetu
@@ -73,7 +73,7 @@ In accordance with project requirements (Android 10+, >= 3 GB RAM, arm64-v8a arc
 
 ### 3.4 Runtime Memory Footprint (PSS)
 - **Objective:** Verify SQLCipher, CameraX, MediaPipe Holistic, and Jetpack Compose stay strictly within bounded memory, avoiding Out-Of-Memory (OOM) kills on 3 GB devices.
-- **Requirement:** NFR-06 (Total PSS < 250 MB under full stage operation without local Gemma model; memory immediately returned upon leaving stage).
+- **Requirement:** (Total PSS < 250 MB under full stage operation without local Gemma model; memory immediately returned upon leaving stage).
 - **Execution Command:**
   ```bash
   adb shell dumpsys meminfo in.signsetu

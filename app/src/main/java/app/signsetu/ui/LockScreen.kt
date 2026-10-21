@@ -35,11 +35,11 @@ import androidx.compose.ui.unit.dp
 import app.signsetu.R
 import app.signsetu.ui.theme.Spacing
 
-/** Shown whenever the database is closed. Without a secure lock screen the app refuses to store anything (SEC-20). */
+/** Shown whenever the database is closed. Without a secure lock screen the app refuses to store anything. */
 @Composable
 fun LockScreen(
     onUnlock: (onFailed: () -> Unit) -> Unit,
-    /** False on a device that has served as a second screen: only an explicit tap opens the database (D-26). */
+    /** False on a device that has served as a second screen: only an explicit tap opens the database. */
     autoPrompt: Boolean = true,
     stageButton: (@Composable () -> Unit)? = null,
 ) {

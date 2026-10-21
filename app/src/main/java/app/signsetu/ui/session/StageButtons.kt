@@ -128,7 +128,7 @@ internal fun PauseRow(content: ContentBundle, lang: String, chosenCard: String?,
 
 /**
  * Yes, No and the answers that keep a conversation honest sit in narrow rails either side of the camera, always in the
- * same place with picture, word and colour (FR-20, NFR-21, ABE 2.104 to 2.108). Every tap is logged after the prompt shown.
+ * same place with picture, word and colour (ABE 2.104 to 2.108). Every tap is logged after the prompt shown.
  */
 @Composable
 internal fun Rail(content: @Composable ColumnScope.() -> Unit) =

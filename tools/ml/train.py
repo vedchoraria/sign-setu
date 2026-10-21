@@ -17,6 +17,9 @@ from torch import nn
 
 from features import ARMS, ARMS_FLIPPED, FEATURES, FRAMES, featurize, featurize_hands, isotropic
 
+# Training and evaluation data stay outside the repository.
+DATA_ROOT = pathlib.Path(os.environ.get("SIGNSETU_DATA", "ml-data"))
+
 HIDDEN, KERNEL = int(os.environ.get("SIGN_HIDDEN", 160)), 5
 STRONG = os.environ.get("SIGN_AUG") == "strong"
 DROPOUT = float(os.environ.get("SIGN_DROPOUT", 0.4))
@@ -122,7 +125,7 @@ def main(cache: pathlib.Path, out: pathlib.Path, epochs: int = 400) -> None:
 
 
 if __name__ == "__main__":
-    data = pathlib.Path("C:/Users/Yash/dev/ml-data/include_pose")
+    data = DATA_ROOT / "include_pose"
     a = sys.argv[1:]
     main(pathlib.Path(a[0]) if a else data / "include.pkl", pathlib.Path(a[1]) if len(a) > 1 else data / "sign_reader.pt",
          int(a[2]) if len(a) > 2 else 400)

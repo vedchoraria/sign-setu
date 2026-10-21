@@ -76,7 +76,7 @@ private val AdultLook = Look(
 )
 
 /**
- * Draws a character and plays [gesture] once each time [playKey] changes. Speed below 1 plays slowly (FR-18).
+ * Draws a character and plays [gesture] once each time [playKey] changes. Speed below 1 plays slowly.
  * With [idle] the character breathes and blinks; the system "remove animations" setting turns that off.
  * With [glance] the character looks down at the answers once the gesture is over. [question] adds the
  * question face while the gesture plays.

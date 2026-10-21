@@ -148,6 +148,7 @@ internal fun Shown(e: SessionEvent, by: ShownBy? = null) {
         val tags = listOfNotNull(
             by?.tag?.let { stringResource(it) },
             if (e.reason == SHOWN_RIGHTS) stringResource(R.string.rights_shown_mark) else null,
+            if (e.reason == SHOWN_AI) stringResource(R.string.ai_tag) else null,
         ).joinToString("") { " · $it" }
         Text(
             "${stringResource(e.type.label())} · ${timeOf(e)}$tags",

@@ -5,6 +5,7 @@ Names: sign_reader (INCLUDE), isl_spell (synthetic ISL letters and digits), asl_
 Then rebuild the manifest: python tools/content/build_content.py --manifest-only
 """
 import json
+import os
 import pathlib
 import pickle
 import sys
@@ -15,6 +16,9 @@ import torch
 from features import FEATURES, FRAMES
 import runtime
 from train import HIDDEN, KERNEL, SignNet, features
+
+# Training and evaluation data stay outside the repository.
+DATA_ROOT = pathlib.Path(os.environ.get("SIGNSETU_DATA", "ml-data"))
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 MODELS = ROOT / "app" / "src" / "main" / "assets" / "content" / "models"
@@ -57,7 +61,7 @@ def main(name: str, ckpt_path: pathlib.Path, cache_path: pathlib.Path) -> None:
         c1w, c1b = folded(model.conv1, model.bn1)
         c2w, c2b = folded(model.conv2, model.bn2)
         tensors = [model.embed.weight, model.embed.bias, c1w, c1b, c2w, c2b, model.head.weight, model.head.bias]
-        # Half precision halves the APK share of the readers (NFR-05); the fixture below is computed from the same halves.
+        # Half precision halves the APK share of the readers; the fixture below is computed from the same halves.
         blob = b"".join(t.detach().numpy().astype("<f2").tobytes() for t in tensors)
     MODELS.mkdir(parents=True, exist_ok=True)
     (MODELS / f"{name}.bin").write_bytes(blob)
@@ -104,7 +108,7 @@ def main(name: str, ckpt_path: pathlib.Path, cache_path: pathlib.Path) -> None:
 
 
 if __name__ == "__main__":
-    data = pathlib.Path("C:/Users/Yash/dev/ml-data/include_pose")
+    data = DATA_ROOT / "include_pose"
     a = sys.argv[1:]
     main(a[0] if a else "sign_reader", pathlib.Path(a[1]) if len(a) > 1 else data / "sign_reader.pt",
          pathlib.Path(a[2]) if len(a) > 2 else data / "include.pkl")

@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit
 /**
  * The database key can only be used after the officer authenticates, so a background job cannot delete single rows.
  * When even the newest session is past the retention period, every session is, and the job destroys the key and the
- * database file instead (SEC-08). Older sessions inside a still-current set are purged at the next unlock.
+ * database file instead. Older sessions inside a still-current set are purged at the next unlock.
  */
 class RetentionWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {

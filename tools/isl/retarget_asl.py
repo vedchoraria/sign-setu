@@ -12,6 +12,7 @@ and numbers are authored as keyframes. Draft until ASL review.
 import functools
 import io
 import json
+import os
 import pathlib
 import pickle
 import sys
@@ -23,11 +24,14 @@ import numpy as np
 
 import retarget as rt
 
+# Training and evaluation data stay outside the repository.
+DATA_ROOT = pathlib.Path(os.environ.get("SIGNSETU_DATA", "ml-data"))
+
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 CONTENT = ROOT / "app" / "src" / "main" / "assets" / "content"
 GLOSSARY = pathlib.Path(__file__).resolve().parent / "asl_hindi.json"  # word -> [topic category, Hindi]
 MODEL = CONTENT / "models" / "holistic_landmarker.task"
-DATA = pathlib.Path("C:/Users/Yash/dev/ml-data/popsign")  # frame parquets, for the re-detect
+DATA = DATA_ROOT / "popsign"  # frame parquets, for the re-detect
 LANDMARKS = DATA / "landmarks"  # prepare_asl.py's per-shard cache
 ROWS = "https://datasets-server.huggingface.co/rows?dataset=sign/popsign-images&config=game&split=test"
 GAME_ROWS = 33492

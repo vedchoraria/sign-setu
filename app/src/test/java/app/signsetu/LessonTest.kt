@@ -53,7 +53,7 @@ class LessonTest {
 
     @Test
     fun wordingMatchesTheLessonSheetInHindiAndItsEnglishTranslation() {
-        // qna.pdf and ISL_QA_English_Translation.pdf. The age question adds how to answer; Namaste follows the Hindi.
+        // The ISL lesson sheet in Hindi and its English translation. The age question adds how to answer; Namaste follows the Hindi.
         val sheet = mapOf(
             "p1" to ("आपका नाम क्या है?" to "What is your name?"),
             "i2" to ("आपकी उम्र कितनी है?" to "How old are you?"),

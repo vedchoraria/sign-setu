@@ -42,6 +42,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.SideEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -105,13 +106,13 @@ private const val THANK_YOU = "e7"
 
 private enum class Sheet { BOARD_SHOW, BOARD_ATTACH, GESTURE, LOG, CHANGE, DICTIONARY }
 
-/** The phrase bank sits beside the triage groups as one more group (FR-62). */
+/** The phrase bank sits beside the triage groups as one more group. */
 internal const val PHRASES = "phrases"
 private const val WORD_SEP = "\u0001"
 
 /**
  * The officer's side of the phone. The main page is quick two-way transcription, laid out like a messaging app: the
- * conversation, a few prepared questions, a composer that signs typed text, and Read signs for a signed answer (FR-15).
+ * conversation, a few prepared questions, a composer that signs typed text, and Read signs for a signed answer.
  * Every other way to ask is one tap away on the second page.
  */
 @Composable
@@ -124,9 +125,10 @@ fun OfficerPane(
     assistant: Assistant?,
     onCallInterpreter: (() -> Unit)?,
     onShare: (File) -> Unit,
-    onEndSession: () -> Unit,
+    /** Saves the session under the given name, or deletes it when null. */
+    onEndSession: (String?) -> Unit,
     canReadSigns: Boolean = false,
-    /** Set while a second screen shows the stage (D-26). */
+    /** Set while a second screen shows the stage. */
     paired: PairedPane? = null,
     onSecondScreen: (() -> Unit)? = null,
     allowAuto: Boolean = false,
@@ -142,8 +144,10 @@ fun OfficerPane(
     var replaying by rememberSaveable { mutableStateOf<Long?>(null) }
     var askSensitive by remember { mutableStateOf(false) }
     var askEnd by remember { mutableStateOf(false) }
-    // Sheets and dialogs take Back first; on the page itself it steps to the first tab, then asks before ending.
-    BackHandler { if (page != 0) page = 0 else askEnd = true }
+    var saveAs by rememberSaveable { mutableStateOf("") }
+    // Sheets and dialogs take Back first; on the page it steps to the first tab, then leaves with the session still
+    // open, to resume from the start screen. Finishing is always a deliberate tap, never Back.
+    BackHandler(enabled = page != 0) { page = 0 }
     var export by remember { mutableStateOf<ExportState?>(null) }
     val cloud = LocalCloudAi.current
     var aiReport by remember { mutableStateOf<String?>(null) }
@@ -218,7 +222,29 @@ fun OfficerPane(
             draftOff = false
         }
     }
+    val counsel by vm.counsellor.counsel.collectAsStateWithLifecycle()
+    // The AI counsellor talks with the person on the second screen while the officer watches here (Counsellor.kt).
+    val startCounsel: () -> Unit = {
+        when {
+            ui.session.role == app.signsetu.data.session.Role.ACCUSED -> Toast.makeText(context, R.string.ai_not_for_accused, Toast.LENGTH_LONG).show()
+            paired == null -> { Toast.makeText(context, R.string.ai_needs_second_screen, Toast.LENGTH_LONG).show(); onSecondScreen?.invoke() }
+            !cloud.available || !cloud.enrolled -> Toast.makeText(context, R.string.ai_needs_online, Toast.LENGTH_LONG).show()
+            else -> {
+                page = 0
+                vm.counsellor.start(
+                    counselPrompt(subjectLanguage?.english ?: subjectLang, ui.session.profile == Profile.YOUNG_CHILD),
+                    write = { system, transcript ->
+                        val events = vm.ui.value?.events.orEmpty()
+                        cloud.ask(system, transcript, subjectNames(events, content, officerLang), 300)
+                    },
+                    transcript = { counselTranscript(it, content) },
+                )
+            }
+        }
+    }
     val send = {
+        // Anything the officer sends themselves takes the conversation back from the counsellor.
+        if (counsel != Counsel.Off) vm.counsellor.takeOver()
         if (run.isNotEmpty() && ownText.isBlank()) {
             vm.showRun(runQuestions.map { Pending.Ask(it) })
             run = emptyList()
@@ -226,7 +252,7 @@ fun OfficerPane(
             prepareTyped(); if (paired?.allowShow?.invoke() != false) vm.show()
         }
     }
-    val read = { prepareTyped(); vm.readSigns() }
+    val read = { if (counsel != Counsel.Off) vm.counsellor.takeOver(); prepareTyped(); vm.readSigns() }
     val onTool = { tool: Tool ->
         when (tool) {
             Tool.GESTURE -> sheet = Sheet.GESTURE
@@ -325,6 +351,7 @@ fun OfficerPane(
                 onChange = { sheet = Sheet.CHANGE },
                 onSecondScreen = onSecondScreen,
                 onFinish = { askEnd = true },
+                onCounsel = if (cloud.available) startCounsel else null,
                 onTell = if (canReadSigns) ({ prepareTyped(); vm.readSigns(SignWindow.NARRATIVE); page = 0 }) else null,
                 modifier = Modifier.weight(1f),
             )
@@ -342,7 +369,8 @@ fun OfficerPane(
             }
         }
 
-        if (allowAuto && ownText.isEmpty()) AutoPanel(vm.auto, ui, content, officerLang)
+        if (counsel != Counsel.Off) CounsellorPanel(counsel, vm.counsellor, onResume = startCounsel)
+        else if (allowAuto && ownText.isEmpty()) AutoPanel(vm.auto, ui, content, officerLang)
         Dock(
             ui = ui,
             content = content,
@@ -452,6 +480,7 @@ fun OfficerPane(
         )
     }
     if (askEnd) {
+        if (saveAs.isEmpty()) saveAs = ui.session.title ?: defaultTitle(res, ui.session.startedAt)
         val startExport: () -> Unit = {
             askEnd = false
             export = ExportState.Working
@@ -472,9 +501,12 @@ fun OfficerPane(
         val thanks = content.question(THANK_YOU)
         WrapUpDialog(
             summary = remember(ui.events) { wrapUp(ui.events, ui.session.startedAt, System.currentTimeMillis()) },
+            title = saveAs,
+            onTitle = { saveAs = it },
             onThank = thanks?.takeIf { paired?.allowShow?.invoke() != false }?.let { q -> { askEnd = false; vm.prepare(Pending.Ask(q)); vm.show() } },
             onExport = startExport,
-            onFinishOnly = { askEnd = false; onEndSession() },
+            onSave = { askEnd = false; onEndSession(saveAs) },
+            onDelete = { askEnd = false; onEndSession(null) },
             onDismiss = { askEnd = false },
         )
     }
@@ -485,13 +517,11 @@ fun OfficerPane(
     if (aiExtracting) AiPreparingDialog()
 
     export?.let { state ->
-        var shared by remember(state) { mutableStateOf(false) }
         ExportDialog(
             state = state,
-            onShare = { (state as? ExportState.Ready)?.let { shared = true; onShare(it.file) } },
-            onFinish = { (state as? ExportState.Ready)?.file?.delete(); export = null; onEndSession() },
+            onShare = { (state as? ExportState.Ready)?.let { onShare(it.file) } },
+            onFinish = { (state as? ExportState.Ready)?.file?.delete(); export = null; onEndSession(saveAs) },
             onDismiss = { export = null },
-            shared = shared,
         )
     }
 }

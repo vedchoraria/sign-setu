@@ -3,14 +3,18 @@ Dictionary (data.gov.in, Government Open Data Licence India; huggingface.co/data
 Indian_Sign_Language_Data.gov_Rencoded, MIT). The dictionary has no clip per letter, so letters come from acronyms it
 fingerspells (ATM, DVD, ...); digits are its 0 to 9 clips. Landmarks by the app's Holistic model at the full 25 fps.
 Runs in the mediapipe venv:
-    python -I tools/ml/prepare_islrtc.py [data_dir]   # default C:/Users/Yash/dev/ml-data/islrtc -> islrtc.pkl
+    python -I tools/ml/prepare_islrtc.py [data_dir]   # default $SIGNSETU_DATA/islrtc -> islrtc.pkl
 """
+import os
 import pathlib
 import pickle
 import sys
 import urllib.request
 
 import numpy as np
+
+# Training and evaluation data stay outside the repository.
+DATA_ROOT = pathlib.Path(os.environ.get("SIGNSETU_DATA", "ml-data"))
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 MODEL = ROOT / "app" / "src" / "main" / "assets" / "content" / "models" / "holistic_landmarker.task"
@@ -63,4 +67,4 @@ def main(data: pathlib.Path) -> None:
 
 
 if __name__ == "__main__":
-    main(pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else pathlib.Path("C:/Users/Yash/dev/ml-data/islrtc"))
+    main(pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else DATA_ROOT / "islrtc")

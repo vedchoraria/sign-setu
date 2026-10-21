@@ -65,7 +65,7 @@ object SkeletonOverlay {
     val on = mutableStateOf(true)
 }
 
-/** Whether a skeleton snapshot (biometric landmarks) is kept in the record when a signed answer is logged; off unless the officer turns it on (SEC-71). */
+/** Whether a skeleton snapshot (biometric landmarks) is kept in the record when a signed answer is logged; off unless the officer turns it on. */
 object EvidenceMode {
     val autoCapture = mutableStateOf(false)
 }
@@ -75,8 +75,8 @@ fun hasCameraPermission(context: Context) =
 
 /**
  * A live mirror of the subject's hands. Only Preview and, when a [tracker] is supplied, ImageAnalysis are bound:
- * no image is captured, recorded or saved (D-20). The skeleton, brows and lips are drawn whenever the camera shows;
- * frames go to [onFrame] for sign capture only inside a sign window (D-25), which also raises the analysis rate.
+ * no image is captured, recorded or saved. The skeleton, brows and lips are drawn whenever the camera shows;
+ * frames go to [onFrame] for sign capture only inside a sign window, which also raises the analysis rate.
  * The camera stops when this leaves the screen. [placeholder] shows instead when there is no permission or no camera.
  */
 @Composable
@@ -112,7 +112,7 @@ fun CameraMirror(
     if (permitted) {
         // CameraX binds and sets surfaces on the main thread only; an effect resumes wherever its dispatcher says.
         LaunchedEffect(owner, tracker) { withContext(Dispatchers.Main.immediate) {
-            // Opening the camera waits for the stage's first frame, so the question appears first (NFR-02).
+            // Opening the camera waits for the stage's first frame, so the question appears first.
             withFrameNanos { }
             val provider = ProcessCameraProvider.awaitInstance(context)
             val selector = when {

@@ -151,7 +151,7 @@ fun AppRoot(container: AppContainer) {
             when {
                 s == null -> ScreenSkeleton()
                 !s.firstRunDone -> FirstRunScreen(c?.gestures.orEmpty(), onDone = { scope.launch { container.settings.setFirstRunDone() } })
-                // A stage device never opens the session database or the navigation (D-26).
+                // A stage device never opens the session database or the navigation.
                 stage != null && c != null -> StageDeviceScreen(stage, c, container)
                 // No credential prompt: LockScreen opens the database itself and only shows if that fails.
                 r == null -> LockScreen(
@@ -187,7 +187,7 @@ fun AppRoot(container: AppContainer) {
 }
 
 /**
- * SEC-05: every text field in the app asks the keyboard not to learn from what is typed, since it is about a subject.
+ * every text field in the app asks the keyboard not to learn from what is typed, since it is about a subject.
  * Compose has no keyboard option for this, so the flag is added to each input connection as it is created.
  */
 @OptIn(ExperimentalComposeUiApi::class)
@@ -286,7 +286,7 @@ internal fun SessionRoute(
     val activity = LocalActivity.current
     val cameraOn = rememberSaveable { settings.cameraEnabled }
     var sandesHandoffContact by rememberSaveable { mutableStateOf<String?>(null) }
-    // D-26: with a second screen the subject's stage is there, and this phone stays the officer's.
+    // with a second screen the subject's stage is there, and this phone stays the officer's.
     val link by container.link.collectAsStateWithLifecycle()
     val officerLink = link?.takeIf { it.role == LinkRole.OFFICER }
     val linkState = officerLink?.state?.collectAsStateWithLifecycle()?.value
@@ -339,10 +339,10 @@ internal fun SessionRoute(
             onShare = { file ->
                 activity?.let { shareReport(it, file) }
             },
-            onEndSession = {
-                vm.endSession {
+            onEndSession = { title ->
+                vm.endSession(title) {
                     officerLink?.let { container.endLink() }
-                    Toast.makeText(activity ?: return@endSession onClosed(), R.string.session_finished, Toast.LENGTH_LONG).show()
+                    activity?.let { Toast.makeText(it, if (title == null) R.string.session_deleted else R.string.session_saved, Toast.LENGTH_LONG).show() }
                     onClosed()
                 }
             },
@@ -389,7 +389,7 @@ internal fun SessionRoute(
     }
 }
 
-/** FR-64: the only text the Sandes handoff puts on the clipboard is the interpreter's contact. */
+/** the only text the Sandes handoff puts on the clipboard is the interpreter's contact. */
 fun sanitizeSandesHandoffClipboard(contact: String): String = contact.trim()
 
 @Composable
@@ -471,7 +471,7 @@ private fun launchSandes(activity: Activity) {
     }
 }
 
-/** Opens WhatsApp at the interpreter's number; no session data goes with it (FR-64). Sandes goes through its dialog. */
+/** Opens WhatsApp at the interpreter's number; no session data goes with it. Sandes goes through its dialog. */
 private fun callInterpreter(activity: Activity, settings: AppSettings) {
     val name = activity.getString(R.string.settings_whatsapp)
     val intent = whatsappNumber(settings.interpreterContact)?.let { Intent(Intent.ACTION_VIEW, "https://wa.me/$it".toUri()) }

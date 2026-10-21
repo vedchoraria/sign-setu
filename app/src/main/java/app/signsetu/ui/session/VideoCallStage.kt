@@ -77,7 +77,7 @@ import kotlin.math.roundToInt
 
 /**
  * The stage as a one-to-one video call: the character is the caller, the subject's camera a small window. Head
- * gestures, a palm, a shrug, pointing and held-up fingers only propose an answer; the subject's tap answers (FR-110).
+ * gestures, a palm, a shrug, pointing and held-up fingers only propose an answer; the subject's tap answers.
  */
 @Composable
 fun VideoCallStage(

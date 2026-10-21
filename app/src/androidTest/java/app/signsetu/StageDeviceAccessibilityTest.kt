@@ -32,7 +32,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
-/** Accessibility Test Framework checks on the paired stage device's covers and pairing check value, in both themes (AT-07). */
+/** Accessibility Test Framework checks on the paired stage device's covers and pairing check value, in both themes. */
 @RunWith(Parameterized::class)
 class StageDeviceAccessibilityTest(private val dark: Boolean) {
 

@@ -74,17 +74,17 @@ class AppContainer(private val app: Application) : DefaultLifecycleObserver, Com
     val hardKeys = HardKeys()
     val stageGuard = StageGuard(app)
 
-    /** Landmark tracking, created per build type; without it the stage shows a plain mirror (D-20, D-25). */
+    /** Landmark tracking, created per build type; without it the stage shows a plain mirror. */
     private val tracker = lazy { LandmarkTrackers.create(app) }
     val landmarkTracker: LandmarkTracker? by tracker
     private fun landmarkTrackerOrNull() = if (tracker.isInitialized()) tracker.value else null
 
-    /** Reads isolated signs from landmarks; none until its model is present (D-25). */
+    /** Reads isolated signs from landmarks; none until its model is present. */
     private val signReaders = SignLanguage.entries.associateWith { lang -> lazy { SignReaders.create(app, lang) } }
     val signReader: SignReader? get() = signReader(SignLanguage.ISL)
     fun signReader(lang: SignLanguage): SignReader? = signReaders.getValue(lang).value
 
-    /** SEC-63: warn only; blocking would fail an officer in an emergency. */
+    /** warn only; blocking would fail an officer in an emergency. */
     val deviceLooksRooted: Boolean by lazy {
         Build.TAGS?.contains("test-keys") == true ||
             listOf("/system/bin/su", "/system/xbin/su", "/sbin/su", "/su/bin/su").any { File(it).exists() }
@@ -141,7 +141,7 @@ class AppContainer(private val app: Application) : DefaultLifecycleObserver, Com
         scope.launch { runCatching { unlock() }.onFailure { Log.w(TAG, "unlock failed", it); onFailed() } }
     }
 
-    /** The second-screen transport; null when the device has no Bluetooth, and every entry point is then hidden (D-26). */
+    /** The second-screen transport; null when the device has no Bluetooth, and every entry point is then hidden. */
     val pairTransport: StageTransport? by lazy { StageTransports.create(app) }
     private val _link = MutableStateFlow<StageLink?>(null)
     /** At most one link: this phone as officer, or this device as the stage. Memory only. */
@@ -151,7 +151,7 @@ class AppContainer(private val app: Application) : DefaultLifecycleObserver, Com
 
     private suspend fun identity() = Identity(BuildConfig.VERSION_CODE, content.load().manifestHash, "${Build.MANUFACTURER} ${Build.MODEL}")
 
-    /** This device becomes the subject's screen; the session database is never opened here (SEC-69). */
+    /** This device becomes the subject's screen; the session database is never opened here. */
     fun startStage() = scope.launch {
         val transport = pairTransport ?: return@launch
         endLink(ByeReason.CANCEL)
@@ -217,7 +217,7 @@ class AppContainer(private val app: Application) : DefaultLifecycleObserver, Com
 
     override fun onStop(owner: LifecycleOwner) {
         backgroundedAt = SystemClock.elapsedRealtime()
-        // The officer left the app: the stage covers its item until they are back (FR-75).
+        // The officer left the app: the stage covers its item until they are back.
         officerLink?.hold()
     }
 

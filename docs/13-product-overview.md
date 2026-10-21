@@ -10,9 +10,9 @@ Sign Setu is an offline Android application that helps a police officer communic
 | --- | --- |
 | Platform | Android 10 (API 29) and later; sign reading on 64-bit phones |
 | Network | Optional: only the department gateway, only when the build has one and the phone is online; everything works without it |
-| Languages for the subject | 17 in the language finder, including Chhattisgarhi, Gondi and Halbi; every stage word, question, phrase and picture label in all 17 (drafts beyond English and Hindi, D-43); typed English captioned in Hindi on the phone (D-44); sign languages ISL and ASL |
+| Languages for the subject | 17 in the language finder, including Chhattisgarhi, Gondi and Halbi; every stage word, question, phrase and picture label in all 17 (drafts beyond English and Hindi); typed English captioned in Hindi on the phone; sign languages ISL and ASL |
 | Officer interface languages | English, Hindi |
-| Release APK | 67.6 MiB (70,891,654 bytes, standard build, unsigned), nothing compressed for size (D-42) |
+| Release APK | 0.5.0: 78.9 MiB for arm64-v8a phones, 104.2 MiB universal (arm64-v8a and x86_64); nothing compressed for size |
 | Automated tests | 201 unit tests pass for both build flavors; 76 instrumented tests pass on an API 34 emulator; 918 portal tests pass |
 
 ## 2. How a session works
@@ -76,23 +76,25 @@ The officer page has two tabs, built from one card and tile style. **Transcribe*
 | Answer inputs | For a lesson-sheet question the panel under the character becomes its input: a number pad with large digits (age 0 to 120, counts, brothers then sisters), a 10-digit mobile pad grouped 5 and 5 with "No phone", a written name or place, a class grid (1 to 12, college, not in school), a state list (Chhattisgarh first, all states and union territories) then its district or a written one, and several pictures with Done. A written or typed answer is read back large and becomes the subject's own only on their Yes; one left unconfirmed is logged as unconfirmed. "I don't know", "I don't understand", "That's wrong" and Stop stay under every input |
 | Phrase board | A button by the character opens the eight everyday phrases as pictures with words; a tap logs the phrase as the subject's own |
 | Draw and Write | A drawing pad with five ink colours and Undo; a drawing that answers a question returns to it, a requested drawing ends on a thank-you and hand-back screen; Write opens the keyboard for every profile except a young child; written answers are capped at 2,000 characters |
-| Sign an answer | The camera button ("Sign") opens a 20-second sign window; the stage shows one dot per sign seen, then at once asks the person to pick what each sign meant among two or three pictures (§6, D-41) |
+| Sign an answer | The camera button ("Sign") opens a 20-second sign window; the stage shows one dot per sign seen, then at once asks the person to pick what each sign meant among two or three pictures (§6) |
 | What to do now | One plain line over the camera window: answer by tapping or signing, or tap Next; statements show only Next and Stop |
 | Choosing a meaning | After the officer taps Ask them to choose: two or three picture cards per sign in the subject's language, and "None of these" |
 | Camera mirror | The subject sees the whole camera frame below the character, uncropped at 9:16, with a hand-and-arm skeleton during a sign window, never face points; nothing is captured or stored |
 | Replay and speed | The subject sets the signing speed (½×, ¾×, 1×), kept for the session in memory only; a young child starts at ¾× at most |
 | Pause | After Stop, a calm night-sky layer with a breathing circle and bubbles to pop covers the whole stage, with no score and no sound. Only the subject's "I'm ready" ends it; the officer's lock stays reachable. The log records "Pause ended after N s" |
-| Officer glance strip | A band at the edge facing the officer shows the last question and answer upside down, for an officer sitting opposite. Off until the officer turns it on from the session menu (D-41). Hidden for sensitive questions and while the subject draws or writes; a long press hides it for the session. Machine sign readings never appear on it |
+| Officer glance strip | A band at the edge facing the officer shows the last question and answer upside down, for an officer sitting opposite. Off until the officer turns it on from the session menu. Hidden for sensitive questions and while the subject draws or writes; a long press hides it for the session. Machine sign readings never appear on it |
 | Vibration codes | Felt by whoever holds the phone: Yes one long buzz; No two buzzes; Stop, Break, "I don't know", "I don't understand" or "That's wrong" three short pulses; a picture a tick. Never for the young-child profile |
 | Sun mode | The stage turns black, white and yellow in glare: on after 3 s above 10,000 lux, off after 10 s below 2,000 lux. The light sensor is read only while the stage shows; the officer can force it on from the menu |
 | Rotate | The stage turns 180 degrees for a subject sitting opposite; tilting the phone to show turns it automatically |
 | Staying on the stage | The app is pinned; Back does nothing; single volume presses do nothing; one tap on the small lock, or both volume keys held for 1.5 s, returns to the officer |
 
-Subject-screen words, questions, phrases and card labels exist in English, Hindi, Chhattisgarhi, Gondi, Halbi and the other twelve languages of the language finder; everything beyond English and Hindi is a draft awaiting native-speaker review (D-43).
+Subject-screen words, questions, phrases and card labels exist in English, Hindi, Chhattisgarhi, Gondi, Halbi and the other twelve languages of the language finder; everything beyond English and Hindi is a draft awaiting native-speaker review.
 
 ### 3.3 Paired stage
 
-A second phone or tablet, paired once in system Bluetooth settings, shows the subject's stage while the officer keeps their phone (D-26). The officer phone stays the only store; the stage device keeps nothing about the session, has no local exit while live, and at the end stays pinned on a hand-back screen until its own credential is given. Stop and "I don't know" are always available on it; Stop opens a break that blocks Show until the officer taps "Break given". Paired mode does not change the app's non-evidentiary status.
+A second phone or tablet, paired once in system Bluetooth settings, shows the subject's stage while the officer keeps their phone. The officer phone stays the only store; the stage device keeps nothing about the session, has no local exit while live, and at the end stays pinned on a hand-back screen until its own credential is given. Stop and "I don't know" are always available on it; Stop opens a break that blocks Show until the officer taps "Break given". Paired mode does not change the app's non-evidentiary status.
+
+With the online assistant on, a paired stage can host the **AI counsellor** for a person who is afraid of the police: the counsellor writes one short, non-leading line per turn from the conversation so far, the officer sees each line for six seconds (Send now, Another line, Take over) before it is signed and captioned on the stage, and Stop, a break or a flagged risk hands the conversation back. It is never offered for an accused person, and every line is marked "AI counsellor" in the record.
 
 ### 3.4 Safety and privacy
 
@@ -101,19 +103,19 @@ A second phone or tablet, paired once in system Bluetooth settings, shows the su
 | Offline | Every feature works with no connection; no RECORD_AUDIO or location permission, enforced by a build gate for every variant |
 | Encrypted record | SQLCipher (AES-256) under a random key wrapped by an Android Keystore key that works only after the phone's own lock |
 | Relock | After five minutes away from the app; after a crash mid-stage the full credential is always asked |
-| Retention | Sessions deleted on end or after the retention period; "Delete all data" destroys the keys |
+| Retention | Finished sessions saved under the officer's name until deleted, or purged after a set period; "Delete all data" destroys the keys |
 | Screen | Screenshots blocked in release; taps through another app's overlay ignored; no backup or device transfer |
 | Keyboard | Every text field asks the keyboard not to learn from what is typed |
 | Integrity | Every content file, the vision and sign-reader models and the assistant model are checked by SHA-256 before use |
 | Landmarks | Biometric data: analysed only inside a sign window, kept in memory for the session, never stored or exported |
 | Expiry | A build refuses new sessions 180 days after it was made; rooted phones are warned |
-| Excluded by design | Identity columns in the database (personal details exist only as the subject's own logged answers, purged with the session, D-36), statements, audio or video recording, identity recognition, thumb or open-palm signals for yes, no or stop, body maps for the subject |
+| Excluded by design | Identity columns in the database (personal details exist only as the subject's own logged answers, purged with the session), statements, audio or video recording, identity recognition, thumb or open-palm signals for yes, no or stop, body maps for the subject |
 
 ## 4. Mechanisms
 
 ### 4.1 Unlock and keys
 
-A random 32-byte database key is stored only in wrapped form (`noBackupFilesDir/dek.bin`), encrypted by an AES-256-GCM key in Android Keystore that is usable for 30 seconds after the officer passes the phone lock. On launch the app first tries the key silently, which succeeds straight after a phone unlock; otherwise it shows the fingerprint or PIN prompt. While the stage shows, a flag holding no subject data (`stage_live`) is written to disk; if the app is locked or restarted while it is set, unlocking always asks for the full credential, and a successful prompt clears it. If the phone's lock is removed or reset, Android destroys the Keystore key; the app then deletes the unreadable data and tells the officer once.
+A random 32-byte database key is stored only in wrapped form (`noBackupFilesDir/dek.bin`), encrypted by an AES-256-GCM key in Android Keystore that needs no prompt but works only while the phone is unlocked. A key made by an earlier version is rewrapped on the next unlock, so stored sessions are kept. While the stage shows, a flag holding no subject data (`stage_live`) is written to disk; if the app is locked or restarted while it is set, unlocking always asks for the full credential, and a successful prompt clears it. If the phone's lock is removed or reset, Android destroys the Keystore key; the app then deletes the unreadable data and tells the officer once.
 
 ### 4.2 Write before show, and the layered record
 
@@ -129,7 +131,7 @@ Every event (item shown, answer, note) is written to the encrypted database befo
 
 ### 4.4 Typed text into signs
 
-Typed text is split into words (a possessive keeps its stem; runs of up to three words that form one entry, such as "thank you" or "how many", stay together). Each word becomes, in order of preference: the recorded ISL sign, the authored sign, then the everyday gesture (with Signs on); the everyday gesture (with Gestures on); fingerspelling (with Spell on; grammar words such as "is" and "का" are skipped); or a short pause that holds the word's picture (with Pictures only). With Signs on, words play in draft ISL order: time words first, the other words as typed, then negation, then the question word; the caption keeps the typed order and lights each word as it is signed. Hindi is spelled in Latin letters (पानी to PANI), dropping the final silent vowel. A question mark adds the asking face. The ordering is a draft until Deaf review (D-29).
+Typed text is split into words (a possessive keeps its stem; runs of up to three words that form one entry, such as "thank you" or "how many", stay together). Each word becomes, in order of preference: the recorded ISL sign, the authored sign, then the everyday gesture (with Signs on); the everyday gesture (with Gestures on); fingerspelling (with Spell on; grammar words such as "is" and "का" are skipped); or a short pause that holds the word's picture (with Pictures only). With Signs on, words play in draft ISL order: time words first, the other words as typed, then negation, then the question word; the caption keeps the typed order and lights each word as it is signed. Hindi is spelled in Latin letters (पानी to PANI), dropping the final silent vowel. A question mark adds the asking face. The ordering is a draft until Deaf review.
 
 ### 4.5 Show-back and say-back
 
@@ -154,7 +156,7 @@ The role is "Not known yet" until the officer sets it, and it is exported only w
 
 ### 4.9 Manual and Auto
 
-Manual is the default. When a department allows Auto, a rule-ordered sequencer over the reviewed bank picks the next welfare item (rapport, ground rules, welfare, practical, break, closing) and the officer approves each one; it never proposes sensitive, free-recall, follow-up or rights items. Only a statement may follow a statement by itself, on the subject's Next, at most three in a row. Stop pauses Auto; a second Stop ends it. A typed question, a show-back or an event question sent by hand turns Auto off. Leaving the stage stays one tap. Rules and logging are in D-30.
+Manual is the default. When a department allows Auto, a rule-ordered sequencer over the reviewed bank picks the next welfare item (rapport, ground rules, welfare, practical, break, closing) and the officer approves each one; it never proposes sensitive, free-recall, follow-up or rights items. Only a statement may follow a statement by itself, on the subject's Next, at most three in a row. Stop pauses Auto; a second Stop ends it. A typed question, a show-back or an event question sent by hand turns Auto off. Leaving the stage stays one tap.
 
 ### 4.10 Other mechanisms
 
@@ -170,7 +172,7 @@ Manual is the default. When a department allows Auto, a rule-ordered sequencer o
 
 ### 4.11 Instant Hindi caption
 
-With a Hindi-reading subject, Latin text the officer types is translated on the phone, without a model, 250 ms after typing stops (D-44). A reviewed English and Hindi pair in the content wins: it is matched on lower case with punctuation, articles and contractions removed. Next come about 30 sentence patterns (Do you want X? Are you X? Is X hurt? Where is X? Did someone hurt you? Show me X, Can you X? I will X, Do not X, How many X? and others) with nouns from the picture cards, the gesture lexicon and words.json, polite आप forms, honorific agreement for parents and officials, and "हम" for the officer so no gender is assumed. Last, if every word is known, a word-by-word draft in Hindi order. Otherwise there is no caption. The draft is shown marked "machine translation, not checked"; a tap dismisses it for that message, and Send makes it again from the final text. The character signs the officer's own words; an assistant suggestion replaces the caption. The signed-answer draft uses the same idea for common verbs ("मुझे पानी चाहिए").
+With a Hindi-reading subject, Latin text the officer types is translated on the phone, without a model, 250 ms after typing stops. A reviewed English and Hindi pair in the content wins: it is matched on lower case with punctuation, articles and contractions removed. Next come about 30 sentence patterns (Do you want X? Are you X? Is X hurt? Where is X? Did someone hurt you? Show me X, Can you X? I will X, Do not X, How many X? and others) with nouns from the picture cards, the gesture lexicon and words.json, polite आप forms, honorific agreement for parents and officials, and "हम" for the officer so no gender is assumed. Last, if every word is known, a word-by-word draft in Hindi order. Otherwise there is no caption. The draft is shown marked "machine translation, not checked"; a tap dismisses it for that message, and Send makes it again from the final text. The character signs the officer's own words; an assistant suggestion replaces the caption. The signed-answer draft uses the same idea for common verbs ("मुझे पानी चाहिए").
 
 ## 5. The character in detail
 
@@ -195,7 +197,7 @@ A 3D rig (VRoid, Blender, glTF or VRM) rendered with Filament is the upgrade pat
 
 ### 6.1 Sign windows
 
-The camera's frames are analysed only inside an explicit sign window (D-25):
+The camera's frames are analysed only inside an explicit sign window:
 
 | Window | Opened by | Length |
 | --- | --- | --- |
@@ -222,12 +224,12 @@ For the whole session:
 
 - The app's reading, the officer's reading and the subject's answer are three separate layers (§4.2).
 - A reading becomes the subject's answer only when the officer taps "Ask them to choose". The stage then shows, for each sign, two or three picture cards in the subject's language (the officer's reading first, then the reader's guesses, then the item's own answer cards, in shuffled positions) and "None of these".
-- After a short sign window on the stage, the choices appear at once (D-41); the reader's guesses are never shown as words, and only the subject's pick records a meaning.
+- After a short sign window on the stage, the choices appear at once; the reader's guesses are never shown as words, and only the subject's pick records a meaning.
 
 ### 6.3 Context-limited vocabulary
 
 - `assets/content/sign_words.json` (draft, needs ISL review) maps the reader's INCLUDE labels to the app's vocabulary concepts, for example house to home and bathroom to toilet.
-- While a question is on screen, the reader's guesses whose concept has a picture card among that question's cards rank first; the others stay, so the officer always sees the reader's best guesses (D-38).
+- While a question with two or more answer pictures is on screen, every guess whose concept is one of those pictures ranks first, at any score; with one illustrative picture only the top three are reordered. A label can stand for several cards (`cards` in `sign_words.json`, for example police for a police station). On an unseen signer this puts the right lesson answer first 73% of the time and among the three shown 88% (`tools/ml/EVAL.md`).
 - Core answer words the bundled reader cannot read: yes, no, water, pain, help, stop, don't know. Mother, father, police, home (house) and toilet (bathroom) are covered.
 
 ### 6.4 Engine and reader
@@ -235,7 +237,7 @@ For the whole session:
 | Component | State |
 | --- | --- |
 | Camera mirror (CameraX Preview) | Built; nothing captured or stored |
-| Vision engine (MediaPipe Holistic, `tasks-vision` 1.0.0) | Built; 21 points per hand, 468 face and 33 pose points per frame, GPU delegate with CPU fallback; 64-bit phones only; usage statistics dropped on the device (D-33) |
+| Vision engine (MediaPipe Holistic, `tasks-vision` 1.0.0) | Built; 21 points per hand, 468 face and 33 pose points per frame, GPU delegate with CPU fallback; 64-bit phones only; usage statistics dropped on the device |
 | Segmentation, capture and slow replay | Built |
 | Sign reader | Built: a 262-word isolated-sign classifier trained on INCLUDE (CC BY 4.0), 1.4 MB, plain Kotlin; INCLUDE test top-1 97.8%, top-3 99.4% on studio signers; unmeasured with children on phone cameras |
 | Partner team's model | Can replace the reader or tracker behind the same interfaces ([hand model integration](11-hand-model-integration.md)) |
@@ -272,7 +274,7 @@ Export works without a network. The PDF is written on the phone and handed to An
 | Camera and vision | CameraX 1.6.2 with `camera-compose`; MediaPipe Tasks Vision 1.1.1 (Holistic landmarker) with `protobuf-javalite` 4.36.2 |
 | Sign reader | Plain Kotlin forward pass; trained with Python tools in `tools/ml` |
 | Second screen | Bluetooth RFCOMM (standard); Google Play services Nearby Connections 19.5.1 (`nearby` flavor only) |
-| Storage | Room 2.8.5 (database version 3), SQLCipher for Android 4.19.1, androidx.sqlite 2.7.1, DataStore 1.2.1 |
+| Storage | Room 2.8.5 (database version 4), SQLCipher for Android 4.19.1, androidx.sqlite 2.7.1, DataStore 1.2.1 |
 | Security | androidx.biometric 1.1.0, Android Keystore, screen pinning, FLAG_SECURE; platform JCA for pairing (P-256, HKDF-SHA256, AES-256-GCM) |
 | Background | WorkManager 2.12.0 |
 | Export | Android PdfDocument, PdfBox-Android 2.0.27.0, BouncyCastle 1.86 |

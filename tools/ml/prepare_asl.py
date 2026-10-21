@@ -8,10 +8,11 @@ read, so the 14.5 GB train split passes through the disk 500 MB at a time.
 The non-game split misses some of the 250 signs; the game split's validation and test signers fill them in, read
 by HTTP range so only the row groups holding a missing sign are fetched.
 Runs in a venv with mediapipe, pyarrow and pillow (not the torch one):
-    python -I tools/ml/prepare_asl.py [data_dir] [workers] [limit]   # default C:/Users/Yash/dev/ml-data/popsign
+    python -I tools/ml/prepare_asl.py [data_dir] [workers] [limit]   # default $SIGNSETU_DATA/popsign
 """
 import io
 import json
+import os
 import pathlib
 import pickle
 import sys
@@ -19,6 +20,9 @@ import urllib.request
 from concurrent.futures import ProcessPoolExecutor
 
 import numpy as np
+
+# Training and evaluation data stay outside the repository.
+DATA_ROOT = pathlib.Path(os.environ.get("SIGNSETU_DATA", "ml-data"))
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 MODEL = ROOT / "app" / "src" / "main" / "assets" / "content" / "models" / "holistic_landmarker.task"
@@ -197,5 +201,5 @@ def main(data: pathlib.Path, workers: int = 6, limit: int = 0, shards=SHARDS) ->
 
 if __name__ == "__main__":
     a = sys.argv[1:]
-    main(pathlib.Path(a[0]) if a else pathlib.Path("C:/Users/Yash/dev/ml-data/popsign"),
+    main(pathlib.Path(a[0]) if a else DATA_ROOT / "popsign",
          int(a[1]) if len(a) > 1 else 6, int(a[2]) if len(a) > 2 else 0)

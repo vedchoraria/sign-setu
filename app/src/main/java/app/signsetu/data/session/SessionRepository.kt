@@ -22,7 +22,16 @@ enum class EventType {
 enum class EventSource { PRESET, TEXT, BOARD, SHOW_BACK, SUBJECT, OFFICER, PHRASE, RULE, MACHINE }
 
 @Immutable
-data class Session(val id: String, val startedAt: Long, val profile: Profile, val subjectLang: String, val role: Role = Role.NOT_KNOWN)
+data class Session(
+    val id: String,
+    val startedAt: Long,
+    val profile: Profile,
+    val subjectLang: String,
+    val role: Role = Role.NOT_KNOWN,
+    val endedAt: Long? = null,
+    /** The officer's name for a saved session. */
+    val title: String? = null,
+)
 
 @Immutable
 data class SessionEvent(
@@ -43,6 +52,8 @@ data class SessionEvent(
     /** "stage" or "stage_late" for answers from the second screen; null on this phone. */
     val via: String? = null,
 )
+
+const val TITLE_MAX = 80
 
 class SessionRepository(
     private val dao: SessionDao,
@@ -84,7 +95,7 @@ class SessionRepository(
     /** A fresh read, never a cached snapshot: decisions on what to ask next depend on it. */
     suspend fun eventsNow(sessionId: String): List<SessionEvent> = events(sessionId).first()
 
-    /** Persisted before the interface reflects it (FR-34); returns the event id. */
+    /** Persisted before the interface reflects it; returns the event id. */
     suspend fun log(
         sessionId: String,
         type: EventType,
@@ -105,10 +116,18 @@ class SessionRepository(
 
     suspend fun drawing(id: Long): ByteArray? = dao.drawing(id)
 
-    /** Ending a session purges it; there is no archive (FR-06). */
+    /** Ending a session purges it; there is no archive. */
     suspend fun purge(sessionId: String) = dao.deleteSession(sessionId)
 
-    suspend fun purgeExpired(retentionHours: Int): Int = dao.deleteStartedBefore(clock() - retentionHours * 3_600_000L)
+    /** Zero hours keeps every session until the officer deletes it. */
+    suspend fun purgeExpired(retentionHours: Int): Int = if (retentionHours <= 0) 0 else dao.deleteStartedBefore(clock() - retentionHours * 3_600_000L)
+
+    /** Finished sessions, newest first, kept under the officer's name for them. */
+    fun saved(): Flow<List<Session>> = dao.saved().map { list -> list.map { it.toModel() } }
+
+    suspend fun end(id: String, title: String) = unlessClosed(Unit) { dao.endSession(id, clock(), title.trim().take(TITLE_MAX)) }
+
+    suspend fun reopen(id: String) = unlessClosed(Unit) { dao.reopen(id) }
 
     private inline fun <reified T : Enum<T>> safeValueOf(value: String, default: T): T =
         try { enumValueOf<T>(value) } catch (_: IllegalArgumentException) { default }
@@ -119,6 +138,8 @@ class SessionRepository(
         profile = safeValueOf(profile, Profile.NOT_SURE),
         subjectLang = subjectLang,
         role = safeValueOf(role, Role.NOT_KNOWN),
+        endedAt = endedAt,
+        title = title,
     )
 
     private fun EventEntity.toModel() = SessionEvent(

@@ -11,6 +11,7 @@ chained with holds, transitions, J's twist and Z's trace, a slide for double let
 import hashlib
 import json
 import math
+import os
 import pathlib
 import pickle
 import sys
@@ -24,6 +25,9 @@ from torch import nn
 import runtime
 from features import SPELL_FEATURES, SPELL_FPS, SPELL_MAX, spell_features
 
+# Training and evaluation data stay outside the repository.
+DATA_ROOT = pathlib.Path(os.environ.get("SIGNSETU_DATA", "ml-data"))
+
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 MODELS = ROOT / "app" / "src" / "main" / "assets" / "content" / "models"
 RESOURCES = ROOT / "app" / "src" / "test" / "resources"
@@ -32,7 +36,7 @@ REPO = "sid220/asl-now-fingerspelling"
 ALPHABET = "abcdefghijklmnopqrstuvwxyz"
 HIDDEN, KERNEL, DILATIONS = 192, 5, (1, 2, 4, 1)
 NOW_ASPECT = 4 / 3  # ASLNow! records webcam frames; their size is not stored
-DATA = pathlib.Path("C:/Users/Yash/dev/ml-data/asl_spell")
+DATA = DATA_ROOT / "asl_spell"
 
 
 class SpellNet(nn.Module):

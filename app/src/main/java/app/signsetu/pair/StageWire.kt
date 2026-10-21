@@ -18,7 +18,7 @@ const val DRAWING_CAP = 600_000
 
 internal val WireJson = Json { classDiscriminator = "t"; ignoreUnknownKeys = false; encodeDefaults = true }
 
-/** Only IDs travel; each side resolves them against its own verified content (SEC-54). */
+/** Only IDs travel; each side resolves them against its own verified content. */
 @Serializable
 sealed interface WirePending {
     @Serializable @SerialName("ask") data class Ask(val questionId: String) : WirePending
@@ -123,7 +123,7 @@ fun WirePending.resolve(content: ContentBundle): Pending? = when (this) {
     is WirePending.Rules -> Pending.GroundRules(step).takeIf { ruleStep(it) != null }
 }
 
-/** Reads only what is on stage, never the officer's draft (D-26). */
+/** Reads only what is on stage, never the officer's draft. */
 fun SessionUi.toStageView(largeCaptions: Boolean, gestureSpeed: Float, cameraOn: Boolean): StageView {
     val live = mode == Mode.SHOW && onStage != null
     return StageView(

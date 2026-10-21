@@ -121,7 +121,7 @@ internal fun eventDetail(res: Resources, e: SessionEvent, by: Map<Long, ShownBy>
 }.let { if (e.via != null) "$it (${res.getString(R.string.report_via_stage)})" else it }
 
 @Composable
-internal fun ExportDialog(state: ExportState, onShare: () -> Unit, onFinish: () -> Unit, onDismiss: () -> Unit, shared: Boolean = false) {
+internal fun ExportDialog(state: ExportState, onShare: () -> Unit, onFinish: () -> Unit, onDismiss: () -> Unit) {
     when (state) {
         ExportState.Working -> GuardedAlertDialog(
             onDismissRequest = {},
@@ -169,11 +169,8 @@ internal fun ExportDialog(state: ExportState, onShare: () -> Unit, onFinish: () 
                 }
             },
             dismissButton = {
-                // The file and its one-time password are gone after Finish: a report never shared needs a second tap.
-                var sure by remember(state) { mutableStateOf(false) }
-                TextButton(onClick = { if (shared || sure) onFinish() else sure = true }) {
-                    Text(stringResource(if (shared || !sure) R.string.export_finish else R.string.export_finish_unshared), color = MaterialTheme.colorScheme.error)
-                }
+                // The session stays saved, so a lost file or password only means exporting again.
+                TextButton(onClick = onFinish) { Text(stringResource(R.string.export_finish)) }
             },
         )
         ExportState.Failed -> GuardedAlertDialog(

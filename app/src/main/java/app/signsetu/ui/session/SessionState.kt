@@ -16,11 +16,11 @@ import app.signsetu.sign.SignConfirm
 import app.signsetu.sign.SignSegment
 import app.signsetu.sign.SignWindow
 
-/** What the officer has prepared but not yet shown (FR-15). */
+/** What the officer has prepared but not yet shown. */
 @Immutable
 sealed interface Pending {
     data class Ask(val question: Question) : Pending
-    /** [caption] is the assistant's translation the officer accepted (D-24); the character still signs [text]. */
+    /** [caption] is the assistant's translation the officer accepted; the character still signs [text]. */
     data class FreeText(
         val text: String,
         val cardIds: List<String>,
@@ -30,6 +30,8 @@ sealed interface Pending {
         val ref: Long? = null,
         /** The picture of the officer's reading in a say-back; the subject picks among [cardIds]. */
         val meant: String? = null,
+        /** Written by the AI counsellor while the officer watched (Counsellor.kt). */
+        val byAi: Boolean = false,
     ) : Pending
     data class Cards(val cardIds: List<String>) : Pending
     /** [choices] are the pictures offered, the entry's among them; fewer than two is a plain Yes or No. */
@@ -98,13 +100,13 @@ data class SessionUi(
     val events: List<SessionEvent>,
     /** Signs read so far while the subject is signing an answer; null when not reading. */
     val reading: List<SignSegment>?,
-    /** Landmark frames of each signed answer, by event id: memory only, never stored or exported (D-25). */
+    /** Landmark frames of each signed answer, by event id: memory only, never stored or exported. */
     val signed: Map<Long, List<SignSegment>>,
-    /** What is on the stage now, set only after it is logged; [pending] is the officer's draft (D-26). */
+    /** What is on the stage now, set only after it is logged; [pending] is the officer's draft. */
     val onStage: Pending? = null,
     /** The logged row of [onStage]; a second screen's answers name it. */
     val itemId: Long? = null,
-    /** The open sign window, if any: the camera is analysed only inside one (D-25). */
+    /** The open sign window, if any: the camera is analysed only inside one. */
     val signWindow: SignWindow? = null,
     /** Alternatives the subject is choosing between for a signed answer; only their tap records a meaning. */
     val confirm: SignConfirm? = null,

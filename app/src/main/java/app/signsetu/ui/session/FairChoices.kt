@@ -30,7 +30,7 @@ fun unseen(all: List<String>, shown: List<String>): List<String>? {
 
 /**
  * The pictures a show-back or say-back offers: the reading under check and up to two others from [pool]. A single
- * picture is no choice, so then only the reading comes back and a Yes to it confirms nothing (FR-66).
+ * picture is no choice, so then only the reading comes back and a Yes to it confirms nothing.
  */
 fun checkChoices(meant: String?, pool: List<String>, max: Int = 3): List<String> {
     meant ?: return emptyList()

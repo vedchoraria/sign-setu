@@ -1,8 +1,9 @@
 """Downloads the INCLUDE pose release (OpenHands, MediaPipe Holistic keypoints) and caches it as normalised landmarks.
 
-    python tools/ml/prepare.py [data_dir]   # default C:/Users/Yash/dev/ml-data/include_pose
+    python tools/ml/prepare.py [data_dir]   # default $SIGNSETU_DATA/include_pose
 """
 import csv
+import os
 import pathlib
 import pickle
 import re
@@ -11,6 +12,9 @@ import urllib.request
 import zipfile
 
 import numpy as np
+
+# Training and evaluation data stay outside the repository.
+DATA_ROOT = pathlib.Path(os.environ.get("SIGNSETU_DATA", "ml-data"))
 
 URL = "https://zenodo.org/records/6674324/files/INCLUDE.zip?download=1"
 WIDTH, HEIGHT = 1080, 1920  # the release scaled its 0..1 points by a portrait 1080x1920 frame
@@ -57,4 +61,4 @@ def main(data: pathlib.Path) -> None:
 
 
 if __name__ == "__main__":
-    main(pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else "C:/Users/Yash/dev/ml-data/include_pose"))
+    main(pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else str(DATA_ROOT / "include_pose")))

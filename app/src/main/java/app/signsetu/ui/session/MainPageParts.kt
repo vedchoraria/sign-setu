@@ -201,7 +201,7 @@ fun SayBackDialog(e: SessionEvent, draft: String, onDraft: (String) -> Unit, onS
                     value = words,
                     onValueChange = { words = it; onDraft(it) },
                     singleLine = true,
-                    // SEC-05: the keyboard should not learn from what is typed about a subject.
+                    // the keyboard should not learn from what is typed about a subject.
                     keyboardOptions = KeyboardOptions(autoCorrectEnabled = false),
                     modifier = Modifier.fillMaxWidth(),
                 )

@@ -6,7 +6,7 @@ import android.os.Build
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 
-/** The nearby build: Nearby Connections where Play services exist, bonded Bluetooth elsewhere (D-26). */
+/** The nearby build: Nearby Connections where Play services exist, bonded Bluetooth elsewhere. */
 object StageTransports {
     private fun playServices(context: Context) =
         GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(context) == ConnectionResult.SUCCESS

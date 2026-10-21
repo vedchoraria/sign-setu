@@ -50,7 +50,7 @@ class ReportRow(val event: SessionEvent, val question: String?, val detail: Stri
 class ReportSection(val title: String, val header: List<String>, val rows: List<List<String>>)
 
 /**
- * Builds the session report as an A4 PDF and encrypts it with AES-256 under a one-time passphrase (FR-32, SEC-12).
+ * Builds the session report as an A4 PDF and encrypts it with AES-256 under a one-time passphrase.
  * The report opens in any PDF reader; nothing else is needed by the case file or CWC.
  */
 class SessionReport(private val context: Context) {
@@ -258,7 +258,7 @@ class SessionReport(private val context: Context) {
         }
     }
 
-    /** SEC-02: a report left behind by an earlier export is deleted after 15 minutes. */
+    /** a report left behind by an earlier export is deleted after 15 minutes. */
     private fun purgeStaleExports() {
         val cutoff = System.currentTimeMillis() - 15 * 60 * 1000L
         exportsDir(context).listFiles()?.forEach { if (it.isFile && it.lastModified() < cutoff) it.delete() }

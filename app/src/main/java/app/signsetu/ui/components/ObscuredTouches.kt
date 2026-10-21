@@ -8,7 +8,7 @@ import androidx.compose.ui.window.DialogProperties
 
 /**
  * Dialogs, sheets and menus open windows of their own, which do not inherit the activity's touch filter.
- * Call this inside one to drop touches that arrive through another app's overlay there too (SEC-45).
+ * Call this inside one to drop touches that arrive through another app's overlay there too.
  */
 @Composable
 fun FilterObscuredTouches() {

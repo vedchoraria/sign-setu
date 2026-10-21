@@ -244,7 +244,7 @@ val AdultBuild = Build(
 private val RestKey = HandKey()
 
 /**
- * Plays [parts] one after another as a single gesture (FR-62). Each part's first key spells out everything it
+ * Plays [parts] one after another as a single gesture. Each part's first key spells out everything it
  * leaves out, so it starts from the same pose as when it plays alone rather than holding the previous part's.
  */
 fun chain(id: String, parts: List<Gesture>, gap: Float = 0.3f): Gesture {

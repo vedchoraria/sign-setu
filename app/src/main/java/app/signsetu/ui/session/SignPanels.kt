@@ -54,7 +54,7 @@ internal val TileEdge = BorderStroke(1.dp, Color(0x22000000))
 
 /**
  * The subject says what their sign meant: two or three pictures, in their language, and "none of these". Nothing is
- * pre-selected and nothing counts until they tap (FR-66).
+ * pre-selected and nothing counts until they tap.
  */
 @Composable
 internal fun SignChoicePanel(choices: List<SignChoice>, content: ContentBundle, lang: String, onChoose: (SignChoice?) -> Unit, modifier: Modifier) {

@@ -25,7 +25,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 
-/** What the officer pane shows and does while a second screen is in use (D-26). */
+/** What the officer pane shows and does while a second screen is in use. */
 @Immutable
 class PairedPane(
     val label: String,

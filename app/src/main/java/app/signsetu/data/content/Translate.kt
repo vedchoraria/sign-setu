@@ -3,7 +3,7 @@ package app.signsetu.data.content
 /** How a Hindi draft was made, most trusted first; a draft of several sentences is as weak as its weakest. */
 enum class Made { BANK, NEAR, TEMPLATE, WORDS }
 
-/** A machine translation for the caption: the officer sees it marked as unchecked before Send (D-41). */
+/** A machine translation for the caption: the officer sees it marked as unchecked before Send. */
 data class HindiDraft(val hi: String, val made: Made)
 
 /**

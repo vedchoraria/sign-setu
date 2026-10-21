@@ -5,7 +5,7 @@ import com.google.android.datatransport.runtime.EncodedDestination
 
 /**
  * Stands in for the excluded upload backend that MediaPipe's task runner names. No backend is registered for it,
- * so the transport runtime drops every statistics event on the device and nothing is ever sent (SEC-30).
+ * so the transport runtime drops every statistics event on the device and nothing is ever sent.
  */
 object CCTDestination : EncodedDestination {
     override fun getName() = "none"

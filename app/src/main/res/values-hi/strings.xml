@@ -115,7 +115,7 @@
     <string name="export_body">रिपोर्ट एन्क्रिप्टेड है। यह पासवर्ड फ़ाइल से अलग दें, जैसे बोलकर। यह केवल एक बार दिखेगा।</string>
     <string name="export_password">पासवर्ड</string>
     <string name="export_share">रिपोर्ट भेजें</string>
-    <string name="export_finish">पूरा करें और सत्र मिटाएँ</string>
+    <string name="export_finish">हो गया</string>
     <string name="export_failed">रिपोर्ट नहीं बन सकी। सत्र में कोई बदलाव नहीं हुआ।</string>
     <string name="ok">ठीक है</string>
     <string name="report_title">साइन सेतु: बातचीत के नोट्स</string>
@@ -305,7 +305,7 @@
     <string name="more_tools">पूछने के और तरीके</string>
     <string name="more_session">सत्र</string>
 
-    <!-- Second screen (D-26) -->
+    <!-- Second screen -->
     <string name="second_screen">दूसरी स्क्रीन</string>
     <string name="second_screen_title">दूसरी स्क्रीन इस्तेमाल करें</string>
     <string name="second_screen_intro">व्यक्ति दूसरा फ़ोन या टैबलेट देखता है, यह फ़ोन आपके पास रहता है। सब कुछ केवल इसी फ़ोन पर दर्ज होता है।</string>
@@ -539,7 +539,6 @@
     <string name="wrap_title">यह सत्र पूरा करें</string>
     <string name="wrap_thank">स्टेज पर धन्यवाद कहें</string>
     <string name="wrap_keep_going">जारी रखें</string>
-    <string name="export_finish_unshared">अभी भेजी नहीं गई। मिटाने के लिए फिर दबाएँ</string>
     <string name="more_asked">पूछा</string>
     <string name="more_answered">जवाब मिला</string>
     <plurals name="wrap_minutes">
@@ -562,9 +561,42 @@
         <item quantity="one">%d सांकेतिक जवाब पढ़ना बाकी</item>
         <item quantity="other">%d सांकेतिक जवाब पढ़ना बाकी</item>
     </plurals>
-    <string name="session_finished">सत्र पूरा हुआ। इसका रिकॉर्ड इस फ़ोन से मिटा दिया गया।</string>
     <string name="switch_sign_title">%1$s पर बदलें?</string>
     <string name="switch_sign_body">इस सत्र में आगे पात्र %1$s में संकेत करेगा। व्यक्ति शायद दूसरी सांकेतिक भाषा न समझे।</string>
     <string name="switch_sign_confirm">बदलें</string>
     <string name="board_name">चित्र बोर्ड</string>
+    <string name="ai_counsellor_start">दूसरी स्क्रीन पर AI परामर्शदाता</string>
+    <string name="ai_tag">AI परामर्शदाता</string>
+    <string name="report_by_ai">AI परामर्शदाता ने लिखा, अधिकारी देख रहे थे</string>
+    <string name="counsel_thinking">परामर्शदाता अगली पंक्ति लिख रहा है…</string>
+    <string name="counsel_waiting">उनके जवाब की प्रतीक्षा</string>
+    <string name="counsel_next">%1$d सेकंड में उनकी स्क्रीन पर</string>
+    <string name="counsel_send_now">अभी भेजें</string>
+    <string name="counsel_skip">दूसरी पंक्ति</string>
+    <string name="counsel_take_over">बातचीत संभालें</string>
+    <string name="counsel_paused_stop">उन्होंने रुकने या आराम के लिए कहा। अब बातचीत आपके हाथ में है।</string>
+    <string name="counsel_paused_handoff">परामर्शदाता ने बातचीत आपको सौंपी: शायद वे खतरे में हैं या रुकना चाहते हैं।</string>
+    <string name="counsel_paused_no_reply">ऑनलाइन सहायक ने जवाब नहीं दिया। कनेक्शन और सहायक का स्विच देखें, या खुद जारी रखें।</string>
+    <string name="counsel_paused_limit">तीस बार बात हो चुकी। खुद जारी रखें या फिर से शुरू करें।</string>
+    <string name="counsel_resume">फिर से शुरू करें</string>
+    <string name="ai_needs_second_screen">पहले दूसरी स्क्रीन जोड़ें: व्यक्ति वहाँ AI परामर्शदाता से बात करेगा और आप यहाँ देखेंगे।</string>
+    <string name="ai_needs_online">पहले सेटिंग में ऑनलाइन सहायक चालू करें और यह फ़ोन जोड़ें।</string>
+    <string name="ai_not_for_accused">AI परामर्शदाता केवल पीड़ित और गवाह के लिए है, आरोपी या हिरासत में व्यक्ति के लिए नहीं।</string>
+    <string name="wrap_name">इस नाम से सहेजें</string>
+    <string name="wrap_default_name">सत्र %1$s</string>
+    <string name="wrap_saved_note">यह इस फ़ोन पर, एन्क्रिप्ट होकर, इसी नाम से रहेगा जब तक आप इसे न मिटाएँ। शुरुआती स्क्रीन से फिर खोलें।</string>
+    <string name="wrap_save">सहेजें और पूरा करें</string>
+    <string name="wrap_delete">बिना सहेजे मिटाएँ</string>
+    <string name="wrap_delete_sure">यह सत्र हमेशा के लिए मिटाने को फिर दबाएँ</string>
+    <string name="session_saved">सत्र इस फ़ोन पर सहेजा गया।</string>
+    <string name="session_deleted">सत्र इस फ़ोन से मिटा दिया गया।</string>
+    <string name="settings_keep">मिटाने तक रखें</string>
+    <string name="saved_title">सहेजे गए सत्र</string>
+    <string name="saved_open">खोलें</string>
+    <string name="saved_delete_title">यह सत्र मिटाएँ?</string>
+    <string name="saved_delete_body">इसका रिकॉर्ड इस फ़ोन से हमेशा के लिए हट जाएगा। ज़रूरत हो तो पहले रिपोर्ट निर्यात करें।</string>
+    <string name="saved_delete_confirm">मिटाएँ</string>
+    <string name="saved_finish_open_first">पहले खुला सत्र पूरा करें।</string>
+    <string name="saved_all">सभी %1$d दिखाएँ</string>
+    <string name="saved_fewer">कम दिखाएँ</string>
 </resources>

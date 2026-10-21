@@ -17,7 +17,8 @@ import kotlinx.coroutines.flow.Flow
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-// No table has a field for a subject's name, address, phone number or photograph (02-architecture §6).
+// No table has a field for a subject's name, address, phone number or photograph (02-architecture §6). The
+// officer's own name for a saved session is free text and may hold one; it is encrypted like every row.
 
 @Entity(tableName = "session")
 data class SessionEntity(
@@ -28,6 +29,8 @@ data class SessionEntity(
     val subjectLang: String,
     // The column default only fills rows from before roles existed; new sessions always write their role.
     @ColumnInfo(defaultValue = "VICTIM") val role: String = "NOT_KNOWN",
+    /** The officer's name for a finished session; null while it is open. */
+    val title: String? = null,
 )
 
 @Entity(
@@ -95,11 +98,20 @@ interface SessionDao {
     @Query("DELETE FROM session WHERE id = :id")
     suspend fun deleteSession(id: String)
 
+    @Query("UPDATE session SET endedAt = :endedAt, title = :title WHERE id = :id")
+    suspend fun endSession(id: String, endedAt: Long, title: String)
+
+    @Query("UPDATE session SET endedAt = NULL WHERE id = :id")
+    suspend fun reopen(id: String)
+
+    @Query("SELECT * FROM session WHERE endedAt IS NOT NULL ORDER BY endedAt DESC")
+    fun saved(): Flow<List<SessionEntity>>
+
     @Query("DELETE FROM session WHERE startedAt < :cutoff")
     suspend fun deleteStartedBefore(cutoff: Long): Int
 }
 
-@Database(entities = [SessionEntity::class, EventEntity::class, DrawingEntity::class], version = 3, exportSchema = true)
+@Database(entities = [SessionEntity::class, EventEntity::class, DrawingEntity::class], version = 4, exportSchema = true)
 abstract class SessionDatabase : RoomDatabase() {
     abstract fun dao(): SessionDao
 
@@ -121,14 +133,20 @@ abstract class SessionDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE session ADD COLUMN title TEXT")
+            }
+        }
+
         fun open(context: Context, key: ByteArray, onDestructiveMigration: () -> Unit = {}): SessionDatabase {
             System.loadLibrary("sqlcipher")
             return Room.databaseBuilder(context, SessionDatabase::class.java, FILE_NAME)
                 .openHelperFactory(SupportOpenHelperFactory(key))
-                // Purged rows are overwritten in place, and no write-ahead log keeps old pages around (SEC-08).
+                // Purged rows are overwritten in place, and no write-ahead log keeps old pages around.
                 .setJournalMode(JournalMode.TRUNCATE)
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
-                // Sessions live a day at most, so a downgrade drops them rather than failing every unlock.
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                // A downgrade drops sessions rather than failing every unlock; the officer is told (onDestructiveMigration).
                 .fallbackToDestructiveMigrationOnDowngrade(dropAllTables = true)
                 .addCallback(object : Callback() {
                     override fun onOpen(db: SupportSQLiteDatabase) {

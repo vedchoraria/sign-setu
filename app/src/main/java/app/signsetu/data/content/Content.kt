@@ -113,7 +113,7 @@ data class Language(val code: String, val name: String, val english: String, val
 @Immutable @Serializable
 data class PhraseSlot(val card: String, val sign: String? = null, val text: Localized)
 
-/** A phrase-bank sentence (FR-62): [signs] play in order, with [SLOT] standing for the chosen slot's sign. */
+/** A phrase-bank sentence: [signs] play in order, with [SLOT] standing for the chosen slot's sign. */
 @Immutable @Serializable
 data class Phrase(val id: String, val label: Localized, val signs: List<String>, val slots: List<PhraseSlot>) {
     companion object { const val SLOT = "$" }
@@ -148,7 +148,7 @@ data class ContentBundle(
     val lexicon: Map<String, LexiconEntry> = emptyMap(),
     val languages: List<Language> = emptyList(),
     val subjectUi: Map<String, Localized> = emptyMap(),
-    /** Files whose hash did not match the manifest; never shown to a subject (SEC-54). */
+    /** Files whose hash did not match the manifest; never shown to a subject. */
     val rejected: Set<String> = emptySet(),
     /** Every verified file in the bundle, relative to `assets/content/`. */
     val files: Set<String> = emptySet(),
@@ -156,7 +156,7 @@ data class ContentBundle(
     val phrases: List<Phrase> = emptyList(),
     /** Every written form of a vocabulary word, lower case, to its entry. */
     val words: Map<String, WordEntry> = emptyMap(),
-    /** SHA-256 of manifest.json; a second screen must hold the same content (D-26). */
+    /** SHA-256 of manifest.json; a second screen must hold the same content. */
     val manifestHash: String = "",
     /** Start of the manifest's SHA-256: names the exact content a prompt was drawn from. */
     val version: String = "",
@@ -205,7 +205,7 @@ data class ContentBundle(
     fun subjectText(key: String, lang: String): String? = subjectUi[key]?.pick(lang)
     fun hasCardImage(id: String) = "cards/$id.webp" in files
 
-    /** A text file failed its check, so the subject could be shown wrong words: no session may start (SEC-54). */
+    /** A text file failed its check, so the subject could be shown wrong words: no session may start. */
     val damaged: Boolean get() = rejected.any { it.endsWith(".json") && it !in MOTION_FILES && it !in LANGUAGE_FILES }
 
     /** ASL's files failed their check, so ASL is off: its signs and words are dropped, ISL still starts. */
@@ -239,7 +239,7 @@ class ContentRepository(private val open: (String) -> InputStream) {
         val manifestDigest = MessageDigest.getInstance("SHA-256").digest(manifestBytes)
         val manifest = json.decodeFromString<Manifest>(manifestBytes.decodeToString())
         val rejected = manifest.files.filter { (path, hash) -> eagerlyChecked(path) && sha256(path) != hash }.keys
-        // A file that fails its check is never parsed: no content beats wrong content (SEC-54).
+        // A file that fails its check is never parsed: no content beats wrong content.
         val triage = verified("triage.json", rejected) ?: TriageFile(emptyList(), emptyList())
         val cards = verified("cards.json", rejected) ?: CardsFile(emptyList(), emptyList())
         val lexicon = verified("lexicon.json", rejected) ?: LexiconFile(emptyList())

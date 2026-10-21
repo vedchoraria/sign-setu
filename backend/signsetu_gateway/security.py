@@ -28,7 +28,7 @@ def audit(db: Session, action: str, device_id: str = "") -> None:
 
 
 class RateLimiter:
-    # ponytail: in-process sliding window; per-gateway-instance, move to Redis when run on several replicas.
+    # In-process sliding window; per-gateway-instance, move to Redis when run on several replicas.
     def __init__(self, per_minute: int):
         self.per_minute = per_minute
         self.hits: defaultdict[str, deque[float]] = defaultdict(deque)

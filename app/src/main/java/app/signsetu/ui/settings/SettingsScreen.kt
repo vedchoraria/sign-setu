@@ -95,7 +95,7 @@ fun SettingsScreen(store: SettingsStore, models: ModelStore, onBack: () -> Unit,
     var modelState by remember { mutableStateOf(models.state()) }
     var importing by remember { mutableStateOf(false) }
     var badModel by remember { mutableStateOf(false) }
-    // The department hands out the model as a file; it is copied in and checked, never downloaded (D-24).
+    // The department hands out the model as a file; it is copied in and checked, never downloaded.
     val pickModel = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
             importing = true
@@ -213,7 +213,7 @@ fun SettingsScreen(store: SettingsStore, models: ModelStore, onBack: () -> Unit,
             Group(R.string.settings_records) {
                 Item(
                     stringResource(R.string.settings_retention),
-                    pluralStringResource(R.plurals.settings_hours, s.retentionHours, s.retentionHours),
+                    if (s.retentionHours == 0) stringResource(R.string.settings_keep) else pluralStringResource(R.plurals.settings_hours, s.retentionHours, s.retentionHours),
                     note = stringResource(R.string.settings_retention_note),
                 ) { dialog = Dialog.RETENTION }
                 Item(stringResource(R.string.settings_clear), stringResource(R.string.settings_clear_summary), destructive = true) {
@@ -230,7 +230,7 @@ fun SettingsScreen(store: SettingsStore, models: ModelStore, onBack: () -> Unit,
                         val built = LocalDate.ofEpochDay(BuildConfig.BUILD_EPOCH_DAY).format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text(stringResource(R.string.settings_version, BuildConfig.VERSION_NAME, built))
-                            // FR-52: the notice appears in About as well as on first run.
+                            // the notice appears in About as well as on first run.
                             Text(stringResource(R.string.notice_aid), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     },
@@ -264,7 +264,7 @@ fun SettingsScreen(store: SettingsStore, models: ModelStore, onBack: () -> Unit,
             title = stringResource(R.string.settings_retention),
             options = AppSettings.RETENTION_CHOICES,
             selected = s.retentionHours,
-            label = { pluralStringResource(R.plurals.settings_hours, it, it) },
+            label = { if (it == 0) stringResource(R.string.settings_keep) else pluralStringResource(R.plurals.settings_hours, it, it) },
             onPick = { scope.launch { store.setRetentionHours(it) }; dialog = null },
             onDismiss = { dialog = null },
         )

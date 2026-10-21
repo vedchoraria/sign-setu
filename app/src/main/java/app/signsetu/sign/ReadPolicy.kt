@@ -22,7 +22,7 @@ internal fun poorPicture(frames: List<LandmarkFrame>): Boolean {
 /**
  * The one place a read becomes something the subject is shown: the reader's guesses [all] (best first), a matched home
  * sign, and the item on screen [cards] go in; a segment with at most three candidates and the slower cue comes out.
- * A candidate is a suggestion only; nothing here confirms a meaning (FR-66).
+ * A candidate is a suggestion only; nothing here confirms a meaning.
  */
 fun decideRead(
     frames: List<LandmarkFrame>,
@@ -34,7 +34,7 @@ fun decideRead(
     extra: Map<String, List<String>> = emptyMap(),
 ): SignSegment {
     // Two or more cards are the answers to choose from, so they are searched for at any score; one card only
-    // illustrates the question, and then just the top three are reordered. The subject still confirms (FR-66).
+    // illustrates the question, and then just the top three are reordered. The subject still confirms.
     val pool = if (cards.size >= 2) all else all.take(3)
     val guesses = (listOfNotNull(home) + inContext(pool, cards, signWords, words, extra)).distinctBy { it.word }.take(3)
     return SignSegment(frames, guesses, needsSlower(frames, all), cards)

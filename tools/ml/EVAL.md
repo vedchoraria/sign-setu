@@ -57,7 +57,7 @@ Notes:
   epochs each): width 320 gave 0.3957, with mixup 0.3970, width 1024 0.3987, and the three as an ensemble 0.4046, so
   no distilled student of this format beats the shipped 0.4020. The clips hold about 5 source frames (median 13 at
   15 fps after interpolation) with a hand found in 16% (left) and 41% (right) of frames; 0.6 needs denser landmarks
-  (Kaggle `asl-signs` at 30 fps, credentials) or a new reader format; neither is in release 1.
+  (Kaggle `asl-signs` at 30 fps, credentials) or a new reader format; neither is built.
 - Calibration of the shipped `sign_reader` on the unseen ISLRTC signer (n=199): mean top score 0.26 against 0.29
   accuracy, expected calibration error 0.09, and temperature 1.0 already gives the lowest log loss (0.75: 0.146 ECE,
   1.5: 0.190). Reads at or above `READ_MIN_SCORE` 0.4 are 27% of reads and 51% right. No temperature is applied. A
@@ -66,7 +66,7 @@ Notes:
 - A transformer head (3 layers, width 192, same features and strong augmentation, 300 epochs) scored 0.276 top-1 and
   0.377 top-3 on the unseen ISLRTC signer, and 0.62 inside the lesson questions' answer cards (shipped: 0.73), so the
   convolution reader stays.
-- Lesson-sheet answers (qna.pdf), read among the question's own answer cards as the app does (`decideRead` with two or
+- Lesson-sheet answers, read among the question's own answer cards as the app does (`decideRead` with two or
   more cards): unseen ISLRTC signer top-1 0.73, top-3 0.88 (n=26); INCLUDE test signers 0.98 and 1.00 (n=111). The
   misses are male and female pairs (mother and father, grandmother and grandfather, wife and husband). Averaging over
   mirrored and rescaled copies at read time changed nothing (0.286 overall either way), so it is not used. More signers

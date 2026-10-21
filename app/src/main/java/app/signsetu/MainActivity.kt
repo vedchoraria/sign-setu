@@ -20,12 +20,12 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Blocks screenshots, screen recording and the recents thumbnail (SEC-40).
+        // Blocks screenshots, screen recording and the recents thumbnail.
         // Debug builds skip it so UI tests can capture screens; only release builds are ever distributed.
         if (!BuildConfig.DEBUG) {
             window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
         }
-        // Drops taps that pass through an overlay drawn by another app (SEC-45).
+        // Drops taps that pass through an overlay drawn by another app.
         window.decorView.filterTouchesWhenObscured = true
         enableEdgeToEdge()
         val container = (application as SignSetuApp).container

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Nearby flavor only (D-26). Nearby Connections scans and advertises over Bluetooth and Wi-Fi, so this build adds
+    Nearby flavor only. Nearby Connections scans and advertises over Bluetooth and Wi-Fi, so this build adds
     these permissions; the standard build has none of them, and its build gate refuses them. No INTERNET, no
     RECORD_AUDIO and no background location here either: the gate checks this flavor for those.
 -->

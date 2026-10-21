@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.map
 
 enum class InterpreterApp { NONE, WHATSAPP, SANDES }
 
-/** Settings hold no personal data about any subject (SEC-07). */
+/** Settings hold no personal data about any subject. */
 @Immutable
 data class AppSettings(
     val firstRunDone: Boolean = false,
@@ -26,11 +26,11 @@ data class AppSettings(
     val interpreterContact: String = "",
     /** Start time of the newest session; lets the purge worker shred everything without the officer's key. */
     val newestSessionAt: Long = 0L,
-    /** The live mirror on the stage; a department can turn it off (D-20). */
+    /** The live mirror on the stage; a department can turn it off. */
     val cameraEnabled: Boolean = true,
-    /** Larger captions on the stage, for people who read slowly (FR-51). */
+    /** Larger captions on the stage, for people who read slowly. */
     val largeCaptions: Boolean = false,
-    /** Gestures play at three-quarter speed by default (FR-51). */
+    /** Gestures play at three-quarter speed by default. */
     val slowGestures: Boolean = false,
     /** Tipping the phone over its top edge shows what is prepared. */
     val tiltToShow: Boolean = true,
@@ -50,8 +50,9 @@ data class AppSettings(
     val interpreterConfigured get() = interpreterApp != InterpreterApp.NONE && interpreterContact.isNotBlank()
 
     companion object {
-        const val DEFAULT_RETENTION_HOURS = 24
-        val RETENTION_CHOICES = listOf(4, 8, 12, 24, 48, 72)
+        /** Zero: sessions are kept until the officer deletes them. */
+        const val DEFAULT_RETENTION_HOURS = 0
+        val RETENTION_CHOICES = listOf(0, 4, 8, 12, 24, 48, 72)
     }
 }
 

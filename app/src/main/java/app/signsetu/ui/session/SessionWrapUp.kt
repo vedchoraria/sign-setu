@@ -1,5 +1,11 @@
 package app.signsetu.ui.session
 
+import app.signsetu.data.session.TITLE_MAX
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -28,6 +34,10 @@ import app.signsetu.data.session.SessionEvent
 import app.signsetu.ui.components.GuardedAlertDialog
 import app.signsetu.ui.theme.Spacing
 
+/** The name a session is saved under until the officer types their own: its start, as the phone writes dates. */
+fun defaultTitle(res: android.content.res.Resources, startedAt: Long): String =
+    res.getString(R.string.wrap_default_name, java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.MEDIUM, java.text.DateFormat.SHORT).format(java.util.Date(startedAt)))
+
 /** What a session gathered, for the officer before it ends. */
 data class WrapUp(val minutes: Int, val shown: Int, val answers: Int, val unanswered: Int, val unreadSigns: Int)
 
@@ -43,11 +53,20 @@ fun wrapUp(events: List<SessionEvent>, startedAt: Long, now: Long): WrapUp {
 }
 
 /**
- * Finishing a session: what it gathered, a thank-you for the person, then the report or a plain finish. Ending is the
- * normal close of an interview, so it is not dressed as a deletion; the delete is stated in the text.
+ * Finishing a session: what it gathered, a thank-you for the person, and a name to keep it under. It is saved
+ * on this phone, encrypted, until the officer deletes it; a report can be exported now or later.
  */
 @Composable
-internal fun WrapUpDialog(summary: WrapUp, onThank: (() -> Unit)?, onExport: () -> Unit, onFinishOnly: () -> Unit, onDismiss: () -> Unit) {
+internal fun WrapUpDialog(
+    summary: WrapUp,
+    title: String,
+    onTitle: (String) -> Unit,
+    onThank: (() -> Unit)?,
+    onExport: () -> Unit,
+    onSave: () -> Unit,
+    onDelete: () -> Unit,
+    onDismiss: () -> Unit,
+) {
     GuardedAlertDialog(
         onDismissRequest = onDismiss,
         icon = { Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = null) },
@@ -63,15 +82,25 @@ internal fun WrapUpDialog(summary: WrapUp, onThank: (() -> Unit)?, onExport: () 
                         if (summary.unreadSigns > 0) Fact(pluralStringResource(R.plurals.wrap_unread, summary.unreadSigns, summary.unreadSigns), warn = true)
                     }
                 }
-                Text(stringResource(R.string.end_body), style = MaterialTheme.typography.bodyMedium)
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { onTitle(it.take(TITLE_MAX)) },
+                    label = { Text(stringResource(R.string.wrap_name)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Text(stringResource(R.string.wrap_saved_note), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         },
         confirmButton = {
             Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                 onThank?.let { OutlinedButton(onClick = it, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.wrap_thank)) } }
-                Button(onClick = onExport, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.end_export)) }
-                TextButton(onClick = onFinishOnly, modifier = Modifier.fillMaxWidth()) {
-                    Text(stringResource(R.string.end_no_export), color = MaterialTheme.colorScheme.error)
+                Button(onClick = onSave, enabled = title.isNotBlank(), modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.wrap_save)) }
+                OutlinedButton(onClick = onExport, enabled = title.isNotBlank(), modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.end_export)) }
+                // Deleting is a second, deliberate step: the first tap only arms it.
+                var sure by remember { mutableStateOf(false) }
+                TextButton(onClick = { if (sure) onDelete() else sure = true }, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(if (sure) R.string.wrap_delete_sure else R.string.wrap_delete), color = MaterialTheme.colorScheme.error)
                 }
                 TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.wrap_keep_going)) }
             }

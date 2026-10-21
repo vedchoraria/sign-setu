@@ -26,7 +26,7 @@ enum class Notice { FALLBACK_OFFLINE, FALLBACK_ERROR, REVOKED, BACK_ONLINE, ENRO
 /**
  * The online half of the assistant: the project gateway when the build has one (else a [Direct] service), the phone is
  * online, the officer has switched it on and, for the gateway, the device is enrolled. Names are replaced before sending and put back on the phone. Any other case,
- * or any failure, returns null and the on-device path runs, so the app works the same with no connection (D-47).
+ * or any failure, returns null and the on-device path runs, so the app works the same with no connection.
  */
 class CloudAi(
     private val enabled: suspend () -> Boolean,
@@ -112,6 +112,8 @@ class CloudAi(
     private companion object {
         const val REPORT_PROMPT = "You are a trauma-informed child-protection police investigator. From the session log write a factual, " +
             "objective report with: 1 incident and timeline, 2 statements by the subject (exact words and gestures), " +
-            "3 welfare needs, 4 persons mentioned, 5 reliability (non-leading check), 6 recommended police and CWC actions."
+            "3 welfare needs, 4 persons mentioned, 5 reliability (non-leading check), 6 recommended police and CWC actions. " +
+            "Use only what the session log records. Never invent names, officers, places, dates, times, case numbers or events; " +
+            "write Not recorded where the log has nothing. Keep the masked names exactly as given."
     }
 }

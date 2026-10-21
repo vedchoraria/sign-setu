@@ -3,15 +3,19 @@
 No redistributable ISL fingerspelling landmark set was found (the public ones are CC BY-NC), so the letters and digits
 the character signs are posed on a Python copy of the rig (Rig.kt), turned into 21-point hands and the arm points of the
 pose, and jittered. The model trained on it is labelled synthetic.
-    python tools/ml/synth_isl.py [out.pkl] [per_class]   # default C:/Users/Yash/dev/ml-data/isl_spell/isl_spell.pkl
+    python tools/ml/synth_isl.py [out.pkl] [per_class]   # default $SIGNSETU_DATA/isl_spell/isl_spell.pkl
 """
 import json
 import math
+import os
 import pathlib
 import pickle
 import sys
 
 import numpy as np
+
+# Training and evaluation data stay outside the repository.
+DATA_ROOT = pathlib.Path(os.environ.get("SIGNSETU_DATA", "ml-data"))
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 SIGNS = ROOT / "app" / "src" / "main" / "assets" / "content" / "signs.json"
@@ -243,5 +247,5 @@ def main(path: pathlib.Path, per_class: int = 400) -> None:
 
 
 if __name__ == "__main__":
-    main(pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else "C:/Users/Yash/dev/ml-data/isl_spell/isl_spell.pkl"),
+    main(pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else str(DATA_ROOT / "isl_spell/isl_spell.pkl")),
          int(sys.argv[2]) if len(sys.argv) > 2 else 400)

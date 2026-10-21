@@ -23,7 +23,7 @@ import javax.crypto.Mac
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.SecretKeySpec
 
-/** Every way a link is refused; the reason is shown to the officer, never any peer-sent text (SEC-67). */
+/** Every way a link is refused; the reason is shown to the officer, never any peer-sent text. */
 enum class Abort { PROTOCOL, VERSION, MODE, COMMIT, KEY, SIZE, CODE }
 
 class PairAbort(val reason: Abort) : IOException(reason.name)
@@ -59,7 +59,7 @@ private val unb64 = Base64.getDecoder()
 internal fun ByteArray.b64(): String = b64.encodeToString(this)
 internal fun String.unb64(): ByteArray = try { unb64.decode(this) } catch (_: IllegalArgumentException) { throw PairAbort(Abort.PROTOCOL) }
 
-/** What each side states about itself; both must run the same build and the same content (SEC-67). */
+/** What each side states about itself; both must run the same build and the same content. */
 data class Identity(val versionCode: Int, val contentHash: String, val model: String)
 
 @Serializable internal data class Hello1(val v: Int, val versionCode: Int, val contentHash: String, val model: String, val mode: String, val commit: String)
@@ -135,7 +135,7 @@ private fun checkPeer(me: Identity, versionCode: Int, contentHash: String) {
 
 /**
  * Officer side of the commit-then-reveal handshake: the officer commits to its key before seeing the stage's, so
- * neither side can search for a key that yields a chosen code (SEC-67). [resumeKey] non-null means a resume.
+ * neither side can search for a key that yields a chosen code. [resumeKey] non-null means a resume.
  */
 fun officerHandshake(input: DataInputStream, out: DataOutputStream, me: Identity, resumeKey: ByteArray?): LinkKeys {
     val mode = if (resumeKey == null) MODE_NEW else MODE_RESUME
@@ -223,7 +223,7 @@ class LinkSession(private val input: DataInputStream, private val out: DataOutpu
         return dec.doFinal(ct).also { expected++ }
     }
 
-    /** Copies inside SecretKeySpec and the provider are out of reach; process exit is the real wipe (SEC-69). */
+    /** Copies inside SecretKeySpec and the provider are out of reach; process exit is the real wipe. */
     override fun close() {
         sendKey = null
         recvKey = null
@@ -233,5 +233,5 @@ class LinkSession(private val input: DataInputStream, private val out: DataOutpu
     private fun aad(counter: Long) = ByteBuffer.allocate(9).put(1).putLong(counter).array()
 }
 
-/** Constant-time check of the 6 digits the officer typed (SEC-67). */
+/** Constant-time check of the 6 digits the officer typed. */
 fun codeMatches(typed: String, code: String): Boolean = MessageDigest.isEqual(typed.trim().toByteArray(Charsets.US_ASCII), code.toByteArray(Charsets.US_ASCII))

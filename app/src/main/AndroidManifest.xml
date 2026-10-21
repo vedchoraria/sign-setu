@@ -2,16 +2,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Live mirror of the subject's hands; nothing is captured or stored (D-20). -->
+    <!-- Live mirror of the subject's hands; nothing is captured or stored. -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera.any" android:required="false" />
     <!-- Answer codes felt by the officer holding the phone; a normal permission. -->
     <uses-permission android:name="android.permission.VIBRATE" />
 
-    <!-- Only the department gateway client uses it (D-47): off by default, HTTPS only, nothing else in the app opens a connection. -->
+    <!-- Only the department gateway client uses it: off by default, HTTPS only, nothing else in the app opens a connection. -->
     <uses-permission android:name="android.permission.INTERNET" />
 
-    <!-- A second screen over bonded Bluetooth (D-26). No scan, advertise or bond: those permissions are refused by the build. -->
+    <!-- A second screen over bonded Bluetooth. No scan, advertise or bond: those permissions are refused by the build. -->
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-feature android:name="android.hardware.bluetooth" android:required="false" />
@@ -47,7 +47,7 @@
             </intent-filter>
         </activity>
 
-        <!-- SEC-41: library receivers the app does not need stay out of the merged manifest. -->
+        <!-- library receivers the app does not need stay out of the merged manifest. -->
         <receiver
             android:name="androidx.work.impl.diagnostics.DiagnosticsReceiver"
             tools:node="remove" />

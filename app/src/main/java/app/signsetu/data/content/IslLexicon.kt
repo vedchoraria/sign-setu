@@ -60,7 +60,7 @@ fun ContentBundle.recordedSign(word: String, entry: WordEntry?): Gesture? {
 }
 
 /**
- * The one word lookup the app uses (D-29): with Signs on, a sign recorded from a signer, then an authored sign, then
+ * The one word lookup the app uses: with Signs on, a sign recorded from a signer, then an authored sign, then
  * the everyday gesture; with Gestures on, the gesture. Null means the word is fingerspelled or shown as a picture.
  */
 fun ContentBundle.motionFor(word: String, entry: WordEntry?, modes: Set<SignMode>): Gesture? {
@@ -74,7 +74,7 @@ fun ContentBundle.motionFor(word: String, entry: WordEntry?, modes: Set<SignMode
 fun ContentBundle.isPhrase(words: String, modes: Set<SignMode>): Boolean =
     words in this.words || (SignMode.SIGNS in modes && typedSign(words) != null)
 
-/** A reader label signed back for the subject to confirm (FR-86): its recorded sign, else the lexicon's, else spelled. */
+/** A reader label signed back for the subject to confirm: its recorded sign, else the lexicon's, else spelled. */
 fun ContentBundle.signBack(label: String): Gesture? =
     signFor(label) ?: planText(signWords[label] ?: label, setOf(SignMode.SIGNS, SignMode.SPELL)).gesture
 

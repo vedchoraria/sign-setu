@@ -2,18 +2,22 @@
 
 For each word the cleanest recording is picked, smoothed, normalised to the signer's shoulders and face, and turned
 into gestures.json keyframes (anchor plus dx/dy, per-finger curls, palm roll and hand angle). Draft until ISL review.
-    python tools/isl/retarget.py [data_dir]   # default C:/Users/Yash/dev/ml-data/include_pose
+    python tools/isl/retarget.py [data_dir]   # default $SIGNSETU_DATA/include_pose
     python tools/content/build_content.py --manifest-only
 INCLUDE (AI4Bharat, Sridhar et al. 2020), OpenHands pose release zenodo.org/records/6674324, CC BY 4.0.
 """
 import json
 import math
+import os
 import pathlib
 import pickle
 import re
 import sys
 
 import numpy as np
+
+# Training and evaluation data stay outside the repository.
+DATA_ROOT = pathlib.Path(os.environ.get("SIGNSETU_DATA", "ml-data"))
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 OUT = ROOT / "app" / "src" / "main" / "assets" / "content" / "isl_signs.json"
@@ -348,4 +352,4 @@ def write(signs: dict) -> None:
 
 
 if __name__ == "__main__":
-    main(pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else "C:/Users/Yash/dev/ml-data/include_pose"))
+    main(pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else str(DATA_ROOT / "include_pose")))

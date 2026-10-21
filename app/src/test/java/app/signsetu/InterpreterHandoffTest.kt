@@ -8,7 +8,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Verifies Sandes interpreter contact handoff safeguards and clipboard isolation (FR-64).
+ * Verifies Sandes interpreter contact handoff safeguards and clipboard isolation.
  * Ensures zero session data, transcript entries, or PII can leak via interpreter handoff.
  */
 class InterpreterHandoffTest {

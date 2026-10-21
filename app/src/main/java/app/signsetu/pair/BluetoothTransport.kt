@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.flow
 import java.util.UUID
 
 /**
- * Secure RFCOMM to devices already paired in system settings (SEC-66). The app never scans, never makes itself
+ * Secure RFCOMM to devices already paired in system settings. The app never scans, never makes itself
  * discoverable and never bonds, so it needs only BLUETOOTH_CONNECT (BLUETOOTH up to Android 11).
  * Callers hold the runtime permission before any call; the stage is the server, the officer the client.
  */

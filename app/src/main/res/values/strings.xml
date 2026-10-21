@@ -121,7 +121,7 @@
     <string name="export_body">The report is encrypted. Give this password separately from the file, for example by reading it out. It is shown only once.</string>
     <string name="export_password">Password</string>
     <string name="export_share">Share report</string>
-    <string name="export_finish">Finish and delete session</string>
+    <string name="export_finish">Done</string>
     <string name="export_failed">Could not create the report. The session is unchanged.</string>
     <string name="ok">OK</string>
     <string name="report_title">Sign Setu: communication notes</string>
@@ -312,7 +312,7 @@
     <string name="more_tools">Other ways to ask</string>
     <string name="more_session">Session</string>
 
-    <!-- Second screen (D-26) -->
+    <!-- Second screen -->
     <string name="second_screen">Second screen</string>
     <string name="second_screen_title">Use a second screen</string>
     <string name="second_screen_intro">The person sees a second phone or tablet while you keep this one. Everything is logged on this phone only.</string>
@@ -546,7 +546,6 @@
     <string name="wrap_title">Finish this session</string>
     <string name="wrap_thank">Thank them on the stage</string>
     <string name="wrap_keep_going">Keep going</string>
-    <string name="export_finish_unshared">Not shared yet. Tap again to delete it</string>
     <string name="more_asked">Asked</string>
     <string name="more_answered">Answered</string>
     <plurals name="wrap_minutes">
@@ -569,9 +568,42 @@
         <item quantity="one">%d signed answer still to be read</item>
         <item quantity="other">%d signed answers still to be read</item>
     </plurals>
-    <string name="session_finished">Session finished. Its record is deleted from this phone.</string>
     <string name="switch_sign_title">Switch to %1$s?</string>
     <string name="switch_sign_body">The character signs in %1$s for the rest of this session. The person may not follow a different sign language.</string>
     <string name="switch_sign_confirm">Switch</string>
     <string name="board_name">Picture board</string>
+    <string name="ai_counsellor_start">AI counsellor on the second screen</string>
+    <string name="ai_tag">AI counsellor</string>
+    <string name="report_by_ai">written by the AI counsellor, officer monitoring</string>
+    <string name="counsel_thinking">The counsellor is writing its next line…</string>
+    <string name="counsel_waiting">Waiting for their answer</string>
+    <string name="counsel_next">Shows on their screen in %1$d s</string>
+    <string name="counsel_send_now">Send now</string>
+    <string name="counsel_skip">Another line</string>
+    <string name="counsel_take_over">Take over</string>
+    <string name="counsel_paused_stop">They asked to stop or for a break. The conversation is yours.</string>
+    <string name="counsel_paused_handoff">The counsellor handed back to you: they may be at risk or want to stop.</string>
+    <string name="counsel_paused_no_reply">The online assistant did not answer. Check the connection and the assistant switch, or carry on yourself.</string>
+    <string name="counsel_paused_limit">Thirty turns reached. Carry on yourself or start again.</string>
+    <string name="counsel_resume">Start again</string>
+    <string name="ai_needs_second_screen">Connect the second screen first: the person talks with the AI counsellor there while you watch here.</string>
+    <string name="ai_needs_online">Turn on the online assistant in Settings and enrol this phone first.</string>
+    <string name="ai_not_for_accused">The AI counsellor is only for victims and witnesses, never for a person accused or in custody.</string>
+    <string name="wrap_name">Save as</string>
+    <string name="wrap_default_name">Session %1$s</string>
+    <string name="wrap_saved_note">Kept on this phone, encrypted, under this name until you delete it. Open it again from the start screen.</string>
+    <string name="wrap_save">Save and finish</string>
+    <string name="wrap_delete">Delete without saving</string>
+    <string name="wrap_delete_sure">Tap again to delete this session for good</string>
+    <string name="session_saved">Session saved on this phone.</string>
+    <string name="session_deleted">Session deleted from this phone.</string>
+    <string name="settings_keep">Keep until deleted</string>
+    <string name="saved_title">Saved sessions</string>
+    <string name="saved_open">Open</string>
+    <string name="saved_delete_title">Delete this session?</string>
+    <string name="saved_delete_body">Its record is removed from this phone for good. Export a report first if the case file needs it.</string>
+    <string name="saved_delete_confirm">Delete</string>
+    <string name="saved_finish_open_first">Finish the open session first.</string>
+    <string name="saved_all">Show all %1$d</string>
+    <string name="saved_fewer">Show fewer</string>
 </resources>

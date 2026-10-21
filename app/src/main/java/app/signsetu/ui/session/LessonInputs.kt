@@ -349,7 +349,7 @@ private fun Back(onClick: () -> Unit) {
     }
 }
 
-/** Their own words in their own script; the keyboard learns nothing (SEC-05). */
+/** Their own words in their own script; the keyboard learns nothing. */
 @Composable
 private fun WordEntry(type: AnswerType, title: String?, onBack: (() -> Unit)? = null, onSkip: (() -> Unit)? = null, onDone: (String) -> Unit) {
     var text by rememberSaveable { mutableStateOf("") }

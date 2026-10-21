@@ -18,7 +18,7 @@ interface TokenVault {
 }
 
 /**
- * The token is stored only wrapped by a non-exportable Keystore key, in a file excluded from backup (SEC-11).
+ * The token is stored only wrapped by a non-exportable Keystore key, in a file excluded from backup.
  * That key needs no screen unlock, so the token is the one secret the app can use while locked; it reaches only the
  * gateway's own endpoints and can be revoked there.
  */

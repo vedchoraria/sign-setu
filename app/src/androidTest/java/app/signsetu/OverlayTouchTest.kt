@@ -14,7 +14,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/** Dialogs and sheets open their own windows; each must drop touches that come through another app's overlay (SEC-45). */
+/** Dialogs and sheets open their own windows; each must drop touches that come through another app's overlay. */
 @RunWith(AndroidJUnit4::class)
 class OverlayTouchTest {
 

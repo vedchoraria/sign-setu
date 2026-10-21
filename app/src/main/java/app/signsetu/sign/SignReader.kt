@@ -4,8 +4,8 @@ import androidx.compose.runtime.Immutable
 import app.signsetu.camera.LandmarkFrame
 
 /**
- * Reads one isolated sign from the landmark frames of one segment (D-25). Runs on device; frames are not kept.
- * Guesses are suggestions only: a meaning is recorded when the officer accepts it or the subject confirms it (FR-66).
+ * Reads one isolated sign from the landmark frames of one segment. Runs on device; frames are not kept.
+ * Guesses are suggestions only: a meaning is recorded when the officer accepts it or the subject confirms it.
  */
 interface SignReader : AutoCloseable {
     /** The vocabulary the reader knows, as words (lower case, English), in model output order. */

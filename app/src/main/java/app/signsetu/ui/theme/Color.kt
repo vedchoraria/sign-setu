@@ -218,7 +218,7 @@ internal val SunAnswerColors = AnswerColors(
 /** Behind every symbol, in both themes: the symbols have dark outlines drawn for a light ground. */
 val PictureWell = Color(0xFFFFF8EF)
 
-/** Answer colours: also told apart by icon and position, never by colour alone (NFR-21). */
+/** Answer colours: also told apart by icon and position, never by colour alone. */
 @Immutable
 data class AnswerColors(
     val yes: Color,

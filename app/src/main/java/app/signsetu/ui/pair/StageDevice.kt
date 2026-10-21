@@ -142,7 +142,7 @@ fun UseAsStageButton(container: AppContainer) {
 }
 
 /**
- * The stage device (D-26): it shows only what the officer phone sends, answers back, and stores nothing. Once Live it
+ * The stage device: it shows only what the officer phone sends, answers back, and stores nothing. Once Live it
  * stays pinned with no local exit; only a Bye from the officer, a lost link, or this device's own credential ends it.
  */
 @Composable
@@ -160,7 +160,7 @@ fun StageDeviceScreen(link: StageLink, content: ContentBundle, container: AppCon
         }
     }
     ImmersiveWhile(activity, everLive)
-    // Back is swallowed once pinned: the stage has no local exit (D-26); Stop stays on the item and the officer ends it.
+    // Back is swallowed once pinned: the stage has no local exit; Stop stays on the item and the officer ends it.
     BackHandler(enabled = everLive) { }
     val awake = everLive && state !is LinkState.Ended
     DisposableEffect(activity, awake) {
@@ -180,7 +180,7 @@ fun StageDeviceScreen(link: StageLink, content: ContentBundle, container: AppCon
     val exit: () -> Unit = {
         link.end(ByeReason.EXIT)
         activity?.finishAndRemoveTask()
-        // Process exit is the real wipe of anything left on the heap (SEC-69).
+        // Process exit is the real wipe of anything left on the heap.
         Handler(Looper.getMainLooper()).postDelayed({ Process.killProcess(Process.myPid()) }, 500)
     }
 
@@ -238,7 +238,7 @@ fun CheckValue(check: String) {
 
 @Composable
 private fun LiveStage(link: StageLink, baseContent: ContentBundle, state: LinkState, exit: () -> Unit, scope: CoroutineScope, container: AppContainer) {
-    // Landmarks drive the overlay and gesture proposals here (D-40); no sign is read on this phone and none leaves it.
+    // Landmarks drive the overlay and gesture proposals here; no sign is read on this phone and none leaves it.
     val tracker by produceState<LandmarkTracker?>(null) { value = withContext(Dispatchers.IO) { container.landmarkTracker } }
     var cue by remember { mutableStateOf<String?>(null) }
     val show by link.view.collectAsStateWithLifecycle()

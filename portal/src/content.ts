@@ -36,7 +36,7 @@ export interface Card {
 // Retargeted INCLUDE signs and the hand-authored lesson signs (review "draft") both await Deaf review.
 export const gestures = [...gesturesFile.gestures, ...signsFile.gestures, ...islFile.gestures] as Gesture[];
 const isl = new Map(islFile.gestures.map((g) => [g.id, g]));
-/** ASL signs and the one-hand alphabet, for ASL reviewers only (D-39). */
+/** ASL signs and the one-hand alphabet, for ASL reviewers only. */
 export const aslGestures = aslFile.gestures as Gesture[];
 const asl = new Map(aslFile.gestures.map((g) => [g.id, g]));
 const drafts = new Set(signsFile.gestures.filter((g) => "review" in g).map((g) => g.id));

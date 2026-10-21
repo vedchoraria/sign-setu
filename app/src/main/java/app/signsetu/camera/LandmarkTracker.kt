@@ -6,13 +6,13 @@ import androidx.compose.ui.geometry.Offset
 import kotlin.math.abs
 
 /**
- * The seam for on-device landmark tracking (D-20, D-25). The app calls [track] on one background thread with one
+ * The seam for on-device landmark tracking. The app calls [track] on one background thread with one
  * upright RGBA frame at a time, newest frame only. Frames never leave the device and are never stored: the bitmap is
  * reused after the call returns, so an implementation must not keep it.
  */
 interface LandmarkTracker : AutoCloseable {
     fun track(frame: Bitmap, timestampMs: Long): LandmarkFrame?
-    /** Loads the model ahead of the first frame, off the main thread; it analyses nothing (D-25). */
+    /** Loads the model ahead of the first frame, off the main thread; it analyses nothing. */
     fun warm() {}
     override fun close() {}
 }
@@ -21,7 +21,7 @@ interface LandmarkTracker : AutoCloseable {
  * Landmarks of one frame in MediaPipe Holistic topology, normalised to the frame (origin top-left, no mirroring).
  * Hands are the subject's own left and right: 21 points each. Face: 468 points. Pose: 33 points. Null when not seen.
  * [aspect] is the upright frame's width / height, needed to measure distances in one unit.
- * Kept in memory only, for the current answer (SEC-47, D-25).
+ * Kept in memory only, for the current answer.
  */
 @Immutable
 data class LandmarkFrame(

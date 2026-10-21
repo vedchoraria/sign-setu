@@ -113,7 +113,7 @@ private const val FAVOURITES = "*favourites"
 /** Keeps a picked or typed list across rotation and process death. */
 internal fun <T : Any> stateListSaver() = listSaver<SnapshotStateList<T>, T>(save = { it.toList() }, restore = { it.toMutableStateList() })
 
-/** Fills a phrase-bank sentence: the officer picks what it is about (FR-62). */
+/** Fills a phrase-bank sentence: the officer picks what it is about. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PhraseSheet(phrase: Phrase, content: ContentBundle, lang: String, onPick: (PhraseSlot) -> Unit, onDismiss: () -> Unit) {
@@ -147,7 +147,7 @@ fun BoardSheet(
     onDraft: (List<String>) -> Unit = {},
 ) {
     var query by rememberSaveable { mutableStateOf("") }
-    // Favourites open first once the officer has starred any (FR-19).
+    // Favourites open first once the officer has starred any.
     var category by rememberSaveable { mutableStateOf(if (favourites.isNotEmpty()) FAVOURITES else null) }
     val chosen = rememberSaveable(saver = stateListSaver()) { initial.toMutableStateList() }
     val cards = content.cards.values.filter { c ->
@@ -203,7 +203,7 @@ fun BoardSheet(
                             Icon(
                                 Icons.Filled.Star,
                                 contentDescription = stringResource(R.string.board_favourite),
-                                // Both at least 3:1 on the picture well (NFR-21).
+                                // Both at least 3:1 on the picture well.
                                 tint = if (starred) Color(0xFFB86E00) else Color(0xFF8A7760),
                                 modifier = Modifier.size(20.dp),
                             )
@@ -300,7 +300,7 @@ fun LogSheet(events: List<SessionEvent>, note: String, onNote: (String) -> Unit,
                     value = note,
                     onValueChange = onNote,
                     placeholder = { Text(stringResource(R.string.log_note_hint)) },
-                    // SEC-05: the keyboard should not learn or suggest from what is noted about a subject.
+                    // the keyboard should not learn or suggest from what is noted about a subject.
                     keyboardOptions = KeyboardOptions(autoCorrectEnabled = false),
                     shape = MaterialTheme.shapes.medium,
                     modifier = Modifier.weight(1f),
@@ -320,7 +320,7 @@ fun LogSheet(events: List<SessionEvent>, note: String, onNote: (String) -> Unit,
  * when the answer names it, otherwise the question shown before it.
  */
 fun List<SessionEvent>.withQuestions(): List<Pair<SessionEvent, String?>> {
-    // Answers from a second screen name their question, since they can arrive after the next one was shown (D-26).
+    // Answers from a second screen name their question, since they can arrive after the next one was shown.
     val shown = filter { it.type == EventType.QUESTION_SHOWN }.associate { it.id to it.text }
     var question: String? = null
     return map { e ->
@@ -419,7 +419,7 @@ fun ChangeSheet(
     }
 }
 
-/** Every officer sheet: overlay touches filtered (SEC-45), and Material's 32 dp drag handle in a 48 dp touch area (NFR-20). */
+/** Every officer sheet: overlay touches filtered, and Material's 32 dp drag handle in a 48 dp touch area. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OfficerSheet(onDismiss: () -> Unit, expanded: Boolean = true, content: @Composable ColumnScope.() -> Unit) {
@@ -558,7 +558,7 @@ fun SignedSheet(
                             onValueChange = { words[i] = it },
                             placeholder = { Text(stringResource(R.string.signed_type)) },
                             singleLine = true,
-                            // SEC-05: the keyboard should not learn from what is transcribed about a subject.
+                            // the keyboard should not learn from what is transcribed about a subject.
                             keyboardOptions = KeyboardOptions(autoCorrectEnabled = false),
                             modifier = Modifier.fillMaxWidth(),
                         )
@@ -571,7 +571,7 @@ fun SignedSheet(
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                 ) { Text(stringResource(R.string.signed_accept)) }
             }
-            // Only the subject's own pick makes a reading their answer (FR-66).
+            // Only the subject's own pick makes a reading their answer.
             onAsk?.let { ask ->
                 item {
                     val possible = canAsk(words.toList())
