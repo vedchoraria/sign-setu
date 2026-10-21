@@ -17,8 +17,12 @@ class Settings:
     oidc_issuer: str = field(default_factory=lambda: os.environ.get("OIDC_ISSUER", ""))
     oidc_audience: str = field(default_factory=lambda: os.environ.get("OIDC_AUDIENCE", "signsetu-portal"))
     reviewer_role: str = "reviewer"
+    admin_role: str = field(default_factory=lambda: os.environ.get("ADMIN_ROLE", "gateway-admin"))
     assist_max_chars: int = 20_000
     rate_per_minute: int = 30
-    enroll_per_minute: int = 10
-    # Wrong codes across all callers: a spoofed X-Forwarded-For defeats the per-address limit, not this one.
-    enroll_failures_per_minute: int = 20
+    # How many reverse proxies in front of the gateway append to X-Forwarded-For; 0 trusts none and uses the socket address.
+    trusted_proxy_hops: int = field(default_factory=lambda: int(os.environ.get("TRUSTED_PROXY_HOPS", "0")))
+    enroll_per_minute: int = field(default_factory=lambda: int(os.environ.get("ENROLL_PER_MINUTE", "10")))
+    # Wrong codes across all callers: a spoofed X-Forwarded-For defeats the per-address limit, not this one. While it is
+    # reached every enrolment, valid codes too, waits (at most a minute after the last wrong code).
+    enroll_failures_per_minute: int = field(default_factory=lambda: int(os.environ.get("ENROLL_FAILURES_PER_MINUTE", "20")))

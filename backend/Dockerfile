@@ -9,4 +9,4 @@ ENV MODEL_DIR=/app/models PYTHONUNBUFFERED=1
 RUN useradd --system --uid 10001 gateway && chown -R gateway /app
 USER gateway
 # The host terminates TLS and passes the port in $PORT.
-CMD ["sh", "-c", "exec uvicorn signsetu_gateway.app:create_app --factory --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers --forwarded-allow-ips='*'"]
+CMD ["sh", "-c", "exec uvicorn signsetu_gateway.app:create_app --factory --host 0.0.0.0 --port ${PORT:-8000} --no-proxy-headers"]

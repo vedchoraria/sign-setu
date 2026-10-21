@@ -241,7 +241,7 @@ flowchart LR
  E6 -- "F33 model file" --> D5
  E6 -- "F32 configuration" --> D3
  D3 -- "F38 retention period" --> P8
- P8 -- "F39 purge, VACUUM" --> D1
+ P8 -- "F39 purge, secure delete" --> D1
  classDef ent fill:#ffffff,stroke:#16202e,stroke-width:2px,color:#16202e
  classDef proc fill:#e8eef7,stroke:#1f3a5f,stroke-width:2px,color:#16202e
  classDef store fill:#f3efe4,stroke:#6b5b2e,stroke-width:2px,color:#16202e
@@ -480,7 +480,7 @@ flowchart LR
 | 5.0 | Export and hand off | Composes the PDF report, encrypts it under a one-time passphrase, shares it; opens the interpreter contact link. | export |
 | 6.0 | Translate typed text | Rule-based English to Hindi caption on the phone (reviewed text, sentence patterns, word by word); optional on-device model with back-translation. | data.content.Translate, assistant |
 | 7.0 | Link second screen | Pairs by commit-then-reveal ECDH; sends the stage view and receives answers over AES-256-GCM frames. | pair, ui.pair |
-| 8.0 | Purge on retention | Deletes sessions older than the retention period (24 hours by default) and runs VACUUM; no deletion if the officer chose to keep sessions until deleted. | data.session (WorkManager) |
+| 8.0 | Purge on retention | Deletes sessions older than the retention period (24 hours by default) with their events and drawings, overwriting the freed pages (secure delete); no deletion if the officer chose to keep sessions until deleted. | data.session (WorkManager) |
 
 #### 3.7.3 Processes of 3.0
 
@@ -534,7 +534,7 @@ Flows are grouped where they form one exchange. Classification: Personal = may i
 | F29, F30, F31 | 5.0, D3 | Hand-off | Encrypted PDF; contact link; interpreter contact | Personal, encrypted |
 | F32, F33 | E6 to D3, D5 | Department supply | Configuration; model file | Internal |
 | F34 to F37 | 3.0 / 7.0 / E5 | Second screen | Stage snapshot, stage view, answers, remote answers | Personal, encrypted |
-| F38, F39 | D3, 8.0, D1 | Retention | Retention period; purge and VACUUM | Internal |
+| F38, F39 | D3, 8.0, D1 | Retention | Retention period; purge and secure delete | Internal |
 | G1 to G19 | 3.0 internals | Stage interaction | Figure 3: content, presentation, camera frames, landmarks, segments, guesses, choices, confirmed answers | Personal |
 | H1 to H14 | Build | Build and review | Figure 4: datasets, retargeted signs, reader weights, review record, bundle, APK | Public, secret (key) |
 
@@ -1113,7 +1113,7 @@ Objectives: subject data is unreadable without the officer's credential; it does
 
 | Family | Controls (summary) |
 | --- | --- |
-| Storage | SQLCipher database; DEK wrapped by a Keystore KEK; no backup; purge with VACUUM; drawings only inside the database |
+| Storage | SQLCipher database; DEK wrapped by a Keystore KEK; no backup; purge with secure delete; drawings only inside the database |
 | Cryptography | Platform and SQLCipher cryptography only; AES-256 report with an 80-bit one-time passphrase and a record digest on every page; P-256 ECDH, HKDF-SHA256, AES-256-GCM link frames |
 | Authentication | Secure device lock required; BiometricPrompt (strong biometric or device credential); KEK usable only while the phone is unlocked |
 | Network | HTTPS to the one gateway host only, cleartext refused; the build fails if any variant's merged manifest declares RECORD_AUDIO; no WebView |

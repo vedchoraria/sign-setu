@@ -1,5 +1,7 @@
 import hashlib
+import math
 import secrets
+import threading
 import time
 from collections import defaultdict, deque
 from typing import Annotated, Any
@@ -33,22 +35,45 @@ class RateLimiter:
     def __init__(self, per_minute: int):
         self.per_minute = per_minute
         self.hits: defaultdict[str, deque[float]] = defaultdict(deque)
+        # Routes run on a thread pool; the window and the count must change together.
+        self.lock = threading.RLock()
 
     def exceeded(self, key: str) -> bool:
-        q = self.hits.get(key)
-        now = time.monotonic()
-        return bool(q) and sum(1 for t in q if now - t <= 60) >= self.per_minute
+        with self.lock:
+            q = self.hits.get(key)
+            now = time.monotonic()
+            return bool(q) and sum(1 for t in q if now - t <= 60) >= self.per_minute
+
+    def retry_after(self, key: str) -> int:
+        """Whole seconds until the oldest hit in the window expires and one more is allowed."""
+        with self.lock:
+            q = self.hits.get(key)
+            return max(1, math.ceil(60 - (time.monotonic() - q[0]))) if q else 1
+
+    def refuse(self, key: str) -> HTTPException:
+        return HTTPException(429, "rate limit", headers={"Retry-After": str(self.retry_after(key))})
 
     def check(self, key: str) -> None:
-        now = time.monotonic()
-        if len(self.hits) > MAX_TRACKED_KEYS:
-            self.hits = defaultdict(deque, {k: q for k, q in self.hits.items() if q and now - q[-1] <= 60})
-        q = self.hits[key]
-        while q and now - q[0] > 60:
-            q.popleft()
-        if len(q) >= self.per_minute:
-            raise HTTPException(429, "rate limit")
-        q.append(now)
+        with self.lock:
+            now = time.monotonic()
+            if len(self.hits) > MAX_TRACKED_KEYS:
+                self.hits = defaultdict(deque, {k: q for k, q in self.hits.items() if q and now - q[-1] <= 60})
+            q = self.hits[key]
+            while q and now - q[0] > 60:
+                q.popleft()
+            if len(q) >= self.per_minute:
+                raise self.refuse(key)
+            q.append(now)
+
+
+def client_key(request: Request, trusted_hops: int) -> str:
+    """The caller's address. X-Forwarded-For is believed only for the entries that the given number of trusted proxies
+    appended on the right; anything further left was written by the caller. With no trusted proxy it is ignored."""
+    peer = request.client.host if request.client else "unknown"
+    if trusted_hops <= 0:
+        return peer
+    parts = [p.strip() for p in request.headers.get("x-forwarded-for", "").split(",") if p.strip()]
+    return parts[-trusted_hops] if len(parts) >= trusted_hops else peer
 
 
 def bearer(authorization: str) -> str:
@@ -69,6 +94,15 @@ def device_auth(request: Request, authorization: Authorization = "") -> Device:
 
 def reviewer_auth(request: Request, authorization: Authorization = "") -> dict[str, Any]:
     """A Keycloak access token whose realm role includes the reviewer role; keys come from the issuer's JWKS."""
+    return _role_auth(request, authorization, request.app.state.settings.reviewer_role)
+
+
+def admin_auth(request: Request, authorization: Authorization = "") -> dict[str, Any]:
+    """The same check for the gateway administrator role, which can list and revoke devices."""
+    return _role_auth(request, authorization, request.app.state.settings.admin_role)
+
+
+def _role_auth(request: Request, authorization: str, role: str) -> dict[str, Any]:
     s = request.app.state.settings
     token = bearer(authorization)
     if not token or not s.oidc_issuer:
@@ -78,8 +112,8 @@ def reviewer_auth(request: Request, authorization: Authorization = "") -> dict[s
         claims = jwt.decode(token, key, algorithms=["RS256", "ES256"], audience=s.oidc_audience, issuer=s.oidc_issuer)
     except jwt.PyJWTError:
         raise HTTPException(401, "invalid token") from None
-    if s.reviewer_role not in claims.get("realm_access", {}).get("roles", []):
-        raise HTTPException(403, "reviewer role required")
+    if role not in claims.get("realm_access", {}).get("roles", []):
+        raise HTTPException(403, f"{role} role required")
     return claims
 
 

@@ -5,6 +5,7 @@ import app.signsetu.data.session.EventType
 import app.signsetu.data.session.Profile
 import app.signsetu.data.session.SessionRepository
 import app.signsetu.data.settings.AppSettings
+import app.signsetu.data.settings.storedRetention
 import java.io.File
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -98,5 +99,37 @@ class RetentionTest {
             val keys = table["foreignKeys"]!!.jsonArray.map { it.jsonObject }
             assertTrue(keys.any { it["table"]!!.jsonPrimitive.content == "session" && it["onDelete"]!!.jsonPrimitive.content == "CASCADE" })
         }
+    }
+
+    @Test
+    fun everyChoiceOnOfferIsStoredAsChosen() {
+        AppSettings.RETENTION_CHOICES.forEach { assertEquals("choice $it", it, storedRetention(it)) }
+        assertEquals("keep until deleted must not become four hours", 0, storedRetention(0))
+        assertEquals(4, storedRetention(1))
+        assertEquals(72, storedRetention(500))
+    }
+
+    @Test
+    fun expiryIsExactToTheMillisecondAndSurvivesARestart() = runBlocking {
+        now = 1_000 * hour
+        val id = session(startedHoursAgo = 24)
+        assertEquals("at exactly the period the session is still kept", 0, repo.purgeExpired(24))
+        now += 1
+        // A new repository over the same storage is what a restart gives; the clock is the only thing carried over.
+        val restarted = SessionRepository(dao, clock = { now })
+        assertEquals("one millisecond past the period it is gone", 1, restarted.purgeExpired(24))
+        assertNull(restarted.openSession())
+        restarted.reopen(id)
+        assertTrue(dao.sessions.value.isEmpty())
+    }
+
+    @Test
+    fun aPhoneThatWasOffForDaysPurgesEverythingExpiredAtTheNextUnlockWithoutAnyNetwork() = runBlocking {
+        now = 10_000 * hour
+        session(startedHoursAgo = 24 * 9)
+        session(startedHoursAgo = 24 * 3, finished = true)
+        val recent = session(startedHoursAgo = 2)
+        assertEquals(2, SessionRepository(dao, clock = { now }).purgeExpired(24))
+        assertEquals(setOf(recent), dao.sessions.value.keys)
     }
 }

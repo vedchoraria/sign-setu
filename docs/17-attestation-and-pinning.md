@@ -66,7 +66,7 @@ Server requirements: a nonce table; an X.509 and ASN.1 parser for the key descri
 
 ## 5. Token life and revocation (recommended regardless)
 
-Both measures above are weaker than ordinary token hygiene. Add a token expiry, with a new enrolment code needed after it; a `last_seen` timestamp on devices; and an admin route to revoke a device. These need no new infrastructure.
+Both measures above are weaker than ordinary token hygiene. Add a token expiry, with a new enrolment code needed after it, and a `last_seen` timestamp on devices. These need no new infrastructure. The admin route to list and revoke a device now exists (`/v1/admin/devices`).
 
 ## 6. Decisions needed before building
 

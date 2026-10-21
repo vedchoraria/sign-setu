@@ -750,7 +750,7 @@ Status: Proposed, Accepted, Superseded.
 
 **Alternatives.** Keeping D-51's default and relying on the lock (more data on a lost phone); purging by end time (a session left open would outlive the period).
 
-**Consequences.** A saved session disappears a day after it started unless the setting was changed; officers who want longer say so in Settings. Phones that already stored a retention value keep it.
+**Consequences.** A saved session disappears a day after it started unless the setting was changed; officers who want longer say so in Settings. Phones that already stored a retention value keep it. A phone that never stored one, which includes every 0.5.0 phone whose officer did not open the setting, was keeping sessions forever and will purge anything older than 24 hours at its next unlock; there is no way to tell that phone from one that chose the default, so officers who rely on saved sessions must export or change the setting before updating. Until this change, choosing "Keep until deleted" was stored as 4 hours by a clamp in `SettingsStore`; such phones show 4 hours and need the choice made again. The crash-recovery flag (`stage_live`) only makes the next unlock ask for the full credential; it restores no data, and the purge runs at unlock before the session list or the resume offer is built, so an expired session cannot come back through recovery.
 
 ## D-53 A rooted phone keeps no history
 
@@ -774,4 +774,6 @@ Status: Proposed, Accepted, Superseded.
 
 **Alternatives.** A prompt identifier with the text held on the server (the app's prompts would live in two repositories); a per-address limit alone (spoofable).
 
-**Consequences.** Changing any word of a prompt means regenerating `app_prompts.json` and deploying the gateway before the new app version is used. An attacker who keeps sending wrong codes can block enrolment for that minute, but cannot guess codes faster than the cap. User text is still forwarded as given, so the gateway remains a translation and drafting proxy.
+**Consequences.** Changing any word of a prompt means regenerating `app_prompts.json` and deploying the gateway before the new app version is used. An attacker who keeps sending wrong codes can keep enrolment refused (valid codes included, with a Retry-After) for as long as they keep sending them, but cannot guess codes faster than the cap, cannot stop phones that are already enrolled, and leaves an `enroll.locked` audit entry. Codes from `make_codes.py` carry 72 bits, so the cap is defence in depth, not the only barrier; the limit is tunable per department. User text is still forwarded as given, so the gateway remains a translation and drafting proxy.
+
+**Amendment (enrolment limiter).** uvicorn with `--forwarded-allow-ips='*'` took the leftmost `X-Forwarded-For` entry, which the caller writes (checked against uvicorn 0.54), so the per-address limit could be evaded. The image now ignores proxy headers; the gateway reads the entry a configured number of trusted proxies appended on the right (`TRUSTED_PROXY_HOPS`, default 0). The window counters are guarded by a lock, so the wrong-code cap holds exactly under concurrent requests, and an already-used code gets the same answer as a wrong one. The limiter is in memory: it resets on restart and is per process, so run one worker, or move it to shared storage before running several.

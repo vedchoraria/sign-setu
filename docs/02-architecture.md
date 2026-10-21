@@ -127,7 +127,7 @@ No table has a column for a name, address, phone number or photograph of the sub
 - A random 256-bit database key (DEK) is generated on first use and stored wrapped by an AES key-encryption key (KEK) in Android Keystore, hardware-backed where available, non-exportable and usable only while the phone is unlocked.
 - Unlocking the app (1.0) authorises the KEK; the unwrapped DEK lives in memory only while the app is unlocked.
 - Drawings are stored inside the encrypted database, never on shared storage.
-- Purge deletes the session rows and runs `VACUUM`.
+- Purge deletes the session rows; their events and drawings go with them (`ON DELETE CASCADE`), and `PRAGMA secure_delete` is on, so freed pages are overwritten with zeros. The file is not compacted.
 
 API-level details for authentication are in [security](04-security.md).
 

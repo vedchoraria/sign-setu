@@ -10,8 +10,9 @@ The department gateway the app uses while online. It is optional: a build withou
 | `POST /v1/assist` | Phone | Proxy to the AI service; the key stays here and no text is stored. The whole system prompt must match a template in `signsetu_gateway/app_prompts.json` (language names fill the marked slots, one line, up to 80 characters), so a caller cannot add instructions. The file is written by the app's `GatewayPromptContractTest` (`UPDATE_PROMPT_FIXTURE=1`) and that test fails when a prompt changes without it |
 | `POST /v1/feedback` | Phone | Label outcome of a reading, with consent; any extra field is refused |
 | `GET /v1/admin/feedback` | Reviewer portal | Keycloak access token with the `reviewer` realm role |
+| `GET /v1/admin/devices`, `POST /v1/admin/devices/{id}/revoke` | Administrator | Keycloak access token with the `gateway-admin` realm role (`ADMIN_ROLE` to rename it). Lists device ids and whether each is revoked, never tokens; a revoked device gets 401 and its app drops the token and falls back to the on-device assistant. Written to the audit table |
 
-Phone routes need the device token and are rate limited to 30 requests a minute. Enrolment is limited per client address (10 a minute) and, across all callers, to 20 wrong codes a minute, because the address comes from a forwarded header a caller can set. Enrolment, assist, feedback and admin reads are written to an audit table. The interactive API docs are switched off.
+Phone routes need the device token and are rate limited to 30 requests a minute. Enrolment is limited per client address (10 a minute) and, across all callers, to 20 wrong codes a minute, because the address comes from a forwarded header a caller can set. While the second limit is reached every enrolment, valid codes included, is refused with 429 and a `Retry-After` header, and it ends by itself a minute after the last wrong code; refused requests are not counted, so an attacker has to keep sending wrong codes to keep it up. The first lockout is written to the audit table as `enroll.locked`. Letting valid codes through would let an attacker test guesses past the cap. Enrolment, assist, feedback and admin reads are written to an audit table. The interactive API docs are switched off.
 
 ## Key files
 
@@ -30,6 +31,8 @@ Phone routes need the device token and are rate limited to 30 requests a minute.
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `DATABASE_URL` | `sqlite:///gateway.db` | SQLAlchemy URL. A host's `postgres://` or `postgresql://` URL is accepted and uses the psycopg 3 driver. Keep it a secret |
+| `TRUSTED_PROXY_HOPS` | `0` | How many reverse proxies in front of the gateway append to `X-Forwarded-For`. With 0 the header is ignored and the socket address is the caller, which behind a proxy means every caller shares one per-address budget (safe, but tight). Set it to 1 behind one proxy that appends the real client address on the right; check the host's documentation first, because a wrong value lets callers choose their own address. The image runs uvicorn with `--no-proxy-headers`, since its `--forwarded-allow-ips='*'` believed the leftmost entry, which a caller writes |
+| `ENROLL_PER_MINUTE`, `ENROLL_FAILURES_PER_MINUTE` | `10`, `20` | The two enrolment limits above |
 | `REQUIRE_PERSISTENT_DB` | empty | Set to `1` to make the gateway refuse to start on SQLite, so a restart cannot lose enrolments |
 | `MODEL_DIR` | `models` | Folder holding `manifest.json` and the model files it lists |
 | `ENROLL_HASHES` | empty | Comma-separated SHA-256 hex of each issued enrolment code; empty means no phone can enrol |
