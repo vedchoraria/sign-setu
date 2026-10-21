@@ -66,3 +66,8 @@ Notes:
 - A transformer head (3 layers, width 192, same features and strong augmentation, 300 epochs) scored 0.276 top-1 and
   0.377 top-3 on the unseen ISLRTC signer, and 0.62 inside the lesson questions' answer cards (shipped: 0.73), so the
   convolution reader stays.
+- Lesson-sheet answers (qna.pdf), read among the question's own answer cards as the app does (`decideRead` with two or
+  more cards): unseen ISLRTC signer top-1 0.73, top-3 0.88 (n=26); INCLUDE test signers 0.98 and 1.00 (n=111). The
+  misses are male and female pairs (mother and father, grandmother and grandfather, wife and husband). Averaging over
+  mirrored and rescaled copies at read time changed nothing (0.286 overall either way), so it is not used. More signers
+  of the lesson words are what would raise the first number.

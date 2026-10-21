@@ -52,6 +52,44 @@ class LessonTest {
     }
 
     @Test
+    fun wordingMatchesTheLessonSheetInHindiAndItsEnglishTranslation() {
+        // qna.pdf and ISL_QA_English_Translation.pdf. The age question adds how to answer; Namaste follows the Hindi.
+        val sheet = mapOf(
+            "p1" to ("आपका नाम क्या है?" to "What is your name?"),
+            "i2" to ("आपकी उम्र कितनी है?" to "How old are you?"),
+            "p2" to ("आपका मोबाइल नंबर क्या है?" to "What is your mobile number?"),
+            "p3" to ("आप अपना परिचय दीजिए।" to "Please introduce yourself."),
+            "f5" to ("आपके पिता का नाम क्या है?" to "What is your father's name?"),
+            "f6" to ("आपकी माता का नाम क्या है?" to "What is your mother's name?"),
+            "f7" to ("आपके परिवार में कितने सदस्य हैं?" to "How many members are there in your family?"),
+            "f8" to ("आपके कितने भाई-बहन हैं?" to "How many brothers and sisters do you have?"),
+            "f1" to ("आप किसके साथ रहते हैं?" to "Whom do you live with?"),
+            "a1" to ("आप कहाँ रहते हैं?" to "Where do you live?"),
+            "a2" to ("आपके गाँव या शहर का नाम क्या है?" to "What is the name of your village or city?"),
+            "a3" to ("आपका जिला कौन-सा है?" to "Which district are you from?"),
+            "a4" to ("आप किस राज्य में रहते हैं?" to "In which state do you live?"),
+            "a5" to ("आपके घर के पास कौन-सा प्रमुख स्थान है?" to "What are the prominent places near your home?"),
+            "sc1" to ("आपके स्कूल का नाम क्या है?" to "What is the name of your school?"),
+            "sc2" to ("आप किस कक्षा में पढ़ते हैं?" to "Which class are you in?"),
+            "sc3" to ("आपके शिक्षक का नाम क्या है?" to "What is your teacher's name?"),
+            "sc4" to ("आपका पसंदीदा विषय कौन-सा है?" to "Which is your favourite subject?"),
+            "sc5" to ("आपको स्कूल में क्या करना अच्छा लगता है?" to "What do you like about school?"),
+            "e1" to ("नमस्ते।" to "Namaste."),
+            "e2" to ("आप कैसे हैं?" to "How are you?"),
+            "e3" to ("कृपया मेरी सहायता कीजिए।" to "Please help me."),
+            "e4" to ("मुझे पानी चाहिए।" to "I need water."),
+            "e5" to ("मुझे समझ नहीं आया।" to "I did not understand."),
+            "e6" to ("कृपया दोबारा बताइए।" to "Please repeat it."),
+            "e7" to ("धन्यवाद।" to "Thank you."),
+            "e8" to ("मुझे घर जाना है।" to "I want to go home."),
+        )
+        for ((id, text) in sheet) {
+            assertTrue(id, q(id).text["hi"]!!.startsWith(text.first))
+            assertTrue(id, q(id).text["en"]!!.startsWith(text.second))
+        }
+    }
+
+    @Test
     fun theGroupCarouselReachesEveryLessonSheetQuestion() {
         val lesson = content.questions.filter { it.answer != null || it.group == EVERYDAY || it.group in setOf("identity", "family", "location", "school") }.map { it.id }.toSet()
         val reached = Role.entries.flatMap { r -> Profile.entries.flatMap { p -> listOf(false, true).flatMap { c -> content.groupsFor(r, c).flatMap { g -> content.questionsIn(g.id, r, p) } } } }.map { it.id }.toSet()
@@ -112,7 +150,7 @@ class LessonTest {
         assertEquals("कक्षा 7", content.answerText(AnswerType.CLASS, Given("sc2", Method.PICKER, true, "7"), "hi"))
         assertEquals("College", content.answerText(AnswerType.CLASS, Given("sc2", Method.PICKER, true, "college"), "en"))
         assertEquals("Brothers 2, Sisters 1", content.answerText(AnswerType.SIBLINGS, Given("f8", Method.PAD, true, "2/1"), "en"))
-        assertEquals("I want water.", content.answerText(null, Given("e4", Method.BOARD, true), "en"))
+        assertEquals("I need water.", content.answerText(null, Given("e4", Method.BOARD, true), "en"))
     }
 
     @Test
@@ -137,7 +175,7 @@ class LessonTest {
             ev(6, EventType.ANSWER_TEXT, EventSource.SUBJECT, "Ravi", itemId = "p1", shownId = 5, reason = Given("p1", Method.WRITTEN, false).reason()),
             ev(7, EventType.ANSWER_CARD, EventSource.SUBJECT, "Stop", cardId = "stop", shownId = 5),
             // The phrase board is the subject talking, not a detail, even with a question on screen.
-            ev(8, EventType.ANSWER_TEXT, EventSource.SUBJECT, "I want water.", itemId = "e4", shownId = 5, reason = Given("e4", Method.BOARD, true).reason()),
+            ev(8, EventType.ANSWER_TEXT, EventSource.SUBJECT, "I need water.", itemId = "e4", shownId = 5, reason = Given("e4", Method.BOARD, true).reason()),
             // A question with no answer type is not a personal detail.
             ev(9, EventType.QUESTION_SHOWN, EventSource.PRESET, "Are you hurt?", itemId = "s2"),
             ev(10, EventType.ANSWER_CARD, EventSource.SUBJECT, "Yes", cardId = "yes", shownId = 9),

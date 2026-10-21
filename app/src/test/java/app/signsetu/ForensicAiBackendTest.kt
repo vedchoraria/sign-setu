@@ -40,11 +40,11 @@ class ForensicAiBackendTest {
         assertEquals("Would you like a glass of water?", first("pain in stomach", child = true))
         assertEquals("Do you need medical attention right away?", first("मुझे दर्द है", child = false))
         assertEquals("Do you feel safe in this room?", first("I am afraid", child = false))
-        assertEquals("Did this happen recently?", first("they hit me", child = false))
+        assertEquals("When did this happen?", first("they hit me", child = false))
         assertEquals("Do you feel safe returning home?", first("at home", child = true))
         assertEquals("Do you feel safe at school?", first("teacher at school", child = true))
         assertEquals("Can you point on the body map to where?", first("bad touch", child = false))
-        assertEquals("Are you scared of the dark?", first("it happened at night in the dark", child = true))
+        assertEquals("Can you tell me more about that night?", first("it happened at night in the dark", child = true))
         assertEquals("Are you feeling comfortable?", first("blue", child = true))
         assertEquals("Are you comfortable continuing?", first("blue", child = false))
         for (child in listOf(true, false)) {

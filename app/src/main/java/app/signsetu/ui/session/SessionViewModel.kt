@@ -162,13 +162,31 @@ class SessionViewModel(
     fun show() {
         val state = ui.value ?: return
         val pending = local.value.pending ?: return
+        // A second tap (or Send with Volume-Up) before the first show is written would log the item twice.
+        if (showing) return
+        showing = true
         ShowTiming.start()
         viewModelScope.launch {
-            // Only a paired officer can show while something is on stage; replacing it is the officer's act.
-            if (local.value.mode == Mode.SHOW) finishShown(EventSource.OFFICER)
-            auto.onManualShow(pending)
-            present(pending, state.session.subjectLang)
+            try {
+                // Only a paired officer can show while something is on stage; replacing it is the officer's act.
+                if (local.value.mode == Mode.SHOW) finishShown(EventSource.OFFICER)
+                auto.onManualShow(pending)
+                present(pending, state.session.subjectLang)
+            } finally {
+                showing = false
+            }
         }
+    }
+    private var showing = false
+
+    /** Officer-side drafts and sign modes; the officer pane leaves composition while the stage is shown. */
+    val drafts = androidx.compose.runtime.mutableStateMapOf<String, String>()
+    private val modes = androidx.compose.runtime.mutableStateListOf<SignMode>()
+    private var modesProfile: Profile? = null
+
+    fun modesFor(profile: Profile, defaults: List<SignMode>): MutableList<SignMode> {
+        if (modesProfile != profile) { modes.clear(); modes.addAll(defaults); modesProfile = profile }
+        return modes
     }
 
     /** Shows what is prepared, if anything, and reads the subject's signed answer, or their account for NARRATIVE (D-25). */

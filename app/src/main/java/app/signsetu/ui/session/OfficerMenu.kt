@@ -1,5 +1,7 @@
 package app.signsetu.ui.session
 
+import androidx.compose.material3.TextButton
+import app.signsetu.ui.components.GuardedAlertDialog
 import androidx.compose.material.icons.filled.Star
 import app.signsetu.camera.EvidenceMode
 import app.signsetu.camera.SkeletonOverlay
@@ -10,9 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
@@ -54,27 +55,33 @@ private fun Modifier.toggleState(on: Boolean, kind: Role) = semantics {
     toggleableState = ToggleableState(on)
 }
 
-/** The overflow menu: who the person is, how the stage shows, the cloud report and ending the session. */
+/** The overflow menu: how the stage shows, the cloud report and finishing the session. Who the person is: tap the header. */
 @Composable
 internal fun OfficerMenu(
     ui: SessionUi,
     vm: SessionViewModel,
     canChangeSignLanguage: Boolean,
-    onChange: () -> Unit,
     onAiReport: () -> Unit,
     onEnd: () -> Unit,
 ) {
     var menu by remember { mutableStateOf(false) }
+    var askSwitch by remember { mutableStateOf(false) }
     val signLanguage = ui.signLanguage
+    val langs = SignLanguage.entries.filter { it == SignLanguage.ISL || !vm.content.aslDisabled }
+    val next = langs[(langs.indexOf(signLanguage) + 1) % langs.size]
+    if (askSwitch) {
+        GuardedAlertDialog(
+            onDismissRequest = { askSwitch = false },
+            title = { Text(stringResource(R.string.switch_sign_title, next.name)) },
+            text = { Text(stringResource(R.string.switch_sign_body, next.name)) },
+            confirmButton = { TextButton(onClick = { askSwitch = false; vm.setSignLanguage(next) }) { Text(stringResource(R.string.switch_sign_confirm)) } },
+            dismissButton = { TextButton(onClick = { askSwitch = false }) { Text(stringResource(R.string.cancel)) } },
+        )
+    }
     Box {
         IconButton(onClick = { menu = true }) { Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.officer_more)) }
         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
             FilterObscuredTouches()
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.officer_change)) },
-                leadingIcon = { Icon(Icons.Filled.Person, contentDescription = null) },
-                onClick = { menu = false; onChange() },
-            )
             // Fixed while something is on a second screen, like the profile and language.
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.officer_sign_language)) },
@@ -98,10 +105,8 @@ internal fun OfficerMenu(
                     }
                 },
                 enabled = canChangeSignLanguage,
-                onClick = {
-                    val langs = SignLanguage.entries.filter { it == SignLanguage.ISL || !vm.content.aslDisabled }
-                    vm.setSignLanguage(langs[(langs.indexOf(signLanguage) + 1) % langs.size])
-                },
+                // The character signs in the new language from here on, so a stray tap must not switch it.
+                onClick = { menu = false; askSwitch = true },
             )
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.officer_rotate)) },
@@ -125,8 +130,8 @@ internal fun OfficerMenu(
             )
             HorizontalDivider()
             DropdownMenuItem(
-                text = { Text(stringResource(R.string.officer_end), color = MaterialTheme.colorScheme.error) },
-                leadingIcon = { Icon(Icons.Filled.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
+                text = { Text(stringResource(R.string.officer_end)) },
+                leadingIcon = { Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = null) },
                 onClick = { menu = false; onEnd() },
             )
         }

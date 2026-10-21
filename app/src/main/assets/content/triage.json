@@ -962,7 +962,7 @@
         "draw"
       ],
       "text": {
-        "en": "Introduce yourself.",
+        "en": "Please introduce yourself.",
         "hi": "आप अपना परिचय दीजिए।",
         "hne": "अपन बारे म बतावव।",
         "gon": "नीवा बारे वेहा।",
@@ -1006,7 +1006,7 @@
         "someone_else"
       ],
       "text": {
-        "en": "Who do you live with?",
+        "en": "Whom do you live with?",
         "hi": "आप किसके साथ रहते हैं?",
         "hne": "तुमन काखर संग रहिथव?",
         "gon": "मीट बोर सोबत मंदीर?",
@@ -1189,7 +1189,7 @@
       ],
       "text": {
         "en": "What is your mother's name?",
-        "hi": "आपकी माँ का नाम क्या है?",
+        "hi": "आपकी माता का नाम क्या है?",
         "hne": "तुमन के दाई के नाव का हे?",
         "gon": "मीवा याया ना पोरोल बाता?",
         "hlb": "तुमचो आया चो नाव काय आय?",
@@ -1234,8 +1234,8 @@
       "group": "family",
       "cards": [],
       "text": {
-        "en": "How many members are in your family?",
-        "hi": "आपके परिवार में कितने लोग हैं?",
+        "en": "How many members are there in your family?",
+        "hi": "आपके परिवार में कितने सदस्य हैं?",
         "hne": "तुमन के परिवार म कतका झन हें?",
         "gon": "मीवा कुटुम ते बच्चोर मंदोर?",
         "hlb": "तुमचो परिवार ने कितरो लोग आसोत?",
@@ -1623,8 +1623,8 @@
       "group": "location",
       "cards": [],
       "text": {
-        "en": "Which district do you live in?",
-        "hi": "आप किस ज़िले में रहते हैं?",
+        "en": "Which district are you from?",
+        "hi": "आपका जिला कौन-सा है?",
         "hne": "तुमन कोन जिला म रहिथव?",
         "gon": "मीट बोन जिला ते मंदीर?",
         "hlb": "तुमी कोन जिला ने रहुसा?",
@@ -1669,7 +1669,7 @@
       "group": "location",
       "cards": [],
       "text": {
-        "en": "Which state do you live in?",
+        "en": "In which state do you live?",
         "hi": "आप किस राज्य में रहते हैं?",
         "hne": "तुमन कोन राज म रहिथव?",
         "gon": "मीट बोन राज ते मंदीर?",
@@ -1730,8 +1730,8 @@
         "other"
       ],
       "text": {
-        "en": "Which place is near your home?",
-        "hi": "आपके घर के पास कौन-सी जगह है?",
+        "en": "What are the prominent places near your home?",
+        "hi": "आपके घर के पास कौन-सा प्रमुख स्थान है?",
         "hne": "तुमन के घर तीर कोन जगा हे?",
         "gon": "मीवा लोन अग्गा बोन जागा मंदा?",
         "hlb": "तुमचो घर लगे कोन जागा आसे?",
@@ -2616,7 +2616,7 @@
       "group": "school",
       "cards": [],
       "text": {
-        "en": "Which class do you study in?",
+        "en": "Which class are you in?",
         "hi": "आप किस कक्षा में पढ़ते हैं?",
         "hne": "तुमन कोन कक्छा म पढ़थव?",
         "gon": "मीट बोन कक्षा ते पढ़ीर?",
@@ -2719,7 +2719,7 @@
         "other"
       ],
       "text": {
-        "en": "What is your favourite subject?",
+        "en": "Which is your favourite subject?",
         "hi": "आपका पसंदीदा विषय कौन-सा है?",
         "hne": "तुमन ला कोन बिसय सबले बढ़िया लागथे?",
         "gon": "मीकुन बोन बिसय बेस आयता?",
@@ -2778,7 +2778,7 @@
         "nothing"
       ],
       "text": {
-        "en": "What do you like doing at school?",
+        "en": "What do you like about school?",
         "hi": "आपको स्कूल में क्या करना अच्छा लगता है?",
         "hne": "तुमन ला इस्कूल म का करना बढ़िया लागथे?",
         "gon": "मीकुन इस्कूल ते बाता कीयाना बेस आयता?",
@@ -2893,7 +2893,7 @@
       ],
       "text": {
         "en": "Please help me.",
-        "hi": "कृपया मेरी मदद कीजिए।",
+        "hi": "कृपया मेरी सहायता कीजिए।",
         "hne": "मोर मदद करव।",
         "gon": "ना मदद कीमा।",
         "hlb": "मचो मदद करा।",
@@ -2921,7 +2921,7 @@
         "water"
       ],
       "text": {
-        "en": "I want water.",
+        "en": "I need water.",
         "hi": "मुझे पानी चाहिए।",
         "hne": "मोला पानी चाही।",
         "gon": "नाकुन एर वलेके।",
@@ -2979,8 +2979,8 @@
         "again"
       ],
       "text": {
-        "en": "Please say it again.",
-        "hi": "कृपया फिर से बताइए।",
+        "en": "Please repeat it.",
+        "hi": "कृपया दोबारा बताइए।",
         "hne": "फेर ले बतावव।",
         "gon": "मरी वेहा।",
         "hlb": "फेर सांगा।",

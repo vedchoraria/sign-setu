@@ -36,7 +36,7 @@
     <string name="officer_log">सत्र रिकॉर्ड</string>
     <string name="officer_call">दुभाषिया बुलाएँ</string>
     <string name="officer_more">और विकल्प</string>
-    <string name="officer_end">सत्र समाप्त करें</string>
+    <string name="officer_end">सत्र पूरा करें</string>
     <string name="officer_rotate">वे मेरे सामने बैठे हैं</string>
     <string name="officer_change">प्रोफ़ाइल या भाषा बदलें</string>
     <string name="officer_caption_missing">%1$s में कैप्शन नहीं है। उन्हें केवल चित्र दिखेंगे।</string>
@@ -109,7 +109,7 @@
     <string name="show_replay">फिर से दिखाएँ</string>
 
     <string name="end_export">रिपोर्ट निर्यात करें</string>
-    <string name="end_no_export">बिना निर्यात समाप्त करें</string>
+    <string name="end_no_export">बिना रिपोर्ट के पूरा करें</string>
     <string name="export_working">एन्क्रिप्टेड रिपोर्ट तैयार हो रही है…</string>
     <string name="export_title">रिपोर्ट तैयार</string>
     <string name="export_body">रिपोर्ट एन्क्रिप्टेड है। यह पासवर्ड फ़ाइल से अलग दें, जैसे बोलकर। यह केवल एक बार दिखेगा।</string>
@@ -536,4 +536,35 @@
     <string name="ai_followups_title">सुझाए गए अगले प्रश्न (बिना संकेत वाले)</string>
     <string name="call_skeleton_on">ढाँचा</string>
     <string name="call_skeleton_off">कैमरा</string>
+    <string name="wrap_title">यह सत्र पूरा करें</string>
+    <string name="wrap_thank">स्टेज पर धन्यवाद कहें</string>
+    <string name="wrap_keep_going">जारी रखें</string>
+    <string name="export_finish_unshared">अभी भेजी नहीं गई। मिटाने के लिए फिर दबाएँ</string>
+    <string name="more_asked">पूछा</string>
+    <string name="more_answered">जवाब मिला</string>
+    <plurals name="wrap_minutes">
+        <item quantity="one">%d मिनट</item>
+        <item quantity="other">%d मिनट</item>
+    </plurals>
+    <plurals name="wrap_shown">
+        <item quantity="one">%d सवाल या संकेत दिखाया</item>
+        <item quantity="other">%d सवाल या संकेत दिखाए</item>
+    </plurals>
+    <plurals name="wrap_answers">
+        <item quantity="one">%d जवाब दर्ज</item>
+        <item quantity="other">%d जवाब दर्ज</item>
+    </plurals>
+    <plurals name="wrap_unanswered">
+        <item quantity="one">%d का जवाब नहीं मिला</item>
+        <item quantity="other">%d का जवाब नहीं मिला</item>
+    </plurals>
+    <plurals name="wrap_unread">
+        <item quantity="one">%d सांकेतिक जवाब पढ़ना बाकी</item>
+        <item quantity="other">%d सांकेतिक जवाब पढ़ना बाकी</item>
+    </plurals>
+    <string name="session_finished">सत्र पूरा हुआ। इसका रिकॉर्ड इस फ़ोन से मिटा दिया गया।</string>
+    <string name="switch_sign_title">%1$s पर बदलें?</string>
+    <string name="switch_sign_body">इस सत्र में आगे पात्र %1$s में संकेत करेगा। व्यक्ति शायद दूसरी सांकेतिक भाषा न समझे।</string>
+    <string name="switch_sign_confirm">बदलें</string>
+    <string name="board_name">चित्र बोर्ड</string>
 </resources>

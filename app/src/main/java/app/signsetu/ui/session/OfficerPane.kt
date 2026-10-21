@@ -29,21 +29,19 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Call
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -93,6 +91,7 @@ import app.signsetu.ui.theme.LocalAnswerColors
 import app.signsetu.ui.theme.LocalInk
 import app.signsetu.ui.theme.Spacing
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import java.io.File
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Tab
@@ -102,12 +101,13 @@ import app.signsetu.ui.pair.PairedBar
 import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
 
+private const val THANK_YOU = "e7"
+
 private enum class Sheet { BOARD_SHOW, BOARD_ATTACH, GESTURE, LOG, CHANGE, DICTIONARY }
 
 /** The phrase bank sits beside the triage groups as one more group (FR-62). */
 internal const val PHRASES = "phrases"
 private const val WORD_SEP = "\u0001"
-internal val DraftsSaver = listSaver<MutableMap<String, String>, String>(save = { m -> m.flatMap { listOf(it.key, it.value) } }, restore = { l -> mutableStateMapOf<String, String>().apply { l.chunked(2).forEach { put(it[0], it[1]) } } })
 
 /**
  * The officer's side of the phone. The main page is quick two-way transcription, laid out like a messaging app: the
@@ -154,7 +154,7 @@ fun OfficerPane(
     val res = LocalResources.current
     val attached = rememberSaveable(saver = stateListSaver()) { mutableStateListOf<String>() }
     // Typed words held by event id ("say:", "sign:") and Show picks ("show"), so dismiss and rotation keep them.
-    val drafts = rememberSaveable(saver = DraftsSaver) { mutableStateMapOf<String, String>() }
+    val drafts = vm.drafts
     // Held here so closing a sheet does not drop what was typed or picked.
     var logNote by rememberSaveable { mutableStateOf("") }
     var boardDraft by rememberSaveable { mutableStateOf<String?>(null) }
@@ -174,9 +174,8 @@ fun OfficerPane(
         delay(250)
         draft = withContext(Dispatchers.Default) { hindi(ownText) }
     }
-    val modes = rememberSaveable(ui.session.profile, saver = listSaver(save = { l -> l.map { it.name } }, restore = { l -> l.map(SignMode::valueOf).toMutableStateList() })) {
-        defaultModes(ui.session.profile).toMutableStateList()
-    }
+    // Kept by the view model: this pane leaves the screen whenever the stage is shown.
+    val modes = remember(ui.session.profile) { vm.modesFor(ui.session.profile, defaultModes(ui.session.profile)) }
 
     val answers = ui.events.count { it.type in AnswerEvents }
     // A request to stop stays on screen until the officer acknowledges it or shows something new.
@@ -283,7 +282,6 @@ fun OfficerPane(
                     ui = ui,
                     vm = vm,
                     canChangeSignLanguage = paired == null || ui.onStage == null,
-                    onChange = { sheet = Sheet.CHANGE },
                     onAiReport = {
                         aiExtracting = true
                         scope.launch {
@@ -326,6 +324,7 @@ fun OfficerPane(
                 onLog = { sheet = Sheet.LOG },
                 onChange = { sheet = Sheet.CHANGE },
                 onSecondScreen = onSecondScreen,
+                onFinish = { askEnd = true },
                 onTell = if (canReadSigns) ({ prepareTyped(); vm.readSigns(SignWindow.NARRATIVE); page = 0 }) else null,
                 modifier = Modifier.weight(1f),
             )
@@ -453,45 +452,46 @@ fun OfficerPane(
         )
     }
     if (askEnd) {
-        GuardedAlertDialog(
-            onDismissRequest = { askEnd = false },
-            icon = { Icon(Icons.Filled.Delete, contentDescription = null) },
-            title = { Text(stringResource(R.string.end_title)) },
-            text = { Text(stringResource(R.string.end_body)) },
-            confirmButton = {
-                Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-                    Button(modifier = Modifier.fillMaxWidth(), onClick = {
-                        askEnd = false
-                        export = ExportState.Working
-                        scope.launch {
-                            val by = shownBy(ui.events)
-                            val idle = notActedOn(ui.events)
-                            // Lesson-sheet hook: the report's personal details section (PersonalDetails.kt).
-                            val section = detailsSection(res, content, officerLang, ui.events)
-                            val reportSummary = aiReport ?: runCatching {
-                                cloud.report(sessionLog(ui.events), ui.session.role.name, subjectLang, subjectNames(ui.events, content, officerLang), signLanguage)
-                            }.getOrNull()
-                            export = runCatching { vm.exportReport(reportText(res, ui, content), recordDetail(res, content, officerLang, ui.events) { eventDetail(res, it, by, idle) }, section, reportSummary) }
-                                .fold({ (file, pass) -> ExportState.Ready(file, pass) }, { ExportState.Failed })
-                        }
-                    }) { Text(stringResource(R.string.end_export)) }
-                    OutlinedButton(onClick = { askEnd = false; onEndSession() }, modifier = Modifier.fillMaxWidth()) {
-                        Text(stringResource(R.string.end_no_export), color = MaterialTheme.colorScheme.error)
-                    }
-                    TextButton(onClick = { askEnd = false }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.cancel)) }
-                }
-            },
+        val startExport: () -> Unit = {
+            askEnd = false
+            export = ExportState.Working
+            scope.launch {
+                val by = shownBy(ui.events)
+                val idle = notActedOn(ui.events)
+                // Lesson-sheet hook: the report's personal details section (PersonalDetails.kt).
+                val section = detailsSection(res, content, officerLang, ui.events)
+                // The officer waits behind a dialog that cannot be closed, so a slow network gets 8 s, then no summary.
+                val reportSummary = aiReport ?: runCatching {
+                    withTimeoutOrNull(8_000) { cloud.report(sessionLog(ui.events), ui.session.role.name, subjectLang, subjectNames(ui.events, content, officerLang), signLanguage) }
+                }.getOrNull()
+                export = runCatching { vm.exportReport(reportText(res, ui, content), recordDetail(res, content, officerLang, ui.events) { eventDetail(res, it, by, idle) }, section, reportSummary) }
+                    .fold({ (file, pass) -> ExportState.Ready(file, pass) }, { ExportState.Failed })
+            }
+        }
+        // The everyday "Thank you." from the lesson sheet closes the conversation on the stage.
+        val thanks = content.question(THANK_YOU)
+        WrapUpDialog(
+            summary = remember(ui.events) { wrapUp(ui.events, ui.session.startedAt, System.currentTimeMillis()) },
+            onThank = thanks?.takeIf { paired?.allowShow?.invoke() != false }?.let { q -> { askEnd = false; vm.prepare(Pending.Ask(q)); vm.show() } },
+            onExport = startExport,
+            onFinishOnly = { askEnd = false; onEndSession() },
+            onDismiss = { askEnd = false },
         )
     }
+    val modal = askEnd || export != null || aiExtracting || aiReport != null || sheet != null || askSensitive || phrase != null || sayingBack != null || replaying != null
+    SideEffect { OfficerModal.open.value = modal }
+    DisposableEffect(Unit) { onDispose { OfficerModal.open.value = false } }
     aiReport?.let { AiReportDialog(it, onDismiss = { aiReport = null }) }
     if (aiExtracting) AiPreparingDialog()
 
     export?.let { state ->
+        var shared by remember(state) { mutableStateOf(false) }
         ExportDialog(
             state = state,
-            onShare = { (state as? ExportState.Ready)?.let { onShare(it.file) } },
+            onShare = { (state as? ExportState.Ready)?.let { shared = true; onShare(it.file) } },
             onFinish = { (state as? ExportState.Ready)?.file?.delete(); export = null; onEndSession() },
             onDismiss = { export = null },
+            shared = shared,
         )
     }
 }

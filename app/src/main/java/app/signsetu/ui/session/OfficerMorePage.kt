@@ -71,6 +71,12 @@ import app.signsetu.ui.theme.PictureWell
 import app.signsetu.ui.theme.Spacing
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Phone
+import app.signsetu.data.session.EventType
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.filled.Search
 
 internal enum class Tool { GESTURE, BOARD, DRAW, LANGUAGE, ATTACH, RULES, DICTIONARY }
 
@@ -90,6 +96,7 @@ internal fun MorePage(
     onLog: () -> Unit,
     onChange: () -> Unit,
     onSecondScreen: (() -> Unit)?,
+    onFinish: () -> Unit,
     modifier: Modifier,
     onTell: (() -> Unit)? = null,
 ) {
@@ -111,27 +118,28 @@ internal fun MorePage(
                     CategoryChip(g.label.pick(officerLang) ?: g.id, ui.selectedGroup == g.id, locked = !ui.sensitiveUnlocked) { onGroup(g) }
                 }
             }
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                contentPadding = PaddingValues(horizontal = Spacing.lg, vertical = Spacing.md),
-            ) {
+            // One question per row: a group reads top to bottom, and what was asked or answered shows at a glance.
+            val asked = remember(ui.events) { ui.events.filter { it.type == EventType.QUESTION_SHOWN }.associateBy({ it.id }, { it.itemId }) }
+            val askedIds = remember(asked) { asked.values.filterNotNull().toSet() }
+            val answeredIds = remember(ui.events, asked) { ui.events.filter { it.type in AnswerEvents }.mapNotNull { e -> e.shownId?.let(asked::get) }.toSet() }
+            Column(Modifier.padding(horizontal = Spacing.lg, vertical = Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                 if (ui.selectedGroup == PHRASES) {
-                    items(content.phrases, key = { it.id }) { p ->
-                        Suggestion(
+                    content.phrases.forEach { p -> key(p.id) {
+                        QuestionRow(
                             cardId = p.slots.firstOrNull()?.card,
                             title = p.label.pick(officerLang) ?: p.id,
                             caption = p.label.pick(subjectLang)?.takeIf { subjectLang != officerLang },
                             hasGesture = true,
                             hasAudio = ui.session.profile != Profile.ISL_USER && p.slots.any { content.phraseAudio(p, it, subjectLang) != null },
                             selected = (pending as? Pending.PhraseAsk)?.phrase?.id == p.id,
-                            wide = wide,
+                            status = null,
                             onClick = { onPhrase(p) },
                         )
-                    }
+                    } }
                 }
                 // Lesson-sheet hook: role and profile filter (Lesson.kt askable).
-                items(content.questionsIn(ui.selectedGroup, ui.session.role, ui.session.profile), key = { it.id }) { q ->
-                    Suggestion(
+                content.questionsIn(ui.selectedGroup, ui.session.role, ui.session.profile).forEach { q -> key(q.id) {
+                    QuestionRow(
                         cardId = q.cards.firstOrNull(),
                         title = q.text.pick(officerLang) ?: q.text.values.first(),
                         caption = q.text.pick(subjectLang)?.takeIf { subjectLang != officerLang },
@@ -139,11 +147,11 @@ internal fun MorePage(
                         hasGesture = content.gestureFor(q) != null,
                         hasAudio = content.questionAudio(q.id, subjectLang) != null && ui.session.profile != Profile.ISL_USER,
                         selected = (pending as? Pending.Ask)?.question?.id == q.id,
-                        wide = wide,
+                        status = when (q.id) { in answeredIds -> Asked.ANSWERED; in askedIds -> Asked.ASKED; else -> null },
                         onClick = { onQuestion(q) },
                         onLongClick = { onAddToRun(q) },
                     )
-                }
+                } }
             }
         }
         SectionLabel(stringResource(R.string.more_tools), Modifier.padding(horizontal = Spacing.lg))
@@ -157,11 +165,14 @@ internal fun MorePage(
         OfficerCard(Modifier.padding(horizontal = Spacing.lg), padding = 0.dp) {
             // Up to three minutes of signing with nothing on screen to interrupt; replayed later with an interpreter.
             onTell?.let { MoreRow(painterResource(R.drawable.ic_hand), stringResource(R.string.tell_me_long), null, first = true, onClick = it) }
-            MoreRow(painterResource(R.drawable.ic_hand), stringResource(if (ui.signLanguage == SignLanguage.ASL) R.string.asl_dictionary else R.string.isl_dictionary), null, first = onTell == null) { onTool(Tool.DICTIONARY) } // ISL hook
+            MoreRow(rememberVectorPainter(Icons.Filled.Search), stringResource(if (ui.signLanguage == SignLanguage.ASL) R.string.asl_dictionary else R.string.isl_dictionary), null, first = onTell == null) { onTool(Tool.DICTIONARY) } // ISL hook
             MoreRow(rememberVectorPainter(Icons.AutoMirrored.Filled.List), stringResource(R.string.officer_log), answers.takeIf { it > 0 }?.toString(), onClick = onLog)
             MoreRow(rememberVectorPainter(Icons.Filled.Person), stringResource(R.string.officer_change), null, onClick = onChange)
             onSecondScreen?.let { MoreRow(rememberVectorPainter(Icons.Filled.Phone), stringResource(R.string.second_screen), null, onClick = it) }
             MoreRow(rememberVectorPainter(Icons.Filled.Info), stringResource(R.string.officer_rules), null) { onTool(Tool.RULES) }
+        }
+        OfficerCard(Modifier.padding(horizontal = Spacing.lg).padding(top = Spacing.sm), padding = 0.dp) {
+            MoreRow(rememberVectorPainter(Icons.AutoMirrored.Filled.ExitToApp), stringResource(R.string.officer_end), null, first = true, onClick = onFinish)
         }
     }
 }
@@ -178,6 +189,58 @@ private fun MoreRow(icon: Painter, label: String, badge: String?, first: Boolean
         Text(label, style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f).padding(start = Spacing.lg))
         badge?.let { Badge(Modifier.padding(end = Spacing.sm)) { Text(it) } }
         Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = colors.onSurfaceVariant, modifier = Modifier.size(20.dp))
+    }
+}
+
+internal enum class Asked { ASKED, ANSWERED }
+
+/** A prepared question or phrase as a full-width row, with whether it was asked or answered in this session. */
+@Composable
+private fun QuestionRow(
+    cardId: String?,
+    title: String,
+    caption: String?,
+    hasGesture: Boolean,
+    hasAudio: Boolean,
+    selected: Boolean,
+    status: Asked?,
+    onClick: () -> Unit,
+    missing: String? = null,
+    onLongClick: (() -> Unit)? = null,
+) {
+    val colors = MaterialTheme.colorScheme
+    val statusText = status?.let { stringResource(if (it == Asked.ANSWERED) R.string.more_answered else R.string.more_asked) }
+    Surface(
+        shape = MaterialTheme.shapes.large,
+        color = if (selected) colors.primaryContainer else colors.surfaceContainerLowest,
+        border = if (selected) BorderStroke(2.dp, colors.primary) else BorderStroke(1.dp, colors.outlineVariant),
+        modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp)
+            .clip(MaterialTheme.shapes.large).runnable(onClick, onLongClick, onLongClick?.let { stringResource(R.string.run_add) })
+            .semantics { this.selected = selected; statusText?.let { stateDescription = it } },
+    ) {
+        Row(Modifier.padding(horizontal = 12.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+            cardId?.let {
+                Surface(shape = RoundedCornerShape(10.dp), color = PictureWell, modifier = Modifier.padding(end = 12.dp).size(40.dp)) {
+                    CardImage(it, Modifier.padding(4.dp))
+                }
+            }
+            Column(Modifier.weight(1f).padding(end = 12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(title, style = MaterialTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                when {
+                    missing != null -> Text(missing, style = MaterialTheme.typography.bodySmall, color = colors.tertiary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    caption != null -> Text(caption, style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    !hasGesture && !hasAudio -> Text(stringResource(R.string.officer_media_missing), style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant, maxLines = 1)
+                }
+            }
+            if (hasGesture) MediaDot(painterResource(R.drawable.ic_hand), stringResource(R.string.officer_has_gesture))
+            if (hasAudio) MediaDot(painterResource(R.drawable.ic_volume), stringResource(R.string.officer_has_audio))
+            statusText?.let {
+                val done = status == Asked.ANSWERED
+                Surface(shape = RoundedCornerShape(50), color = if (done) colors.primary else colors.secondaryContainer, modifier = Modifier.padding(start = 6.dp)) {
+                    Text(it, style = MaterialTheme.typography.labelSmall, color = if (done) colors.onPrimary else colors.onSecondaryContainer, modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp))
+                }
+            }
+        }
     }
 }
 

@@ -9,8 +9,8 @@
       {"t": 1.1}
     ]},
     {"id": "namaste", "keys": [
-      {"t": 0.0, "R": {"at": "chest", "dy": 8, "dx": 4, "shape": "FLAT", "roll": 0, "angle": -6}, "L": {"at": "chest", "dy": 8, "dx": 4, "shape": "FLAT", "roll": 0, "angle": -6}, "face": "smile"},
-      {"t": 0.35, "R": {"at": "chest", "dy": 6, "dx": 3, "shape": "FLAT", "roll": 0, "angle": -4}, "L": {"at": "chest", "dy": 6, "dx": 3, "shape": "FLAT", "roll": 0, "angle": -4}, "head": {"nod": 0.6}},
+      {"t": 0.0, "R": {"at": "chest", "dy": 8, "dx": 7, "shape": "FLAT", "roll": 0, "angle": 0}, "L": {"at": "chest", "dy": 8, "dx": 7, "shape": "FLAT", "roll": 0, "angle": 0}, "face": "smile"},
+      {"t": 0.35, "R": {"at": "chest", "dy": 6, "dx": 7, "shape": "FLAT", "roll": 0, "angle": 0}, "L": {"at": "chest", "dy": 6, "dx": 7, "shape": "FLAT", "roll": 0, "angle": 0}, "head": {"nod": 0.6}},
       {"t": 0.9, "head": {"nod": 0}, "face": "happy"},
       {"t": 1.5}
     ]},

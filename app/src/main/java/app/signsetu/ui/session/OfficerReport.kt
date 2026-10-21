@@ -20,6 +20,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -119,7 +121,7 @@ internal fun eventDetail(res: Resources, e: SessionEvent, by: Map<Long, ShownBy>
 }.let { if (e.via != null) "$it (${res.getString(R.string.report_via_stage)})" else it }
 
 @Composable
-internal fun ExportDialog(state: ExportState, onShare: () -> Unit, onFinish: () -> Unit, onDismiss: () -> Unit) {
+internal fun ExportDialog(state: ExportState, onShare: () -> Unit, onFinish: () -> Unit, onDismiss: () -> Unit, shared: Boolean = false) {
     when (state) {
         ExportState.Working -> GuardedAlertDialog(
             onDismissRequest = {},
@@ -167,7 +169,11 @@ internal fun ExportDialog(state: ExportState, onShare: () -> Unit, onFinish: () 
                 }
             },
             dismissButton = {
-                TextButton(onClick = onFinish) { Text(stringResource(R.string.export_finish), color = MaterialTheme.colorScheme.error) }
+                // The file and its one-time password are gone after Finish: a report never shared needs a second tap.
+                var sure by remember(state) { mutableStateOf(false) }
+                TextButton(onClick = { if (shared || sure) onFinish() else sure = true }) {
+                    Text(stringResource(if (shared || !sure) R.string.export_finish else R.string.export_finish_unshared), color = MaterialTheme.colorScheme.error)
+                }
             },
         )
         ExportState.Failed -> GuardedAlertDialog(

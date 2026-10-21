@@ -108,23 +108,23 @@ object OfflineReport {
                 else listOf("Do you feel safe in this room?", "Is there a trusted person you would like contacted?", "Would you prefer to continue at a slower pace?")
             }
             lower.contains("hit") || lower.contains("मारना") || lower.contains("attack") -> {
-                if (isChild) listOf("Are you safe right now?", "Did this happen today or earlier?", "Do you know the name of who did this?")
-                else listOf("Did this happen recently?", "Are you in immediate physical safety now?", "Can you tell us where this happened?")
+                if (isChild) listOf("Are you safe right now?", "When did this happen?", "Do you know the name of who did this?")
+                else listOf("When did this happen?", "Are you in immediate physical safety now?", "Can you tell us where this happened?")
             }
             lower.contains("home") || lower.contains("घर") -> {
                 listOf("Do you feel safe returning home?", "Is there a relative or friend you want to stay with?", "Can you tell us who lives with you?")
             }
             lower.contains("school") || lower.contains("स्कूल") || lower.contains("teacher") || lower.contains("sir") -> {
-                if (isChild) listOf("Do you feel safe at school?", "Is there a teacher you trust?", "Did someone at school do this?")
-                else listOf("Did this happen at a school or institution?", "Is there a staff member you would like us to contact?", "Can you tell us more about where this happened?")
+                if (isChild) listOf("Do you feel safe at school?", "Is there a teacher you trust?", "Can you tell me more about school?")
+                else listOf("Can you tell me where this happened?", "Is there a staff member you would like us to contact?", "Can you tell us more about where this happened?")
             }
             lower.contains("touch") || lower.contains("छूना") || lower.contains("bad touch") -> {
                 if (isChild) listOf("Are you safe now?", "Would you like to show us on the drawing board where?", "Do you want to take a break?")
-                else listOf("Can you point on the body map to where?", "When did this happen most recently?", "Would you like to pause before continuing?")
+                else listOf("Can you point on the body map to where?", "When did this happen?", "Would you like to pause before continuing?")
             }
             lower.contains("night") || lower.contains("dark") || lower.contains("रात") || lower.contains("अँधेरा") -> {
-                if (isChild) listOf("Are you scared of the dark?", "Were you alone when this happened?", "Do you feel safe sleeping at home?")
-                else listOf("Did this happen during the night?", "Were you alone at the time?", "Is there someone with you at night now?")
+                if (isChild) listOf("Can you tell me more about that night?", "Who was there?", "Do you feel safe at home?")
+                else listOf("Can you tell me more about that night?", "Who was there?", "Is there someone with you at night now?")
             }
             isChild -> {
                 listOf("Are you feeling comfortable?", "Would you like to show us on the drawing board?", "Do you want to take a short break?")

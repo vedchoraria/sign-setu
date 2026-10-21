@@ -143,9 +143,10 @@ internal fun Dock(
 
             // Follow-up prompts: on-device rules, or the optional cloud AI when the officer has switched it on.
             val cloud = LocalCloudAi.current
-            var aiFollowUps by remember(ui.events.size) { mutableStateOf<List<String>>(emptyList()) }
+            val lastAnswerEvent = remember(ui.events) { ui.events.lastOrNull { it.type in AnswerEvents } }
+            // Keyed on the answer, not the log size: rows logged after an answer must not drop its suggestions.
+            var aiFollowUps by remember(lastAnswerEvent?.id) { mutableStateOf<List<String>>(emptyList()) }
             var aiLoadingFollowUps by remember { mutableStateOf(false) }
-            val lastAnswerEvent = remember(ui.events.size) { ui.events.lastOrNull { it.type in AnswerEvents } }
 
             LaunchedEffect(lastAnswerEvent?.id) {
                 if (lastAnswerEvent != null && !typing) {

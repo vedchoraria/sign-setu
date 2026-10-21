@@ -342,6 +342,7 @@ internal fun SessionRoute(
             onEndSession = {
                 vm.endSession {
                     officerLink?.let { container.endLink() }
+                    Toast.makeText(activity ?: return@endSession onClosed(), R.string.session_finished, Toast.LENGTH_LONG).show()
                     onClosed()
                 }
             },

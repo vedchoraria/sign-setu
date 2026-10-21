@@ -175,7 +175,7 @@ internal fun CalmingBreathingGuide(onDismiss: () -> Unit) {
                         .clickable(onClick = onDismiss),
                 ) {
                     Box(contentAlignment = Alignment.Center) {
-                        Icon(Icons.Filled.Close, contentDescription = "Close", tint = Color.White, modifier = Modifier.size(18.dp))
+                        Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.close), tint = Color.White, modifier = Modifier.size(18.dp))
                     }
                 }
             }

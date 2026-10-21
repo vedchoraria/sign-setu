@@ -124,6 +124,11 @@ class StageGuard(context: Context) {
     private companion object { const val KEY = "stage_live" }
 }
 
+/** True while the officer has a dialog or sheet open: tilt and Volume-Up must not hand the phone over under it. */
+internal object OfficerModal {
+    val open = androidx.compose.runtime.mutableStateOf(false)
+}
+
 /** Tilt, volume keys and the crash flag for one session screen; [onLeaveStage] is the usual way back, with its own lock check. */
 @Composable
 fun HandoverEffects(
@@ -137,7 +142,7 @@ fun HandoverEffects(
 ) {
     val view = LocalView.current
     val onStage = ui.mode == Mode.SHOW
-    val ready = ui.mode == Mode.OFFICER && ui.pending != null
+    val ready = ui.mode == Mode.OFFICER && ui.pending != null && !OfficerModal.open.value
     val current by rememberUpdatedState(ui)
     val leave by rememberUpdatedState(onLeaveStage)
     val show = { rotate: Boolean ->

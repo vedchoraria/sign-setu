@@ -1,5 +1,7 @@
 package app.signsetu.ui.session
 
+import app.signsetu.R
+import androidx.compose.ui.res.stringResource
 import android.content.Context
 import android.speech.tts.TextToSpeech
 import androidx.compose.animation.AnimatedVisibility
@@ -170,12 +172,14 @@ fun FullChildMuteCommunicationBoard(
     var selectedCategory by remember { mutableStateOf(ExpressCategory.FEELINGS) }
     var lastExpressed by remember { mutableStateOf<ExpressPictogram?>(null) }
     val haptic = LocalHapticFeedback.current
+    val boardName = stringResource(R.string.board_name)
+    val closeName = stringResource(R.string.close)
 
     Surface(
         color = Color(0xFFFFFBF2),
         modifier = modifier
             .fillMaxSize()
-            .semantics { contentDescription = "Child Communication Board" },
+            .semantics { contentDescription = boardName },
     ) {
         Column(
             modifier = Modifier
@@ -220,7 +224,7 @@ fun FullChildMuteCommunicationBoard(
                     modifier = Modifier
                         .size(40.dp)
                         .clickable { onDismiss() }
-                        .semantics { role = Role.Button; contentDescription = "Close Board" },
+                        .semantics { role = Role.Button; contentDescription = closeName },
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(Icons.Filled.Close, contentDescription = null, tint = Color(0xFF334155))

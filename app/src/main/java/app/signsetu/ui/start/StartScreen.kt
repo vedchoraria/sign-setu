@@ -126,7 +126,11 @@ fun StartScreen(
     var underAge by rememberSaveable { mutableStateOf(false) }
     var signLang by rememberSaveable { mutableStateOf(SignLanguage.ISL) }
 
-    val begin = { p: Profile ->
+    // One session per Start: a second tap while the first is being created does nothing.
+    var starting by remember { mutableStateOf(false) }
+    val begin = begin@{ p: Profile ->
+        if (starting) return@begin
+        starting = true
         scope.launch {
             val id = repo.start(p, lang, role)
             if (p == Profile.ISL_USER && signLang != SignLanguage.ISL) repo.log(id, EventType.SYSTEM, EventSource.OFFICER, text = SYSTEM_SIGN_LANGUAGE + signLang.name)
@@ -252,7 +256,7 @@ fun StartScreen(
                 }
                 BrandButton(
                     onClick = onStart,
-                    enabled = profile != null && !expired && !content.damaged,
+                    enabled = profile != null && !expired && !content.damaged && !starting,
                     modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.lg, vertical = Spacing.md).height(56.dp),
                 ) {
                     Text(stringResource(R.string.start_button), style = MaterialTheme.typography.titleMedium)

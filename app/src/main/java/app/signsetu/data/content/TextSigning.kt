@@ -38,7 +38,7 @@ private val FILLER = setOf(
 )
 
 /** Words ISL leaves unsigned, carried by placement or pointing instead; anywhere in a sentence, unlike [FILLER]. */
-private val ISL_UNSIGNED = setOf("in", "at", "on", "into", "with", "or", "it", "there")
+private val ISL_UNSIGNED = setOf("in", "at", "on", "into", "with", "about", "or", "it", "there")
 
 /** A word with no entry or sign of its own, as its base form when that has one: "years" is year, "doing" do. */
 private fun ContentBundle.base(word: String, modes: Set<SignMode>): String {

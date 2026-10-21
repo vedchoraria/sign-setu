@@ -1,5 +1,7 @@
 package app.signsetu.ui.session
 
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -226,10 +228,11 @@ fun RunTray(run: List<Question>, officerLang: String, onRemove: (Question) -> Un
             Text(stringResource(R.string.run_title, run.size), style = MaterialTheme.typography.labelSmall, color = colors.primary)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 run.forEachIndexed { i, q ->
-                    Surface(shape = RoundedCornerShape(50), color = colors.surfaceContainerLowest, modifier = Modifier.height(36.dp)) {
+                    Surface(shape = RoundedCornerShape(50), color = colors.surfaceContainerLowest, modifier = Modifier.heightIn(min = 48.dp)) {
                         Row(Modifier.padding(start = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Text("${i + 1}  ${q.text.pick(officerLang) ?: q.id}", style = MaterialTheme.typography.labelLarge, maxLines = 1)
-                            IconButton(onClick = { onRemove(q) }, modifier = Modifier.size(36.dp)) {
+                            // Ellipsised so a long question never pushes its remove button out of the chip.
+                            Text("${i + 1}  ${q.text.pick(officerLang) ?: q.id}", style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                            IconButton(onClick = { onRemove(q) }, modifier = Modifier.size(48.dp)) {
                                 Icon(Icons.Filled.Close, contentDescription = remove, modifier = Modifier.size(16.dp))
                             }
                         }

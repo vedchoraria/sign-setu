@@ -61,7 +61,8 @@ val LocalContentRepository = staticCompositionLocalOf<ContentRepository> { error
 @Composable
 fun CardImage(cardId: String, modifier: Modifier = Modifier) {
     val repo = LocalContentRepository.current
-    val image by produceState(repo.cachedCardImage(cardId), cardId) { value = value ?: repo.cardImage(cardId) }
+    // A new id must not keep the previous card's image: the slot is reused when a list shows other cards.
+    val image by produceState(repo.cachedCardImage(cardId), cardId) { value = repo.cachedCardImage(cardId) ?: repo.cardImage(cardId) }
     // Fade in only when the image arrives late; a cached one is already opaque.
     val alpha by animateFloatAsState(if (image != null) 1f else 0f, tween(180), label = "card_fade")
     Box(modifier, contentAlignment = Alignment.Center) {

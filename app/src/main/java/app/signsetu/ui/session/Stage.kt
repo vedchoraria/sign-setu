@@ -303,6 +303,15 @@ fun Stage(
                 onCue = onCue,
                 modifier = Modifier.fillMaxSize(),
             )
+            if (showExpressBoard) {
+                FullChildMuteCommunicationBoard(
+                    lang = lang,
+                    chosenCard = ui.answeredCard,
+                    onCard = { id -> onCard(id); reacting = true },
+                    onDismiss = { showExpressBoard = false },
+                    tts = tts,
+                )
+            }
             onOfficer?.let { OfficerHandle(it, Modifier.align(if (ui.rotated) Alignment.BottomStart else Alignment.TopEnd).safeDrawingPadding()) }
         }
         return

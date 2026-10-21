@@ -37,7 +37,7 @@
     <string name="officer_log">Session log</string>
     <string name="officer_call">Call an interpreter</string>
     <string name="officer_more">More options</string>
-    <string name="officer_end">End session</string>
+    <string name="officer_end">Finish session</string>
     <string name="officer_rotate">They sit opposite me</string>
     <string name="officer_change">Change profile or language</string>
     <string name="officer_caption_missing">No caption in %1$s. They will see pictures only.</string>
@@ -115,7 +115,7 @@
 
     <!-- Export -->
     <string name="end_export">Export report</string>
-    <string name="end_no_export">End without export</string>
+    <string name="end_no_export">Finish without a report</string>
     <string name="export_working">Preparing the encrypted report…</string>
     <string name="export_title">Report ready</string>
     <string name="export_body">The report is encrypted. Give this password separately from the file, for example by reading it out. It is shown only once.</string>
@@ -543,4 +543,35 @@
     <string name="ai_followups_title">Suggested follow-up questions (non-leading)</string>
     <string name="call_skeleton_on">Skeleton</string>
     <string name="call_skeleton_off">Camera</string>
+    <string name="wrap_title">Finish this session</string>
+    <string name="wrap_thank">Thank them on the stage</string>
+    <string name="wrap_keep_going">Keep going</string>
+    <string name="export_finish_unshared">Not shared yet. Tap again to delete it</string>
+    <string name="more_asked">Asked</string>
+    <string name="more_answered">Answered</string>
+    <plurals name="wrap_minutes">
+        <item quantity="one">%d minute</item>
+        <item quantity="other">%d minutes</item>
+    </plurals>
+    <plurals name="wrap_shown">
+        <item quantity="one">%d question or prompt shown</item>
+        <item quantity="other">%d questions or prompts shown</item>
+    </plurals>
+    <plurals name="wrap_answers">
+        <item quantity="one">%d answer recorded</item>
+        <item quantity="other">%d answers recorded</item>
+    </plurals>
+    <plurals name="wrap_unanswered">
+        <item quantity="one">%d shown with no answer</item>
+        <item quantity="other">%d shown with no answer</item>
+    </plurals>
+    <plurals name="wrap_unread">
+        <item quantity="one">%d signed answer still to be read</item>
+        <item quantity="other">%d signed answers still to be read</item>
+    </plurals>
+    <string name="session_finished">Session finished. Its record is deleted from this phone.</string>
+    <string name="switch_sign_title">Switch to %1$s?</string>
+    <string name="switch_sign_body">The character signs in %1$s for the rest of this session. The person may not follow a different sign language.</string>
+    <string name="switch_sign_confirm">Switch</string>
+    <string name="board_name">Picture board</string>
 </resources>
