@@ -37,11 +37,27 @@ private val FILLER = setOf(
     "hai", "hain", "tha", "thi", "the", "ka", "ki", "ke", "ko", "mein", "se", "ne", "to", "bhi", "aur",
 )
 
+/** Words ISL leaves unsigned, carried by placement or pointing instead; anywhere in a sentence, unlike [FILLER]. */
+private val ISL_UNSIGNED = setOf("in", "at", "on", "into", "with", "or", "it", "there")
+
+/** A word with no entry or sign of its own, as its base form when that has one: "years" is year, "doing" do. */
+private fun ContentBundle.base(word: String, modes: Set<SignMode>): String {
+    if (word.length < 4 || word in FILLER || isPhrase(word, modes)) return word
+    val stem = { suffix: String -> word.takeIf { it.endsWith(suffix) }?.dropLast(suffix.length) }
+    val candidates = listOfNotNull(
+        stem("ies")?.plus("y"), stem("es"), stem("s"),
+        stem("ing"), stem("ing")?.plus("e"), stem("ing")?.dropLast(1), stem("ed"), stem("d"),
+    ).filter { it.length >= 2 }
+    return candidates.firstOrNull { it in FILLER || isPhrase(it, modes) } ?: word
+}
+
 private val TIME_SIGNS = setOf("sign.today", "sign.yesterday", "sign.tomorrow", "sign.now", "sign.morning", "sign.night", "sign.day", "sign.time")
 private val WHEN = setOf("when", "kab", "कब")
 
 /** ISL order: time first, then the rest as typed, then negation, then the question word. */
-private val QUESTION_SIGNS = setOf("ask", "sign.what", "sign.where", "sign.how", "sign.how_many")
+private val QUESTION_SIGNS = setOf(
+    "ask", "sign.what", "sign.where", "sign.how", "sign.how_many", "isl.what", "isl.where", "isl.which", "isl.who", "isl.how many",
+)
 
 private fun islRank(word: String, entry: WordEntry?) = when {
     entry?.sign in QUESTION_SIGNS || word in WHEN -> 3
@@ -67,10 +83,12 @@ fun ContentBundle.planText(text: String, modes: Set<SignMode>): TextPlan {
     }
     // "Ravi's" plays as Ravi: a possessive or contraction keeps only its stem.
     val tokens = phrases(TOKEN.findAll(text).map { it.range to it.value.lowercase().split('\'', '’').first() }.toList(), modes)
+        .map { (range, w) -> range to base(w, modes) }
+    val isl = language == SignLanguage.ISL && SignMode.SIGNS in modes
     // Hindi "do" (give) ends its sentence; anywhere else it is the English helper word.
-    fun grammar(i: Int) = tokens[i].second in FILLER && i != tokens.lastIndex
+    fun grammar(i: Int) = (tokens[i].second in FILLER && i != tokens.lastIndex) || (isl && tokens[i].second in ISL_UNSIGNED)
     fun entryOf(i: Int) = tokens[i].second.let { w -> words[w]?.takeIf { !grammar(i) } }
-    val order = tokens.indices.let { all -> if (language == SignLanguage.ISL && SignMode.SIGNS in modes && SignMode.TYPED_ORDER !in modes) all.sortedBy { islRank(tokens[it].second, entryOf(it)) } else all }
+    val order = tokens.indices.let { all -> if (isl && SignMode.TYPED_ORDER !in modes) all.sortedBy { islRank(tokens[it].second, entryOf(it)) } else all }
     for (i in order) {
         val (range, word) = tokens[i]
         val entry = entryOf(i)
@@ -80,7 +98,7 @@ fun ContentBundle.planText(text: String, modes: Set<SignMode>): TextPlan {
         var letters: String? = null
         when {
             motion != null -> add(motion)
-            SignMode.SPELL in modes && word !in FILLER -> {
+            SignMode.SPELL in modes && word !in FILLER && !grammar(i) -> {
                 letters = spelling(word).filter { gestures.containsKey(letterId(it)) }
                 letters.forEach { add(gestures.getValue(letterId(it))) }
             }

@@ -12,6 +12,8 @@ import app.signsetu.sign.cardFor
 import app.signsetu.sign.inContext
 import app.signsetu.sign.needsSlower
 import app.signsetu.sign.parseSignWords
+import app.signsetu.sign.decideRead
+import app.signsetu.sign.parseSignCards
 import app.signsetu.sign.signChoices
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -92,6 +94,19 @@ class SignIngestionTest {
         assertEquals(guesses, inContext(guesses, emptySet(), signWords, words))
         assertEquals("home", cardFor("house", signWords, words))
         assertNull(cardFor("king", signWords, words))
+    }
+
+    @Test
+    fun aLessonAnswerFarDownTheListIsOfferedWithItsOwnCard() {
+        val signCards = parseSignCards(File(content, "sign_words.json").readText())
+        val all = listOf("king", "queen", "gun", "war", "police").mapIndexed { i, w -> SignGuess(w, 0.5f / (i + 1)) }
+        val near = setOf("temple", "school", "police_station", "bus_stand")
+        val read = decideRead(List(33) { LandmarkFrame(it * 33L) }, all, null, near, signWords, words, signCards)
+        assertEquals("police", read.guesses!!.first().word)
+        assertEquals("police_station", signChoices(null, read, signWords, words, extra = signCards).first { it.text == "police" }.card)
+        // Every alias names a reader label and a picture card that exist.
+        val cards = Json.parseToJsonElement(File(content, "cards.json").readText()).jsonObject.getValue("cards").jsonArray.map { it.jsonObject.getValue("id").jsonPrimitive.content }.toSet()
+        signCards.forEach { (label, cs) -> assertTrue(label, label in labels); cs.forEach { assertTrue("$label: $it", it in cards) } }
     }
 
     @Test

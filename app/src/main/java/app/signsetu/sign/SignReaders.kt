@@ -22,13 +22,15 @@ object SignReaders {
         fun verified(path: String): ByteArray? = open(path)?.takeIf { b ->
             MessageDigest.getInstance("SHA-256").digest(b).toHexString() == files[path]?.jsonPrimitive?.content
         }
-        fun model(base: String, words: Map<String, String>): SignReader? = runCatching {
-            LandmarkSignReader(verified("$base.json")!!.decodeToString(), verified("$base.bin")!!, words)
+        fun model(base: String, words: Map<String, String>, cards: Map<String, List<String>> = emptyMap()): SignReader? = runCatching {
+            LandmarkSignReader(verified("$base.json")!!.decodeToString(), verified("$base.bin")!!, words, cards)
         }.getOrNull()
         // Without the word map the reader still works; it just cannot narrow guesses to the item on screen.
-        val signWords = verified(lang.words)?.let { runCatching { parseSignWords(it.decodeToString()) }.getOrNull() }.orEmpty()
+        val wordsJson = verified(lang.words)?.decodeToString()
+        val signWords = wordsJson?.let { runCatching { parseSignWords(it) }.getOrNull() }.orEmpty()
+        val signCards = wordsJson?.let { runCatching { parseSignCards(it) }.getOrNull() }.orEmpty()
         // Spelling alone is not the language's reader: no word reader, no reader.
-        val words = model(lang.reader, signWords) ?: return null
+        val words = model(lang.reader, signWords, signCards) ?: return null
         val spell = lang.spell?.let { base ->
             val spec = verified("$base.json")?.decodeToString()
             if (spec != null && Json.parseToJsonElement(spec).jsonObject["format"]?.jsonPrimitive?.content == "2") {
@@ -113,6 +115,7 @@ internal fun letterOf(label: String) = label.lowercase().removePrefix("letter.")
 internal class CombinedReader(private val signs: SignReader, private val spell: SignReader, private val odds: Float) : SignReader {
     override val labels = signs.labels + spell.labels
     override val words = signs.words
+    override val cards = signs.cards
     override fun read(frames: List<LandmarkFrame>): List<SignGuess> {
         val w = signs.read(frames)
         val s = spell.read(frames)

@@ -12,6 +12,8 @@ interface SignReader : AutoCloseable {
     val labels: List<String>
     /** Labels to the app's written words (assets/content/sign_words.json), where the two share a concept. */
     val words: Map<String, String> get() = emptyMap()
+    /** Labels to more picture cards they answer than their word's own, e.g. "police" for a police station. */
+    val cards: Map<String, List<String>> get() = emptyMap()
     /** Every label with its probability, highest first; empty when the frames cannot be read. */
     fun read(frames: List<LandmarkFrame>): List<SignGuess>
     override fun close() {}

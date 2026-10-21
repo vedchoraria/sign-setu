@@ -73,5 +73,70 @@
     "teacher": "teacher",
     "student": "student",
     "city": "city"
+  },
+  "cards": {
+    "child": [
+      "children"
+    ],
+    "son": [
+      "children"
+    ],
+    "daughter": [
+      "children"
+    ],
+    "family": [
+      "relatives"
+    ],
+    "parent": [
+      "mother",
+      "father"
+    ],
+    "police": [
+      "police_station"
+    ],
+    "bus": [
+      "bus_stand"
+    ],
+    "train": [
+      "railway_station"
+    ],
+    "market": [
+      "market"
+    ],
+    "store or shop": [
+      "market"
+    ],
+    "ground": [
+      "field"
+    ],
+    "paint": [
+      "art",
+      "drawing"
+    ],
+    "artist": [
+      "art"
+    ],
+    "book": [
+      "reading",
+      "studying"
+    ],
+    "student": [
+      "studying"
+    ],
+    "ball": [
+      "playing"
+    ],
+    "sport": [
+      "playing"
+    ],
+    "alright": [
+      "okay"
+    ],
+    "good": [
+      "okay"
+    ],
+    "pleased": [
+      "happy"
+    ]
   }
 }

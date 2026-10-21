@@ -686,3 +686,25 @@ Status: Proposed, Accepted, Superseded.
 **Consequences.** The third-party key and its screen are gone. Certificate pins go into the network security config when the gateway host is fixed. Key Attestation at enrolment (D-07, SEC-61) is not built; the one-time code is the only enrolment check until then. Documents that still say "no INTERNET" are amended here: the build gate now refuses RECORD_AUDIO and background location only.
 - A build with no gateway URL but an assistant key (env `OPENROUTER_API_KEY` or `openrouterKey` in the untracked `local.properties`, model `nvidia/nemotron-3-ultra-550b-a55b:free`) calls that OpenRouter service directly, in its own format, under the same switch, masking, fallback and toasts. The settings text then says "third party" and names OpenRouter. The key is compiled into the APK and can be extracted from it; use a revocable, rate-limited key, and prefer a gateway build for fielded phones. The gateway reads the same service from `backend/.env` (`ASSIST_URL`, `ASSIST_MODEL`, `ASSIST_KEY`).
 - The officer sees a toast once when the online assistant falls back (no internet, gateway error, device no longer enrolled) and once when it returns, and after enrolling; an unenrolled or switched-off assistant stays silent.
+
+## D-48 The database key works only while the phone is unlocked
+
+**Status:** Accepted; amends SEC-22
+
+**Context.** The key-encryption key had been changed to need no authentication, so that unlocking the app does not ask twice. That left the session database readable whenever any code ran as the app, including while the phone was locked. The database holds statements and children's data, and DPDP Act s.8(5) requires reasonable security safeguards.
+
+**Decision.** The key is created with `setUnlockedDeviceRequired(true)`. Officers see no extra prompt. On the first unlock after the update, a database key wrapped by the earlier unbound key is rewrapped under the new one, so stored sessions are kept. A device that refuses the flag gets an unbound key, as before.
+
+**Alternatives.** A fingerprint prompt every five minutes (strongest, but a second prompt during interviews); no binding (a UI gate only).
+
+**Consequences.** Retention and other background work that needs the database must run while the phone is unlocked. The current retention worker deletes files without the key, so it is unaffected.
+
+## D-49 MediaPipe 1.1.1 runs on the lite protobuf runtime
+
+**Status:** Accepted; amends D-38
+
+**Context.** The dependency update to MediaPipe 1.1.1 and `protobuf-java` 4.36.2 stopped the Holistic landmarker from opening: 1.1.1's classes are compiled against `protobuf-javalite` (`NoSuchMethodError` on `Any$Builder.build()`), and the full runtime from 4.36 also drops `DescriptorMessageInfoFactory`. The camera mirror showed no landmarks, and the on-device pipeline test found no hands or pose. A split of separate hand, pose and face landmarkers was measured as an alternative: it found as many hands but took 80 ms a frame on the emulator CPU against Holistic's 68 ms, because the hand landmarker searches the whole picture for palms while Holistic crops the hands from the pose.
+
+**Decision.** The build uses `protobuf-javalite` 4.36.2, the runtime MediaPipe 1.1.1 declares, pinned above its own 4.26.1 for CVE-2024-7254. The full runtime and the test-classpath exclusion are removed. Holistic stays.
+
+**Consequences.** `SignPipelineDeviceTest` must pass after any MediaPipe or protobuf update; a unit test cannot catch this.

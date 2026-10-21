@@ -36,13 +36,15 @@ Sign Setu is an offline Android app that helps a police officer communicate with
 | [04-security.md](04-security.md) | Security controls (SEC-), keys, threats in scope |
 | [05-avatar-and-gestures.md](05-avatar-and-gestures.md) | Gesture and ISL lexicons, the two characters, motion pipelines, the code-drawn rig, validation |
 | [06-test-plan.md](06-test-plan.md) | Functional (TC-), performance (PT-), resilience (RD-), security (ST-) and accessibility (AT-) tests; testing with children |
-| [07-decisions.md](07-decisions.md) | Decision log D-01 to D-44 |
+| [07-decisions.md](07-decisions.md) | Decision log D-01 to D-49 |
 | [09-open-source.md](09-open-source.md) | Reusable open-source components per module, with licences and attribution |
 | [10-test-report.md](10-test-report.md) | Results against the test plan: the automated suite on the current build and the device evidence |
 | [11-hand-model-integration.md](11-hand-model-integration.md) | The vision engine and sign reader, sign windows, and the contract for a replacement model |
 | [12-on-device-assistant.md](12-on-device-assistant.md) | The optional on-device translation assistant: model, installation, budgets |
 | [13-product-overview.md](13-product-overview.md) | One reference for explaining the product: features, mechanisms, character, sign reading, export, stack, frontend, readiness |
 | [14-screens.md](14-screens.md) | Catalogue of every screen, with screenshots in [screens/](screens/) |
+| [15-dpia.md](15-dpia.md) | Data protection impact assessment: processing, lawful basis, statutory recording, risks P-01 to P-12 |
+| [16-proposal-response.md](16-proposal-response.md) | The client proposal mapped to the build: departures with reasons, legal points, remaining work |
 
 ### 1.2 Other folders
 
@@ -480,7 +482,7 @@ flowchart LR
 
 | ID | Process | Description | Code | Requirements |
 | --- | --- | --- | --- | --- |
-| 1.0 | Authenticate officer | Device credential or strong biometric authorises the Keystore key that unwraps the database key. | MainActivity, AppContainer, data.session | FR-61, NFR-31, SEC-20 to SEC-22 |
+| 1.0 | Authenticate officer | Device credential or strong biometric opens the app; the Keystore key that unwraps the database key works only while the phone is unlocked (D-48). | MainActivity, AppContainer, data.session | FR-61, NFR-31, SEC-20 to SEC-22 |
 | 2.0 | Handle officer requests | Officer panel: question groups, phrase and picture boards, typed text, notes, dictionary, mode, role, tools. | ui.session, ui.start | FR-10 to FR-21, FR-70, FR-77 to FR-107 |
 | 3.0 | Run stage interaction | Shows the item to the subject and collects and validates the answer (Figure 3). | ui.session (stage), ui.avatar, camera, sign | FR-11, FR-60 to FR-66, FR-84 to FR-87 |
 | 4.0 | Maintain session record | Writes every event before the screen reflects it; reads history for the log, trails and grades. | data.session, SessionViewModel | FR-30, FR-34, FR-91 |
@@ -509,7 +511,7 @@ flowchart LR
 | D1 | Session store | Encrypted Room database (SQLCipher): sessions, events, drawings. | Personal, restricted |
 | D2 | Content bundle | Questions, cards, motions, audio, models; every file checked against the SHA-256 manifest. | Public content |
 | D3 | Configuration | DataStore: language, retention, interpreter contact. No personal data. | Internal |
-| D4 | Key store | Android Keystore: non-exportable, authentication-bound key-encryption key. | Secret |
+| D4 | Key store | Android Keystore: non-exportable key-encryption key, usable only while the phone is unlocked. | Secret |
 | D5 | Assistant model | Optional GGUF file imported by the department; hash-checked. | Internal |
 | D6 | Landmark memory | Hand, face and pose points of signed answers; view-model memory only, wiped on end, lock and clear. | Personal, volatile |
 | D7 | Content source | Repository: content JSON, reader weights, review record. | Public |
@@ -888,7 +890,7 @@ erDiagram
 %%{init: {"flowchart": {"curve": "step"}}}%%
 flowchart TB
   CRED["Device credential<br/>or strong biometric"]:::ext
-  KEK["KEK  AES key in Android Keystore<br/>non-exportable, auth-bound"]:::sec
+  KEK["KEK  AES key in Android Keystore<br/>non-exportable, unlocked-device only"]:::sec
   DEK["DEK  random 256-bit key<br/>stored wrapped by KEK"]:::sec
   DB["SQLCipher session database"]:::data
   PASS["Export passphrase<br/>80 bits, shown once"]:::sec
@@ -1119,7 +1121,7 @@ Objectives: subject data is unreadable without the officer's credential; it does
 | --- | --- | --- |
 | Storage | SQLCipher database; DEK wrapped by a Keystore KEK; no backup; purge with VACUUM; drawings only inside the database | SEC-01 to SEC-08 |
 | Cryptography | Platform and SQLCipher cryptography only; AES-256 report with an 80-bit one-time passphrase and a record digest on every page; P-256 ECDH, HKDF-SHA256, AES-256-GCM link frames | SEC-10 to SEC-12, SEC-67, SEC-76 |
-| Authentication | Secure device lock required; BiometricPrompt (strong biometric or device credential); KEK bound to user authentication and not invalidated by new fingerprints | SEC-20 to SEC-22 |
+| Authentication | Secure device lock required; BiometricPrompt (strong biometric or device credential); KEK usable only while the phone is unlocked (D-48) | SEC-20 to SEC-22 |
 | Network | HTTPS to the one gateway host only, cleartext refused; the build fails if any variant's merged manifest declares RECORD_AUDIO; no WebView | SEC-30, SEC-43 |
 | Platform | FLAG_SECURE; only the launcher exported; overlay-touch filter; screen pinning; no notifications with subject data; no clipboard of session data | SEC-06, SEC-40 to SEC-46 |
 | Camera and landmarks | Analysis only in a sign window; landmarks in RAM; narratives drop face points | SEC-47, SEC-71 |

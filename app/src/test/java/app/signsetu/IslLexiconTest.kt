@@ -105,7 +105,7 @@ class IslLexiconTest {
         val text = "What is your name?"
         val typed = bundle.planText(text, signs + SignMode.TYPED_ORDER).motions
         val reordered = bundle.planText(text, signs).motions
-        assertEquals(listOf("sign.what", "isl.you", "sign.name"), typed)
+        assertEquals(listOf("isl.what", "isl.you", "isl.name"), typed)
         assertEquals(reordered.toSet(), typed.toSet())
         assertTrue(reordered != typed)
     }
@@ -220,10 +220,10 @@ class IslLexiconTest {
     @Test
     fun lessonQuestionsSignInIslOrderWithoutSpelling() {
         fun motions(text: String) = bundle.planText(text, setOf(SignMode.SIGNS)).motions
-        assertEquals(listOf("isl.you", "sign.name", "sign.what"), motions("What is your name?"))
-        assertEquals(listOf("isl.you", "sign.name", "sign.what"), motions("आपका नाम क्या है?"))
-        assertEquals(listOf("isl.you", "isl.family", "sign.how_many"), motions("How many in your family?"))
-        assertEquals("sign.where", motions("Where do you live?").last())
+        assertEquals(listOf("isl.you", "isl.name", "isl.what"), motions("What is your name?"))
+        assertEquals(listOf("isl.you", "isl.name", "isl.what"), motions("आपका नाम क्या है?"))
+        assertEquals(listOf("isl.you", "isl.family", "isl.how many"), motions("How many in your family?"))
+        assertEquals("isl.where", motions("Where do you live?").last())
         val lesson = listOf(
             "name", "age", "mobile", "number", "father", "mother", "family", "brother", "sister", "live", "where", "village", "city",
             "district", "state", "near", "school", "class", "teacher", "like", "help", "water", "understand", "again", "thank you",

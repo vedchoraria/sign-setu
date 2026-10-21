@@ -39,7 +39,7 @@ Target: OWASP MASVS v2 with the MAS-L2 testing profile, plus the CERT-In require
 | --- | --- |
 | SEC-20 | The app requires a secure device lock and refuses to store sessions without one (`KeyguardManager.isDeviceSecure()`). |
 | SEC-21 | Opening the app and viewing past sessions require BiometricPrompt: `BIOMETRIC_STRONG or DEVICE_CREDENTIAL` on API 30+; `BIOMETRIC_WEAK or DEVICE_CREDENTIAL` on API 29, where the strong combination is unsupported. Re-lock after 5 minutes in the background. The app first tries the Keystore key silently: within its 30-second window after the officer unlocks the phone it opens without a second prompt (D-23). |
-| SEC-22 | The key-encryption key is bound to user authentication: `setUserAuthenticationParameters` (time-bound) on API 30+; `setUserAuthenticationValidityDurationSeconds` on API 29. |
+| SEC-22 | The key-encryption key needs no prompt but is created with `setUnlockedDeviceRequired(true)`, so it cannot be used while the phone is locked (D-48). A key made without that flag is migrated on the next unlock. |
 
 ### 2.4 Network
 
@@ -108,7 +108,7 @@ Target: OWASP MASVS v2 with the MAS-L2 testing profile, plus the CERT-In require
 | Key | Where | Rotation | Loss impact |
 | --- | --- | --- | --- |
 | Database key (DEK) | Generated on the phone, wrapped by the KEK | On Clear all data | Sessions unrecoverable (acceptable: short-lived data) |
-| Key-encryption key (KEK) | Android Keystore, non-exportable, auth-bound; not invalidated by enrolling a fingerprint | On reinstall, or when Android drops it because the screen lock was removed or reset | Same; the app then deletes the unreadable database, makes new keys and tells the officer once, instead of refusing to unlock |
+| Key-encryption key (KEK) | Android Keystore, non-exportable, usable only while the phone is unlocked (D-48); not invalidated by enrolling a fingerprint | On reinstall, or when Android drops it because the screen lock was removed or reset | Same; the app then deletes the unreadable database, makes new keys and tells the officer once, instead of refusing to unlock |
 | Export passphrase | Shown once to the officer | Per export | Report unreadable |
 | Link keys (two direction keys) | Derived per link by ECDH and HKDF, memory only on both devices | Every new link and every resume | Link closes; officer pairs again |
 | Resume secret | Derived at pairing, memory only | Every new link; zeroed on Bye, expiry, lock and end | Reconnect needs the code again |

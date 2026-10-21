@@ -212,7 +212,7 @@ class SessionViewModel(
         local.update { it.copy(reading = it.reading?.plus(segment)) }
         reads += viewModelScope.launch(readDispatcher) {
             val all = reader?.let { r -> runCatching { r.read(frames) }.getOrNull() }.orEmpty().sortedByDescending { it.score }
-            val read = decideRead(frames, all, homeSigns.match(frames), cards, reader?.words.orEmpty(), content.words)
+            val read = decideRead(frames, all, homeSigns.match(frames), cards, reader?.words.orEmpty(), content.words, reader?.cards.orEmpty())
             local.update { l -> l.copy(reading = l.reading?.map { if (it === segment) read else it }) }
         }
     }
@@ -299,7 +299,7 @@ class SessionViewModel(
     // Shuffled so the officer's reading does not always take the first, most tapped place.
     private fun choiceQueue(eventId: Long, words: List<String>): List<Pair<List<SignChoice>, String?>> =
         local.value.signed[eventId].orEmpty()
-            .mapIndexed { i, s -> signChoices(words.getOrNull(i), s, reader?.words.orEmpty(), content.words).shuffled(random) to s.guesses?.firstOrNull()?.word }
+            .mapIndexed { i, s -> signChoices(words.getOrNull(i), s, reader?.words.orEmpty(), content.words, extra = reader?.cards.orEmpty()).shuffled(random) to s.guesses?.firstOrNull()?.word }
             .filter { it.first.isNotEmpty() }
 
     internal var random: Random = Random.Default

@@ -31,8 +31,11 @@ fun decideRead(
     cards: Set<String>,
     signWords: Map<String, String>,
     words: Map<String, WordEntry>,
+    extra: Map<String, List<String>> = emptyMap(),
 ): SignSegment {
-    // Only the top three are reordered: over every label some guess always fits the item, at any score.
-    val guesses = (listOfNotNull(home) + inContext(all.take(3), cards, signWords, words)).distinctBy { it.word }.take(3)
+    // Two or more cards are the answers to choose from, so they are searched for at any score; one card only
+    // illustrates the question, and then just the top three are reordered. The subject still confirms (FR-66).
+    val pool = if (cards.size >= 2) all else all.take(3)
+    val guesses = (listOfNotNull(home) + inContext(pool, cards, signWords, words, extra)).distinctBy { it.word }.take(3)
     return SignSegment(frames, guesses, needsSlower(frames, all), cards)
 }

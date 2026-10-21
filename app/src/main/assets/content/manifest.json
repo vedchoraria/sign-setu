@@ -1471,7 +1471,7 @@
   "cards/yellow.webp": "b2730f7bc0652294b5e11e05c0722bf12af6a959857b93e6cc66b37e90386cba",
   "cards/yes.webp": "9be469993d15ed6990e7efcf64dd167891bb10ac55a8f5a0682adb3d32bb2975",
   "gestures.json": "201d0c127b99df226c92e5aebbb35b288eee85c7ef152cd5902632a9bf11e802",
-  "isl_signs.json": "acf730410c7688c463ea77072d5c039db372c92de00c2c0f8fceda2e18dbbbea",
+  "isl_signs.json": "ebcd5e917aa3657f1859b26875993517e83aa7c2e4ad7996df71ae160655a28a",
   "languages.json": "632f4960a11ef1d02e67e328e48ea12da644894897788239b18c652f4a762b14",
   "lexicon.json": "e6a7983d786a53b6adc26356fbf763c7884a696eaee2d81a4abf30669f2f565e",
   "models/asl_reader.bin": "d17a0344bdcfe8ea282b68a32f381c544575a6cf14b482ff1174c1a5fa00a163",
@@ -1486,11 +1486,11 @@
   "models/sign_reader.json": "a0b9bfdd308d74470ec092036f6722e36556bfc860bb0ebb595b455d67b5b0f8",
   "phrases.json": "40378645fba5519de004f6add5e19c7f601d401c26b2b9ede3eae63cfef1a746",
   "places.json": "6e3ea0d150973f0d04bd58bfc02206cc94a27fd29e30bd97abbaee727f18bf4f",
-  "sign_words.json": "3cf84914718681c7808379dd9151770720061afc29b246b39a1b6b1d2782c8ab",
+  "sign_words.json": "b6e4d86cd556c0c792a9c9fa623a76fbb42b7755a063810c14f1a1086f02b029",
   "signs.json": "9ad5124a4fdfe74d2a104075870964308a82046536e787b171a923e5802f1c37",
   "subject_ui.json": "f03d0fb5c37f7b9bbab3e4528caf3a3827d3a029ef9df6188fb24656796a7ccf",
   "triage.json": "477bbab0840d3e987f00f56a69ebeb8eb9e113386c585eaa0014916bb1b63eb2",
-  "words.json": "a1b55afeacd449c0bc4b5a96074c68db748de667e28aa57b6b67bf93d28bd860"
+  "words.json": "63d7a663fe1837af2aa45374dd4c5672aec9de340f2657a4819ad2572c214073"
  },
  "version": 1
 }

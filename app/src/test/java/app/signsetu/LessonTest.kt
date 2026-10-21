@@ -185,10 +185,10 @@ class LessonTest {
     fun lessonQuestionsAreSignedInDraftIslOrder() {
         for (q in content.questions.filter { it.signed }) assertNotNull("${q.id} has no motion", content.gestureFor(q))
         val name = content.planTextIds("What is your name?")
-        assertEquals(listOf("isl.you", "sign.name", "sign.what"), name)
+        assertEquals(listOf("isl.you", "isl.name", "isl.what"), name)
         val siblings = content.planTextIds("How many brothers and sisters do you have?")
         assertFalse("sign.how" in siblings)
-        assertTrue(siblings.indexOf("sign.how_many") > siblings.indexOf("sign.sister"))
+        assertTrue(siblings.indexOf("isl.how many") > siblings.indexOf("isl.sister") && "isl.sister" in siblings)
     }
 
     private fun ContentBundle.planTextIds(text: String) = planText(text, setOf(SignMode.SIGNS)).motions

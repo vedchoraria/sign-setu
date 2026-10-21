@@ -124,7 +124,7 @@ No table has a column for a name, address, phone number or photograph of the sub
 
 ## 7. Storage and keys
 
-- A random 256-bit database key (DEK) is generated on first use and stored wrapped by an AES key-encryption key (KEK) in Android Keystore, hardware-backed where available, non-exportable and bound to user authentication.
+- A random 256-bit database key (DEK) is generated on first use and stored wrapped by an AES key-encryption key (KEK) in Android Keystore, hardware-backed where available, non-exportable and usable only while the phone is unlocked (D-48).
 - Unlocking the app (1.0) authorises the KEK; the unwrapped DEK lives in memory only while the app is unlocked.
 - Drawings are stored inside the encrypted database, never on shared storage.
 - Purge deletes the session rows and runs `VACUUM`.

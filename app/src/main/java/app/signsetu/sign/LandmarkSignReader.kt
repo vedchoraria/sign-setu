@@ -13,7 +13,9 @@ import kotlin.math.max
  * The bundled isolated-sign classifier (D-25), trained by tools/ml on INCLUDE. Features and forward pass must match
  * tools/ml/features.py and export.py exactly.
  */
-class LandmarkSignReader(spec: String, weights: ByteArray, override val words: Map<String, String> = emptyMap()) : SignReader {
+class LandmarkSignReader(spec: String, weights: ByteArray, override val words: Map<String, String> = emptyMap(),
+    override val cards: Map<String, List<String>> = emptyMap(),
+) : SignReader {
     @Serializable
     private class Spec(val frames: Int, val features: Int, val hidden: Int, val kernel: Int, val labels: List<String>, val norm: String = "shoulders", val dtype: String = "float32")
 

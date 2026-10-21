@@ -130,7 +130,7 @@ Each control in [security](04-security.md) checked against the code.
 
 | Controls | Status | Evidence |
 | --- | --- | --- |
-| SEC-01, SEC-10, SEC-11, SEC-22 | Met | `DatabaseKey`: 32-byte DEK wrapped by an AES-256-GCM Keystore key, auth-bound for 30 s; `SessionDatabase` opens through `SupportOpenHelperFactory` |
+| SEC-01, SEC-10, SEC-11, SEC-22 | Met | `DatabaseKey`: 32-byte DEK wrapped by an AES-256-GCM Keystore key, usable only while the phone is unlocked (D-48); `SessionDatabase` opens through `SupportOpenHelperFactory` |
 | SEC-02, SEC-08 | Met | Drawings only in the database; `cacheDir/exports` deleted on unlock and clear; `secure_delete` on open; `JournalMode.TRUNCATE` |
 | SEC-03, SEC-07 | Met | `allowBackup="false"`, `dataExtractionRules`, `fullBackupContent`; settings hold no personal data |
 | SEC-04, SEC-53, SEC-60 | Met | R8 strips `android.util.Log`; release not debuggable; R8 full mode |

@@ -58,3 +58,11 @@ Notes:
   no distilled student of this format beats the shipped 0.4020. The clips hold about 5 source frames (median 13 at
   15 fps after interpolation) with a hand found in 16% (left) and 41% (right) of frames; 0.6 needs denser landmarks
   (Kaggle `asl-signs` at 30 fps, credentials) or a new reader format; neither is in release 1.
+- Calibration of the shipped `sign_reader` on the unseen ISLRTC signer (n=199): mean top score 0.26 against 0.29
+  accuracy, expected calibration error 0.09, and temperature 1.0 already gives the lowest log loss (0.75: 0.146 ECE,
+  1.5: 0.190). Reads at or above `READ_MIN_SCORE` 0.4 are 27% of reads and 51% right. No temperature is applied. A
+  conformal choice set at 90% coverage would need far more than the three pictures the subject chooses from, because
+  top-3 is 0.44, so the fixed top three stay.
+- A transformer head (3 layers, width 192, same features and strong augmentation, 300 epochs) scored 0.276 top-1 and
+  0.377 top-3 on the unseen ISLRTC signer, and 0.62 inside the lesson questions' answer cards (shipped: 0.73), so the
+  convolution reader stays.
