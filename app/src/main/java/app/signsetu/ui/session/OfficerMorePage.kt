@@ -19,8 +19,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.TextAutoSize
@@ -100,7 +98,6 @@ internal fun MorePage(
     officerLang: String,
     answers: Int,
     onGroup: (Group) -> Unit,
-    onPhrases: () -> Unit,
     onQuestion: (Question) -> Unit,
     onPhrase: (Phrase) -> Unit,
     onAddToRun: (Question) -> Unit,
@@ -135,27 +132,13 @@ internal fun MorePage(
         // A word matches a question's text in any language, or the name of its category.
         fun hit(vararg texts: Localized?) = words.all { w -> texts.any { t -> t?.values?.any { it.lowercase().contains(w) } == true } }
         Column {
-            if (words.isEmpty()) LazyRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), contentPadding = PaddingValues(horizontal = Spacing.lg)) {
-                items(groups.filterNot { it.sensitive }, key = { it.id }) { g ->
-                    CategoryChip(g.label.pick(officerLang) ?: g.id, ui.selectedGroup == g.id, locked = false) { onGroup(g) }
-                }
-                if (content.phrases.isNotEmpty()) {
-                    item(key = PHRASES) { CategoryChip(stringResource(R.string.officer_phrases), ui.selectedGroup == PHRASES, locked = false, onClick = onPhrases) }
-                }
-                // Sensitive groups stay last and locked until confirmed.
-                items(groups.filter { it.sensitive }, key = { it.id }) { g ->
-                    CategoryChip(g.label.pick(officerLang) ?: g.id, ui.selectedGroup == g.id, locked = !ui.sensitiveUnlocked) { onGroup(g) }
-                }
-            }
-            // One question per row: a group reads top to bottom, and what was asked or answered shows at a glance.
             val asked = remember(ui.events) { ui.events.filter { it.type == EventType.QUESTION_SHOWN }.associateBy({ it.id }, { it.itemId }) }
             val askedIds = remember(asked) { asked.values.filterNotNull().toSet() }
             val answeredIds = remember(ui.events, asked) { ui.events.filter { it.type in AnswerEvents }.mapNotNull { e -> e.shownId?.let(asked::get) }.toSet() }
-            val phrases = if (words.isEmpty()) content.phrases.takeIf { ui.selectedGroup == PHRASES }.orEmpty()
-                else content.phrases.filter { p -> hit(p.label, *p.slots.map { it.text }.toTypedArray()) }
-            // Lesson-sheet hook: role and profile filter (Lesson.kt askable). Search leaves locked sensitive groups out.
-            val questions = if (words.isEmpty()) content.questionsIn(ui.selectedGroup, ui.session.role, ui.session.profile)
-                else groups.filter { !it.sensitive || ui.sensitiveUnlocked }.flatMap { g -> content.questionsIn(g.id, ui.session.role, ui.session.profile).filter { hit(it.text, g.label) } }
+            val phrases = if (words.isEmpty()) emptyList() else content.phrases.filter { p -> hit(p.label, *p.slots.map { it.text }.toTypedArray()) }
+            // Lesson-sheet hook: role and profile filter (Lesson.kt askable). A locked sensitive item asks to unlock first.
+            val questions = if (words.isEmpty()) emptyList()
+                else groups.flatMap { g -> content.questionsIn(g.id, ui.session.role, ui.session.profile).filter { hit(it.text, g.label) }.map { g to it } }
             Column(Modifier.padding(horizontal = Spacing.lg, vertical = Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                 if (words.isNotEmpty() && phrases.isEmpty() && questions.isEmpty()) {
                     Text(stringResource(R.string.more_search_none), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -172,7 +155,7 @@ internal fun MorePage(
                         onClick = { onPhrase(p) },
                     )
                 } }
-                questions.forEach { q -> key(q.id) {
+                questions.forEach { (g, q) -> key(q.id) {
                     QuestionRow(
                         cardId = q.cards.firstOrNull(),
                         title = q.text.pick(officerLang) ?: q.text.values.first(),
@@ -182,7 +165,7 @@ internal fun MorePage(
                         hasAudio = content.questionAudio(q.id, subjectLang) != null && ui.session.profile != Profile.ISL_USER,
                         selected = (pending as? Pending.Ask)?.question?.id == q.id,
                         status = when (q.id) { in answeredIds -> Asked.ANSWERED; in askedIds -> Asked.ASKED; else -> null },
-                        onClick = { onQuestion(q) },
+                        onClick = { if (g.sensitive && !ui.sensitiveUnlocked) onGroup(g) else onQuestion(q) },
                         onLongClick = { onAddToRun(q) },
                     )
                 } }

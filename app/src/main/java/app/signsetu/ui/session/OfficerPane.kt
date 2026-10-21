@@ -107,7 +107,6 @@ private const val THANK_YOU = "e7"
 private enum class Sheet { BOARD_SHOW, BOARD_ATTACH, GESTURE, LOG, CHANGE, DICTIONARY }
 
 /** The phrase bank sits beside the triage groups as one more group. */
-internal const val PHRASES = "phrases"
 private const val WORD_SEP = "\u0001"
 
 /**
@@ -337,7 +336,6 @@ fun OfficerPane(
                 officerLang = officerLang,
                 answers = answers,
                 onGroup = { g -> if (g.sensitive && !ui.sensitiveUnlocked) askSensitive = true else vm.selectGroup(g.id) },
-                onPhrases = { vm.selectGroup(PHRASES) },
                 onQuestion = { q ->
                     val again = (ui.pending as? Pending.Ask)?.question?.id == q.id
                     vm.prepare(if (again) null else Pending.Ask(q))
