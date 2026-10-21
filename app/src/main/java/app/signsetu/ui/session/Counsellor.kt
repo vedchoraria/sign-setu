@@ -36,7 +36,7 @@ sealed interface Counsel {
 }
 
 /**
- * The AI counsellor on a paired second screen. The officer's phone writes each turn with the online assistant, holds
+ * The AI counsellor, on a paired second screen or this phone's stage. The officer's phone writes each turn with the online assistant, holds
  * it for the officer for [holdMs], then shows it; the person's answer starts the next turn. The officer can send at
  * once, skip a line, or take over at any time; Stop, a break or a flagged risk hands the session back to them.
  */

@@ -112,4 +112,9 @@ data class SessionUi(
     val confirm: SignConfirm? = null,
     /** How many questions the current question run started with; 0 when no run. */
     val runTotal: Int = 0,
+    /** The officer's choice of the child character; null follows the profile. */
+    val childAvatar: Boolean? = null,
 )
+
+/** A young child gets the child character unless the officer switched it; anyone else, the adult. */
+val SessionUi.child: Boolean get() = childAvatar ?: (session.profile == Profile.YOUNG_CHILD)

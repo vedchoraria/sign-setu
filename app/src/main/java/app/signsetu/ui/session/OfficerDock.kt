@@ -1,5 +1,7 @@
 package app.signsetu.ui.session
 
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.border
 import androidx.compose.material.icons.filled.Star
 import app.signsetu.assistant.Suggestion
@@ -87,6 +89,9 @@ import app.signsetu.data.content.PhraseSlot
 
 /** Prepared questions an officer needs most often, offered on the main page until each has been asked. */
 private val QuickQuestions = listOf("s2", "n1", "n2", "n3", "h2", "f2", "i2", "l1")
+private const val TRANSLATE_APP = "com.google.android.apps.translate"
+/** Pictures carry these before anyone knows the person's language: who we are, safety, help coming, basic needs. */
+private val NoLanguageQuestions = listOf("s1", "s5", "s6", "n1", "n2", "n3", "h2")
 
 /** Quick questions and the composer: everything the officer reaches with a thumb. */
 @OptIn(ExperimentalLayoutApi::class)
@@ -126,14 +131,23 @@ internal fun Dock(
     val pending = ui.pending
     val subjectLang = ui.session.subjectLang
     val asked = remember(ui.events) { ui.events.filter { it.type == EventType.QUESTION_SHOWN }.mapNotNull { it.text }.toSet() }
-    val quick = remember(content, officerLang, asked, pending) {
-        QuickQuestions.mapNotNull { id -> content.questions.firstOrNull { it.id == id } }
+    val noLanguage = ui.session.profile == Profile.OTHER_LANGUAGE
+    val quick = remember(content, officerLang, asked, pending, noLanguage) {
+        (if (noLanguage) (NoLanguageQuestions + QuickQuestions).distinct() else QuickQuestions).mapNotNull { id -> content.questions.firstOrNull { it.id == id } }
             .filter { q -> q.text.pick(officerLang) !in asked || (pending as? Pending.Ask)?.question?.id == q.id }
     }
     Surface(color = colors.surfaceContainerLowest, shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp), shadowElevation = 8.dp) {
         Column(Modifier.navigationBarsPadding().padding(top = Spacing.md)) {
             AnimatedVisibility(!typing && quick.isNotEmpty(), enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), contentPadding = PaddingValues(horizontal = Spacing.lg), modifier = Modifier.padding(bottom = Spacing.sm)) {
+                    if (noLanguage) item(key = "translate") {
+                        val context = LocalContext.current
+                        CategoryChip(stringResource(R.string.open_translate), false, locked = false) {
+                            // Only opens the app; nothing from the session is passed to it.
+                            context.packageManager.getLaunchIntentForPackage(TRANSLATE_APP)?.let(context::startActivity)
+                                ?: Toast.makeText(context, R.string.open_translate_missing, Toast.LENGTH_LONG).show()
+                        }
+                    }
                     if (run.isEmpty()) item(key = "run_basics") { CategoryChip(stringResource(R.string.run_basics), false, locked = false, onClick = onRunBasics) }
                     items(quick, key = { it.id }) { q ->
                         CategoryChip(q.text.pick(officerLang) ?: q.id, (pending as? Pending.Ask)?.question?.id == q.id, locked = false, onLongClick = { onAddToRun(q) }, longClickLabel = addLabel) { onQuestion(q) }

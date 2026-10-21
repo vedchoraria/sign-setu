@@ -39,6 +39,7 @@
     <string name="officer_end">सत्र पूरा करें</string>
     <string name="officer_rotate">वे मेरे सामने बैठे हैं</string>
     <string name="officer_change">प्रोफ़ाइल या भाषा बदलें</string>
+    <string name="more_child_avatar">बच्चे वाला पात्र (10 से कम उम्र)</string>
     <string name="officer_caption_missing">%1$s में कैप्शन नहीं है। उन्हें केवल चित्र दिखेंगे।</string>
     <string name="officer_gesture">इशारा</string>
     <plurals name="officer_pictures">
@@ -302,6 +303,11 @@
     <string name="officer_tab_transcribe">बातचीत</string>
     <string name="officer_tab_more">और</string>
     <string name="more_questions">प्रश्न और वाक्य</string>
+    <string name="more_search">प्रश्न या श्रेणी खोजें</string>
+    <string name="more_search_clear">खोज हटाएँ</string>
+    <string name="more_search_none">कुछ नहीं मिला। दूसरा शब्द आज़माएँ या अपना प्रश्न लिखें।</string>
+    <string name="open_translate">अनुवाद ऐप</string>
+    <string name="open_translate_missing">इस फ़ोन पर Google Translate नहीं है।</string>
     <string name="more_tools">पूछने के और तरीके</string>
     <string name="more_session">सत्र</string>
 
@@ -565,7 +571,7 @@
     <string name="switch_sign_body">इस सत्र में आगे पात्र %1$s में संकेत करेगा। व्यक्ति शायद दूसरी सांकेतिक भाषा न समझे।</string>
     <string name="switch_sign_confirm">बदलें</string>
     <string name="board_name">चित्र बोर्ड</string>
-    <string name="ai_counsellor_start">दूसरी स्क्रीन पर AI परामर्शदाता</string>
+    <string name="ai_counsellor_start">AI परामर्शदाता को आपकी ओर से बात करने दें</string>
     <string name="ai_tag">AI परामर्शदाता</string>
     <string name="report_by_ai">AI परामर्शदाता ने लिखा, अधिकारी देख रहे थे</string>
     <string name="counsel_thinking">परामर्शदाता अगली पंक्ति लिख रहा है…</string>
@@ -579,7 +585,6 @@
     <string name="counsel_paused_no_reply">ऑनलाइन सहायक ने जवाब नहीं दिया। कनेक्शन और सहायक का स्विच देखें, या खुद जारी रखें।</string>
     <string name="counsel_paused_limit">तीस बार बात हो चुकी। खुद जारी रखें या फिर से शुरू करें।</string>
     <string name="counsel_resume">फिर से शुरू करें</string>
-    <string name="ai_needs_second_screen">पहले दूसरी स्क्रीन जोड़ें: व्यक्ति वहाँ AI परामर्शदाता से बात करेगा और आप यहाँ देखेंगे।</string>
     <string name="ai_needs_online">पहले सेटिंग में ऑनलाइन सहायक चालू करें और यह फ़ोन जोड़ें।</string>
     <string name="ai_not_for_accused">AI परामर्शदाता केवल पीड़ित और गवाह के लिए है, आरोपी या हिरासत में व्यक्ति के लिए नहीं।</string>
     <string name="wrap_name">इस नाम से सहेजें</string>

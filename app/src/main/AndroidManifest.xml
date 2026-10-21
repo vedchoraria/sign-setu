@@ -16,9 +16,10 @@
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-feature android:name="android.hardware.bluetooth" android:required="false" />
 
-    <!-- Sandes (NIC) is opened for the interpreter call; package visibility needs it declared (API 30+). -->
+    <!-- Sandes (NIC) for the interpreter call and Google Translate for an unknown language; visibility needs them declared (API 30+). -->
     <queries>
         <package android:name="in.nic.gimkerala" />
+        <package android:name="com.google.android.apps.translate" />
     </queries>
 
     <application

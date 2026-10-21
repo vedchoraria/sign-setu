@@ -111,7 +111,8 @@ internal fun reopensInput(pending: Pending?, yes: Boolean) =
 /** A reopened input holds the item until the subject submits it; the next run step would close it. */
 internal fun advancesRun(pending: Pending?, yes: Boolean) = !reopensInput(pending, yes)
 
-fun characterFor(profile: Profile) = if (profile == Profile.ISL_USER) Character.ADULT else Character.CHILD
+fun characterFor(profile: Profile) = if (profile == Profile.YOUNG_CHILD) Character.CHILD else Character.ADULT
+fun characterFor(ui: SessionUi) = if (ui.child) Character.CHILD else Character.ADULT
 
 /**
  * The stage: what the subject sees while the phone faces them. The character on top, a live mirror of their hands
@@ -341,7 +342,7 @@ fun Stage(
                     val roomy = maxHeight >= 240.dp
                     val avatarHeight = minOf(maxHeight - if (roomy) 64.dp else 48.dp, (maxWidth - SideBand * 2) / AVATAR_ASPECT).coerceAtLeast(0.dp)
                     Avatar(
-                        character = characterFor(profile),
+                        character = characterFor(ui),
                         gesture = gesture,
                         playKey = when {
                             reacting -> "react:${ui.answeredCard}:${ui.answeredYes}"

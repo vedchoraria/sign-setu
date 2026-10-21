@@ -45,6 +45,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -69,7 +70,6 @@ import app.signsetu.data.content.planText
 import app.signsetu.data.content.questionKind
 import app.signsetu.ui.avatar.AVATAR_ASPECT
 import app.signsetu.ui.avatar.Avatar
-import app.signsetu.ui.avatar.Character
 import app.signsetu.ui.components.CardImage
 import app.signsetu.ui.theme.Baloo
 import kotlinx.coroutines.delay
@@ -117,6 +117,24 @@ fun VideoCallStage(
 
     var showVictimSkeleton by rememberSaveable { mutableStateOf(false) }
 
+    // Left alone, the stage signs its own buttons one by one; a touch pauses it and the next quiet spell resumes there.
+    var guideStep by rememberSaveable { mutableIntStateOf(0) }
+    var guiding by remember { mutableStateOf(false) }
+    var touches by remember { mutableIntStateOf(0) }
+    LaunchedEffect(touches, signing) {
+        guiding = false
+        if (signing) return@LaunchedEffect
+        delay(GUIDE_IDLE_MS)
+        guiding = true
+        while (guideStep < GuideSteps.size) {
+            delay(GUIDE_STEP_MS)
+            guideStep++
+        }
+        guideStep = 0
+        guiding = false
+    }
+    val guided = GuideSteps.getOrNull(guideStep)?.takeIf { guiding }
+
     // The card a gesture proposed and the cue it came from; the cue is logged only if the subject taps it.
     var proposal by remember { mutableStateOf<Pair<String, String?>?>(null) }
     LaunchedEffect(pending) { proposal = null }
@@ -155,6 +173,7 @@ fun VideoCallStage(
             else -> content.gestures["namaste"]
         }
     }
+    val shownGesture = guided?.let { content.gestures[it.second] } ?: gesture
     val promptText = (pending as? Pending.FreeText)?.let { it.caption ?: it.text } ?: item.caption ?: content.subjectText("hint_wait", lang) ?: "We are here with you."
     val liveTranscript = remember(ui.reading) {
         ui.reading?.mapNotNull { it.word }?.filter { it != "?" }?.joinToString(" ")
@@ -196,7 +215,14 @@ fun VideoCallStage(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFF0F172A)),
+            .background(Color(0xFF0F172A))
+            .pointerInput(Unit) {
+                awaitPointerEventScope {
+                    while (true) {
+                        if (awaitPointerEvent(PointerEventPass.Initial).changes.any { it.pressed }) touches++
+                    }
+                }
+            },
     ) {
         Box(
             modifier = Modifier
@@ -216,9 +242,9 @@ fun VideoCallStage(
                 contentAlignment = Alignment.Center,
             ) {
                 Avatar(
-                    character = Character.ADULT,
-                    gesture = gesture,
-                    playKey = pending,
+                    character = characterFor(ui),
+                    gesture = shownGesture,
+                    playKey = guided?.let { "guide:$guideStep" } ?: pending,
                     speed = 0.9f,
                     idle = !signing,
                     glance = true,
@@ -392,7 +418,8 @@ fun VideoCallStage(
                         color = Color.White,
                         textAlign = TextAlign.Center,
                     )
-                    Text(
+                    // A young child is not made to read instructions; the character and the guide show them.
+                    if (!ui.child) Text(
                         text = stringResource(R.string.call_sign_hint),
                         fontSize = 11.sp,
                         color = Color(0xFF94A3B8),
@@ -444,23 +471,23 @@ fun VideoCallStage(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                CallActionButton("water", cardLabel(content, "water", lang), Color(0xFF0369A1)) {
+                CallActionButton("water", cardLabel(content, "water", lang), Color(0xFF0369A1), highlight = guided?.first == "water") {
                     answer("water")
                 }
-                CallActionButton("food", cardLabel(content, "food", lang), Color(0xFFD97706)) {
+                CallActionButton("food", cardLabel(content, "food", lang), Color(0xFFD97706), highlight = guided?.first == "food") {
                     answer("food")
                 }
-                CallActionButton("yes", cardLabel(content, "yes", lang), Color(0xFF15803D)) {
+                CallActionButton("yes", cardLabel(content, "yes", lang), Color(0xFF15803D), highlight = guided?.first == "yes") {
                     answer("yes")
                 }
-                CallActionButton("no", cardLabel(content, "no", lang), Color(0xFFB91C1C)) {
+                CallActionButton("no", cardLabel(content, "no", lang), Color(0xFFB91C1C), highlight = guided?.first == "no") {
                     answer("no")
                 }
-                CallActionButton("express", cardLabel(content, "help", lang), Color(0xFF7C3AED)) {
+                CallActionButton("express", cardLabel(content, "help", lang), Color(0xFF7C3AED), highlight = guided?.first == "express") {
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     onOpenExpressBoard()
                 }
-                CallActionButton("stop", cardLabel(content, "stop", lang), Color(0xFFDC2626)) {
+                CallActionButton("stop", cardLabel(content, "stop", lang), Color(0xFFDC2626), highlight = guided?.first == "stop") {
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     answer("stop")
                 }
@@ -477,6 +504,11 @@ fun VideoCallStage(
         }
     }
 }
+
+/** Each stage button with the sign the character makes while it is pointed out. */
+private val GuideSteps = listOf("yes" to "yes.nod", "no" to "no.shake", "water" to "water.cup", "food" to "eat.fingers", "express" to "show_me", "stop" to "show_me")
+private const val GUIDE_IDLE_MS = 20_000L
+private const val GUIDE_STEP_MS = 3_000L
 
 private val FINGERS = Regex("n\\d+")
 

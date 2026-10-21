@@ -40,6 +40,7 @@
     <string name="officer_end">Finish session</string>
     <string name="officer_rotate">They sit opposite me</string>
     <string name="officer_change">Change profile or language</string>
+    <string name="more_child_avatar">Child character (under 10)</string>
     <string name="officer_caption_missing">No caption in %1$s. They will see pictures only.</string>
     <string name="officer_gesture">Gesture</string>
     <plurals name="officer_pictures">
@@ -309,6 +310,11 @@
     <string name="officer_tab_transcribe">Transcribe</string>
     <string name="officer_tab_more">More</string>
     <string name="more_questions">Questions and phrases</string>
+    <string name="more_search">Search questions or category</string>
+    <string name="more_search_clear">Clear search</string>
+    <string name="more_search_none">Nothing matches. Try another word or type your own question.</string>
+    <string name="open_translate">Translate app</string>
+    <string name="open_translate_missing">Google Translate is not installed on this phone.</string>
     <string name="more_tools">Other ways to ask</string>
     <string name="more_session">Session</string>
 
@@ -572,7 +578,7 @@
     <string name="switch_sign_body">The character signs in %1$s for the rest of this session. The person may not follow a different sign language.</string>
     <string name="switch_sign_confirm">Switch</string>
     <string name="board_name">Picture board</string>
-    <string name="ai_counsellor_start">AI counsellor on the second screen</string>
+    <string name="ai_counsellor_start">Let the AI counsellor talk for you</string>
     <string name="ai_tag">AI counsellor</string>
     <string name="report_by_ai">written by the AI counsellor, officer monitoring</string>
     <string name="counsel_thinking">The counsellor is writing its next line…</string>
@@ -586,7 +592,6 @@
     <string name="counsel_paused_no_reply">The online assistant did not answer. Check the connection and the assistant switch, or carry on yourself.</string>
     <string name="counsel_paused_limit">Thirty turns reached. Carry on yourself or start again.</string>
     <string name="counsel_resume">Start again</string>
-    <string name="ai_needs_second_screen">Connect the second screen first: the person talks with the AI counsellor there while you watch here.</string>
     <string name="ai_needs_online">Turn on the online assistant in Settings and enrol this phone first.</string>
     <string name="ai_not_for_accused">The AI counsellor is only for victims and witnesses, never for a person accused or in custody.</string>
     <string name="wrap_name">Save as</string>

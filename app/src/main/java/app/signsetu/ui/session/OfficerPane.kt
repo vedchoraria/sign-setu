@@ -223,11 +223,10 @@ fun OfficerPane(
         }
     }
     val counsel by vm.counsellor.counsel.collectAsStateWithLifecycle()
-    // The AI counsellor talks with the person on the second screen while the officer watches here (Counsellor.kt).
+    // The AI counsellor writes the officer's side: on a second screen the officer watches here; alone, it runs the stage (Counsellor.kt).
     val startCounsel: () -> Unit = {
         when {
             ui.session.role == app.signsetu.data.session.Role.ACCUSED -> Toast.makeText(context, R.string.ai_not_for_accused, Toast.LENGTH_LONG).show()
-            paired == null -> { Toast.makeText(context, R.string.ai_needs_second_screen, Toast.LENGTH_LONG).show(); onSecondScreen?.invoke() }
             !cloud.available || !cloud.enrolled -> Toast.makeText(context, R.string.ai_needs_online, Toast.LENGTH_LONG).show()
             else -> {
                 page = 0
@@ -279,7 +278,7 @@ fun OfficerPane(
                         .padding(vertical = Spacing.xs),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    MiniFace(characterFor(ui.session.profile), 40.dp, Color(0xFFFFDDBE))
+                    MiniFace(characterFor(ui), 40.dp, Color(0xFFFFDDBE))
                     // Who the person is at a glance: profile, then language and role.
                     Column(Modifier.padding(start = Spacing.md)) {
                         Text(stringResource(profileTitle(ui.session.profile)), style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -352,6 +351,7 @@ fun OfficerPane(
                 onSecondScreen = onSecondScreen,
                 onFinish = { askEnd = true },
                 onCounsel = if (cloud.available) startCounsel else null,
+                onChildAvatar = vm::setChildAvatar,
                 onTell = if (canReadSigns) ({ prepareTyped(); vm.readSigns(SignWindow.NARRATIVE); page = 0 }) else null,
                 modifier = Modifier.weight(1f),
             )

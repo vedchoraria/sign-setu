@@ -36,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -235,7 +236,8 @@ internal fun CalmingBreathingGuide(onDismiss: () -> Unit) {
 }
 
 @Composable
-internal fun CallActionButton(icon: String, label: String, backgroundColor: Color, onClick: () -> Unit) {
+internal fun CallActionButton(icon: String, label: String, backgroundColor: Color, highlight: Boolean = false, onClick: () -> Unit) {
+    val pulse = if (highlight) rememberInfiniteTransition(label = "guide").animateFloat(1f, 1.18f, infiniteRepeatable(tween(600, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "pulse").value else 1f
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -246,7 +248,8 @@ internal fun CallActionButton(icon: String, label: String, backgroundColor: Colo
         Surface(
             shape = CircleShape,
             color = backgroundColor,
-            modifier = Modifier.size(50.dp),
+            border = if (highlight) BorderStroke(3.dp, Color.White) else null,
+            modifier = Modifier.size(50.dp).scale(pulse),
             shadowElevation = 4.dp,
         ) {
             Box(contentAlignment = Alignment.Center) {

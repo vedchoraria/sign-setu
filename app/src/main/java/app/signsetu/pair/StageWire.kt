@@ -1,6 +1,7 @@
 package app.signsetu.pair
 
 import app.signsetu.ui.session.signLanguage
+import app.signsetu.ui.session.child
 import app.signsetu.data.content.ContentBundle
 import app.signsetu.data.content.SignMode
 import app.signsetu.ui.session.Mode
@@ -43,6 +44,7 @@ data class StageView(
     val gestureSpeed: Float,
     val cameraOn: Boolean,
     val signLanguage: String = "ISL",
+    val child: Boolean? = null,
 )
 
 @Serializable
@@ -136,6 +138,7 @@ fun SessionUi.toStageView(largeCaptions: Boolean, gestureSpeed: Float, cameraOn:
         gestureSpeed = gestureSpeed,
         cameraOn = cameraOn,
         signLanguage = signLanguage.name,
+        child = child,
     )
 }
 

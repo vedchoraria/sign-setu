@@ -81,6 +81,7 @@ private data class Local(
     val confirm: SignConfirm? = null,
     val queue: List<Pending.Ask> = emptyList(),
     val runTotal: Int = 0,
+    val childAvatar: Boolean? = null,
 )
 
 class SessionViewModel(
@@ -110,7 +111,7 @@ class SessionViewModel(
     )
 
     val ui: StateFlow<SessionUi?> = combine(repo.session(sessionId).filterNotNull(), repo.events(sessionId), local) { s, events, l ->
-        SessionUi(s, l.selectedGroup, l.sensitiveUnlocked, l.pending, l.mode, l.rotated, l.answeredCard, l.answeredYes, l.chosenLanguage, events, l.reading, l.signed, l.onStage, l.itemId, l.signWindow, l.confirm, l.runTotal)
+        SessionUi(s, l.selectedGroup, l.sensitiveUnlocked, l.pending, l.mode, l.rotated, l.answeredCard, l.answeredYes, l.chosenLanguage, events, l.reading, l.signed, l.onStage, l.itemId, l.signWindow, l.confirm, l.runTotal, l.childAvatar)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     /** A second screen shows the stage; this phone stays with the officer. */
@@ -137,6 +138,7 @@ class SessionViewModel(
     fun unlockSensitive() = local.update { it.copy(sensitiveUnlocked = true) }
     fun prepare(pending: Pending?) = local.update { it.copy(pending = pending) }
     fun toggleRotation() = local.update { it.copy(rotated = !it.rotated) }
+    fun setChildAvatar(on: Boolean) = local.update { it.copy(childAvatar = on) }
 
     fun setJuvenile(on: Boolean) = viewModelScope.launch {
         local.update { it.copy(selectedGroup = Local().selectedGroup) }
@@ -179,7 +181,7 @@ class SessionViewModel(
     }
     private var showing = false
 
-    /** The AI counsellor; it shows its lines only on a paired second screen (OfficerPane starts it). */
+    /** The AI counsellor; its lines go to the stage as the officer's own would (OfficerPane starts it). */
     val counsellor = Counsellor(viewModelScope, ui, send = { line ->
         prepare(Pending.FreeText(line.say, emptyList(), setOf(SignMode.SIGNS, SignMode.GESTURES, SignMode.PICTURES), line.caption, byAi = true))
         show()
