@@ -127,6 +127,10 @@ fun OfficerPane(
     onShare: (File) -> Unit,
     /** Saves the session under the given name, or deletes it when null. */
     onEndSession: (String?) -> Unit,
+    /** A rooted phone keeps no history: finishing deletes the session. */
+    historyOff: Boolean = false,
+    /** Leaves with the session still open; the second screen, if any, is released. */
+    onLeave: () -> Unit = {},
     canReadSigns: Boolean = false,
     /** Set while a second screen shows the stage. */
     paired: PairedPane? = null,
@@ -145,9 +149,11 @@ fun OfficerPane(
     var askSensitive by remember { mutableStateOf(false) }
     var askEnd by remember { mutableStateOf(false) }
     var saveAs by rememberSaveable { mutableStateOf("") }
+    var askLeave by remember { mutableStateOf(false) }
     // Sheets and dialogs take Back first; on the page it steps to the first tab, then leaves with the session still
-    // open, to resume from the start screen. Finishing is always a deliberate tap, never Back.
-    BackHandler(enabled = page != 0) { page = 0 }
+    // open, to resume from the start screen. With a second screen it asks first. Finishing is always a deliberate tap.
+    val backAction = backAction(page, paired != null)
+    BackHandler(enabled = backAction != BackAction.LEAVE) { if (backAction == BackAction.FIRST_TAB) page = 0 else askLeave = true }
     var export by remember { mutableStateOf<ExportState?>(null) }
     val cloud = LocalCloudAi.current
     var aiReport by remember { mutableStateOf<String?>(null) }
@@ -465,6 +471,15 @@ fun OfficerPane(
         null -> Unit
     }
 
+    if (askLeave) {
+        GuardedAlertDialog(
+            onDismissRequest = { askLeave = false },
+            title = { Text(stringResource(R.string.leave_title)) },
+            text = { Text(stringResource(R.string.leave_body)) },
+            confirmButton = { TextButton(onClick = { askLeave = false; onLeave() }) { Text(stringResource(R.string.leave_confirm)) } },
+            dismissButton = { TextButton(onClick = { askLeave = false }) { Text(stringResource(R.string.leave_stay)) } },
+        )
+    }
     if (askSensitive) {
         GuardedAlertDialog(
             onDismissRequest = { askSensitive = false },
@@ -500,6 +515,7 @@ fun OfficerPane(
         // The everyday "Thank you." from the lesson sheet closes the conversation on the stage.
         val thanks = content.question(THANK_YOU)
         WrapUpDialog(
+            historyOff = historyOff,
             summary = remember(ui.events) { wrapUp(ui.events, ui.session.startedAt, System.currentTimeMillis()) },
             title = saveAs,
             onTitle = { saveAs = it },
@@ -510,7 +526,7 @@ fun OfficerPane(
             onDismiss = { askEnd = false },
         )
     }
-    val modal = askEnd || export != null || aiExtracting || aiReport != null || sheet != null || askSensitive || phrase != null || sayingBack != null || replaying != null
+    val modal = askLeave || askEnd || export != null || aiExtracting || aiReport != null || sheet != null || askSensitive || phrase != null || sayingBack != null || replaying != null
     SideEffect { OfficerModal.open.value = modal }
     DisposableEffect(Unit) { onDispose { OfficerModal.open.value = false } }
     aiReport?.let { AiReportDialog(it, onDismiss = { aiReport = null }) }
@@ -585,4 +601,13 @@ private fun AslExperimentalBanner(modifier: Modifier = Modifier) {
             }
         }
     }
+}
+
+enum class BackAction { FIRST_TAB, ASK_LEAVE, LEAVE }
+
+/** What Back does on the officer page: step to the first tab, ask before dropping a second screen, or just leave. */
+fun backAction(page: Int, secondScreenShowing: Boolean) = when {
+    page != 0 -> BackAction.FIRST_TAB
+    secondScreenShowing -> BackAction.ASK_LEAVE
+    else -> BackAction.LEAVE
 }

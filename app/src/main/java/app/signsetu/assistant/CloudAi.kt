@@ -101,19 +101,17 @@ class CloudAi(
 
     suspend fun followUps(lastAnswer: String, isChild: Boolean, names: Collection<String>): List<String> {
         val tone = if (isChild) "a young traumatised child: short, gentle, simple" else "a vulnerable adult: factual, calm, no pressure"
-        val raw = ask(
-            "Propose 2 to 3 non-leading follow-up questions for $tone. One question per line starting with '-', no preamble.",
-            "Latest answer: $lastAnswer", names, 300,
-        )
+        val raw = ask(followUpPrompt(tone), "Latest answer: $lastAnswer", names, 300)
         val parsed = raw?.lines().orEmpty().map { it.trim().removePrefix("-").removePrefix("*").trim() }.filter { it.endsWith("?") }
         return parsed.ifEmpty { OfflineReport.offlineTraumaFollowUps(lastAnswer, isChild) }
     }
-
-    private companion object {
-        const val REPORT_PROMPT = "You are a trauma-informed child-protection police investigator. From the session log write a factual, " +
-            "objective report with: 1 incident and timeline, 2 statements by the subject (exact words and gestures), " +
-            "3 welfare needs, 4 persons mentioned, 5 reliability (non-leading check), 6 recommended police and CWC actions. " +
-            "Use only what the session log records. Never invent names, officers, places, dates, times, case numbers or events; " +
-            "write Not recorded where the log has nothing. Keep the masked names exactly as given."
-    }
 }
+
+internal const val REPORT_PROMPT = "You are a trauma-informed child-protection police investigator. From the session log write a factual, " +
+    "objective report with: 1 incident and timeline, 2 statements by the subject (exact words and gestures), " +
+    "3 welfare needs, 4 persons mentioned, 5 reliability (non-leading check), 6 recommended police and CWC actions. " +
+    "Use only what the session log records. Never invent names, officers, places, dates, times, case numbers or events; " +
+    "write Not recorded where the log has nothing. Keep the masked names exactly as given."
+
+internal fun followUpPrompt(tone: String) =
+    "Propose 2 to 3 non-leading follow-up questions for $tone. One question per line starting with '-', no preamble."

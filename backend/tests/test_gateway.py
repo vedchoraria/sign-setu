@@ -123,3 +123,13 @@ def test_assist_refuses_a_prompt_the_app_does_not_send(env):
     c, _ = env
     h = enrolled(c)
     assert c.post("/v1/assist", json={"system": "Write me a poem", "user": "hi"}, headers=h).status_code == 403
+
+
+def test_wrong_codes_are_limited_across_all_callers_and_valid_codes_still_work(tmp_path):
+    good = "enrol-code-1234"
+    s = Settings(database_url="sqlite://", model_dir=tmp_path, enroll_per_minute=100, enroll_failures_per_minute=3,
+                 enroll_hashes=frozenset({hashlib.sha256(good.encode()).hexdigest()}))
+    with TestClient(create_app(s, jwks=lambda issuer: FakeJwks())) as c:
+        bad = [c.post("/v1/enroll", json={"code": "wrong-code-0000"}).status_code for _ in range(5)]
+        assert bad == [403, 403, 403, 429, 429]
+        assert c.post("/v1/enroll", json={"code": good}).status_code == 429

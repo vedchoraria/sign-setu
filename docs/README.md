@@ -34,6 +34,7 @@ Sign Setu is an offline Android app that helps a police officer communicate with
 | [03-ux.md](03-ux.md) | Officer and stage states, profiles, flows, accessibility, visual and content style |
 | [04-security.md](04-security.md) | Security controls (SEC-), keys, threats in scope |
 | [05-avatar-and-gestures.md](05-avatar-and-gestures.md) | Gesture and ISL lexicons, the two characters, motion pipelines, the code-drawn rig, validation |
+| [07-decisions.md](07-decisions.md) | Decision log (D-01 to D-51): context, choice, alternatives and consequences; changed only by adding a superseding entry |
 | [09-open-source.md](09-open-source.md) | Reusable open-source components per module, with licences and attribution |
 | [11-hand-model-integration.md](11-hand-model-integration.md) | The vision engine and sign reader, sign windows, and the contract for a replacement model |
 | [12-on-device-assistant.md](12-on-device-assistant.md) | The optional on-device translation assistant: model, installation, budgets |
@@ -1084,7 +1085,7 @@ Native Kotlin was chosen over cross-platform frameworks because the product is a
 
 #### 5.2.4 Design decisions
 
-
+Each decision, with its alternatives, is recorded in [07-decisions.md](07-decisions.md).
 
 ### 5.3 Data and privacy
 
@@ -1149,7 +1150,7 @@ Every push to `main` runs these jobs.
 | Job | Checks |
 | --- | --- |
 | android | Unit tests, release lint, release and nearby builds |
-| instrumented | Stage accessibility tests on an API 34 pixel_6 emulator |
+| instrumented | Stage accessibility, overlay-touch, database migration and report export tests on an API 34 pixel_6 emulator. Not run in CI: the end-to-end stage test (needs a camera feed) and the two MediaPipe pipeline tests (need a GPU); run them on a phone or a local emulator |
 | release-record | Release APK and bundle, dependency and vulnerability record |
 | portal, tools | Portal format, lint and tests; Python tool tests |
 | semgrep, osv, gitleaks | Code patterns, known vulnerabilities in shipped libraries, secrets |

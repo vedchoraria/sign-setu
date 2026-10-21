@@ -18,6 +18,8 @@ class Settings:
     assist_max_chars: int = 20_000
     rate_per_minute: int = 30
     enroll_per_minute: int = 10
+    # Wrong codes across all callers: a spoofed X-Forwarded-For defeats the per-address limit, not this one.
+    enroll_failures_per_minute: int = 20
     # The app's system prompts open with one of these; anything else is not the app and is refused.
     assist_prompt_openings: tuple[str, ...] = (
         "Translate the sentence into ",

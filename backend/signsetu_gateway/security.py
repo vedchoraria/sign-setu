@@ -34,6 +34,11 @@ class RateLimiter:
         self.per_minute = per_minute
         self.hits: defaultdict[str, deque[float]] = defaultdict(deque)
 
+    def exceeded(self, key: str) -> bool:
+        q = self.hits.get(key)
+        now = time.monotonic()
+        return bool(q) and sum(1 for t in q if now - t <= 60) >= self.per_minute
+
     def check(self, key: str) -> None:
         now = time.monotonic()
         if len(self.hits) > MAX_TRACKED_KEYS:

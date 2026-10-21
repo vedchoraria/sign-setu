@@ -23,4 +23,21 @@ class SavedSessionTest {
         repo.reopen(id)
         assertEquals(emptyList<String>(), repo.saved().first().map { it.title })
     }
+
+    @Test
+    fun sessionsPastTheRetentionPeriodAreDeletedSavedOnesIncluded() = runBlocking {
+        val hour = 3_600_000L
+        var now = 0L
+        val dao = MemoryDao()
+        val repo = SessionRepository(dao, clock = { now })
+        val old = repo.start(Profile.ISL_USER, "hi")
+        repo.end(old, "FIR 1")
+        now = 30 * hour
+        val recent = repo.start(Profile.ISL_USER, "hi")
+        repo.end(recent, "FIR 2")
+        now = 40 * hour
+        assertEquals(1, repo.purgeExpired(24))
+        assertEquals(listOf("FIR 2"), repo.saved().first().map { it.title })
+        assertEquals(setOf(recent), dao.sessions.value.keys)
+    }
 }

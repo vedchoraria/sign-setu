@@ -75,6 +75,7 @@ def create_app(settings: Settings | None = None, assist: Assist | None = None, j
     app.state.settings = s
     app.state.limiter = RateLimiter(s.rate_per_minute)
     app.state.enroll_limiter = RateLimiter(s.enroll_per_minute)
+    app.state.enroll_failures = RateLimiter(s.enroll_failures_per_minute)
     app.state.jwks = jwks
     device_only = [Depends(device_auth)]
 
@@ -85,8 +86,11 @@ def create_app(settings: Settings | None = None, assist: Assist | None = None, j
     @app.post("/v1/enroll")
     def enroll(body: EnrollIn, request: Request):
         app.state.enroll_limiter.check(request.client.host if request.client else "unknown")
+        if app.state.enroll_failures.exceeded("all"):
+            raise HTTPException(429, "rate limit")
         code_hash = sha256(body.code)
         if code_hash not in s.enroll_hashes:
+            app.state.enroll_failures.check("all")
             raise HTTPException(403, "bad enrolment code")
         token, dev_id = new_token(), new_token()[:32]
         with app.state.sessions() as db:

@@ -56,4 +56,4 @@ Release builds use R8 with resource shrinking. Add `-PgatewayUrl=https://...` (o
 | `tools/security/` | CycloneDX SBOM of the release APK (`sbom.py`, needs Syft) |
 | `content/` | Source symbols for the picture cards |
 | `render.yaml` | Free hosting blueprint for the gateway |
-| `docs/` | Requirements, architecture, security, decisions, test plan and report ([index](docs/README.md)) |
+| `docs/` | Requirements, architecture, security, decision log and data protection assessment ([index](docs/README.md)) |

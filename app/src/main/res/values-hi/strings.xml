@@ -583,6 +583,11 @@
     <string name="ai_needs_online">पहले सेटिंग में ऑनलाइन सहायक चालू करें और यह फ़ोन जोड़ें।</string>
     <string name="ai_not_for_accused">AI परामर्शदाता केवल पीड़ित और गवाह के लिए है, आरोपी या हिरासत में व्यक्ति के लिए नहीं।</string>
     <string name="wrap_name">इस नाम से सहेजें</string>
+    <string name="wrap_rooted_note">यह फ़ोन रूटेड लगता है, इसलिए कोई इतिहास नहीं रखा जाता। सत्र पूरा करने पर वह मिट जाता है। ज़रूरत हो तो पहले रिपोर्ट निर्यात करें।</string>
+    <string name="leave_title">इस सत्र से बाहर निकलें?</string>
+    <string name="leave_body">दूसरी स्क्रीन का कनेक्शन टूट जाएगा। सत्र अधूरा रहेगा: शुरू वाली स्क्रीन से इसे फिर खोलें, या रखने की अवधि पूरी होने पर यह मिट जाएगा।</string>
+    <string name="leave_confirm">बाहर निकलें</string>
+    <string name="leave_stay">रुकें</string>
     <string name="wrap_name_hint">केस या फ़ाइल नंबर लिखें, व्यक्ति का नाम नहीं।</string>
     <string name="wrap_default_name">सत्र %1$s</string>
     <string name="wrap_saved_note">यह इस फ़ोन पर, एन्क्रिप्ट होकर, इसी नाम से रहेगा जब तक आप इसे न मिटाएँ। शुरुआती स्क्रीन से फिर खोलें।</string>

@@ -11,7 +11,7 @@ The department gateway the app uses while online. It is optional: a build withou
 | `POST /v1/feedback` | Phone | Label outcome of a reading, with consent; any extra field is refused |
 | `GET /v1/admin/feedback` | Reviewer portal | Keycloak access token with the `reviewer` realm role |
 
-Phone routes need the device token and are rate limited to 30 requests a minute. Enrolment, assist, feedback and admin reads are written to an audit table. The interactive API docs are switched off.
+Phone routes need the device token and are rate limited to 30 requests a minute. Enrolment is limited per client address (10 a minute) and, across all callers, to 20 wrong codes a minute, because the address comes from a forwarded header a caller can set. Enrolment, assist, feedback and admin reads are written to an audit table. The interactive API docs are switched off.
 
 ## Key files
 

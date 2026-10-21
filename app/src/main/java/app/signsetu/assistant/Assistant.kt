@@ -27,16 +27,21 @@ class Assistant(private val models: ModelStore, private val cloud: CloudAi? = nu
         return Suggestion(caption, meaning)
     }
 
-    private fun toLanguage(language: Language) =
-        "Translate the sentence into ${language.english} (${language.name}), in its own script. Keep the exact meaning, " +
-            "tense and who does what. Use simple words for a child. Reply with the translated sentence only."
+    private fun toLanguage(language: Language) = translatePrompt(language)
 
     private fun String.firstLine() = lineSequence().map { it.trim().trim('"') }.firstOrNull { it.isNotEmpty() }
 
     private companion object {
-        const val BACK_TO_ENGLISH = "Translate this sentence into English. Reply with the English only."
+        const val BACK_TO_ENGLISH = BACK_TO_ENGLISH_PROMPT
     }
 }
+
+/** The gateway refuses a system prompt that does not open as the ones in this file and CloudAi.kt do (assist_prompt_openings). */
+internal fun translatePrompt(language: Language) =
+    "Translate the sentence into ${language.english} (${language.name}), in its own script. Keep the exact meaning, " +
+        "tense and who does what. Use simple words for a child. Reply with the translated sentence only."
+
+internal const val BACK_TO_ENGLISH_PROMPT = "Translate this sentence into English. Reply with the English only."
 
 /** English needs no translation, and nor does Hindi already typed in Devanagari. */
 fun needsTranslation(text: String, langCode: String): Boolean =
