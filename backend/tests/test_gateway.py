@@ -11,6 +11,7 @@ from signsetu_gateway.app import create_app
 from signsetu_gateway.config import Settings
 
 CODE = "enrol-code-1234"
+OK_SYSTEM = "Translate the sentence into Hindi, in its own script."
 ISS = "https://id.example/realms/police"
 KEY = rsa.generate_private_key(public_exponent=65537, key_size=2048)
 
@@ -71,8 +72,8 @@ def test_model_manifest_and_verified_download(env):
 def test_assist_proxies_and_limits_size(env):
     c, _ = env
     h = enrolled(c)
-    assert c.post("/v1/assist", json={"system": "s", "user": "hi"}, headers=h).json() == {"text": "echo:hi"}
-    assert c.post("/v1/assist", json={"system": "s", "user": "x" * 20_001}, headers=h).status_code == 413
+    assert c.post("/v1/assist", json={"system": OK_SYSTEM, "user": "hi"}, headers=h).json() == {"text": "echo:hi"}
+    assert c.post("/v1/assist", json={"system": OK_SYSTEM, "user": "x" * 20_001}, headers=h).status_code == 413
 
 
 def test_feedback_takes_labels_only_and_needs_consent(env):
@@ -100,3 +101,25 @@ def test_rate_limit(env):
     h = enrolled(c)
     codes = [c.get("/v1/models", headers=h).status_code for _ in range(7)]
     assert codes[:5] == [200] * 5 and codes[-1] == 429
+
+
+def test_enrol_is_rate_limited(tmp_path):
+    s = Settings(database_url="sqlite://", model_dir=tmp_path, enroll_per_minute=3)
+    with TestClient(create_app(s, jwks=lambda issuer: FakeJwks())) as c:
+        codes = [c.post("/v1/enroll", json={"code": "wrong-code-0000"}).status_code for _ in range(5)]
+    assert codes == [403, 403, 403, 429, 429]
+
+
+def test_model_hash_is_checked_again_after_the_file_changes(env):
+    c, d = env
+    h = enrolled(c)
+    assert c.get("/v1/models/sign_reader.bin", headers=h).status_code == 200
+    assert c.get("/v1/models/sign_reader.bin", headers=h).status_code == 200
+    (d / "sign_reader.bin").write_bytes(b"model-bytez")
+    assert c.get("/v1/models/sign_reader.bin", headers=h).status_code == 500
+
+
+def test_assist_refuses_a_prompt_the_app_does_not_send(env):
+    c, _ = env
+    h = enrolled(c)
+    assert c.post("/v1/assist", json={"system": "Write me a poem", "user": "hi"}, headers=h).status_code == 403

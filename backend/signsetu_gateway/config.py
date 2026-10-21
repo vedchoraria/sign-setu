@@ -17,3 +17,12 @@ class Settings:
     reviewer_role: str = "reviewer"
     assist_max_chars: int = 20_000
     rate_per_minute: int = 30
+    enroll_per_minute: int = 10
+    # The app's system prompts open with one of these; anything else is not the app and is refused.
+    assist_prompt_openings: tuple[str, ...] = (
+        "Translate the sentence into ",
+        "Translate this sentence into English.",
+        "You are a trauma-informed child-protection police investigator.",
+        "Propose 2 to 3 non-leading follow-up questions",
+        "You are a gentle, trauma-informed helper",
+    )

@@ -50,8 +50,8 @@ data class AppSettings(
     val interpreterConfigured get() = interpreterApp != InterpreterApp.NONE && interpreterContact.isNotBlank()
 
     companion object {
-        /** Zero: sessions are kept until the officer deletes them. */
-        const val DEFAULT_RETENTION_HOURS = 0
+        /** Zero keeps sessions until the officer deletes them; a department chooses that, it is not the default. */
+        const val DEFAULT_RETENTION_HOURS = 24
         val RETENTION_CHOICES = listOf(0, 4, 8, 12, 24, 48, 72)
     }
 }

@@ -86,6 +86,7 @@ internal fun WrapUpDialog(
                     value = title,
                     onValueChange = { onTitle(it.take(TITLE_MAX)) },
                     label = { Text(stringResource(R.string.wrap_name)) },
+                    supportingText = { Text(stringResource(R.string.wrap_name_hint)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )

@@ -62,7 +62,7 @@ Likelihood (L) and severity (S) are each rated 1 (low) to 3 (high), before and a
 
 | Risk | L×S before | Controls | L×S after |
 | --- | --- | --- | --- |
-| A lost, stolen or seized phone exposes session records | 3×3 | SQLCipher with a Keystore-wrapped key usable only while the phone is unlocked; FLAG_SECURE; no backup. Sessions are kept until deleted by default, so more may be on a lost phone; a department can set a retention period | 2×3 |
+| A lost, stolen or seized phone exposes session records | 3×3 | SQLCipher with a Keystore-wrapped key usable only while the phone is unlocked; FLAG_SECURE; no backup. Sessions are purged after 24 hours by default; keeping them until deleted is a choice that leaves more on a lost phone | 2×3 |
 | A wrong machine reading is recorded as the person's answer | 3×3 | The subject confirms from pictures. A reading is never logged as confirmed. "Sign slower" asks again when a reading is unsure | 1×3 |
 | Speech or text sent to a cloud service is retained or reused | 2×3 | No voice. Masked text only, through the department gateway, which stores none. Off unless the officer turns it on and the device is enrolled. The AI counsellor sends the masked session text each turn, under the same controls | 1×2 |
 | Camera pictures or landmarks leave the phone | 2×3 | No upload path exists. Landmarks never reach disk or the Bluetooth link. The INTERNET permission is used only by the gateway client | 1×3 |

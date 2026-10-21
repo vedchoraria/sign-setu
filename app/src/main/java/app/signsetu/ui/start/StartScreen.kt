@@ -249,8 +249,8 @@ fun StartScreen(
                     if (role == SessionRole.ACCUSED) {
                         JuvenileNotice(underAge || profile == Profile.YOUNG_CHILD, enabled = profile != Profile.YOUNG_CHILD, onChecked = { underAge = it })
                     }
-                    // Below the start card: starting a session is the main job of this screen.
-                    SavedSessions(repo, onOpen = { id ->
+                    // Below the start card: starting a session is the main job of this screen. A rooted phone lists no history.
+                    if (!rooted) SavedSessions(repo, onOpen = { id ->
                         if (open != null) Toast.makeText(context, R.string.saved_finish_open_first, Toast.LENGTH_SHORT).show()
                         else scope.launch { repo.reopen(id); onOpenSession(id) }
                     })

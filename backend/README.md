@@ -7,7 +7,7 @@ The department gateway the app uses while online. It is optional: a build withou
 | `GET /healthz` | Host | Health check |
 | `POST /v1/enroll` | Phone | Trades a one-time enrolment code for a device token |
 | `GET /v1/models`, `GET /v1/models/{name}` | Phone | Model manifest (`MODEL_DIR/manifest.json`); a file is served only if it matches its manifest hash |
-| `POST /v1/assist` | Phone | Proxy to the AI service; the key stays here and no text is stored |
+| `POST /v1/assist` | Phone | Proxy to the AI service; the key stays here and no text is stored. A system prompt must open with one of `assist_prompt_openings` in `config.py`, which match the prompts in the app; change both together |
 | `POST /v1/feedback` | Phone | Label outcome of a reading, with consent; any extra field is refused |
 | `GET /v1/admin/feedback` | Reviewer portal | Keycloak access token with the `reviewer` realm role |
 

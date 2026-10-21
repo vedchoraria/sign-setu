@@ -103,7 +103,7 @@ With the online assistant on, a paired stage can host the **AI counsellor** for 
 | Offline | Every feature works with no connection; no RECORD_AUDIO or location permission, enforced by a build gate for every variant |
 | Encrypted record | SQLCipher (AES-256) under a random key wrapped by an Android Keystore key that works only after the phone's own lock |
 | Relock | After five minutes away from the app; after a crash mid-stage the full credential is always asked |
-| Retention | Finished sessions saved under the officer's name until deleted, or purged after a set period; "Delete all data" destroys the keys |
+| Retention | Finished sessions saved under the officer's name and purged after 24 hours by default, or after a set period of 4 to 72 hours, or kept until deleted if the officer chooses; "Delete all data" destroys the keys |
 | Screen | Screenshots blocked in release; taps through another app's overlay ignored; no backup or device transfer |
 | Keyboard | Every text field asks the keyboard not to learn from what is typed |
 | Integrity | Every content file, the vision and sign-reader models and the assistant model are checked by SHA-256 before use |

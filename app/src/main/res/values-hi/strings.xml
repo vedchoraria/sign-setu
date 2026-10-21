@@ -583,6 +583,7 @@
     <string name="ai_needs_online">पहले सेटिंग में ऑनलाइन सहायक चालू करें और यह फ़ोन जोड़ें।</string>
     <string name="ai_not_for_accused">AI परामर्शदाता केवल पीड़ित और गवाह के लिए है, आरोपी या हिरासत में व्यक्ति के लिए नहीं।</string>
     <string name="wrap_name">इस नाम से सहेजें</string>
+    <string name="wrap_name_hint">केस या फ़ाइल नंबर लिखें, व्यक्ति का नाम नहीं।</string>
     <string name="wrap_default_name">सत्र %1$s</string>
     <string name="wrap_saved_note">यह इस फ़ोन पर, एन्क्रिप्ट होकर, इसी नाम से रहेगा जब तक आप इसे न मिटाएँ। शुरुआती स्क्रीन से फिर खोलें।</string>
     <string name="wrap_save">सहेजें और पूरा करें</string>

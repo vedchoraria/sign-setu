@@ -125,9 +125,16 @@ androidComponents {
                 if (found.isNotEmpty()) throw GradleException("Forbidden permissions in the merged manifest: $found")
             }
         }
+        // A release APK is public: a key compiled into it can be read by anyone who has the file.
+        val keyCheck = tasks.register("check${name}NoEmbeddedKey") {
+            val embedded = openrouterKey.isNotBlank() && variant.buildType == "release" && !providers.gradleProperty("allowEmbeddedKey").isPresent
+            doLast {
+                if (embedded) throw GradleException("A release build must not embed an assistant key. Use -PgatewayUrl, or pass -PallowEmbeddedKey for a private build.")
+            }
+        }
         // Every task that packages the merged manifest, so neither an APK nor an AAB nor an install can skip the check.
         val packaging = setOf("assemble$name", "bundle$name", "install$name", "package$name", "package${name}Bundle")
-        tasks.matching { it.name in packaging }.configureEach { dependsOn(check) }
+        tasks.matching { it.name in packaging }.configureEach { dependsOn(check, keyCheck) }
     }
 }
 

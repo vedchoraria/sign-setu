@@ -1,5 +1,6 @@
 package app.signsetu
 
+import app.signsetu.data.settings.AppSettings
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -10,6 +11,12 @@ class PolicyTest {
     fun buildExpiresAfterOneHundredAndEightyDays() {
         assertFalse(buildExpired(todayEpochDay = 1000 + 180, builtEpochDay = 1000))
         assertTrue(buildExpired(todayEpochDay = 1000 + 181, builtEpochDay = 1000))
+    }
+
+    @Test
+    fun sessionsAreDeletedAfterADayUnlessTheOfficerChoosesOtherwise() {
+        assertTrue(AppSettings.DEFAULT_RETENTION_HOURS in AppSettings.RETENTION_CHOICES)
+        assertTrue(AppSettings().retentionHours in 1..72)
     }
 
     @Test

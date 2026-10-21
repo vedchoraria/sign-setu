@@ -478,7 +478,7 @@ flowchart LR
 | 5.0 | Export and hand off | Composes the PDF report, encrypts it under a one-time passphrase, shares it; opens the interpreter contact link. | export |
 | 6.0 | Translate typed text | Rule-based English to Hindi caption on the phone (reviewed text, sentence patterns, word by word); optional on-device model with back-translation. | data.content.Translate, assistant |
 | 7.0 | Link second screen | Pairs by commit-then-reveal ECDH; sends the stage view and receives answers over AES-256-GCM frames. | pair, ui.pair |
-| 8.0 | Purge on retention | When a retention period is set, deletes sessions older than it and runs VACUUM; by default sessions are kept until deleted. | data.session (WorkManager) |
+| 8.0 | Purge on retention | Deletes sessions older than the retention period (24 hours by default) and runs VACUUM; no deletion if the officer chose to keep sessions until deleted. | data.session (WorkManager) |
 
 #### 3.7.3 Processes of 3.0
 
@@ -1090,7 +1090,7 @@ Native Kotlin was chosen over cross-platform frameworks because the product is a
 
 | Data | Where | Retention | Exit |
 | --- | --- | --- | --- |
-| Session events, drawings, typed answers | Encrypted database (D1) | Kept under the officer's name until deleted (default), or purged after a set period of 4 to 72 h | Encrypted PDF only, on officer action |
+| Session events, drawings, typed answers | Encrypted database (D1) | Purged after 24 h by default, or a set period of 4 to 72 h; kept under the officer's name until deleted only if the officer chooses | Encrypted PDF only, on officer action |
 | Landmarks of signed answers | View-model memory (D6) | Wiped at end, lock and clear | None |
 | Camera frames | Memory, inside a sign window | Not stored | None |
 | Settings, interpreter contact | DataStore | Until cleared | None |
@@ -1195,7 +1195,7 @@ The reader generalises poorly to people it has not seen. For that reason a readi
 | --- | --- |
 | Install | Allow installs from the source, open the APK, accept the camera permission. The phone must have a screen lock; the app refuses to store sessions without one |
 | Use | Unlock, choose profile and language, start. The officer holds the phone with the stage facing the subject |
-| Export | Finish session, name it, Export report, share the PDF, then give the one-time passphrase by a different channel; the session stays saved until deleted |
+| Export | Finish session, name it, Export report, share the PDF, then give the one-time passphrase by a different channel; the session stays saved until the retention period ends |
 | Update | Install the newer APK over the old one; updates must carry the same signing key |
 | Shared phone risk | End each conversation; rely on retention; a department PIN can be added if the pilot shows shared phones |
 

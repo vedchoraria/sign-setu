@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 from typing import Literal
 
 import httpx2
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
@@ -74,6 +74,7 @@ def create_app(settings: Settings | None = None, assist: Assist | None = None, j
     app = FastAPI(title="Sign Setu gateway", docs_url=None, redoc_url=None, openapi_url=None, lifespan=lifespan)
     app.state.settings = s
     app.state.limiter = RateLimiter(s.rate_per_minute)
+    app.state.enroll_limiter = RateLimiter(s.enroll_per_minute)
     app.state.jwks = jwks
     device_only = [Depends(device_auth)]
 
@@ -82,7 +83,8 @@ def create_app(settings: Settings | None = None, assist: Assist | None = None, j
         return {"ok": True}
 
     @app.post("/v1/enroll")
-    def enroll(body: EnrollIn):
+    def enroll(body: EnrollIn, request: Request):
+        app.state.enroll_limiter.check(request.client.host if request.client else "unknown")
         code_hash = sha256(body.code)
         if code_hash not in s.enroll_hashes:
             raise HTTPException(403, "bad enrolment code")
@@ -95,6 +97,17 @@ def create_app(settings: Settings | None = None, assist: Assist | None = None, j
             except IntegrityError:
                 raise HTTPException(403, "enrolment code already used") from None
         return {"device_id": dev_id, "token": token}
+
+    # A model file is hashed once per (size, mtime), not on every download.
+    verified: dict[tuple[str, int, int], str] = {}
+
+    def file_sha256(path) -> str:
+        st = path.stat()
+        key = (str(path), st.st_size, st.st_mtime_ns)
+        if key not in verified:
+            with path.open("rb") as f:
+                verified[key] = hashlib.file_digest(f, "sha256").hexdigest()
+        return verified[key]
 
     def manifest() -> list[dict]:
         path = s.model_dir / "manifest.json"
@@ -110,7 +123,7 @@ def create_app(settings: Settings | None = None, assist: Assist | None = None, j
         path = s.model_dir / name
         if not NAME.match(name) or entry is None or not path.is_file():
             raise HTTPException(404, "no such model")
-        if hashlib.sha256(path.read_bytes()).hexdigest() != entry["sha256"]:
+        if file_sha256(path) != entry["sha256"]:
             raise HTTPException(500, "model file does not match its manifest")
         return FileResponse(path, media_type="application/octet-stream")
 
@@ -118,6 +131,8 @@ def create_app(settings: Settings | None = None, assist: Assist | None = None, j
     async def assist_route(body: AssistIn, dev: DeviceDep):
         if len(body.user) > s.assist_max_chars:
             raise HTTPException(413, "too long")
+        if not body.system.strip().startswith(s.assist_prompt_openings):
+            raise HTTPException(403, "prompt not allowed")
         text = await run_assist(body.system, body.user, body.max_tokens)
         with app.state.sessions() as db:
             audit(db, "assist", dev.id)  # the text itself is never stored

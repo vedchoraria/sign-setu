@@ -590,6 +590,7 @@
     <string name="ai_needs_online">Turn on the online assistant in Settings and enrol this phone first.</string>
     <string name="ai_not_for_accused">The AI counsellor is only for victims and witnesses, never for a person accused or in custody.</string>
     <string name="wrap_name">Save as</string>
+    <string name="wrap_name_hint">Use a case or file number, not the person\'s name.</string>
     <string name="wrap_default_name">Session %1$s</string>
     <string name="wrap_saved_note">Kept on this phone, encrypted, under this name until you delete it. Open it again from the start screen.</string>
     <string name="wrap_save">Save and finish</string>

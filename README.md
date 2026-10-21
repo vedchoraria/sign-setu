@@ -4,7 +4,7 @@ An offline Android app that helps a police officer communicate with a person who
 
 - Version 0.5.0 (version code 7). Android 10 (API 29) and later; Kotlin and Jetpack Compose; one `app` module.
 - Works fully offline. A build with a department gateway (`-PgatewayUrl=https://...`) also uses it while online; without one, nothing ever connects. No RECORD_AUDIO permission, and no location or scanning permission in the `standard` flavor; every build fails if a forbidden permission reaches the merged manifest.
-- Sessions live in an encrypted SQLCipher database under a Keystore key that works only while the phone is unlocked. A finished session is saved under a name the officer types and kept until deleted, unless a retention period is set.
+- Sessions live in an encrypted SQLCipher database under a Keystore key that works only while the phone is unlocked. A finished session is saved under a name the officer types and deleted after 24 hours by default; an officer or department can pick 4 to 72 hours or keep sessions until deleted.
 
 ## What it does
 
@@ -40,7 +40,7 @@ Tests worth knowing:
 | `./gradlew assembleStandardRelease` | Universal APK, arm64-v8a and x86_64 (about 109 MB): phones, tablets and emulators |
 | `./gradlew assembleStandardRelease -Pabi=arm64-v8a` | Phone-only APK (about 83 MB) |
 
-Release builds use R8 with resource shrinking. Add `-PgatewayUrl=https://...` (or `gatewayUrl=` in `local.properties`) for a gateway build. The APK is unsigned: the release key is held offline, and signing is a manual `zipalign` and `apksigner` step on that machine. See [docs/README.md](docs/README.md), section 8.
+Release builds use R8 with resource shrinking. Add `-PgatewayUrl=https://...` (or `gatewayUrl=` in `local.properties`) for a gateway build. A release build fails if an assistant key (`OPENROUTER_API_KEY` or `openrouterKey`) is set, because the key would be readable from the APK; pass `-PallowEmbeddedKey` only for a private build. The APK is unsigned: the release key is held offline, and signing is a manual `zipalign` and `apksigner` step on that machine. See [docs/README.md](docs/README.md), section 8.
 
 ## Repository
 

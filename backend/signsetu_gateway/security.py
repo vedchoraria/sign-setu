@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 from .db import Audit, Device
 
 Authorization = Annotated[str, Header()]
+MAX_TRACKED_KEYS = 10_000
 
 
 def sha256(text: str) -> str:
@@ -35,6 +36,8 @@ class RateLimiter:
 
     def check(self, key: str) -> None:
         now = time.monotonic()
+        if len(self.hits) > MAX_TRACKED_KEYS:
+            self.hits = defaultdict(deque, {k: q for k, q in self.hits.items() if q and now - q[-1] <= 60})
         q = self.hits[key]
         while q and now - q[0] > 60:
             q.popleft()
