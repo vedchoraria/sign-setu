@@ -2,6 +2,7 @@ import hashlib
 import json
 import re
 import time
+from datetime import timedelta
 from pathlib import Path
 
 import jwt
@@ -13,7 +14,7 @@ from fastapi.testclient import TestClient
 import signsetu_gateway
 from signsetu_gateway.app import create_app
 from signsetu_gateway.config import Settings
-from signsetu_gateway.db import Audit
+from signsetu_gateway.db import Audit, Device
 
 CODE = "enrol-code-1234"
 FIXTURE = json.loads((Path(signsetu_gateway.__file__).parent / "app_prompts.json").read_text(encoding="utf-8"))["templates"]
@@ -45,12 +46,12 @@ def open_env(tmp_path):
     yield from make_env(tmp_path, rate_per_minute=1000)
 
 
-def make_env(tmp_path, rate_per_minute):
+def make_env(tmp_path, rate_per_minute, **extra):
     blob = b"model-bytes"
     (tmp_path / "sign_reader.bin").write_bytes(blob)
     (tmp_path / "manifest.json").write_text(json.dumps([{"name": "sign_reader.bin", "version": "1", "sha256": hashlib.sha256(blob).hexdigest()}]))
     s = Settings(database_url="sqlite://", model_dir=tmp_path, enroll_hashes=frozenset({hashlib.sha256(CODE.encode()).hexdigest()}),
-                 oidc_issuer=ISS, rate_per_minute=rate_per_minute)
+                 oidc_issuer=ISS, rate_per_minute=rate_per_minute, **extra)
 
     async def assist(system, user, max_tokens):
         return f"echo:{user}"
@@ -217,6 +218,46 @@ def test_an_administrator_can_list_and_revoke_a_device_and_it_stops_working(env)
     assert c.post(f"/v1/admin/devices/{devices[0]['id']}/revoke", headers=admin).status_code == 200
     assert c.get("/v1/models", headers=h).status_code == 401
     assert c.get("/v1/admin/devices", headers=admin).json()[0]["revoked"] is True
+
+
+@pytest.fixture
+def expiring_env(tmp_path):
+    yield from make_env(tmp_path, rate_per_minute=1000, token_ttl_days=30)
+
+
+def age_device(client, days):
+    with client.app.state.sessions() as db:
+        for dev in db.scalars(select(Device)):
+            dev.created_at = dev.created_at - timedelta(days=days)
+        db.commit()
+
+
+def test_a_token_stops_working_once_it_is_older_than_the_configured_life(expiring_env):
+    c, _ = expiring_env
+    h = enrolled(c)
+    age_device(c, 29)
+    assert c.get("/v1/models", headers=h).status_code == 200
+    age_device(c, 2)
+    assert c.get("/v1/models", headers=h).status_code == 401
+
+
+def test_a_token_never_expires_when_no_life_is_configured(env):
+    c, _ = env
+    h = enrolled(c)
+    age_device(c, 5000)
+    assert c.get("/v1/models", headers=h).status_code == 200
+
+
+def test_the_device_list_shows_when_a_device_was_last_seen(env):
+    c, _ = env
+    admin = bearer(["gateway-admin"])
+    h = enrolled(c)
+    assert c.get("/v1/admin/devices", headers=admin).json()[0]["last_seen"] is None
+    assert c.get("/v1/models", headers=h).status_code == 200
+    first = c.get("/v1/admin/devices", headers=admin).json()[0]["last_seen"]
+    assert first is not None
+    assert c.get("/v1/models", headers=h).status_code == 200
+    assert c.get("/v1/admin/devices", headers=admin).json()[0]["last_seen"] == first
 
 
 def test_user_text_reaches_the_model_only_as_the_user_message_whatever_it_says(tmp_path, monkeypatch):

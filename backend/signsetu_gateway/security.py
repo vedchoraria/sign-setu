@@ -3,19 +3,21 @@ import math
 import secrets
 import threading
 import time
+from datetime import UTC, datetime, timedelta
 from collections import defaultdict, deque
 from typing import Annotated, Any
 
 import jwt
 from fastapi import Depends, Header, HTTPException, Request
 from jwt import PyJWKClient
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from .db import Audit, Device
 
 Authorization = Annotated[str, Header()]
 MAX_TRACKED_KEYS = 10_000
+LAST_SEEN_RESOLUTION = timedelta(hours=1)
 
 
 def sha256(text: str) -> str:
@@ -88,8 +90,27 @@ def device_auth(request: Request, authorization: Authorization = "") -> Device:
         dev = db.scalar(select(Device).filter_by(token_hash=sha256(token)))
     if dev is None or dev.revoked:
         raise HTTPException(401, "unknown device")
+    ttl = state.settings.token_ttl_days
+    if ttl and as_utc(dev.created_at) + timedelta(days=ttl) <= datetime.now(UTC):
+        raise HTTPException(401, "token expired")
     state.limiter.check(dev.id)
+    touch_last_seen(state, dev)
     return dev
+
+
+def as_utc(moment: datetime) -> datetime:
+    """SQLite hands back timestamps without a zone; every value this gateway stores is UTC."""
+    return moment if moment.tzinfo else moment.replace(tzinfo=UTC)
+
+
+def touch_last_seen(state: Any, dev: Device) -> None:
+    """Written at most once per LAST_SEEN_RESOLUTION so authenticating a request is not a database write each time."""
+    now = datetime.now(UTC)
+    if dev.last_seen is not None and now - as_utc(dev.last_seen) < LAST_SEEN_RESOLUTION:
+        return
+    with state.sessions() as db:
+        db.execute(update(Device).where(Device.id == dev.id).values(last_seen=now))
+        db.commit()
 
 
 def reviewer_auth(request: Request, authorization: Authorization = "") -> dict[str, Any]:

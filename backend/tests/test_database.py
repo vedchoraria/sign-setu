@@ -2,7 +2,7 @@ import importlib.util
 from pathlib import Path
 
 import pytest
-from sqlalchemy import select
+from sqlalchemy import create_engine, inspect, select
 from sqlalchemy.orm import Session
 
 from signsetu_gateway.db import Audit, Device, Feedback, make_engine, normalise_url
@@ -54,3 +54,18 @@ def test_a_dry_run_writes_nothing_and_a_used_target_is_refused(tmp_path):
     migrate_db.migrate(src, dst)
     with pytest.raises(SystemExit, match="already holds rows"):
         migrate_db.migrate(src, dst)
+
+
+def test_a_database_made_before_last_seen_existed_gains_the_column_and_keeps_its_rows(tmp_path):
+    url = f"sqlite:///{tmp_path / 'old.db'}"
+    old = create_engine(url)
+    with old.begin() as conn:
+        conn.exec_driver_sql("CREATE TABLE devices (id VARCHAR(32) PRIMARY KEY, token_hash VARCHAR(64) UNIQUE, code_hash VARCHAR(64) UNIQUE, created_at DATETIME, revoked BOOLEAN)")
+        conn.exec_driver_sql("INSERT INTO devices VALUES ('d1', 't1', 'c1', '2026-01-01 00:00:00', 0)")
+    old.dispose()
+    engine = make_engine(url)
+    assert "last_seen" in {c["name"] for c in inspect(engine).get_columns("devices")}
+    with Session(engine) as db:
+        dev = db.get(Device, "d1")
+        assert dev.token_hash == "t1" and dev.last_seen is None
+    make_engine(url)

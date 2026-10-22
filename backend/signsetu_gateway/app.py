@@ -170,7 +170,8 @@ def create_app(settings: Settings | None = None, assist: Assist | None = None, j
     def admin_devices():
         with app.state.sessions() as db:
             rows = db.scalars(select(Device).order_by(Device.created_at.desc())).all()
-        return [{"id": d.id, "created_at": d.created_at.isoformat(), "revoked": d.revoked} for d in rows]
+        return [{"id": d.id, "created_at": d.created_at.isoformat(), "revoked": d.revoked,
+                 "last_seen": d.last_seen.isoformat() if d.last_seen else None} for d in rows]
 
     @app.post("/v1/admin/devices/{device_id}/revoke", dependencies=[Depends(admin_auth)])
     def admin_revoke(device_id: str):

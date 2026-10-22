@@ -18,6 +18,8 @@ class Settings:
     oidc_audience: str = field(default_factory=lambda: os.environ.get("OIDC_AUDIENCE", "signsetu-portal"))
     reviewer_role: str = "reviewer"
     admin_role: str = field(default_factory=lambda: os.environ.get("ADMIN_ROLE", "gateway-admin"))
+    # Days a device token stays valid after enrolment; 0 means it never expires.
+    token_ttl_days: int = field(default_factory=lambda: int(os.environ.get("TOKEN_TTL_DAYS", "0")))
     assist_max_chars: int = 20_000
     rate_per_minute: int = 30
     # How many reverse proxies in front of the gateway append to X-Forwarded-For; 0 trusts none and uses the socket address.
