@@ -6,6 +6,14 @@ An offline Android app that helps a police officer communicate with a person who
 - Works fully offline. A build with a department gateway (`-PgatewayUrl=https://...`) also uses it while online; without one, nothing ever connects. No RECORD_AUDIO permission, and no location or scanning permission in the `standard` flavor; every build fails if a forbidden permission reaches the merged manifest.
 - Sessions live in an encrypted SQLCipher database under a Keystore key that works only while the phone is unlocked. A finished session is saved under a name the officer types and deleted after 24 hours by default; an officer or department can pick 4 to 72 hours or keep sessions until deleted.
 
+---
+
+## 📸 Screenshots
+
+<a href="docs/screenshots/showcase.jpg"><img src="docs/screenshots/showcase.jpg" width="100%" alt="Sign Setu home, phrase board, read signs, transcript, session view, question bank, session log, ISL dictionary and gesture questions"></a>
+
+---
+
 ## What it does
 
 - **Stage for the person:** a drawn character signs questions in draft ISL order (recorded ISL signers for most words), with pictures, captions in 17 languages and recorded speech; answers by tap, picture, writing, drawing, nod or shake, finger count, or signing to the camera, confirmed by the person from pictures.
