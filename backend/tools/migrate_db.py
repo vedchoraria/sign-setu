@@ -8,7 +8,7 @@ The target must have no rows yet. Take a copy of the source file before running;
 import os
 import sys
 
-from sqlalchemy import func, select, text
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from signsetu_gateway.db import Audit, Device, Feedback, make_engine
@@ -40,8 +40,8 @@ def migrate(source_url: str, target_url: str, dry_run: bool = False) -> dict[str
         if target.dialect.name == "postgresql":
             # Rows keep their ids, so each sequence must continue after the highest one.
             for table in (Feedback, Audit):
-                name = table.__tablename__
-                dst.execute(text(f"SELECT setval(pg_get_serial_sequence('{name}', 'id'), COALESCE((SELECT MAX(id) FROM {name}), 1))"))
+                next_id = func.coalesce(select(func.max(table.id)).scalar_subquery(), 1)
+                dst.execute(select(func.setval(func.pg_get_serial_sequence(table.__tablename__, "id"), next_id)))
             dst.commit()
         return wanted
 
