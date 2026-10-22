@@ -34,12 +34,14 @@ Sign Setu is an offline Android app that helps a police officer communicate with
 | [03-ux.md](03-ux.md) | Officer and stage states, profiles, flows, accessibility, visual and content style |
 | [04-security.md](04-security.md) | Security controls (SEC-), keys, threats in scope |
 | [05-avatar-and-gestures.md](05-avatar-and-gestures.md) | Gesture and ISL lexicons, the two characters, motion pipelines, the code-drawn rig, validation |
+| [07-decisions.md](07-decisions.md) | Decision log (D-01 to D-54): context, choice, alternatives and consequences; changed only by adding a superseding entry |
 | [09-open-source.md](09-open-source.md) | Reusable open-source components per module, with licences and attribution |
 | [11-hand-model-integration.md](11-hand-model-integration.md) | The vision engine and sign reader, sign windows, and the contract for a replacement model |
 | [12-on-device-assistant.md](12-on-device-assistant.md) | The optional on-device translation assistant: model, installation, budgets |
 | [13-product-overview.md](13-product-overview.md) | One reference for explaining the product: features, mechanisms, character, sign reading, export, stack, frontend, readiness |
 | [14-screens.md](14-screens.md) | Catalogue of every screen, with screenshots in [screens/](screens/) |
 | [15-dpia.md](15-dpia.md) | Data protection impact assessment: processing, lawful basis, statutory recording and risks |
+| [17-attestation-and-pinning.md](17-attestation-and-pinning.md) | Assessment and design for certificate pinning and Key Attestation: threat model, safeguards, unresolved decisions; not built |
 
 ### 1.2 Other folders
 
@@ -239,7 +241,7 @@ flowchart LR
  E6 -- "F33 model file" --> D5
  E6 -- "F32 configuration" --> D3
  D3 -- "F38 retention period" --> P8
- P8 -- "F39 purge, VACUUM" --> D1
+ P8 -- "F39 purge, secure delete" --> D1
  classDef ent fill:#ffffff,stroke:#16202e,stroke-width:2px,color:#16202e
  classDef proc fill:#e8eef7,stroke:#1f3a5f,stroke-width:2px,color:#16202e
  classDef store fill:#f3efe4,stroke:#6b5b2e,stroke-width:2px,color:#16202e
@@ -478,7 +480,7 @@ flowchart LR
 | 5.0 | Export and hand off | Composes the PDF report, encrypts it under a one-time passphrase, shares it; opens the interpreter contact link. | export |
 | 6.0 | Translate typed text | Rule-based English to Hindi caption on the phone (reviewed text, sentence patterns, word by word); optional on-device model with back-translation. | data.content.Translate, assistant |
 | 7.0 | Link second screen | Pairs by commit-then-reveal ECDH; sends the stage view and receives answers over AES-256-GCM frames. | pair, ui.pair |
-| 8.0 | Purge on retention | When a retention period is set, deletes sessions older than it and runs VACUUM; by default sessions are kept until deleted. | data.session (WorkManager) |
+| 8.0 | Purge on retention | Deletes sessions older than the retention period (24 hours by default) with their events and drawings, overwriting the freed pages (secure delete); no deletion if the officer chose to keep sessions until deleted. | data.session (WorkManager) |
 
 #### 3.7.3 Processes of 3.0
 
@@ -532,7 +534,7 @@ Flows are grouped where they form one exchange. Classification: Personal = may i
 | F29, F30, F31 | 5.0, D3 | Hand-off | Encrypted PDF; contact link; interpreter contact | Personal, encrypted |
 | F32, F33 | E6 to D3, D5 | Department supply | Configuration; model file | Internal |
 | F34 to F37 | 3.0 / 7.0 / E5 | Second screen | Stage snapshot, stage view, answers, remote answers | Personal, encrypted |
-| F38, F39 | D3, 8.0, D1 | Retention | Retention period; purge and VACUUM | Internal |
+| F38, F39 | D3, 8.0, D1 | Retention | Retention period; purge and secure delete | Internal |
 | G1 to G19 | 3.0 internals | Stage interaction | Figure 3: content, presentation, camera frames, landmarks, segments, guesses, choices, confirmed answers | Personal |
 | H1 to H14 | Build | Build and review | Figure 4: datasets, retargeted signs, reader weights, review record, bundle, APK | Public, secret (key) |
 
@@ -1084,13 +1086,13 @@ Native Kotlin was chosen over cross-platform frameworks because the product is a
 
 #### 5.2.4 Design decisions
 
-
+Each decision, with its alternatives, is recorded in [07-decisions.md](07-decisions.md).
 
 ### 5.3 Data and privacy
 
 | Data | Where | Retention | Exit |
 | --- | --- | --- | --- |
-| Session events, drawings, typed answers | Encrypted database (D1) | Kept under the officer's name until deleted (default), or purged after a set period of 4 to 72 h | Encrypted PDF only, on officer action |
+| Session events, drawings, typed answers | Encrypted database (D1) | Purged after 24 h by default, or a set period of 4 to 72 h; kept under the officer's name until deleted only if the officer chooses | Encrypted PDF only, on officer action |
 | Landmarks of signed answers | View-model memory (D6) | Wiped at end, lock and clear | None |
 | Camera frames | Memory, inside a sign window | Not stored | None |
 | Settings, interpreter contact | DataStore | Until cleared | None |
@@ -1111,14 +1113,14 @@ Objectives: subject data is unreadable without the officer's credential; it does
 
 | Family | Controls (summary) |
 | --- | --- |
-| Storage | SQLCipher database; DEK wrapped by a Keystore KEK; no backup; purge with VACUUM; drawings only inside the database |
+| Storage | SQLCipher database; DEK wrapped by a Keystore KEK; no backup; purge with secure delete; drawings only inside the database |
 | Cryptography | Platform and SQLCipher cryptography only; AES-256 report with an 80-bit one-time passphrase and a record digest on every page; P-256 ECDH, HKDF-SHA256, AES-256-GCM link frames |
 | Authentication | Secure device lock required; BiometricPrompt (strong biometric or device credential); KEK usable only while the phone is unlocked |
 | Network | HTTPS to the one gateway host only, cleartext refused; the build fails if any variant's merged manifest declares RECORD_AUDIO; no WebView |
 | Platform | FLAG_SECURE; only the launcher exported; overlay-touch filter; screen pinning; no notifications with subject data; no clipboard of session data |
 | Camera and landmarks | Analysis only in a sign window; landmarks in RAM; narratives drop face points |
 | Supply chain | Dependency lockfile and verification metadata; SBOM; Lint, semgrep, osv-scanner, gitleaks; content manifest checked before use; offline signing key |
-| Resilience | R8 full mode; rooted or test-key device warns the officer and disables history (department to confirm); build expiry 180 days; unreadable database deleted on key loss |
+| Resilience | R8 full mode; rooted or test-key device (heuristic, evadable) warns the officer, lists no saved sessions and deletes a session when it is finished (department to confirm); build expiry 180 days; unreadable database deleted on key loss |
 | Second screen | Bonded devices only; commit-then-reveal; typed code and check number; stage device stores nothing |
 
 ### 6.1 Threats addressed
@@ -1149,7 +1151,7 @@ Every push to `main` runs these jobs.
 | Job | Checks |
 | --- | --- |
 | android | Unit tests, release lint, release and nearby builds |
-| instrumented | Stage accessibility tests on an API 34 pixel_6 emulator |
+| instrumented | Stage accessibility, overlay-touch, database migration and report export tests on an API 34 pixel_6 emulator. Not run in CI: the end-to-end stage test (needs a camera feed) and the two MediaPipe pipeline tests (need a GPU); run them on a phone or a local emulator |
 | release-record | Release APK and bundle, dependency and vulnerability record |
 | portal, tools | Portal format, lint and tests; Python tool tests |
 | semgrep, osv, gitleaks | Code patterns, known vulnerabilities in shipped libraries, secrets |
@@ -1195,7 +1197,7 @@ The reader generalises poorly to people it has not seen. For that reason a readi
 | --- | --- |
 | Install | Allow installs from the source, open the APK, accept the camera permission. The phone must have a screen lock; the app refuses to store sessions without one |
 | Use | Unlock, choose profile and language, start. The officer holds the phone with the stage facing the subject |
-| Export | Finish session, name it, Export report, share the PDF, then give the one-time passphrase by a different channel; the session stays saved until deleted |
+| Export | Finish session, name it, Export report, share the PDF, then give the one-time passphrase by a different channel; the session stays saved until the retention period ends |
 | Update | Install the newer APK over the old one; updates must carry the same signing key |
 | Shared phone risk | End each conversation; rely on retention; a department PIN can be added if the pilot shows shared phones |
 

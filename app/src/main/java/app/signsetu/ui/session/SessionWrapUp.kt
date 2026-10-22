@@ -56,8 +56,12 @@ fun wrapUp(events: List<SessionEvent>, startedAt: Long, now: Long): WrapUp {
  * Finishing a session: what it gathered, a thank-you for the person, and a name to keep it under. It is saved
  * on this phone, encrypted, until the officer deletes it; a report can be exported now or later.
  */
+/** A rooted phone keeps no history: finishing deletes the session whatever name was given. */
+fun titleToKeep(title: String?, historyOff: Boolean): String? = title.takeUnless { historyOff }
+
 @Composable
 internal fun WrapUpDialog(
+    historyOff: Boolean,
     summary: WrapUp,
     title: String,
     onTitle: (String) -> Unit,
@@ -82,21 +86,22 @@ internal fun WrapUpDialog(
                         if (summary.unreadSigns > 0) Fact(pluralStringResource(R.plurals.wrap_unread, summary.unreadSigns, summary.unreadSigns), warn = true)
                     }
                 }
-                OutlinedTextField(
+                if (!historyOff) OutlinedTextField(
                     value = title,
                     onValueChange = { onTitle(it.take(TITLE_MAX)) },
                     label = { Text(stringResource(R.string.wrap_name)) },
+                    supportingText = { Text(stringResource(R.string.wrap_name_hint)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
-                Text(stringResource(R.string.wrap_saved_note), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(if (historyOff) R.string.wrap_rooted_note else R.string.wrap_saved_note), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         },
         confirmButton = {
             Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                 onThank?.let { OutlinedButton(onClick = it, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.wrap_thank)) } }
-                Button(onClick = onSave, enabled = title.isNotBlank(), modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.wrap_save)) }
-                OutlinedButton(onClick = onExport, enabled = title.isNotBlank(), modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.end_export)) }
+                if (!historyOff) Button(onClick = onSave, enabled = title.isNotBlank(), modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.wrap_save)) }
+                OutlinedButton(onClick = onExport, enabled = historyOff || title.isNotBlank(), modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.end_export)) }
                 // Deleting is a second, deliberate step: the first tap only arms it.
                 var sure by remember { mutableStateOf(false) }
                 TextButton(onClick = { if (sure) onDelete() else sure = true }, modifier = Modifier.fillMaxWidth()) {

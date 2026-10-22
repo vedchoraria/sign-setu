@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 from typing import Literal
 
 import httpx2
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
@@ -15,7 +15,8 @@ from sqlalchemy.orm import sessionmaker
 
 from .config import Settings
 from .db import Device, Feedback, make_engine
-from .security import DeviceDep, RateLimiter, audit, default_jwks, device_auth, new_token, reviewer_auth, sha256
+from .prompts import allowed
+from .security import DeviceDep, RateLimiter, admin_auth, audit, client_key, default_jwks, device_auth, new_token, reviewer_auth, sha256
 
 type Assist = Callable[[str, str, int], Awaitable[str]]
 NAME = re.compile(r"^[a-z0-9_.-]{1,64}$")
@@ -66,7 +67,7 @@ def create_app(settings: Settings | None = None, assist: Assist | None = None, j
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-        engine = make_engine(s.database_url)
+        engine = make_engine(s.database_url, s.require_persistent_db)
         app.state.sessions = sessionmaker(engine, expire_on_commit=False)
         yield
         engine.dispose()
@@ -74,6 +75,8 @@ def create_app(settings: Settings | None = None, assist: Assist | None = None, j
     app = FastAPI(title="Sign Setu gateway", docs_url=None, redoc_url=None, openapi_url=None, lifespan=lifespan)
     app.state.settings = s
     app.state.limiter = RateLimiter(s.rate_per_minute)
+    app.state.enroll_limiter = RateLimiter(s.enroll_per_minute)
+    app.state.enroll_failures = RateLimiter(s.enroll_failures_per_minute)
     app.state.jwks = jwks
     device_only = [Depends(device_auth)]
 
@@ -82,9 +85,18 @@ def create_app(settings: Settings | None = None, assist: Assist | None = None, j
         return {"ok": True}
 
     @app.post("/v1/enroll")
-    def enroll(body: EnrollIn):
+    def enroll(body: EnrollIn, request: Request):
+        app.state.enroll_limiter.check(client_key(request, s.trusted_proxy_hops))
+        if app.state.enroll_failures.exceeded("all"):
+            raise app.state.enroll_failures.refuse("all")
         code_hash = sha256(body.code)
         if code_hash not in s.enroll_hashes:
+            app.state.enroll_failures.check("all")
+            if app.state.enroll_failures.exceeded("all"):
+                # The wrong code that reaches the cap. Later requests are refused above without touching the database.
+                with app.state.sessions() as db:
+                    audit(db, "enroll.locked")
+                    db.commit()
             raise HTTPException(403, "bad enrolment code")
         token, dev_id = new_token(), new_token()[:32]
         with app.state.sessions() as db:
@@ -93,8 +105,19 @@ def create_app(settings: Settings | None = None, assist: Assist | None = None, j
             try:
                 db.commit()
             except IntegrityError:
-                raise HTTPException(403, "enrolment code already used") from None
+                raise HTTPException(403, "bad enrolment code") from None
         return {"device_id": dev_id, "token": token}
+
+    # A model file is hashed once per (size, mtime), not on every download.
+    verified: dict[tuple[str, int, int], str] = {}
+
+    def file_sha256(path) -> str:
+        st = path.stat()
+        key = (str(path), st.st_size, st.st_mtime_ns)
+        if key not in verified:
+            with path.open("rb") as f:
+                verified[key] = hashlib.file_digest(f, "sha256").hexdigest()
+        return verified[key]
 
     def manifest() -> list[dict]:
         path = s.model_dir / "manifest.json"
@@ -110,7 +133,7 @@ def create_app(settings: Settings | None = None, assist: Assist | None = None, j
         path = s.model_dir / name
         if not NAME.match(name) or entry is None or not path.is_file():
             raise HTTPException(404, "no such model")
-        if hashlib.sha256(path.read_bytes()).hexdigest() != entry["sha256"]:
+        if file_sha256(path) != entry["sha256"]:
             raise HTTPException(500, "model file does not match its manifest")
         return FileResponse(path, media_type="application/octet-stream")
 
@@ -118,6 +141,8 @@ def create_app(settings: Settings | None = None, assist: Assist | None = None, j
     async def assist_route(body: AssistIn, dev: DeviceDep):
         if len(body.user) > s.assist_max_chars:
             raise HTTPException(413, "too long")
+        if not allowed(body.system):
+            raise HTTPException(403, "prompt not allowed")
         text = await run_assist(body.system, body.user, body.max_tokens)
         with app.state.sessions() as db:
             audit(db, "assist", dev.id)  # the text itself is never stored
@@ -140,5 +165,23 @@ def create_app(settings: Settings | None = None, assist: Assist | None = None, j
             db.commit()
         return [{"predicted": r.predicted, "outcome": r.outcome, "confirmed": r.confirmed,
                  "model_version": r.model_version, "at": r.created_at.isoformat()} for r in rows]
+
+    @app.get("/v1/admin/devices", dependencies=[Depends(admin_auth)])
+    def admin_devices():
+        with app.state.sessions() as db:
+            rows = db.scalars(select(Device).order_by(Device.created_at.desc())).all()
+        return [{"id": d.id, "created_at": d.created_at.isoformat(), "revoked": d.revoked,
+                 "last_seen": d.last_seen.isoformat() if d.last_seen else None} for d in rows]
+
+    @app.post("/v1/admin/devices/{device_id}/revoke", dependencies=[Depends(admin_auth)])
+    def admin_revoke(device_id: str):
+        with app.state.sessions() as db:
+            dev = db.get(Device, device_id)
+            if dev is None:
+                raise HTTPException(404, "no such device")
+            dev.revoked = True
+            audit(db, "admin.revoke", device_id)
+            db.commit()
+        return {}
 
     return app

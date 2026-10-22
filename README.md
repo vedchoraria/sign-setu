@@ -4,13 +4,13 @@ An offline Android app that helps a police officer communicate with a person who
 
 - Version 0.5.0 (version code 7). Android 10 (API 29) and later; Kotlin and Jetpack Compose; one `app` module.
 - Works fully offline. A build with a department gateway (`-PgatewayUrl=https://...`) also uses it while online; without one, nothing ever connects. No RECORD_AUDIO permission, and no location or scanning permission in the `standard` flavor; every build fails if a forbidden permission reaches the merged manifest.
-- Sessions live in an encrypted SQLCipher database under a Keystore key that works only while the phone is unlocked. A finished session is saved under a name the officer types and kept until deleted, unless a retention period is set.
+- Sessions live in an encrypted SQLCipher database under a Keystore key that works only while the phone is unlocked. A finished session is saved under a name the officer types and deleted after 24 hours by default; an officer or department can pick 4 to 72 hours or keep sessions until deleted.
 
 ## What it does
 
 - **Stage for the person:** a drawn character signs questions in draft ISL order (recorded ISL signers for most words), with pictures, captions in 17 languages and recorded speech; answers by tap, picture, writing, drawing, nod or shake, finger count, or signing to the camera, confirmed by the person from pictures.
 - **Sign reading:** MediaPipe Holistic landmarks feed small on-device readers for ISL and ASL words and fingerspelling. Guesses that answer the question on screen, through its own answer cards (`sign_words.json`, `cards`), are ranked first; the person then confirms the meaning from pictures. Accuracy is in [tools/ml/EVAL.md](tools/ml/EVAL.md).
-- **Officer side:** quick two-way transcription, a question bank including a full ISL lesson sheet (introduction, family, address, school, everyday phrases) in Hindi and English, phrases, show-back, an ISL dictionary and Manual or Auto conversation. Back leaves a session for the start screen without ending it.
+- **Officer side:** quick two-way transcription, a question bank including a full ISL lesson sheet (introduction, family, address, school, everyday phrases) in Hindi and English, phrases, show-back, an ISL dictionary and Manual or Auto conversation. Back leaves a session for the start screen without ending it; with a second screen connected it asks first, because leaving drops the link.
 - **Second screen:** a paired phone shows the stage over bonded Bluetooth. With the online assistant on, an AI counsellor can talk with a frightened victim there while the officer watches and can send, replace or take over each line; it is never offered for an accused person or anyone in custody (`ui/session/Counsellor.kt`).
 - **Records:** finished sessions are listed on the start screen, can be opened again, and export to a password-protected PDF with a hash chain and a draft BSA s.63 certificate.
 
@@ -40,7 +40,7 @@ Tests worth knowing:
 | `./gradlew assembleStandardRelease` | Universal APK, arm64-v8a and x86_64 (about 109 MB): phones, tablets and emulators |
 | `./gradlew assembleStandardRelease -Pabi=arm64-v8a` | Phone-only APK (about 83 MB) |
 
-Release builds use R8 with resource shrinking. Add `-PgatewayUrl=https://...` (or `gatewayUrl=` in `local.properties`) for a gateway build. The APK is unsigned: the release key is held offline, and signing is a manual `zipalign` and `apksigner` step on that machine. See [docs/README.md](docs/README.md), section 8.
+Release builds use R8 with resource shrinking. Add `-PgatewayUrl=https://...` (or `gatewayUrl=` in `local.properties`) for a gateway build. A release build fails if an assistant key (`OPENROUTER_API_KEY` or `openrouterKey`) is set, because the key would be readable from the APK; pass `-PallowEmbeddedKey` only for a private build. The APK is unsigned: the release key is held offline, and signing is a manual `zipalign` and `apksigner` step on that machine. See [docs/README.md](docs/README.md), section 8.
 
 ## Repository
 
@@ -56,4 +56,4 @@ Release builds use R8 with resource shrinking. Add `-PgatewayUrl=https://...` (o
 | `tools/security/` | CycloneDX SBOM of the release APK (`sbom.py`, needs Syft) |
 | `content/` | Source symbols for the picture cards |
 | `render.yaml` | Free hosting blueprint for the gateway |
-| `docs/` | Requirements, architecture, security, decisions, test plan and report ([index](docs/README.md)) |
+| `docs/` | Requirements, architecture, security, decision log and data protection assessment ([index](docs/README.md)) |

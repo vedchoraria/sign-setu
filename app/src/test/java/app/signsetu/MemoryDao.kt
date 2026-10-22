@@ -21,7 +21,7 @@ class MemoryDao : SessionDao {
         sessions.update { all -> all[id]?.let { all + (id to change(it)) } ?: all }
 
     override suspend fun insertSession(session: SessionEntity) = sessions.update { it + (session.id to session) }
-    override suspend fun openSession() = sessions.value.values.firstOrNull()
+    override suspend fun openSession() = sessions.value.values.filter { it.endedAt == null }.maxByOrNull { it.startedAt }
     override fun session(id: String): Flow<SessionEntity?> = sessions.map { it[id] }
     override suspend fun setSubjectLang(id: String, lang: String) = edit(id) { it.copy(subjectLang = lang) }
     override suspend fun setProfile(id: String, profile: String) = edit(id) { it.copy(profile = profile) }
@@ -35,9 +35,13 @@ class MemoryDao : SessionDao {
     override fun events(sessionId: String): Flow<List<EventEntity>> = rows
     override suspend fun insertDrawing(drawing: DrawingEntity) = synchronized(this) { next++ }
     override suspend fun drawing(id: Long): ByteArray? = null
-    override suspend fun deleteSession(id: String) = Unit
+    override suspend fun deleteSession(id: String) = sessions.update { it - id }.also { rows.update { all -> all.filter { e -> e.sessionId != id } } }
     override suspend fun endSession(id: String, endedAt: Long, title: String) = edit(id) { it.copy(endedAt = endedAt, title = title) }
     override suspend fun reopen(id: String) = edit(id) { it.copy(endedAt = null) }
     override fun saved(): Flow<List<SessionEntity>> = sessions.map { all -> all.values.filter { it.endedAt != null }.sortedByDescending { it.endedAt } }
-    override suspend fun deleteStartedBefore(cutoff: Long) = 0
+    override suspend fun deleteStartedBefore(cutoff: Long): Int {
+        val old = sessions.value.filterValues { it.startedAt < cutoff }.keys
+        old.forEach { deleteSession(it) }
+        return old.size
+    }
 }

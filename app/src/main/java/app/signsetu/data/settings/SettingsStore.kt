@@ -50,13 +50,16 @@ data class AppSettings(
     val interpreterConfigured get() = interpreterApp != InterpreterApp.NONE && interpreterContact.isNotBlank()
 
     companion object {
-        /** Zero: sessions are kept until the officer deletes them. */
-        const val DEFAULT_RETENTION_HOURS = 0
+        /** Zero keeps sessions until the officer deletes them; a department chooses that, it is not the default. */
+        const val DEFAULT_RETENTION_HOURS = 24
         val RETENTION_CHOICES = listOf(0, 4, 8, 12, 24, 48, 72)
     }
 }
 
 private val Context.store by preferencesDataStore("settings")
+
+/** Zero means keep until deleted and must survive; any other value is held to the choices on offer. */
+fun storedRetention(hours: Int): Int = if (hours <= 0) 0 else hours.coerceIn(4, 72)
 
 class SettingsStore(private val context: Context) {
     private object Keys {
@@ -82,7 +85,7 @@ class SettingsStore(private val context: Context) {
     suspend fun current(): AppSettings = settings.first()
 
     suspend fun setFirstRunDone() = context.store.edit { it[Keys.firstRun] = true }
-    suspend fun setRetentionHours(hours: Int) = context.store.edit { it[Keys.retention] = hours.coerceIn(4, 72) }
+    suspend fun setRetentionHours(hours: Int) = context.store.edit { it[Keys.retention] = storedRetention(hours) }
     suspend fun setInterpreter(app: InterpreterApp, contact: String) = context.store.edit {
         it[Keys.interpreterApp] = app.name
         it[Keys.interpreterContact] = contact.trim()

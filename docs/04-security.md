@@ -78,7 +78,7 @@ Target: OWASP MASVS v2 with the MAS-L2 testing profile, plus the CERT-In require
 | --- |
 | R8 full-mode shrinking and obfuscation. |
 | Release signing key generated offline, held by the release manager with a second custodian and an offline backup in department custody; APK Signature Scheme v3. |
-| Rooted or test-key device: warn the officer and disable session history; do not block the app in an emergency [confirm with department]. |
+| Rooted or test-key device: warn the officer, keep no history and do not block the app in an emergency [confirm with department]. See D-53. |
 | Build expiry: new sessions refused 180 days after the build date, because personal phones have no device management. |
 | The assistant model is imported from a file, never downloaded; it is kept only if its SHA-256 is on the app's allow-list, computed while copying, so no other file reaches the native parser. Each request starts from an empty context and nothing typed is stored by the assistant. |
 
@@ -127,7 +127,7 @@ The app has no network threats beyond the optional gateway; camera exposure and 
 | Personal data in logs | Log calls stripped from release; no subject data logged |
 | Report sent to the wrong person | AES-256 encrypted PDF, passphrase out of band, officer SOP |
 | Other apps, intents, overlays | No exported components beyond the launcher; overlay touches filtered |
-| Rooted phone | Root warning on the start screen |
+| Rooted phone | Root warning on the start screen; no saved-session list; finishing deletes the session (heuristic detection, evadable) |
 | Camera shows or keeps images of the subject or bystanders | Frames analysed in memory only, FLAG_SECURE, mirror off by officer or department |
 | Compromised dependency or signing key | Locked and checksum-verified dependencies, offline signing key, content hash manifest |
 | Gesture misread and acted on | Show-back confirmation; "unclear" logged otherwise |

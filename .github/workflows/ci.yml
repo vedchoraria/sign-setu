@@ -61,6 +61,21 @@ jobs:
           python tools/content/build_content.py --manifest-only
           git diff --exit-code
 
+  backend:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: backend/pyproject.toml
+      - run: pip install -e ".[test]"
+      - run: python -m pytest -q
+
   semgrep:
     runs-on: ubuntu-24.04
     container: semgrep/semgrep
@@ -101,13 +116,14 @@ jobs:
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
+      # StageEndToEndTest needs a camera feed and the two MediaPipe tests need real clips and a GPU; the emulator here has neither.
       - uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34
           arch: x86_64
           target: google_apis
           profile: pixel_6
-          script: ./gradlew --console=plain :app:connectedStandardDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=app.signsetu.StageAccessibilityTest,app.signsetu.StageDeviceAccessibilityTest
+          script: ./gradlew --console=plain :app:connectedStandardDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=app.signsetu.StageAccessibilityTest,app.signsetu.StageDeviceAccessibilityTest,app.signsetu.OverlayTouchTest,app.signsetu.SessionMigrationTest,app.signsetu.ReportExportDeviceTest
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

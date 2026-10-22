@@ -49,6 +49,11 @@ fun subjectNames(events: List<SessionEvent>, content: ContentBundle, lang: Strin
     personalDetails(events, content, lang).filter { it.field.contains("name", ignoreCase = true) || it.field.contains("नाम") }
         .map { it.value }.filter { it.isNotBlank() }
 
+/** Other details the subject wrote or chose, such as a village or school; masked too. Pictures and short numbers are not. */
+fun subjectDetails(events: List<SessionEvent>, content: ContentBundle, lang: String): List<String> =
+    personalDetails(events, content, lang).filter { it.method != Method.PICTURE && it.method != Method.BOARD }
+        .map { it.value.trim() }.filter { v -> v.any(Char::isLetter) }
+
 fun Method.label() = when (this) {
     Method.WRITTEN -> R.string.given_written
     Method.PAD -> R.string.given_pad

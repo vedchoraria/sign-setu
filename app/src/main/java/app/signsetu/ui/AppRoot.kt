@@ -90,6 +90,7 @@ import app.signsetu.ui.session.HandoverEffects
 import app.signsetu.ui.session.Mode
 import app.signsetu.ui.session.Conv
 import app.signsetu.ui.session.OfficerPane
+import app.signsetu.ui.session.titleToKeep
 import app.signsetu.ui.session.SessionViewModel
 import app.signsetu.ui.session.Stage
 import app.signsetu.camera.LandmarkTracker
@@ -339,7 +340,10 @@ internal fun SessionRoute(
             onShare = { file ->
                 activity?.let { shareReport(it, file) }
             },
-            onEndSession = { title ->
+            historyOff = container.deviceLooksRooted,
+            onLeave = onClosed,
+            onEndSession = { asked ->
+                val title = titleToKeep(asked, container.deviceLooksRooted)
                 vm.endSession(title) {
                     officerLink?.let { container.endLink() }
                     activity?.let { Toast.makeText(it, if (title == null) R.string.session_deleted else R.string.session_saved, Toast.LENGTH_LONG).show() }
