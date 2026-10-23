@@ -143,7 +143,9 @@ private fun picked(buf: FloatArray, i: Int, which: Int) = when (which) {
 /** Each finger gets its own outline so neighbouring fingers stay readable. */
 private fun DrawScope.drawFinger(k: Kit, finger: Int, which: Int, tone: Color) {
     val buf = k.seg
-    for (j in 0 until k.segs(finger)) at(finger, j).let { if (picked(buf, it, which)) segLine(buf, it, k.rim, 1.6f) }
+    val edge = if (k.contactStroke) k.look.outline else k.rim
+    val extra = if (k.contactStroke) 1.8f else 1.6f
+    for (j in 0 until k.segs(finger)) at(finger, j).let { if (picked(buf, it, which)) segLine(buf, it, edge, extra) }
     for (j in 0 until k.segs(finger)) at(finger, j).let { i ->
         if (picked(buf, i, which)) {
             val shade = buf[i + 6]
@@ -161,6 +163,19 @@ internal fun DrawScope.drawHandHalo(k: Kit) {
         drawRoundRect(k.halo, Offset(-4.7f, -PH - 1.5f), Size(9.4f, PH + 3f), CornerRadius(4.5f))
     }
     for (f in 0..4) for (j in 0 until k.segs(f)) segLine(buf, at(f, j), k.halo, 3f)
+}
+
+/** The soft shadow a front hand casts on the hand it touches: the same silhouette, offset and wider, in outline
+ *  tone. Only drawn on contact, so a letter read in the air is unchanged. */
+internal fun DrawScope.drawHandShadow(k: Kit) {
+    val buf = k.seg
+    if (k.frontal) {
+        drawRoundRect(k.shadow, Offset(-k.pw / 2f - 2f, -PH - 2f), Size(k.pw + 4f, PH + 4f), CornerRadius(6f))
+        thenar(k, k.shadow, 2f)
+    } else {
+        drawRoundRect(k.shadow, Offset(-6f, -PH - 2f), Size(12f, PH + 4f), CornerRadius(4.5f))
+    }
+    for (f in 0..4) for (j in 0 until k.segs(f)) segLine(buf, at(f, j), k.shadow, 5f)
 }
 
 /** The ball of the thumb, so the thumb reads as a separate digit growing from the palm. */

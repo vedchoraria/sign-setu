@@ -55,7 +55,7 @@ export const AdultLook: Look = {
 };
 
 /** The part of the 200-unit character space shown, as the body AvatarView in Avatar.kt. */
-const VIEW = { left: -10, top: 0, width: 220, height: 258 };
+export const VIEW = { left: -10, top: 0, width: 220, height: 258 };
 
 const WHITE = "#FFFFFF";
 const HALO = "rgba(255,255,255,0.35)";
@@ -148,9 +148,10 @@ export function drawCharacter(ctx: Ctx, b: Build, look: Look, pose: Pose, child:
     [pose.r, R, liftR],
     [pose.l, L, liftL],
   ];
-  // The hand placed on the other one draws last, in front.
+  // The hand placed on the other one draws last, in front, and casts a shadow on the one behind.
   if (pose.rFront) arms.reverse();
-  for (const [h, side, lift] of arms) drawArm(ctx, b, look, h, side, [lean * 6, bodyDy - lift]);
+  for (const [h, side, lift] of arms)
+    drawArm(ctx, b, look, h, side, [lean * 6, bodyDy - lift], pose.handsTouch && side === (pose.rFront ? R : L));
   ctx.restore();
 }
 
@@ -423,7 +424,7 @@ function dot(ctx: Ctx, color: string, r: number, c: Pt) {
   fill(ctx, color);
 }
 
-function drawArm(ctx: Ctx, b: Build, look: Look, h: HandPose, side: Side, shift: Pt) {
+function drawArm(ctx: Ctx, b: Build, look: Look, h: HandPose, side: Side, shift: Pt, front = false) {
   const [sx0, sy0] = shoulder(b, side);
   const s: Pt = [sx0 + shift[0], sy0 + shift[1]];
   const e = elbowAt(h, s[0], s[1], b, side);
@@ -446,6 +447,13 @@ function drawArm(ctx: Ctx, b: Build, look: Look, h: HandPose, side: Side, shift:
   const foreW = aw * 0.95;
   quad(ctx, fore, w, foreW + 3, wrist + 3, HALO);
   dot(ctx, HALO, wrist / 2 + 1.5, w);
+  // A front hand resting on the other one casts a short shadow on it, so the silhouettes stay apart.
+  if (front) {
+    ctx.save();
+    ctx.translate(1.4, 1.8);
+    frame(() => drawHandShadow(ctx, look, hand));
+    ctx.restore();
+  }
   frame(() => drawHandHalo(ctx, hand));
   if (look.longSleeves) {
     quad(ctx, fore, w, foreW + 1.6, wrist + 1.6, rim);
@@ -482,7 +490,7 @@ function drawArm(ctx: Ctx, b: Build, look: Look, h: HandPose, side: Side, shift:
     line(ctx, "#6B4423", [w[0] + 1, w[1] - 6], [w[0] + 4, 262], 5);
     line(ctx, "#8A5A33", [w[0] + 1, w[1] - 6], [w[0] + 4, 262], 2);
   }
-  frame(() => drawHand(ctx, look, h.shape, hand));
+  frame(() => drawHand(ctx, look, h.shape, hand, front));
 }
 
 interface Seg {
@@ -599,9 +607,10 @@ function sideChain(
   });
 }
 
-function drawFinger(ctx: Ctx, look: Look, segs: Seg[], tone: string) {
-  const rim = alpha(look.outline, 0.9);
-  for (const s of segs) line(ctx, rim, s.a, s.b, s.width + 1.6);
+function drawFinger(ctx: Ctx, look: Look, segs: Seg[], tone: string, contact = false) {
+  const rim = contact ? look.outline : alpha(look.outline, 0.9);
+  const extra = contact ? 1.8 : 1.6;
+  for (const s of segs) line(ctx, rim, s.a, s.b, s.width + extra);
   for (const s of segs) line(ctx, s.shade > 0 ? mix(tone, look.skinShade, Math.min(s.shade * 2.5, 1)) : tone, s.a, s.b, s.width);
 }
 
@@ -610,6 +619,20 @@ function thenar(ctx: Ctx, hand: Hand, color: string, grow: number) {
   const w = hand.pw * 0.45;
   oval(ctx, cx - w / 2 - grow, -7.5 - grow, w + grow * 2, 7 + grow * 2);
   fill(ctx, color);
+}
+
+/** The soft shadow a front hand casts on the hand it touches, as drawHandShadow in AvatarHand.kt. */
+function drawHandShadow(ctx: Ctx, look: Look, hand: Hand) {
+  const shadow = alpha(look.outline, 0.3);
+  if (hand.frontal) {
+    roundRect(ctx, -hand.pw / 2 - 2, -PH - 2, hand.pw + 4, PH + 4, 6);
+    fill(ctx, shadow);
+    thenar(ctx, hand, shadow, 2);
+  } else {
+    roundRect(ctx, -6, -PH - 2, 12, PH + 4, 4.5);
+    fill(ctx, shadow);
+  }
+  for (const segs of hand.fingers) for (const s of segs) line(ctx, shadow, s.a, s.b, s.width + 5);
 }
 
 function drawHandHalo(ctx: Ctx, hand: Hand) {
@@ -649,10 +672,11 @@ function nail(ctx: Ctx, look: Look, s: Seg) {
   fill(ctx, WHITE, 0.5);
 }
 
-function drawHand(ctx: Ctx, look: Look, shape: HandShape, hand: Hand) {
+function drawHand(ctx: Ctx, look: Look, shape: HandShape, hand: Hand, contact = false) {
   const rim = alpha(look.outline, 0.9);
   const palmTone = mix(look.skin, "#F3CFAE", 0.45);
   const thumb = hand.fingers[4];
+  const finger = (segs: Seg[], tone: string) => drawFinger(ctx, look, segs, tone, contact);
   if (!hand.frontal) {
     roundRect(ctx, -4, -PH - 0.8, 8, PH + 1.6, 3.8);
     fill(ctx, rim);
@@ -660,22 +684,20 @@ function drawHand(ctx: Ctx, look: Look, shape: HandShape, hand: Hand) {
     fill(ctx, look.skin);
     roundRect(ctx, hand.palmSide > 0 ? 2 : -3.2, -PH + 1, 1.2, PH - 2, 0.6);
     fill(ctx, palmTone);
-    if (!hand.nearThumb) drawFinger(ctx, look, thumb, look.skin);
-    for (let d = 0; d < 4; d++) drawFinger(ctx, look, hand.fingers[hand.nearThumb ? 3 - d : d], look.skin);
-    if (hand.nearThumb) drawFinger(ctx, look, thumb, look.skin);
+    if (!hand.nearThumb) finger(thumb, look.skin);
+    for (let d = 0; d < 4; d++) finger(hand.fingers[hand.nearThumb ? 3 - d : d], look.skin);
+    if (hand.nearThumb) finger(thumb, look.skin);
     return;
   }
   const across = shape.thumbAcross > 0.5;
   const pw = hand.pw;
   if (!hand.palmFacing) {
     if (!across) {
-      drawFinger(ctx, look, thumb, look.skin);
+      finger(thumb, look.skin);
       if (shape.thumb < 0.5) nail(ctx, look, thumb[1]);
     }
     for (let f = 0; f < 4; f++)
-      drawFinger(
-        ctx,
-        look,
+      finger(
         hand.fingers[f].filter((s) => s.behind),
         look.skin,
       );
@@ -690,11 +712,9 @@ function drawHand(ctx: Ctx, look: Look, shape: HandShape, hand: Hand) {
     roundRect(ctx, -pw / 2, -PH, pw, PH, 4);
     fill(ctx, back);
     // Seen from the back, a thumb across the palm is hidden behind the fingers.
-    if (across) drawFinger(ctx, look, thumb, look.skin);
+    if (across) finger(thumb, look.skin);
     for (let f = 3; f >= 0; f--)
-      drawFinger(
-        ctx,
-        look,
+      finger(
         hand.fingers[f].filter((s) => !s.behind),
         look.skin,
       );
@@ -714,7 +734,7 @@ function drawHand(ctx: Ctx, look: Look, shape: HandShape, hand: Hand) {
       }
     }
   } else {
-    if (!across) drawFinger(ctx, look, thumb, palmTone);
+    if (!across) finger(thumb, palmTone);
     thenar(ctx, hand, rim, 0.8);
     thenar(ctx, hand, palmTone, 0);
     roundRect(ctx, -pw / 2 - 0.8, -PH - 0.8, pw + 1.6, PH + 1.6, 4.8);
@@ -725,7 +745,7 @@ function drawHand(ctx: Ctx, look: Look, shape: HandShape, hand: Hand) {
     stroke(ctx, look.skinShade, 0.9, "butt", 0.8);
     for (let f = 3; f >= 0; f--) {
       const segs = hand.fingers[f];
-      drawFinger(ctx, look, segs, palmTone);
+      finger(segs, palmTone);
       if (fingerCurl(shape, f) < 0.6) {
         crease(ctx, look, segs[1], 0.4);
         crease(ctx, look, segs[2], 0.4);
@@ -735,6 +755,6 @@ function drawHand(ctx: Ctx, look: Look, shape: HandShape, hand: Hand) {
         fill(ctx, mix(palmTone, WHITE, 0.15));
       }
     }
-    if (across) drawFinger(ctx, look, thumb, palmTone);
+    if (across) finger(thumb, palmTone);
   }
 }

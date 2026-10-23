@@ -139,9 +139,18 @@ data class HandPose(
     val elbowY: Float = Float.NaN,
 )
 
-/** The elbow for the (possibly shifted) shoulder [sx], [sy]: recorded if the keys carry it, else the two-bone solve. */
-fun HandPose.elbowAt(sx: Float, sy: Float, build: Build, side: Side): Pair<Float, Float> =
-    if (elbowX.isNaN()) solveElbow(sx, sy, x, y, build.upperArm, build.foreArm, side, elbowOut) else (sx + elbowX) to (sy + elbowY)
+/**
+ * The elbow for the (possibly shifted) shoulder [sx], [sy]: recorded if the keys carry it, else the two-bone solve.
+ * [prefer] is the elbow drawn on the previous frame: the solve keeps the same bend instead of flipping when the
+ * wrist passes the shoulder line, where the two solutions are mirror images.
+ */
+fun HandPose.elbowAt(
+    sx: Float, sy: Float, build: Build, side: Side, prefer: Pair<Float, Float>? = null,
+): Pair<Float, Float> = if (elbowX.isNaN()) {
+    solveElbow(sx, sy, x, y, build.upperArm, build.foreArm, side, elbowOut, prefer)
+} else {
+    (sx + elbowX) to (sy + elbowY)
+}
 
 /**
  * A point on this hand in character space: "wrist", "palm", "thumb" or a fingertip ("index" to "pinky").
@@ -182,6 +191,8 @@ data class Pose(
     val gaze: Float = 0f,
     /** The right hand is placed on the left one, so it draws in front. */
     val rFront: Boolean = false,
+    /** One hand is placed on the other, so the front one casts a contact shadow. */
+    val handsTouch: Boolean = false,
 )
 
 /** Proportions and anchor points of one character. */
@@ -245,7 +256,8 @@ private val RestKey = HandKey()
 
 /**
  * Plays [parts] one after another as a single gesture. Each part's first key spells out everything it
- * leaves out, so it starts from the same pose as when it plays alone rather than holding the previous part's.
+ * leaves out. A part that omits a hand continues from the hand the previous part ended on: only the first part of
+ * a sentence starts at rest, so words join instead of the arms dropping and rising between every one.
  */
 fun chain(id: String, parts: List<Gesture>, gap: Float = 0.3f): Gesture {
     var offset = 0f
@@ -256,7 +268,13 @@ fun chain(id: String, parts: List<Gesture>, gap: Float = 0.3f): Gesture {
         val hold = last?.takeIf { sorted.all { k -> k.R == null && k.L == null } }
         val shifted = if (hold != null) sorted.map { it.copy(R = hold.R, L = hold.L, t = it.t + offset) } else {
             val first = sorted.first().let {
-                it.copy(R = it.R ?: RestKey, L = it.L ?: RestKey, face = it.face ?: "neutral", head = it.head ?: HeadKey(), body = it.body ?: BodyKey())
+                it.copy(
+                    R = it.R ?: last?.R ?: RestKey,
+                    L = it.L ?: last?.L ?: RestKey,
+                    face = it.face ?: last?.face ?: "neutral",
+                    head = it.head ?: last?.head ?: HeadKey(),
+                    body = it.body ?: last?.body ?: BodyKey(),
+                )
             }
             (listOf(first) + sorted.drop(1)).map { it.copy(t = it.t + offset) }
         }
@@ -353,6 +371,7 @@ class Timeline(val gesture: Gesture?, private val build: Build) {
         val f = ease(raw)
         // The hand placed on the other one is solved second; fingerspelling places the right hand on the left.
         val rFollows = a.r.at in OTHER_HAND || b.r.at in OTHER_HAND
+        val lFollows = a.l.at in OTHER_HAND || b.l.at in OTHER_HAND
         val r: HandPose
         val l: HandPose
         if (rFollows) {
@@ -369,6 +388,7 @@ class Timeline(val gesture: Gesture?, private val build: Build) {
             lean = lerp(a.body.lean, b.body.lean, f), shrug = lerp(a.body.shrug, b.body.shrug, f),
             hunch = lerp(a.body.hunch, b.body.hunch, f), shiver = lerp(a.body.shiver, b.body.shiver, f),
             rFront = rFollows,
+            handsTouch = rFollows || lFollows,
         )
     }
 
@@ -423,7 +443,9 @@ class Timeline(val gesture: Gesture?, private val build: Build) {
             else -> build.anchor(k.at, side) ?: build.rest(side)
         }
         // +dx is outward: towards the viewer's left for the right hand.
-        return reachBack(k, (base.first + k.dx * side.sign) to (base.second + k.dy), side)
+        val (bx, by) = reachBack(k, (base.first + k.dx * side.sign) to (base.second + k.dy), side)
+        val (sx, sy) = build.shoulder(side)
+        return clampReach(sx, sy, bx to by, build.upperArm, build.foreArm)
     }
 
     /** Moves the target back along the hand so the fingertip or palm, not the wrist, lands on the anchor. */
@@ -487,6 +509,7 @@ private fun blendShape(a: HandShape, b: HandShape, f: Float) = HandShape(
 /** Two-bone arm: returns the elbow for a shoulder, wrist target and segment lengths. */
 fun solveElbow(
     sx: Float, sy: Float, tx: Float, ty: Float, upper: Float, fore: Float, side: Side, elbowOut: Float,
+    prefer: Pair<Float, Float>? = null,
 ): Pair<Float, Float> {
     val dx = tx - sx
     val dy = ty - sy
@@ -500,6 +523,31 @@ fun solveElbow(
         val outward = (e.first - Build.CENTER) * side.sign
         if (elbowOut >= 0f) outward * elbowOut + e.second * (1f - elbowOut) else -outward
     }
+    val s1 = score(e1)
+    val s2 = score(e2)
+    // The elbow drawn last frame decides whenever there is one. The two solves are most of an upper arm apart, so any
+    // score-based switch mid-move is the snap a viewer sees as a broken elbow; a sweep right round the shoulder keeps
+    // the same branch the whole way. The score only seeds the first frame of a movement, where no elbow exists yet.
+    if (prefer != null) {
+        val d1 = hypot(e1.first - prefer.first, e1.second - prefer.second)
+        val d2 = hypot(e2.first - prefer.first, e2.second - prefer.second)
+        return if (d1 <= d2) e1 else e2
+    }
     // A level reach gives two mirror elbows with equal scores; the margin settles float noise on e1 (rig.ts matches).
-    return if (score(e1) >= score(e2) - 1e-3f) e1 else e2
+    return if (s1 >= s2 - 1e-3f) e1 else e2
+}
+
+/**
+ * The reachable wrist for [target]: a two-bone arm cannot put the hand further than upper + fore from the shoulder.
+ * Without this the arm is drawn straight and the forearm stretches, which is what made the elbow look wrong on
+ * signs that reach across the body.
+ */
+fun clampReach(sx: Float, sy: Float, target: Pair<Float, Float>, upper: Float, fore: Float): Pair<Float, Float> {
+    val dx = target.first - sx
+    val dy = target.second - sy
+    val d = hypot(dx, dy)
+    val max = upper + fore - 0.01f
+    if (d <= max) return target
+    val k = max / d
+    return (sx + dx * k) to (sy + dy * k)
 }

@@ -164,6 +164,8 @@ export interface Pose {
   gaze: number;
   /** The right hand is placed on the left one, so it draws in front. */
   rFront: boolean;
+  /** One hand is placed on the other, so the front one casts a contact shadow. */
+  handsTouch: boolean;
 }
 
 export const lerp = (a: number, b: number, f: number) => a + (b - a) * f;
@@ -368,6 +370,7 @@ export function restPose(b: Build): Pose {
     shiver: 0,
     gaze: 0,
     rFront: false,
+    handsTouch: false,
   };
 }
 
@@ -458,6 +461,7 @@ export class Timeline {
     const f = ease(raw);
     // The hand placed on the other one is solved second; fingerspelling places the right hand on the left.
     const rFollows = OTHER_HAND.has(a.r.at) || OTHER_HAND.has(b.r.at);
+    const lFollows = OTHER_HAND.has(a.l.at) || OTHER_HAND.has(b.l.at);
     let r: HandPose;
     let l: HandPose;
     if (rFollows) {
@@ -482,6 +486,7 @@ export class Timeline {
       shiver: lerp(a.body.shiver, b.body.shiver, f),
       gaze: 0,
       rFront: rFollows,
+      handsTouch: rFollows || lFollows,
     };
   }
 
@@ -532,7 +537,9 @@ export class Timeline {
     else if (OTHER_HAND.has(k.at) && other) base = point(other, k.at.slice(0, -4), -side as Side, this.build.handScale);
     else base = anchor(this.build, k.at, side) ?? rest(this.build, side);
     // +dx is outward: towards the viewer's left for the right hand.
-    return this.reachBack(k, [base[0] + k.dx * side, base[1] + k.dy], side);
+    const [bx, by] = this.reachBack(k, [base[0] + k.dx * side, base[1] + k.dy], side);
+    const [sx, sy] = shoulder(this.build, side);
+    return clampReach(sx, sy, [bx, by], this.build.upperArm, this.build.foreArm);
   }
 
   /** Moves the target back along the hand so the fingertip or palm, not the wrist, lands on the anchor. */
@@ -548,9 +555,25 @@ export class Timeline {
   }
 }
 
+/** How close the two elbow scores must be before the elbow drawn last frame decides the branch. */
+
 /** The elbow for the (possibly shifted) shoulder: recorded if the keys carry it, else the two-bone solve. */
-export const elbowAt = (h: HandPose, sx: number, sy: number, b: Build, side: Side): [number, number] =>
-  Number.isNaN(h.elbowX) ? solveElbow(sx, sy, h.x, h.y, b.upperArm, b.foreArm, side, h.elbowOut) : [sx + h.elbowX, sy + h.elbowY];
+export const elbowAt = (h: HandPose, sx: number, sy: number, b: Build, side: Side, prefer?: [number, number]): [number, number] =>
+  Number.isNaN(h.elbowX) ? solveElbow(sx, sy, h.x, h.y, b.upperArm, b.foreArm, side, h.elbowOut, prefer) : [sx + h.elbowX, sy + h.elbowY];
+
+/**
+ * The reachable wrist for a target: a two-bone arm cannot put the hand further than upper + fore from the shoulder.
+ * Kept in step with Rig.kt so the portal preview matches the app.
+ */
+export function clampReach(sx: number, sy: number, target: [number, number], upper: number, fore: number): [number, number] {
+  const dx = target[0] - sx;
+  const dy = target[1] - sy;
+  const d = Math.hypot(dx, dy);
+  const max = upper + fore - 0.01;
+  if (d <= max) return target;
+  const k = max / d;
+  return [sx + dx * k, sy + dy * k];
+}
 
 /** Two-bone arm: returns the elbow for a shoulder, wrist target and segment lengths. */
 export function solveElbow(
@@ -562,6 +585,7 @@ export function solveElbow(
   fore: number,
   side: Side,
   elbowOut: number,
+  prefer?: [number, number],
 ): [number, number] {
   const dx = tx - sx;
   const dy = ty - sy;
@@ -574,6 +598,15 @@ export function solveElbow(
     const outward = (e[0] - CENTER) * side;
     return elbowOut >= 0 ? outward * elbowOut + e[1] * (1 - elbowOut) : -outward;
   };
+  const s1 = score(e1);
+  const s2 = score(e2);
+  // The elbow drawn last frame decides whenever there is one: the mirror solutions are most of an upper arm apart, so a
+  // score-based switch mid-move is the snap a viewer sees as a broken elbow. As in Rig.kt.
+  if (prefer) {
+    const d1 = Math.hypot(e1[0] - prefer[0], e1[1] - prefer[1]);
+    const d2 = Math.hypot(e2[0] - prefer[0], e2[1] - prefer[1]);
+    return d1 <= d2 ? e1 : e2;
+  }
   // A level reach gives two mirror elbows with equal scores; the margin settles float noise on e1, as in Rig.kt.
-  return score(e1) >= score(e2) - 1e-3 ? e1 : e2;
+  return s1 >= s2 - 1e-3 ? e1 : e2;
 }

@@ -108,6 +108,8 @@ fun Avatar(
     }
     val finished by rememberUpdatedState(onFinished)
     val gaze = remember { Animatable(0f) }
+    // The elbow drawn last frame, so a two-bone solve keeps its bend instead of flipping across the shoulder line.
+    val elbows = remember { LastElbows() }
 
     LaunchedEffect(playKey, timeline, speed, atSeconds) {
         gaze.snapTo(0f)
@@ -164,7 +166,7 @@ fun Avatar(
                     idleOn -> blinkAt(idleClock.floatValue)
                     else -> 1f
                 }
-                drawCharacter(kit, view, pose, if (idleOn) idleClock.floatValue else 0f, t, blink, !still)
+                drawCharacter(kit, view, pose, if (idleOn) idleClock.floatValue else 0f, t, blink, !still, elbows)
             }
         },
     )
@@ -219,6 +221,8 @@ internal class Kit(val build: Build, val look: Look, val child: Boolean) {
     val pad = lerp(palmTone, Color.White, 0.15f)
     val halo = Color.White.copy(alpha = 0.35f)
     val rim = look.outline.copy(alpha = 0.9f)
+    /** The shadow a front hand casts on the one it touches, so two skins never merge into one shape. */
+    val shadow = look.outline.copy(alpha = 0.3f)
 
     val torso = Path()
     val hair = Path()
@@ -235,9 +239,20 @@ internal class Kit(val build: Build, val look: Look, val child: Boolean) {
     var pw = 13f
     var nearThumb = false
     var palmSide = 1f
+    /** Front hand on the other one: thicker, fully opaque outline so the two skins stay apart. */
+    var contactStroke = false
 }
 
-private fun DrawScope.drawCharacter(k: Kit, view: AvatarView, still: Pose, time: Float, gestureT: Float, blink: Float, secondary: Boolean) {
+/** Elbows as drawn on the previous frame, per side, in character space. */
+private class LastElbows {
+    var r: Pair<Float, Float>? = null
+    var l: Pair<Float, Float>? = null
+}
+
+private fun DrawScope.drawCharacter(
+    k: Kit, view: AvatarView, still: Pose, time: Float, gestureT: Float, blink: Float, secondary: Boolean,
+    elbows: LastElbows,
+) {
     val b = k.build
     // A resting body is never quite still: a slow sway, a drifting head and now and then a glance aside.
     val pose = still.copy(
@@ -277,15 +292,15 @@ private fun DrawScope.drawCharacter(k: Kit, view: AvatarView, still: Pose, time:
                     drawHead(k, pose, blink)
                 }
             }
-            // The hand placed on the other one draws last, in front.
+            // The hand placed on the other one draws last, in front, and casts a shadow on the one behind.
             val shiftR = Offset(lean * 6f, bodyDy - liftR)
             val shiftL = Offset(lean * 6f, bodyDy - liftL)
             if (pose.rFront) {
-                drawArm(k, pose.l, Side.L, shiftL)
-                drawArm(k, pose.r, Side.R, shiftR)
+                drawArm(k, pose.l, Side.L, shiftL, elbows = elbows)
+                drawArm(k, pose.r, Side.R, shiftR, front = pose.handsTouch, elbows = elbows)
             } else {
-                drawArm(k, pose.r, Side.R, shiftR)
-                drawArm(k, pose.l, Side.L, shiftL)
+                drawArm(k, pose.r, Side.R, shiftR, elbows = elbows)
+                drawArm(k, pose.l, Side.L, shiftL, front = pose.handsTouch, elbows = elbows)
             }
         }
     }
@@ -550,13 +565,18 @@ private fun DrawScope.quad(k: Kit, a: Offset, b: Offset, wa: Float, wb: Float, c
     drawPath(k.quad, color)
 }
 
-/** Shoulder to wrist with a recorded or two-bone solved elbow, then the hand at the wrist. */
-private fun DrawScope.drawArm(k: Kit, h: HandPose, side: Side, shift: Offset) {
+/** Shoulder to wrist with a recorded or two-bone solved elbow, then the hand at the wrist. [front] marks the hand
+ *  drawn over the other one, which gets a contact shadow. */
+private fun DrawScope.drawArm(
+    k: Kit, h: HandPose, side: Side, shift: Offset, front: Boolean = false, elbows: LastElbows,
+) {
     val b = k.build
     val look = k.look
     val (sx0, sy0) = b.shoulder(side)
     val s = Offset(sx0 + shift.x, sy0 + shift.y)
-    val (ex, ey) = h.elbowAt(s.x, s.y, b, side)
+    val last = if (side == Side.R) elbows.r else elbows.l
+    val (ex, ey) = h.elbowAt(s.x, s.y, b, side, last)
+    if (side == Side.R) elbows.r = ex to ey else elbows.l = ex to ey
     val e = Offset(ex, ey)
     val w = Offset(h.x, h.y)
     val aw = b.armWidth
@@ -571,6 +591,8 @@ private fun DrawScope.drawArm(k: Kit, h: HandPose, side: Side, shift: Offset) {
     // Halo first, under everything, so the forearm and hand separate from a dark shirt or backdrop.
     quad(k, fore, w, foreW + 3f, wrist + 3f, k.halo)
     drawCircle(k.halo, wrist / 2f + 1.5f, w)
+    // A front hand resting on the other one casts a short shadow on it, so the silhouettes stay apart.
+    if (front) translate(1.4f, 1.8f) { handFrame(w, angle, b.handScale) { drawHandShadow(k) } }
     handFrame(w, angle, b.handScale) { drawHandHalo(k) }
 
     if (look.longSleeves) {
@@ -611,6 +633,7 @@ private fun DrawScope.drawArm(k: Kit, h: HandPose, side: Side, shift: Offset) {
         drawLine(Color(0xFF6B4423), Offset(w.x + 1f, w.y - 6f), Offset(w.x + 4f, 262f), 5f, StrokeCap.Round)
         drawLine(Color(0xFF8A5A33), Offset(w.x + 1f, w.y - 6f), Offset(w.x + 4f, 262f), 2f, StrokeCap.Round)
     }
+    k.contactStroke = front
     handFrame(w, angle, b.handScale) { drawHand(k, h) }
 }
 
