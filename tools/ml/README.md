@@ -64,6 +64,13 @@ range reads of only the row groups that hold them (`popsign_labels.json` lists t
 `runtime.py` runs the exported files in NumPy, so the evaluations score what ships. The latest scores and what they
 mean are in [EVAL.md](EVAL.md); update it when a shipped model changes.
 
+`eval_video.py` measures the whole chain on video files rather than on cached landmarks: it tracks each clip with the
+bundled Holistic model, cuts it into signs with the app's own rules, featurizes each sign and reads it with the shipped
+readers. A clip's expected label comes from a `labels.json` beside it; `--whole` reads the clip as one sign, which
+separates the reader's accuracy from the app's cutting.
+
+    signsetu-mp/python -s tools/ml/eval_video.py --dir <folder of .mp4> [--whole]
+
 `train.py` reads `SIGN_HIDDEN` (width, default 160; `sign_reader` and `asl_reader` use 320), `SIGN_DROPOUT` and
 `SIGN_AUG=strong` (moves and resizes each hand against the body). `export.py` needs the same `SIGN_HIDDEN` as training.
 `train_asl.py` reads `SIGN_KD` (distillation weight) and `SIGN_SEED`.

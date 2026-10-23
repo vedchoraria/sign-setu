@@ -340,3 +340,40 @@ def test_concurrent_wrong_codes_cannot_exceed_the_cap(tmp_path):
             codes = list(pool.map(lambda _: _wrong(c), range(90)))
     assert codes.count(403) == 20 and codes.count(429) == 70, (codes.count(403), codes.count(429))
 
+
+
+def test_an_oversized_body_is_refused_before_it_is_read(env):
+    c, _ = env
+    h = enrolled(c)
+    # The route's configurable cap is 20 000 chars; the model refuses anything past that outright.
+    assert c.post("/v1/assist", json={"system": OK_SYSTEM, "user": "x" * 20_001}, headers=h).status_code in (413, 422)
+
+
+def test_the_feedback_page_size_is_bounded(env):
+    c, _ = env
+    h = enrolled(c)
+    c.post("/v1/feedback", json={"consent": True, "predicted": "water", "outcome": "confirmed"}, headers=h)
+    reviewer = bearer(["reviewer"])
+    assert c.get("/v1/admin/feedback?limit=1", headers=reviewer).status_code == 200
+    for bad in ("0", "-5", "1001", "many"):
+        assert c.get(f"/v1/admin/feedback?limit={bad}", headers=reviewer).status_code == 422
+
+
+def test_a_correction_must_carry_the_corrected_label(env):
+    c, _ = env
+    h = enrolled(c)
+    # The label that was confirmed is what a reviewer learns from; a bare "corrected" carries no information.
+    assert c.post("/v1/feedback", json={"consent": True, "predicted": "water", "outcome": "corrected"}, headers=h).status_code == 422
+    assert c.post("/v1/feedback", json={"consent": True, "predicted": "water", "outcome": "corrected", "confirmed": "  "}, headers=h).status_code == 422
+    assert c.post("/v1/feedback", json={"consent": True, "predicted": "water", "outcome": "corrected", "confirmed": "rain"}, headers=h).status_code == 201
+    # A plain confirmation still needs nothing else.
+    assert c.post("/v1/feedback", json={"consent": True, "predicted": "water", "outcome": "confirmed"}, headers=h).status_code == 201
+
+
+def test_the_device_list_is_bounded(env):
+    c, _ = env
+    enrolled(c)
+    admin = bearer(["gateway-admin"])
+    assert c.get("/v1/admin/devices?limit=1", headers=admin).status_code == 200
+    for bad in ("0", "-1", "1001", "many"):
+        assert c.get(f"/v1/admin/devices?limit={bad}", headers=admin).status_code == 422

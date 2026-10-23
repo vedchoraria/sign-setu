@@ -6,9 +6,9 @@ from contextlib import asynccontextmanager
 from typing import Literal
 
 import httpx2
-from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.responses import FileResponse
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
@@ -28,7 +28,8 @@ class EnrollIn(BaseModel):
 
 class AssistIn(BaseModel):
     system: str = Field(max_length=4000)
-    user: str
+    # The runtime cap below is configurable and answers 413; this one only stops a megabyte body being parsed.
+    user: str = Field(max_length=1_000_000)
     max_tokens: int = Field(default=800, ge=1, le=2000)
 
 
@@ -41,6 +42,13 @@ class FeedbackIn(BaseModel):
     outcome: Literal["confirmed", "corrected", "rejected"]
     confirmed: str | None = Field(default=None, max_length=64)
     model_version: str = Field(default="", max_length=32)
+
+    @model_validator(mode="after")
+    def a_correction_says_what_it_was_corrected_to(self):
+        # A corrected row without the correction teaches a future model nothing, so it is refused at the edge.
+        if self.outcome == "corrected" and not (self.confirmed or "").strip():
+            raise ValueError("corrected feedback needs the confirmed label")
+        return self
 
 
 def upstream_assist(s: Settings) -> Assist:
@@ -158,18 +166,18 @@ def create_app(settings: Settings | None = None, assist: Assist | None = None, j
         return {}
 
     @app.get("/v1/admin/feedback", dependencies=[Depends(reviewer_auth)])
-    def admin_feedback(limit: int = 200):
+    def admin_feedback(limit: int = Query(200, ge=1, le=1000)):
         with app.state.sessions() as db:
-            rows = db.scalars(select(Feedback).order_by(Feedback.id.desc()).limit(min(limit, 1000))).all()
+            rows = db.scalars(select(Feedback).order_by(Feedback.id.desc()).limit(limit)).all()
             audit(db, "admin.feedback")
             db.commit()
         return [{"predicted": r.predicted, "outcome": r.outcome, "confirmed": r.confirmed,
                  "model_version": r.model_version, "at": r.created_at.isoformat()} for r in rows]
 
     @app.get("/v1/admin/devices", dependencies=[Depends(admin_auth)])
-    def admin_devices():
+    def admin_devices(limit: int = Query(200, ge=1, le=1000)):
         with app.state.sessions() as db:
-            rows = db.scalars(select(Device).order_by(Device.created_at.desc())).all()
+            rows = db.scalars(select(Device).order_by(Device.created_at.desc()).limit(limit)).all()
         return [{"id": d.id, "created_at": d.created_at.isoformat(), "revoked": d.revoked,
                  "last_seen": d.last_seen.isoformat() if d.last_seen else None} for d in rows]
 

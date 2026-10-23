@@ -91,7 +91,11 @@ import app.signsetu.pair.ToOfficer
 import app.signsetu.pair.b64
 import app.signsetu.pair.fitDrawing
 import app.signsetu.pair.resolve
+import app.signsetu.sign.SIGN_LIMIT_MS
+import app.signsetu.sign.STILL_SPEED
+import app.signsetu.sign.SignQuiet
 import app.signsetu.sign.SignReader
+import app.signsetu.sign.moving
 import app.signsetu.ui.ImmersiveWhile
 import app.signsetu.ui.components.GuardedAlertDialog
 import app.signsetu.ui.session.Mode
@@ -252,6 +256,8 @@ private fun LiveStage(link: StageLink, baseContent: ContentBundle, state: LinkSt
     }
     var signing by remember { mutableStateOf(false) }
     val signFrames = remember { mutableStateListOf<LandmarkFrame>() }
+    // The same rule as the officer's phone: three seconds to start, two of quiet hands to end, no tap needed.
+    val quiet = remember { SignQuiet() }
     val itemId = show?.itemId
     // The item answered last; Stop on an idle screen still belongs somewhere in the record.
     val lastItem = remember { LongArray(1) }
@@ -265,6 +271,26 @@ private fun LiveStage(link: StageLink, baseContent: ContentBundle, state: LinkSt
         val id = itemId ?: lastItem[0]
         link.answer(id, body)
         sentFor = sentFor + id
+    }
+
+    // Ends the window and sends what was read; a window that has gone quiet ends itself here, like a tap on Done.
+    val endSigning: () -> Unit = {
+        signing = false
+        if (signFrames.isNotEmpty()) {
+            val frames = signFrames.toList()
+            signFrames.clear()
+            val r = reader
+            scope.launch {
+                val (words, skeletonPng) = withContext(Dispatchers.Default) {
+                    val keyFrame = frames.firstOrNull { it.leftHand != null || it.rightHand != null } ?: frames.firstOrNull()
+                    r?.read(frames)?.mapNotNull { it.word }?.filter { it != "?" }?.take(4).orEmpty() to
+                        keyFrame?.takeIf { EvidenceMode.autoCapture.value }?.let { renderSkeletonPng(it).b64() }
+                }
+                if (words.isNotEmpty() || skeletonPng != null) {
+                    send(AnswerBody.Signed(words, skeletonPng))
+                }
+            }
+        }
     }
 
     LaunchedEffect(itemId, pending) {
@@ -317,30 +343,20 @@ private fun LiveStage(link: StageLink, baseContent: ContentBundle, state: LinkSt
                     onDrawing = { png -> scope.launch { withContext(Dispatchers.Default) { fitDrawing(png) }?.let { send(AnswerBody.Drawing(it.b64())) } } },
                     onWritten = { send(AnswerBody.Text(it.trim())) },
                     onSignFrame = { frame ->
-                        if (signing) signFrames.add(frame)
+                        if (signing) {
+                            quiet.see(frame.timestampMs, moving(signFrames.lastOrNull(), frame, STILL_SPEED))
+                            signFrames.add(frame)
+                            // The officer's phone caps a window at 20 s; this phone's frames are held here, so it does too.
+                            val capped = frame.timestampMs - (signFrames.firstOrNull()?.timestampMs ?: frame.timestampMs) >= SIGN_LIMIT_MS
+                            if (quiet.settled(frame.timestampMs) || capped) endSigning()
+                        }
                     },
                     onStartSigning = {
                         signFrames.clear()
+                        quiet.reset()
                         signing = true
                     },
-                    onDoneSigning = {
-                        signing = false
-                        if (signFrames.isNotEmpty()) {
-                            val frames = signFrames.toList()
-                            signFrames.clear()
-                            val r = reader
-                            scope.launch {
-                                val (words, skeletonPng) = withContext(Dispatchers.Default) {
-                                    val keyFrame = frames.firstOrNull { it.leftHand != null || it.rightHand != null } ?: frames.firstOrNull()
-                                    r?.read(frames)?.mapNotNull { it.word }?.filter { it != "?" }?.take(4).orEmpty() to
-                                        keyFrame?.takeIf { EvidenceMode.autoCapture.value }?.let { renderSkeletonPng(it).b64() }
-                                }
-                                if (words.isNotEmpty() || skeletonPng != null) {
-                                    send(AnswerBody.Signed(words, skeletonPng))
-                                }
-                            }
-                        }
-                    },
+                    onDoneSigning = { endSigning() },
                     onOfficer = null,
                     onNextRule = { send(AnswerBody.Next) },
                     onGiven = { g -> send(if (g != null) AnswerBody.Given(g.question, g.method.name, g.confirmed, g.value, g.picks) else AnswerBody.Change) },
