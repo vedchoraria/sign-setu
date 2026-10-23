@@ -90,6 +90,8 @@ fun CameraMirror(
     onPoint: ((String) -> Unit)? = null,
     onStopPalm: (() -> Unit)? = null,
     onShrug: (() -> Unit)? = null,
+    /** A courtesy held on the analysis thread (namaste, a wave, thanks, a bow); the stage treats it as a proposal. */
+    onEveryday: ((Everyday) -> Unit)? = null,
     placeholder: @Composable () -> Unit,
 ) {
     val context = LocalContext.current
@@ -102,6 +104,7 @@ fun CameraMirror(
     val pointSink by rememberUpdatedState(onPoint)
     val stopSink by rememberUpdatedState(onStopPalm)
     val shrugSink by rememberUpdatedState(onShrug)
+    val everydaySink by rememberUpdatedState(onEveryday)
     var front by remember { mutableStateOf(true) }
     var failed by remember { mutableStateOf(false) }
     val permitted = remember { hasCameraPermission(context) }
@@ -186,6 +189,7 @@ fun CameraMirror(
                     frame?.pointsAt?.let { c -> pointSink?.invoke(c) }
                     if (frame?.stopPalm == true) stopSink?.invoke()
                     if (frame?.shrug == true) shrugSink?.invoke()
+                    frame?.everyday?.let { g -> everydaySink?.invoke(g) }
                 }
             }
         }

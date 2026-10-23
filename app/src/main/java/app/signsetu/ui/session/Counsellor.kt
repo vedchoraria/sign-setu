@@ -39,7 +39,8 @@ sealed interface Counsel {
 }
 
 /** The AI counsellor, on a paired second screen or this phone's stage. The officer's phone writes each turn
- * with the online assistant and shows it before it goes out; the officer can send it, skip it, or take over. */
+ * with the online assistant and shows it before it goes out; the officer can send it, skip it, or take over.
+ * It starts only for a victim: the role must be set, and changing it away from victim stops the counsellor. */
 class Counsellor(
     private val scope: CoroutineScope,
     private val ui: StateFlow<SessionUi?>,
@@ -113,19 +114,7 @@ fun parseCounselLine(raw: String): CounselLine? {
 
 private const val MAX_SAY = 160
 
-/** What happened so far, as the counsellor reads it: who said what, with pictures named in English. */
-fun counselTranscript(events: List<SessionEvent>, content: ContentBundle): String = events.mapNotNull { e ->
-    val card = e.cardId?.let { id -> content.cards[id]?.label?.pick("en") ?: id }
-    when {
-        e.type == EventType.QUESTION_SHOWN -> "${if (e.reason == SHOWN_AI) "Counsellor" else "Officer"}: ${e.text?.lineSequence()?.firstOrNull().orEmpty()}"
-        e.type == EventType.ANSWER_SIGNED -> signedWords(e.text)?.let { "Person (signed, unconfirmed): $it" }
-        e.type in AnswerEvents && e.source == EventSource.SUBJECT || e.type in AnswerEvents && e.via != null ->
-            "Person: ${listOfNotNull(card, e.text?.takeIf { it.isNotBlank() }).joinToString(" - ").ifEmpty { e.type.name.lowercase() }}"
-        else -> null
-    }
-}.takeLast(40).joinToString("\n")
-
-/** The same exchange as a JSON chat history: the person's turns as user, the counsellor's as assistant, the
+/** The exchange as a JSON chat history: the person's turns as user, the counsellor's as assistant, the
  * officer's as officer, so the model reads the conversation in order rather than as a wall of lines. */
 fun counselHistory(events: List<SessionEvent>, content: ContentBundle): String = buildJsonArray {
     events.forEach { e ->

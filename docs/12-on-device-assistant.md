@@ -39,7 +39,7 @@ The Gemma licence is free for government use but is not an OSI open-source licen
 | Resource | Measured or set | Note |
 | --- | --- | --- |
 | Phone memory | Offered only on phones reporting at least 2.4 GB in total; loaded only when at least 1.2 GB is free and the system is not low on memory | A 3 GB phone reports well under 3 GB. The model maps about 0.9 GB; with it loaded the session exceeds the 300 MB memory target, so it is loaded on first use and freed when the app locks, under memory pressure, and whenever the stage shows or a sign window opens. The free-memory check at load time accounts for the camera and the vision engine |
-| APK | `libassistant.so` adds 5.9 MB per ABI | The 0.5.1 phone APK (arm64-v8a) is 78.9 MiB, within the 100 MB target |
+| APK | `libassistant.so` adds 5.9 MB per ABI | The 0.6.0 phone APK (arm64-v8a) is 78.9 MiB, within the 100 MB target |
 | Time | 66 s on the x86_64 emulator for one question, including loading the model | To be measured on the oldest supported arm64 phone; arm64 is built for the plain ARMv8 baseline |
 
 ## 5. Tests

@@ -98,4 +98,19 @@ answers `children`). The reader scores every label; those whose cards answer the
 each group by score, and none are dropped (`inContext` in `SignChoices.kt`). Every pairing is a draft until
 ISL review. `SignReaders.kt` decides between a word read and a spelled one (the gate in EVAL.md).
 
+## What to train next
+
+`tools/content/coverage.py` measures how much of what the app asks can actually be signed: every question in
+`triage.json` against the recorded signs (`isl_signs.json`) and the vocabulary (`words.json`). It writes
+`target_words.txt`, the words without a sign, most used first — the shopping list for the next training run or
+recording session. Run it before starting a run so the classes and the questions move together:
+
+    python tools/content/coverage.py
+
+A class can only be added by finding recordings of it. INCLUDE is fixed at 262 words, so a word outside it needs
+either a new recorded source in the same landmark format (see `prepare_isl_real.py`) or a sign composed by hand in
+`tools/content/build_signs.py`; both are drafts until a Deaf ISL reviewer signs them off. Retraining on the GPU after
+either change is the same `prepare.py` → `train.py` → `export.py` sequence, with `SIGN_CLASSES` narrowed or widened to
+the words actually shipped.
+
 How the readers fit into the app is in [docs/11-hand-model-integration.md](../../docs/11-hand-model-integration.md).

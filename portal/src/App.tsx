@@ -45,7 +45,8 @@ export default function App() {
     a.href = url;
     a.download = `content-review-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
-    URL.revokeObjectURL(url);
+    // Firefox cancels a download whose blob URL is revoked in the same tick.
+    setTimeout(() => URL.revokeObjectURL(url), 1_000);
   };
 
   const props = { role, reviews, onChange };

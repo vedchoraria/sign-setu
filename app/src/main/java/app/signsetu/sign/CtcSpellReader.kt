@@ -7,6 +7,9 @@ import kotlinx.serialization.json.Json
 import kotlin.math.abs
 import kotlin.math.hypot
 
+// Parsed once per process: a Json instance is expensive to build and the spec never changes shape.
+private val SPEC_JSON = Json { ignoreUnknownKeys = true }
+
 /** The bundled ASL fingerspelling reader (format 2), trained by tools/ml/spell_ctc.py: one hand's landmarks to
  * letters by CTC. */
 class CtcSpellReader(spec: String, weights: ByteArray) {
@@ -23,7 +26,7 @@ class CtcSpellReader(spec: String, weights: ByteArray) {
         val dtype: String = "float32",
     )
 
-    private val s = Json { ignoreUnknownKeys = true }.decodeFromString<Spec>(spec)
+    private val s = SPEC_JSON.decodeFromString<Spec>(spec)
     val alphabet: String = s.alphabet
     private val h = s.hidden
     private val k = s.kernel

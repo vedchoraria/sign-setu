@@ -147,6 +147,19 @@ class CloudAiTest {
     }
 
     @Test
+    fun aResponsesServiceIsAskedInItsOwnFormatAndAnsweredFromTheMessageOnly() = runBlocking {
+        val answer = """{"output":[{"type":"reasoning","content":[]},{"type":"message","content":[{"type":"output_text","text":" hi Ravi"},{"type":"output_text","text":" there "}]}]}"""
+        val s = Server { _, _ -> Reply(200, answer) }
+        val c = CloudAi({ true }, "", s, Vault(null), Direct("https://llm.example/v1/responses", "m", "k")) { true }
+        assertEquals("hi Asha there", c.ask("sys", "Asha here", listOf("Asha")))
+        val (url, body, bearer) = s.calls.single()
+        assertEquals("https://llm.example/v1/responses", url)
+        assertEquals("k", bearer)
+        assertTrue(body!!.contains("\"instructions\":\"sys\"") && body.contains("\"input\":\"") && body.contains("\"reasoning\":{\"effort\":\"low\"}"))
+        assertFalse(body.contains("Asha"))
+    }
+
+    @Test
     fun aKeylessDirectServiceIsNotAvailable() {
         assertFalse(CloudAi({ true }, "", text, Vault(null), Direct("https://llm.example", "m", "")) { true }.available)
     }

@@ -30,3 +30,6 @@ keystore.properties
 Thumbs.db
 __pycache__/
 .kotlin/
+
+# Local install bundles (contain the assistant key; never commit)
+/dist/

@@ -325,6 +325,8 @@ internal fun SessionRoute(
 
     val localStage = state.mode == Mode.SHOW && !paired
     ImmersiveWhile(activity, localStage)
+    // While the phone is in the subject's hands, screen pinning keeps Back, Home and Recents out of reach.
+    PinWhile(activity, localStage)
     // The assistant's buffers would sit beside the camera and the landmark graph on a small phone.
     LaunchedEffect(localStage || state.signWindow != null) { if (localStage || state.signWindow != null) container.models.release() }
     // With a second screen the officer keeps this phone, so tilt and the volume keys do not hand it over.
@@ -514,6 +516,18 @@ private fun shareReport(activity: Activity, file: File) {
         .putExtra(Intent.EXTRA_STREAM, uri)
         .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     activity.startActivity(Intent.createChooser(send, null))
+}
+
+/** Pins the app to the screen while [enabled]. Unpinning still takes the system gesture, so this raises friction
+ * rather than locking the phone; a device owner can make it strict. Failures (a managed profile, an OEM quirk) leave
+ * the stage usable. */
+@Composable
+internal fun PinWhile(activity: Activity?, enabled: Boolean) {
+    DisposableEffect(activity, enabled) {
+        if (!enabled || activity == null) return@DisposableEffect onDispose { }
+        val pinned = runCatching { activity.startLockTask() }.isSuccess
+        onDispose { if (pinned) runCatching { activity.stopLockTask() } }
+    }
 }
 
 /** The officer phone must not sleep into the background mid-answer while a second screen is live. */

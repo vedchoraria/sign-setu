@@ -62,6 +62,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.signsetu.R
 import app.signsetu.camera.CameraMirror
+import app.signsetu.camera.Everyday
 import app.signsetu.camera.Head
 import app.signsetu.camera.LandmarkFrame
 import app.signsetu.camera.LandmarkTracker
@@ -148,6 +149,10 @@ fun VideoCallStage(
     // The card a gesture proposed and the cue it came from; the cue is logged only if the subject taps it.
     var proposal by remember { mutableStateOf<Pair<String, String?>?>(null) }
     LaunchedEffect(pending) { proposal = null }
+    // A courtesy the camera read — hands joined, a wave, a hand on the chest, a bow — waits here as a word the
+    // subject can accept. It is never logged until they tap it, and it is forgotten if they ignore it.
+    var courtesy by remember { mutableStateOf<Pair<String, String?>?>(null) }
+    LaunchedEffect(courtesy) { if (courtesy != null) { delay(COURTESY_MS); courtesy = null } }
     fun propose(card: String, cue: String?) {
         haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
         proposal = card to cue
@@ -322,6 +327,13 @@ fun VideoCallStage(
                 onPoint = { pointId -> propose(pointId, "point") },
                 onStopPalm = { propose("stop", "palm") },
                 onShrug = { propose("dont_know", "shrug") },
+                onEveryday = { seen ->
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    courtesy = when (seen) {
+                        Everyday.THANKS -> "thank_you" to "thanks"
+                        else -> "namaste" to seen.name.lowercase()
+                    }
+                },
             ) {
                 Box(
                     modifier = Modifier
@@ -396,6 +408,33 @@ fun VideoCallStage(
                             fontWeight = FontWeight.Bold,
                             fontSize = 15.sp,
                             color = Color(0xFF6EE7B7),
+                        )
+                    }
+                }
+            }
+
+            courtesy?.let { (card, cue) ->
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color(0xFF1E3A8A),
+                    border = BorderStroke(1.5.dp, Color(0xFF93C5FD)),
+                    modifier = Modifier.padding(horizontal = 8.dp).clickable {
+                        answer(card, cue)
+                        courtesy = null
+                    },
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Text("🙏", fontSize = 16.sp)
+                        Text(
+                            text = stringResource(R.string.call_courtesy, cardLabel(content, card, lang)),
+                            fontFamily = Baloo,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 15.sp,
+                            color = Color(0xFFDBEAFE),
                         )
                     }
                 }
@@ -537,6 +576,8 @@ internal object StageSkeleton {
 /** Each stage button with the sign the character makes while it is pointed out. */
 private val GuideSteps = listOf("yes" to "yes.nod", "no" to "no.shake", "water" to "water.cup", "food" to "eat.fingers", "express" to "show_me", "stop" to "show_me")
 private const val GUIDE_IDLE_MS = 20_000L
+/** How long a read courtesy waits for the subject's tap before it is dropped. */
+private const val COURTESY_MS = 6_000L
 private const val GUIDE_STEP_MS = 3_000L
 
 private val FINGERS = Regex("n\\d+")

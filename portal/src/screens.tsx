@@ -55,6 +55,7 @@ function ReviewBox({
         </button>
       ))}
       <textarea
+        aria-label={`${section} ${id} notes`}
         placeholder={r.verdict === "C" ? "Say what should change" : "Notes"}
         value={r.notes}
         onChange={(e) => onChange({ ...r, notes: e.target.value })}

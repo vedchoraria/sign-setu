@@ -20,9 +20,26 @@ import kotlinx.serialization.json.Json
 @Serializable private data class ChatReq(val model: String, val messages: List<Msg>, val temperature: Double, val max_tokens: Int, val reasoning: Reasoning = Reasoning())
 @Serializable private data class Choice(val message: Msg)
 @Serializable private data class ChatResp(val choices: List<Choice> = emptyList())
+// Some services answer only on the Responses API: instructions and input go in, an output item list comes back.
+// Low effort keeps the model from writing a page of deliberation before the one line the officer needs.
+@Serializable private data class Effort(val effort: String = "low")
+@Serializable private data class ResponsesReq(
+    val model: String,
+    val instructions: String,
+    val input: String,
+    val max_output_tokens: Int,
+    val reasoning: Effort = Effort(),
+    val store: Boolean = false,
+)
+@Serializable private data class OutPart(val type: String = "", val text: String = "")
+@Serializable private data class OutItem(val type: String = "", val content: List<OutPart> = emptyList())
+@Serializable private data class ResponsesResp(val output: List<OutItem> = emptyList(), val output_text: String? = null)
 
 /** A build that talks straight to an OpenAI-style service with its own key, when it has no gateway. The key is in the APK. */
-class Direct(val url: String, val model: String, val key: String)
+class Direct(val url: String, val model: String, val key: String) {
+    /** True when the service speaks the Responses API rather than chat completions. */
+    val responses: Boolean get() = url.contains("/responses")
+}
 
 /** What the officer is told, once per change, when the online assistant stops or starts working. */
 enum class Notice { FALLBACK_OFFLINE, FALLBACK_ERROR, REVOKED, BACK_ONLINE, ENROLLED, ENROLL_FAILED, ENROLL_RATE_LIMITED }
@@ -97,12 +114,20 @@ class CloudAi(
                 if (viaGateway) http.call("POST", "$base/v1/assist", json.encodeToString(AssistReq.serializer(), AssistReq(system, mask.mask(user), maxTokens)), token)
                 // A reasoning model spends the first tokens on thinking, so a short reply budget is all thinking
                 // and no answer; the floor leaves room for the answer itself. Output stays as short as it likes.
-                else http.call("POST", direct!!.url, json.encodeToString(ChatReq.serializer(), ChatReq(direct.model, listOf(Msg("system", system), Msg("user", mask.mask(user))), 0.2, maxOf(maxTokens, DIRECT_MIN_TOKENS))), token)
+                else if (direct!!.responses) http.call(
+                    "POST",
+                    direct.url,
+                    json.encodeToString(ResponsesReq.serializer(), ResponsesReq(direct.model, system, mask.mask(user), maxOf(maxTokens, DIRECT_MIN_TOKENS))),
+                    token,
+                )
+                else http.call("POST", direct.url, json.encodeToString(ChatReq.serializer(), ChatReq(direct.model, listOf(Msg("system", system), Msg("user", mask.mask(user))), 0.2, maxOf(maxTokens, DIRECT_MIN_TOKENS))), token)
             }.getOrNull()
         }
-        // A busy free service sometimes answers with nothing; one retry keeps a conversation going.
+        // A busy free service sometimes answers with nothing; one retry keeps a conversation going. A refused key,
+        // a bad model name or a malformed request will not change on a second try, so those are not retried.
         var reply = once()
-        if (reply?.ok != true) {
+        val worthRetrying = reply == null || reply.code == 429 || reply.code >= 500
+        if (reply?.ok != true && worthRetrying) {
             delay(if (reply?.code == 429) 6_000 else 1_500)
             reply = once()
         }
@@ -111,6 +136,7 @@ class CloudAi(
         val text = reply?.takeIf { it.ok }?.let {
             runCatching {
                 if (viaGateway) json.decodeFromString(AssistResp.serializer(), it.body).text.trim()
+                else if (direct!!.responses) responsesText(it.body)
                 else json.decodeFromString(ChatResp.serializer(), it.body).choices.first().message.content.trim()
             }.getOrNull()
         }
@@ -127,6 +153,13 @@ class CloudAi(
         val raw = ask(followUpPrompt(followUpTone(isChild)), "Latest answer: $lastAnswer", names, 300, details)
         val parsed = raw?.lines().orEmpty().map { it.trim().removePrefix("-").removePrefix("*").trim() }.filter { it.endsWith("?") }
         return parsed.ifEmpty { OfflineReport.offlineTraumaFollowUps(lastAnswer, isChild) }
+    }
+
+    /** The answer out of a Responses reply: the message items' text, never the reasoning items. */
+    private fun responsesText(body: String): String {
+        val reply = json.decodeFromString(ResponsesResp.serializer(), body)
+        val spoken = reply.output.filter { it.type == "message" }.flatMap { it.content }.filter { it.type == "output_text" }.joinToString("") { it.text }
+        return spoken.ifBlank { reply.output_text.orEmpty() }.trim()
     }
 
     private companion object {

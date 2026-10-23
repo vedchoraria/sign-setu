@@ -34,7 +34,9 @@ class KeystoreVault(context: Context) : TokenVault {
 
     override fun put(token: String): Boolean = runCatching {
         val cipher = Cipher.getInstance(TRANSFORM).apply { init(Cipher.ENCRYPT_MODE, key()) }
-        file.writeBytes(cipher.iv + cipher.doFinal(token.toByteArray()))
+        // Written beside and renamed over, so a crash mid-write cannot leave a half token that never decrypts.
+        val tmp = File(file.path + ".new").apply { writeBytes(cipher.iv + cipher.doFinal(token.toByteArray())) }
+        if (!tmp.renameTo(file)) throw java.io.IOException("could not store the gateway token")
         true
     }.getOrElse { false }
 

@@ -217,9 +217,9 @@
     <string name="settings_cloud_ai_key">Enrolment code</string>
     <string name="settings_cloud_ai_enrolled">Enrolled</string>
     <string name="settings_cloud_ai_direct">Online assistant (third party)</string>
-    <string name="settings_cloud_ai_summary_direct">When online, sends masked text to an outside AI service (OpenRouter) for reports and suggestions. Off by default; the phone works the same without a connection.</string>
+    <string name="settings_cloud_ai_summary_direct">When online, sends masked text to an outside AI service for reports and suggestions. Off by default; the phone works the same without a connection.</string>
     <string name="cloud_notice_title_direct">Send text to a third party?</string>
-    <string name="cloud_notice_body_direct">While this is on and the phone is online, session text goes to an outside AI service (OpenRouter), not to the department. The subject\'s names are replaced with \"Ravi\" and phone numbers are masked before sending; the real names are put back on this phone. Words the officer types as notes are not checked, so avoid names there. If the service cannot be reached, the on-device version is used.</string>
+    <string name="cloud_notice_body_direct">While this is on and the phone is online, session text goes to an outside AI service, not to the department. The subject\'s names are replaced with \"Ravi\" and phone numbers are masked before sending; the real names are put back on this phone. Words the officer types as notes are not checked, so avoid names there. If the service cannot be reached, the on-device version is used.</string>
     <string name="notice_offline">No internet. Using the on-device assistant.</string>
     <string name="notice_gateway_error">Department gateway not reachable. Using the on-device assistant.</string>
     <string name="notice_revoked">This phone is no longer enrolled. Using the on-device assistant.</string>
@@ -531,6 +531,7 @@
     <string name="call_signing">Signing…</string>
     <string name="call_you">You</string>
     <string name="call_live">Signing: %1$s</string>
+    <string name="call_courtesy">Tap to say: %1$s</string>
     <string name="call_sign_hint">Answer by signing, nodding or shaking your head</string>
     <string name="call_breath_title">Calm breathing</string>
     <string name="call_inhale">Breathe in</string>

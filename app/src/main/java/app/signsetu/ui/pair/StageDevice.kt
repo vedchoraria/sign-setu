@@ -95,6 +95,7 @@ import app.signsetu.sign.SignQuiet
 import app.signsetu.sign.SignReader
 import app.signsetu.sign.moving
 import app.signsetu.ui.ImmersiveWhile
+import app.signsetu.ui.PinWhile
 import app.signsetu.ui.components.GuardedAlertDialog
 import app.signsetu.ui.session.Mode
 import app.signsetu.ui.session.SessionUi
@@ -159,6 +160,8 @@ fun StageDeviceScreen(link: StageLink, content: ContentBundle, container: AppCon
         }
     }
     ImmersiveWhile(activity, everLive)
+    // The second screen has no other purpose while it is live: pin it, so a subject cannot wander into Settings.
+    PinWhile(activity, everLive)
     // Back is swallowed once pinned: the stage has no local exit; Stop stays on the item and the officer ends it.
     BackHandler(enabled = everLive) { }
     val awake = everLive && state !is LinkState.Ended

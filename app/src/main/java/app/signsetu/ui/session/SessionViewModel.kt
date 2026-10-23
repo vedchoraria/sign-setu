@@ -632,7 +632,7 @@ class SessionViewModel(
     fun answerText(text: String) {
         if (text.isBlank()) return
         viewModelScope.launch {
-            repo.log(sessionId, EventType.ANSWER_TEXT, EventSource.SUBJECT, ui.value?.session?.subjectLang, text = text.trim(), shownId = local.value.itemId)
+            repo.log(sessionId, EventType.ANSWER_TEXT, EventSource.SUBJECT, ui.value?.session?.subjectLang, text = text.trim().take(TEXT_CAP), shownId = local.value.itemId)
             advanceRun()
         }
     }

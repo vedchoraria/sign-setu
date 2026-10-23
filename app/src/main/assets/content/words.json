@@ -335,7 +335,9 @@
         "bimar",
         "bukhar",
         "बीमार",
-        "बुखार"
+        "बुखार",
+        "unwell",
+        "poorly"
       ],
       "gesture": "sick.forehead",
       "card": "sick",
@@ -2017,7 +2019,13 @@
         "member",
         "members",
         "sadasya",
-        "सदस्य"
+        "सदस्य",
+        "someone",
+        "anyone",
+        "anybody",
+        "person",
+        "persons",
+        "individual"
       ],
       "sign": "isl.people"
     },
@@ -2538,7 +2546,10 @@
       "w": [
         "feelings",
         "bhavna",
-        "भावना"
+        "भावना",
+        "feel",
+        "feels",
+        "feeling"
       ],
       "sign": "isl.feelings"
     },
@@ -2555,7 +2566,8 @@
       "w": [
         "relatives",
         "rishtedar",
-        "रिश्तेदार"
+        "रिश्तेदार",
+        "relative"
       ],
       "sign": "isl.relatives"
     },
@@ -2563,9 +2575,32 @@
       "w": [
         "something",
         "kuch",
-        "कुछ"
+        "कुछ",
+        "anything"
       ],
       "sign": "isl.something"
+    },
+    {
+      "w": [
+        "nobody"
+      ],
+      "sign": "isl.none"
+    },
+    {
+      "w": [
+        "nearest"
+      ],
+      "sign": "isl.near"
+    },
+    {
+      "w": [
+        "wear",
+        "wears",
+        "wearing",
+        "worn",
+        "clothes"
+      ],
+      "sign": "isl.clothing"
     }
   ]
 }

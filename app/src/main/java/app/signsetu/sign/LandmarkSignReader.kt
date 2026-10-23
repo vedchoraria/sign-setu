@@ -17,7 +17,7 @@ class LandmarkSignReader(spec: String, weights: ByteArray, override val words: M
     @Serializable
     private class Spec(val frames: Int, val features: Int, val hidden: Int, val kernel: Int, val labels: List<String>, val norm: String = "shoulders", val dtype: String = "float32")
 
-    private val s = Json { ignoreUnknownKeys = true }.decodeFromString<Spec>(spec)
+    private val s = SPEC_JSON.decodeFromString<Spec>(spec)
     override val labels: List<String> = s.labels
     private val t = s.frames
     private val h = s.hidden
@@ -77,6 +77,9 @@ class LandmarkSignReader(spec: String, weights: ByteArray, override val words: M
 
     fun features(frames: List<LandmarkFrame>): FloatArray? = if (s.norm == "hands") handFeatures(frames, t) else signFeatures(frames, t)
 }
+
+// Parsed once per process: a Json instance is expensive to build and the spec never changes shape.
+private val SPEC_JSON = Json { ignoreUnknownKeys = true }
 
 private const val FEATURES = 98
 

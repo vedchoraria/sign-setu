@@ -12,8 +12,8 @@ Sign Setu is an offline Android application that helps a police officer communic
 | Network | Optional: only the department gateway, only when the build has one and the phone is online; everything works without it |
 | Languages for the subject | 17 in the language finder, including Chhattisgarhi, Gondi and Halbi; every stage word, question, phrase and picture label in all 17 (drafts beyond English and Hindi); typed English captioned in Hindi on the phone; sign languages ISL and ASL |
 | Officer interface languages | English, Hindi |
-| Release APK | 0.5.1: 78.9 MiB for arm64-v8a phones, 104.1 MiB universal (arm64-v8a and x86_64); nothing compressed for size |
-| Automated tests | 306 unit tests pass for both build flavors; 78 instrumented tests pass on the API 34 phone and the API 36 tablet; 1,221 portal tests pass; lint 0 errors |
+| Release APK | 0.6.0: 78.9 MiB arm64-v8a phone APK, 104.1 MiB universal (arm64-v8a and x86_64); nothing compressed for size |
+| Automated tests | 316 unit tests pass for both build flavors; 44 instrumented tests are defined for a device or emulator; 1,221 portal tests pass; 43 gateway tests pass; lint 0 errors |
 
 ## 2. How a session works
 
@@ -43,7 +43,7 @@ The officer page has two tabs, built from one card and tile style. **Transcribe*
 | Phrase bank | 10 reviewed sentences built from two patterns, "Do you want [water]?" and "Are you [cold]?" |
 | Type anything | Typed text is shown at once; the character plays it word by word under four toggles: Signs, Gestures, Spell, Pictures. With Signs on, the order is draft ISL order (§4.4) |
 | Word completions | Above the keyboard; each typed word is tinted by what the character will do with it: green for a sign, teal for a gesture, amber for a picture, no tint when it will be spelled. Reviewed phrase templates about the word prepare a phrase in one tap |
-| Vocabulary | 223 entries covering 1,306 written forms in English, Hindi, Hindi in Latin letters and local words |
+| Vocabulary | 226 entries covering 1,326 written forms in English, Hindi, Hindi in Latin letters and local words |
 | Answer trail | Under each answer: time taken, every answer in the order given if the person changed it, and the length of a pause after Stop. A changed answer, or one slower than 20 s, gets an amber outline, which means "look again", never deceit |
 | Evidence grades | Said (the person tapped, wrote or drew it), Confirmed (the person picked this meaning from two or three choices shown back), Officer's reading, App's reading, Said no, Unclear |
 | Say it back | Shows the officer's reading, edited if needed, to the person among the item's other pictures; only their pick makes it Confirmed; No marks the line "Said no" |
@@ -55,7 +55,7 @@ The officer page has two tabs, built from one card and tile style. **Transcribe*
 | Assistant (optional) | Translates typed text into the subject's language and back into English on the phone; the officer sees both before sending |
 | They gestured | The officer marks where the subject's hand went and what it did; matching entries from the 33-entry gesture lexicon are shown back to the subject, who confirms the meaning |
 | Picture board | 117 picture cards in 12 categories (including clothes and colours for describing someone), with search and favourites |
-| ISL dictionary | Every recorded and draft sign by category (262 recorded signs in 16 categories, plus the authored word signs), searched in English, Hindi or any written form; a tap plays the sign for the officer, Show prepares it for the stage |
+| ISL dictionary | Every recorded and draft sign by category (415 signs in 17 categories: 262 retargeted from INCLUDE and 153 from the ISLRTC dictionary, plus the authored word signs), searched in English, Hindi or any written form; a tap plays the sign for the officer, Show prepares it for the stage |
 | Draw, language finder | A drawing pad for the subject; a grid of greetings in every language |
 | Interpreter call | Opens the department's Sandes or WhatsApp contact; no session data is passed |
 | Second screen | Pairs a department phone or tablet as the subject's screen (§3.3) |
@@ -67,7 +67,7 @@ The officer page has two tabs, built from one card and tile style. **Transcribe*
 
 | Feature | Description |
 | --- | --- |
-| Characters | A child and an adult character framed to the hips, with jointed fingers and facial expressions; 411 motions: 262 ISL signs retargeted from recorded Deaf signers, 42 gestures, the 26-letter two-handed ISL alphabet, 10 digits and 71 draft word signs |
+| Characters | A child and an adult character framed to the hips, with jointed fingers and facial expressions; motions cover 415 ISL signs retargeted from recorded Deaf signers, 42 everyday gestures, the 26-letter two-handed ISL alphabet, 10 digits and the authored word signs |
 | Opening | The officer's introduction (s1), then four pictured and signed ground rules ("I was not there", "you can say I don't know", "tell me if I'm wrong", "you can take a break") and a neutral practice round, "Show me what you did this morning", answered by drawing, writing or signing. The subject moves on with Next; each step is logged as shown. If the officer takes the phone back before the practice round, the log records "Officer skipped the rest of the ground rules" |
 | Caption | The question in the subject's language in large type; during typed text the current word is lit, a spelled word shows its current letter, and a word's picture is held up. Tapping a word replays it alone at half speed; tapping the question replays it |
 | Speech | Placeholder recordings until re-recorded: 1,350 recordings: the greeting in 15 languages plus 89 clips for each of those languages (Indic Parler-TTS); the rest show captions and pictures; Gondi and Halbi have no voice yet; automatic for a young child or another language, never for a signer |
@@ -189,7 +189,7 @@ Each frame: the clock time selects two keyframes, which are blended with easing 
 
 | Strengths | Limits |
 | --- | --- |
-| Small; offline; a motion is corrected by editing numbers; motions chain smoothly; faces carry ISL facial grammar; 262 signs follow real signers | Flat 2D front view with faked depth, so fingers pointing at the camera read as bent; the alphabet, authored and recorded signs await ISL review; no mouthing; cartoon style |
+| Small; offline; a motion is corrected by editing numbers; motions chain smoothly; faces carry ISL facial grammar; 415 signs follow real signers | Flat 2D front view with faked depth, so fingers pointing at the camera read as bent; the alphabet, authored and recorded signs await ISL review; no mouthing; cartoon style |
 
 A 3D rig (VRoid, Blender, glTF or VRM) rendered with Filament is the upgrade path if 2D cannot show what reviewers need ([avatar and gestures](05-avatar-and-gestures.md) §5.4).
 

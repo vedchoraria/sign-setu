@@ -4,7 +4,7 @@ Sign Setu is an offline Android app that helps a police officer communicate with
 
 | Field | Value |
 | --- | --- |
-| Version | 0.5.1 (version code 8), applicationId `in.signsetu` |
+| Version | 0.6.0 (version code 9), applicationId `in.signsetu` |
 | Classification | Internal |
 | Scope | Requirements, design, data protection, security controls, assurance, release and operation, with the data flow model and the architecture views |
 | Source of truth | Repository `Yash-Awasthi/sign-setu`; requirements in `docs/01-requirements.md`, security controls in `04-security.md` |
@@ -1031,8 +1031,8 @@ All content is data, not code, and every file except `models/` is checked agains
 | `triage.json` | 15 question groups, 80 questions with text per language, cards, roles |
 | `cards.json`, `cards/*.webp` | 12 categories, 117 picture cards |
 | `gestures.json`, `signs.json` | 42 authored gestures; letters, digits and draft word signs |
-| `isl_signs.json`, `asl_signs.json` | 262 ISL and 250 ASL recorded signs retargeted from INCLUDE, ISLRTC and PopSign signers |
-| `words.json`, `lexicon.json` | 222 vocabulary entries; 33 gesture-lookup entries |
+| `isl_signs.json`, `asl_signs.json` | 415 ISL signs in 17 categories (262 retargeted from INCLUDE, 153 ISLRTC) and 286 ASL signs; 42 authored everyday gestures live in `gestures.json` |
+| `words.json`, `lexicon.json` | 226 vocabulary entries covering 1,326 written forms; 33 gesture-lookup entries |
 | `languages.json`, `subject_ui.json` | 17 languages in their own scripts; stage words per language |
 | `phrases.json`, `places.json` | Sentence patterns; 36 states and union territories |
 | `audio/<lang>/*.ogg` | Placeholder speech, Opus, mono (1,350 files) |
@@ -1175,14 +1175,14 @@ The reader generalises poorly to people it has not seen. For that reason a readi
 | Source control | Git; `master` is the integration branch; the repository is public |
 | Reproducibility | Gradle wrapper, version catalog, dependency lockfile and checksum verification; vendored llama.cpp at a pinned version; `.gitattributes` forces LF so manifest hashes hold on every checkout |
 | Release build | R8 full mode with resource shrinking, not debuggable, log calls stripped; a universal APK (arm64-v8a and x86_64) and an arm64-v8a phone APK (`-Pabi=arm64-v8a`); zipalign and apksigner with the release key (signature scheme v3). The key is held offline by the release manager and a second custodian |
-| Versioning | Semantic version in `app/build.gradle.kts` (0.5.1, code 8); a build refuses new sessions 180 days after its build date |
+| Versioning | Semantic version in `app/build.gradle.kts` (0.6.0, code 9); a build refuses new sessions 180 days after its build date |
 | Distribution | GitHub release asset for pilots; Mobile Seva AppStore or a department download page for production |
 
 ### 8.2 Installation and operation
 
 | Topic | Guidance |
 | --- | --- |
-| Install | Allow installs from the source, open the APK, accept the camera permission. The phone must have a screen lock; the app refuses to store sessions without one |
+| Install | Allow installs from the source, open the APK, accept the camera permission. A screen lock is strongly recommended: without one the app tells the officer once, stores records under a key that is not tied to unlocking, and moves them under the locked key as soon as a lock screen is set |
 | Use | Unlock, choose profile and language, start. The officer holds the phone with the stage facing the subject |
 | Export | Finish session, name it, Export report, share the PDF, then give the one-time passphrase by a different channel; the session stays saved until the retention period ends |
 | Update | Install the newer APK over the old one; updates must carry the same signing key |

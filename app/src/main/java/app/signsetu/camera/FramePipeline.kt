@@ -11,10 +11,11 @@ internal class FramePipeline {
     private val pointing = BodyPointing(holdMs = 320L)
     private val palms = PalmGestures(holdMs = 380L)
     private val shrugs = ShrugGestures(holdMs = 350L)
+    private val courtesies = EverydayGestures(holdMs = 420L)
 
     fun mark(raw: LandmarkFrame, aspect: Float, blurry: Boolean): LandmarkFrame =
         raw.copy(aspect = aspect, blurry = blurry).let(stable::mark).let(cues::mark).let(heads::mark)
-            .let(thumbs::mark).let(pointing::mark).let(palms::mark).let(shrugs::mark)
+            .let(thumbs::mark).let(pointing::mark).let(palms::mark).let(shrugs::mark).let(courtesies::mark)
 }
 
 /** Judges whether a camera picture is smeared, from its own edges: the variance of a Laplacian over the centre

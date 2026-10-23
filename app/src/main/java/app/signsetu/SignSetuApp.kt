@@ -52,6 +52,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.io.File
 import java.time.LocalDate
+import androidx.core.content.edit
 
 class SignSetuApp : Application() {
     lateinit var container: AppContainer
@@ -94,10 +95,17 @@ class AppContainer(private val app: Application) : DefaultLifecycleObserver, Com
     // The latest day this app has seen: turning the phone's date back does not make an old build young again.
     private val clock = app.getSharedPreferences("clock", android.content.Context.MODE_PRIVATE)
 
+    // The latest day seen this run; the preference is only written when the day moves on, not on every composition.
+    @Volatile private var seenDay = -1L
+
     val buildExpired: Boolean
         get() {
-            val today = maxOf(LocalDate.now().toEpochDay(), clock.getLong("seen_day", 0L))
-            clock.edit().putLong("seen_day", today).apply()
+            val stored = clock.getLong("seen_day", 0L)
+            val today = maxOf(LocalDate.now().toEpochDay(), stored)
+            if (today != seenDay) {
+                seenDay = today
+                if (today > stored) clock.edit { putLong("seen_day", today) }
+            }
             return buildExpired(today, BuildConfig.BUILD_EPOCH_DAY)
         }
     private val databaseKey = DatabaseKey(app)
@@ -225,7 +233,10 @@ class AppContainer(private val app: Application) : DefaultLifecycleObserver, Com
     }
 
     fun clearAllData() {
+        val open = database
         lock()
+        // Delete the file only once nothing has it open: an unlinked SQLite file stays readable until it is closed.
+        runCatching { open?.close() }
         databaseKey.destroy()
         SessionReport.exportsDir(app).deleteRecursively()
     }
@@ -235,6 +246,7 @@ class AppContainer(private val app: Application) : DefaultLifecycleObserver, Com
     }
 
     /** The assistant and the landmark graph are the largest buffers; both load again on next use. */
+    @Suppress("DEPRECATION") // The trim levels still arrive on every API; Android has no replacement constants.
     override fun onTrimMemory(level: Int) {
         if (level < ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW) return
         scope.launch { models.release() }

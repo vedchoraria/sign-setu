@@ -11,8 +11,12 @@ import app.signsetu.ui.session.Counsellor
 import app.signsetu.ui.session.Mode
 import app.signsetu.ui.session.SHOWN_AI
 import app.signsetu.ui.session.SessionUi
-import app.signsetu.ui.session.counselTranscript
+import app.signsetu.ui.session.counselHistory
 import app.signsetu.ui.session.parseCounselLine
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.advanceTimeBy
@@ -45,17 +49,16 @@ class CounsellorTest {
     }
 
     @Test
-    fun theTranscriptNamesWhoSpokeAndWhatWasPicked() {
+    fun theHistoryIsJsonTurnsThatNameWhoSpoke() {
         val events = listOf(
             ev(1, EventType.QUESTION_SHOWN, "I am a police officer.", source = EventSource.PRESET),
             ev(2, EventType.QUESTION_SHOWN, "Hello, I am a helper.\nनमस्ते", reason = SHOWN_AI, source = EventSource.MACHINE),
             ev(3, EventType.ANSWER_CARD, card = "water"),
             ev(4, EventType.ANSWER_TEXT, "my uncle"),
         )
-        assertEquals(
-            "Officer: I am a police officer.\nCounsellor: Hello, I am a helper.\nPerson: Water\nPerson: my uncle",
-            counselTranscript(events, shipped),
-        )
+        val turns = Json.parseToJsonElement(counselHistory(events, shipped)).jsonArray.map { it.jsonObject }
+        assertEquals(listOf("officer", "assistant", "user", "user"), turns.map { it.getValue("role").jsonPrimitive.content })
+        assertEquals(listOf("I am a police officer.", "Hello, I am a helper.", "Water", "my uncle"), turns.map { it.getValue("text").jsonPrimitive.content })
     }
 
     @Test

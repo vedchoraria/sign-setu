@@ -111,6 +111,12 @@ data class Face(
             "round" to Face(mouthRound = 0.8f, mouthOpen = 0.4f, browRaise = 0.3f),
             "cold" to Face(browWorry = 0.6f, eyeOpen = 0.6f, smile = -0.3f, mouthOpen = 0.12f),
             "hot" to Face(browWorry = 0.3f, eyeOpen = 0.7f, mouthOpen = 0.3f, smile = 0f),
+            // Courtesy and care: the faces that carry a greeting, thanks and an apology as much as the hands do.
+            "grateful" to Face(smile = 0.75f, eyeSmile = 0.3f, browWorry = 0.15f),
+            "reassure" to Face(smile = 0.5f, eyeSmile = 0.15f, browWorry = 0.25f, eyeOpen = 1.05f),
+            "sorry" to Face(browWorry = 0.7f, smile = -0.2f, eyeOpen = 0.9f),
+            "sad" to Face(browWorry = 0.85f, smile = -0.45f, eyeOpen = 0.85f),
+            "confused" to Face(browRaise = 0.5f, browFrown = 0.35f, smile = 0f, mouthRound = 0.2f),
         )
     }
 

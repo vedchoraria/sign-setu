@@ -65,7 +65,7 @@ private class V(val stem: String, val post: String? = null)
 
 private val VERBS = mapOf(
     "go" to V("जा"), "come" to V("आ"), "come back" to V("वापस आ"), "sit" to V("बैठ"), "sit down" to V("बैठ"),
-    "stand" to V("खड़े हो"), "stand up" to V("खड़े हो"), "wait" to V("रुक"), "stay" to V("रुक"), "stop" to V("रुक"),
+    "stand" to V("खड़े हो"), "stand up" to V("खड़े हो"), "wait" to V("इंतज़ार कर"), "stay" to V("रुक"), "stop" to V("रुक"),
     "eat" to V("खा"), "drink" to V("पी"), "sleep" to V("सो"), "rest" to V("आराम कर"), "write" to V("लिख"),
     "draw" to V("बना"), "read" to V("पढ़"), "hear" to V("सुन"), "listen" to V("सुन"), "listen to" to V("सुन", "की बात"),
     "see" to V("देख"), "look" to V("देख"), "look at" to V("देख", "की ओर"), "watch" to V("देख"), "walk" to V("चल"),
@@ -73,7 +73,8 @@ private val VERBS = mapOf(
     "show" to V("दिखा", "को"), "call" to V("फ़ोन कर", "को"), "help" to V("मदद कर", "की"), "point" to V("इशारा कर"),
     "point to" to V("इशारा कर", "की ओर"), "point at" to V("इशारा कर", "की ओर"), "understand" to V("समझ"),
     "open" to V("खोल"), "close" to V("बंद कर"), "wash" to V("धो"), "play" to V("खेल"), "run" to V("भाग"),
-    "live" to V("रह"), "work" to V("काम कर"), "take" to V("ले"), "give" to V("दे", "को"), "bring" to V("ला"),
+    "live" to V("रह"), "work" to V("काम कर"), "take" to V("ले जा", "को"), "give" to V("दे", "को"), "bring" to V("ला"),
+    "ask" to V("पूछ", "से"),
     "find" to V("ढूँढ"), "keep" to V("रख"), "put" to V("रख"), "touch" to V("छू"), "hold" to V("पकड़"),
     "worry" to V("चिंता कर"), "cry" to V("रो"), "breathe" to V("साँस ले"), "calm down" to V("शांत हो"),
     "move" to V("हिल"), "follow" to V("पीछे आ"), "sign" to V("इशारा कर"), "know" to V("जान"), "wake up" to V("उठ"),
@@ -85,7 +86,8 @@ private val VERBS = mapOf(
 private val FEEL = mapOf(
     "hurt" to "चोट लगी है", "injured" to "चोट लगी है", "hungry" to "भूख लगी है", "thirsty" to "प्यास लगी है",
     "cold" to "ठंड लग रही है", "hot" to "गर्मी लग रही है", "scared" to "डर लग रहा है", "afraid" to "डर लग रहा है",
-    "frightened" to "डर लग रहा है", "in pain" to "दर्द हो रहा है", "sleepy" to "नींद आ रही है",
+    "frightened" to "डर लग रहा है", "in pain" to "दर्द हो रहा है", "painful" to "दर्द हो रहा है",
+    "sleepy" to "नींद आ रही है", "dizzy" to "चक्कर आ रहा है",
 )
 
 /** Words that stay the same for every person and gender after है or हैं. */
@@ -175,6 +177,7 @@ private val ADV = mapOf(
     "here" to "यहाँ", "there" to "वहाँ", "now" to "अब", "today" to "आज", "tomorrow" to "कल", "yesterday" to "कल",
     "again" to "फिर से", "slowly" to "धीरे-धीरे", "quickly" to "जल्दी", "together" to "साथ में", "also" to "भी",
     "soon" to "जल्द ही", "please" to "कृपया", "later" to "बाद में", "first" to "पहले", "carefully" to "ध्यान से", "quietly" to "चुपचाप",
+    "outside" to "बाहर", "inside" to "अंदर",
 )
 /** "" drops the word: "go to school" is स्कूल जाइए. */
 private val PREPS = mapOf(
@@ -199,6 +202,27 @@ private val FIXED = mapOf(
     "take your time" to "आराम से, कोई जल्दी नहीं।", "one moment" to "एक मिनट रुकिए।", "wait moment" to "एक मिनट रुकिए।",
     "sorry" to "माफ़ कीजिए।", "i am sorry" to "माफ़ कीजिए।", "show me where" to "मुझे दिखाइए कहाँ।",
     "what happened" to "क्या हुआ?", "good" to "अच्छा।", "well done" to "बहुत अच्छा।",
+    // Sentences an officer says in almost every first meeting. Word-by-word composition turns several of these into
+    // commands or nonsense, so the whole sentence is fixed here instead.
+    "i am here to help you" to "मैं आपकी मदद के लिए यहाँ हूँ।",
+    "you are not in trouble" to "आप किसी परेशानी में नहीं हैं।",
+    "you did nothing wrong" to "आपने कुछ गलत नहीं किया।",
+    "you can stop at any time" to "आप कभी भी रुक सकते हैं।",
+    "there is nothing to be afraid of" to "डरने की कोई बात नहीं है।",
+    "show me where it hurts" to "मुझे दिखाइए कहाँ दर्द है।",
+    "is it painful here" to "क्या यहाँ दर्द हो रहा है?",
+    "are you feeling dizzy" to "क्या आपको चक्कर आ रहा है?",
+    "is there someone we can call" to "क्या कोई है जिसे हम फ़ोन कर सकें?",
+    "how long has it been hurting" to "कितने समय से दर्द हो रहा है?",
+    "do you understand what i am saying" to "क्या आप समझ रहे हैं कि मैं क्या कह रहा हूँ?",
+    "i need to ask you some questions" to "मुझे आपसे कुछ सवाल पूछने हैं।",
+    "have you eaten today" to "क्या आपने आज खाना खाया?",
+    "please sit down and take your time" to "कृपया बैठिए, आराम से।",
+    "he hit me" to "उन्होंने मुझे मारा।",
+    "she hit me" to "उन्होंने मुझे मारा।",
+    "he threatened me with knife" to "उन्होंने चाकू दिखाकर मुझे डराया।",
+    "did anyone see what happened" to "क्या किसी ने देखा कि क्या हुआ?",
+    "we are listening" to "हम सुन रहे हैं।",
 )
 
 private fun lastWord(s: String) = s.substringAfterLast(' ')
@@ -287,7 +311,12 @@ private class Bank(val sentences: Map<String, Pair<String, String>>, val nouns: 
                 objects += when { two -> obj.direct; v.post != null -> obj.post(v.post); obj.pron != null -> obj.post("को"); else -> obj.direct }
             } else {
                 val obj = np(buf) ?: return false
-                places += if (p.isEmpty()) obj.direct else obj.post(p)
+                places += when {
+                    // "take someone to the doctor" is डॉक्टर के पास ले जाना, not डॉक्टर ले जाना.
+                    p.isEmpty() && v.stem == "ले जा" -> obj.post("के पास")
+                    p.isEmpty() -> obj.direct
+                    else -> obj.post(p)
+                }
             }
             buf.clear()
             return true
@@ -298,7 +327,8 @@ private class Bank(val sentences: Map<String, Pair<String, String>>, val nouns: 
             else -> buf += w
         }
         if (!flush()) return null
-        return Vp((adverbs + places + objects).joinToString(" "), v.stem)
+        // Hindi puts the thing acted on before the place it goes to: "आपको डॉक्टर के पास ले जाऊँगा".
+        return Vp((adverbs + objects + places).joinToString(" "), v.stem)
     }
 
     /** The subject's state: "चोट लगी है" in को, or a word after है. Returns the person's words, the state, and which kind. */
@@ -364,6 +394,10 @@ private class Bank(val sentences: Map<String, Pair<String, String>>, val nouns: 
             state(g[2].split(' '))?.let { (who, what, feel) -> np(who)?.let { if (feel) "क्या ${it.post("को")} $what?" else "क्या ${it.direct} $what ${it.be}?" } }
         },
         Regex("(.+) (?:is|are) (\\S+?)ing(?: (.+))?") to { g -> progressive(g[1], g[2], g[3]) },
+        // "She is my sister", "We are here": a pronoun with no verb of its own takes the copula.
+        Regex("(he|she|they|we) (?:is|are) (.+)") to { g -> np(g[1])?.let { who -> np(g[2])?.let { what -> "${who.direct} ${what.direct} ${who.be}।" } } },
+        Regex("(.+) will (.+)") to { g -> np(g[1])?.let { who -> vp(g[2])?.let { "${who.direct} ${it.then(fut(it.stem))}।" } } },
+        Regex("there (?:is|are) (.+)") to { g -> np(g[1])?.let { "${it.direct} ${it.be}।" } },
         Regex("(.+) (?:is|are) (.+)") to { g ->
             state((g[1] + " " + g[2]).split(' '))?.let { (who, what, feel) -> np(who)?.let { if (feel) "${it.post("को")} $what।" else "${it.direct} $what ${it.be}।" } }
         },
@@ -419,6 +453,7 @@ private class Bank(val sentences: Map<String, Pair<String, String>>, val nouns: 
         val no = if (neg) "नहीं" else null
         val hi = when {
             want -> listOfNotNull(doer?.let { PRONOUNS.getValue(it).post("को") }) + mid + listOfNotNull(wh, no, verb?.let { it + "ना" }, if (verb != null) "है" else "चाहिए")
+            verb != null && doer == "i" -> listOf("मैं") + mid + listOfNotNull(wh, no, verb + "ता", "हूँ")
             verb != null && doer != null -> listOf(if (doer == "you") "आप" else "हम") + mid + listOfNotNull(wh, no, verb + "ते", "हैं")
             verb != null -> mid + listOfNotNull(wh, if (neg) notImp(verb) else imp(verb))
             else -> listOfNotNull(doer?.let { PRONOUNS.getValue(it).direct }) + mid + listOfNotNull(wh, no)

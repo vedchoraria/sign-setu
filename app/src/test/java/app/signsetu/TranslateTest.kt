@@ -98,6 +98,9 @@ class TranslateTest {
         check(listOf(
             "you go home now?" to "क्या आप घर अब जाते हैं?",
             "no water" to "पानी नहीं",
+            // First person is एकवचन: मैं जाता हूँ, never the plural हम जाते हैं.
+            "i go home" to "मैं घर जाता हूँ।",
+            "we go home" to "हम घर जाते हैं।",
         ), Made.WORDS)
         assertNull(content.toHindi("My name is Ravi."))
         assertNull(content.toHindi("Blorft the zibble"))

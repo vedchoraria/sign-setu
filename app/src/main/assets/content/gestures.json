@@ -3,19 +3,19 @@
   "note": "Keyframes for the two characters. Hands are R and L of the character; dx is outward, angle 0 is fingers up and positive tips outward; roll 1 palm to viewer, 0 thumb side, -1 back of hand. Every entry is a candidate until reviewed (05-avatar-and-gestures section 3).",
   "gestures": [
     {"id": "okay", "keys": [
-      {"t": 0.0, "face": "smile", "head": {"nod": 0}},
+      {"face":"smile","t": 0.0, "face": "smile", "head": {"nod": 0}},
       {"t": 0.3, "head": {"nod": 0.6}},
       {"t": 0.6, "head": {"nod": 0}, "face": "happy"},
       {"t": 1.1}
     ]},
     {"id": "namaste", "keys": [
-      {"t": 0.0, "R": {"at": "chest", "dy": 8, "dx": 7, "shape": "FLAT", "roll": 0, "angle": 0}, "L": {"at": "chest", "dy": 8, "dx": 7, "shape": "FLAT", "roll": 0, "angle": 0}, "face": "smile"},
+      {"face":"gentle","t": 0.0, "R": {"at": "chest", "dy": 8, "dx": 7, "shape": "FLAT", "roll": 0, "angle": 0}, "L": {"at": "chest", "dy": 8, "dx": 7, "shape": "FLAT", "roll": 0, "angle": 0}, "face": "smile"},
       {"t": 0.35, "R": {"at": "chest", "dy": 6, "dx": 7, "shape": "FLAT", "roll": 0, "angle": 0}, "L": {"at": "chest", "dy": 6, "dx": 7, "shape": "FLAT", "roll": 0, "angle": 0}, "head": {"nod": 0.6}},
       {"t": 0.9, "head": {"nod": 0}, "face": "happy"},
       {"t": 1.5}
     ]},
     {"id": "wave", "keys": [
-      {"t": 0.0, "R": {"at": "shoulder", "dx": 26, "dy": -58, "shape": "OPEN", "roll": 1, "angle": 10}, "face": "happy"},
+      {"face":"smile","t": 0.0, "R": {"at": "shoulder", "dx": 26, "dy": -58, "shape": "OPEN", "roll": 1, "angle": 10}, "face": "happy"},
       {"t": 0.25, "R": {"at": "shoulder", "dx": 26, "dy": -58, "shape": "OPEN", "roll": 1, "angle": -15}},
       {"t": 0.5, "R": {"at": "shoulder", "dx": 26, "dy": -58, "shape": "OPEN", "roll": 1, "angle": 15}},
       {"t": 0.75, "R": {"at": "shoulder", "dx": 26, "dy": -58, "shape": "OPEN", "roll": 1, "angle": -15}},
@@ -33,7 +33,7 @@
       {"t": 1.4}
     ]},
     {"id": "thumbs_up", "keys": [
-      {"t": 0.0, "R": {"at": "shoulder", "dx": -4, "dy": -18, "elbow": "down", "shape": "THUMB", "roll": 0, "angle": 0}, "face": "happy"},
+      {"face":"happy","t": 0.0, "R": {"at": "shoulder", "dx": -4, "dy": -18, "elbow": "down", "shape": "THUMB", "roll": 0, "angle": 0}, "face": "happy"},
       {"t": 0.3, "R": {"at": "shoulder", "dx": -4, "dy": -24, "elbow": "down", "shape": "THUMB", "roll": 0, "angle": 0}, "head": {"nod": 0.4}},
       {"t": 0.8, "head": {"nod": 0}},
       {"t": 1.4}

@@ -2,10 +2,14 @@ package app.signsetu
 
 import androidx.compose.ui.geometry.Offset
 import app.signsetu.camera.BodyPointing
+import app.signsetu.camera.Everyday
+import app.signsetu.camera.EverydayGestures
 import app.signsetu.camera.Head
 import app.signsetu.camera.HeadGestures
 import app.signsetu.camera.LandmarkFrame
 import app.signsetu.camera.PalmGestures
+import app.signsetu.camera.handOnChest
+import app.signsetu.camera.namaste
 import app.signsetu.camera.ThumbGestures
 import app.signsetu.camera.raisedPalm
 import app.signsetu.camera.region
@@ -137,6 +141,81 @@ class GestureTest {
         val w = HeadGestures()
         val wobble = listOf(0f, 0.3f, -0.3f, 0.3f, -0.3f, 0.3f, 0f).mapIndexed { i, a -> w.mark(frame(i * 150L, face = rolled(a))).head }
         assertNull(wobble.firstOrNull { it != null })
+    }
+}
+
+class EverydayGestureTest {
+    // Shoulders at y 0.4, x 0.35 and 0.65; the midline is x 0.5.
+    private val pose = MutableList(33) { Offset(0.5f, 0.5f) }.apply {
+        this[11] = Offset(0.65f, 0.4f); this[12] = Offset(0.35f, 0.4f)
+        this[13] = Offset(0.7f, 0.55f); this[14] = Offset(0.3f, 0.55f)
+        this[15] = Offset(0.68f, 0.68f); this[16] = Offset(0.32f, 0.68f)
+    }
+
+    /** A hand with its wrist at w, fingers up; distances are in frame units with aspect 1. */
+    private fun hand(w: Offset): List<Offset> {
+        val p = MutableList(21) { w }
+        for ((f, x) in listOf(-0.03f, 0f, 0.03f, 0.06f).withIndex()) {
+            val base = 5 + 4 * f
+            p[base] = w + Offset(x, -0.09f)
+            p[base + 1] = w + Offset(x, -0.12f)
+            p[base + 2] = w + Offset(x, -0.15f)
+            p[base + 3] = w + Offset(x, -0.18f)
+        }
+        p[1] = w + Offset(-0.04f, -0.03f)
+        p[4] = w + Offset(-0.06f, -0.16f)
+        return p
+    }
+
+    private fun frame(t: Long, left: List<Offset>? = null, right: List<Offset>? = null, noseY: Float = 0.25f) =
+        LandmarkFrame(
+            t,
+            leftHand = left,
+            rightHand = right,
+            pose = pose,
+            face = List(468) { Offset(0.5f, noseY) }.toMutableList().apply {
+                this[33] = Offset(0.45f, 0.28f); this[263] = Offset(0.55f, 0.28f); this[1] = Offset(0.5f, noseY)
+            },
+            aspect = 1f,
+        )
+
+    @Test
+    fun handsJoinedAtTheChestAreNamaste() {
+        assertTrue(namaste(frame(0, left = hand(Offset(0.51f, 0.62f)), right = hand(Offset(0.49f, 0.62f)))))
+        // Two hands hanging apart by the sides are not a greeting, and neither is one hand alone.
+        assertFalse(namaste(frame(0, left = hand(Offset(0.3f, 0.62f)), right = hand(Offset(0.7f, 0.62f)))))
+        assertFalse(namaste(frame(0, right = hand(Offset(0.49f, 0.62f)))))
+    }
+
+    @Test
+    fun anOpenHandOnTheChestIsThanks() {
+        assertTrue(handOnChest(frame(0, right = hand(Offset(0.5f, 0.6f)))))
+        // Out to the side, or down by the hip, is not on the chest.
+        assertFalse(handOnChest(frame(0, right = hand(Offset(0.68f, 0.6f)))))
+        assertFalse(handOnChest(frame(0, right = hand(Offset(0.5f, 0.78f)))))
+    }
+
+    @Test
+    fun anOpenHandSwingingAboveTheShoulderIsAWave() {
+        val g = EverydayGestures(holdMs = 100L)
+        val xs = listOf(0.45f, 0.55f, 0.45f, 0.55f, 0.45f, 0.55f)
+        val seen = xs.mapIndexed { i, x -> g.mark(frame(i * 100L, right = hand(Offset(x, 0.3f)))).everyday }
+        assertEquals(listOf(Everyday.WAVE), seen.filterNotNull())
+        // A hand held still up there, or a hand waving below the shoulders, is nothing.
+        val still = EverydayGestures(holdMs = 100L)
+        assertTrue((0L..600L step 100).all { t -> still.mark(frame(t, right = hand(Offset(0.5f, 0.3f)))).everyday == null })
+        // Below the shoulder line it is not a wave; at chest height the same open hand is read as a hand on the
+        // chest (thanks) instead, which is what that gesture means.
+        val low = EverydayGestures(holdMs = 100L)
+        assertTrue(xs.indices.all { i -> low.mark(frame(i * 100L, right = hand(Offset(xs[i], 0.6f)))).everyday != Everyday.WAVE })
+    }
+
+    @Test
+    fun aHeadDroppedTowardTheShouldersIsABow() {
+        val g = EverydayGestures(holdMs = 100L)
+        val seen = ((0L..900L step 100).map { g.mark(frame(it, noseY = 0.25f)).everyday } +
+            (1000L..1800L step 100).map { g.mark(frame(it, noseY = 0.37f)).everyday })
+        assertEquals(listOf(Everyday.BOW), seen.filterNotNull())
     }
 }
 

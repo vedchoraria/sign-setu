@@ -3,6 +3,7 @@ package app.signsetu.net
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import app.signsetu.BuildConfig
 import java.net.HttpURLConnection
 import java.net.URL
 
@@ -31,6 +32,8 @@ class UrlHttp : Http {
             // A full report from the free gateway model takes 30 to 45 s; the officer waits behind a progress dialog.
             readTimeout = timeoutMs
             setRequestProperty("Content-Type", "application/json; charset=utf-8")
+            // The configured service can insist on a particular client; the value comes from the build, not from here.
+            setRequestProperty("User-Agent", BuildConfig.ASSIST_UA)
             bearer?.let { setRequestProperty("Authorization", "Bearer $it") }
             if (bytes != null) {
                 doOutput = true

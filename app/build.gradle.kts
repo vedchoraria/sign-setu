@@ -7,6 +7,8 @@ val local = Properties().apply { rootProject.file("local.properties").takeIf { i
 // Direct online assistant key: env OPENROUTER_API_KEY, else openrouterKey.
 val openrouterKey: String = System.getenv("OPENROUTER_API_KEY") ?: local.getProperty("openrouterKey", "")
 val gatewayUrl: String = providers.gradleProperty("gatewayUrl").orNull ?: local.getProperty("gatewayUrl", "")
+// Some services accept calls only from their own client, so the header is set here rather than in code.
+val assistUserAgent: String = local.getProperty("assistUserAgent", "claude-cli/2.0.5 (external, cli)")
 
 plugins {
     alias(libs.plugins.android.application)
@@ -24,14 +26,15 @@ android {
         applicationId = "in.signsetu"
         minSdk = 29
         targetSdk = 37
-        versionCode = 8
-        versionName = "0.5.1"
+        versionCode = 9
+        versionName = "0.6.0"
         buildConfigField("long", "BUILD_EPOCH_DAY", "${LocalDate.now().toEpochDay()}L")
         // The department's gateway: -PgatewayUrl=https://... or gatewayUrl in local.properties.
         buildConfigField("String", "GATEWAY_URL", "\"$gatewayUrl\"")
         buildConfigField("String", "ASSIST_KEY", "\"$openrouterKey\"")
-        buildConfigField("String", "ASSIST_URL", "\"https://openrouter.ai/api/v1/chat/completions\"")
-        buildConfigField("String", "ASSIST_MODEL", "\"nvidia/nemotron-3-ultra-550b-a55b:free\"")
+        buildConfigField("String", "ASSIST_URL", "\"https://agentrouter.org/v1/responses\"")
+        buildConfigField("String", "ASSIST_MODEL", "\"gpt-5.6-sol\"")
+        buildConfigField("String", "ASSIST_UA", "\"$assistUserAgent\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // The on-device assistant runs only on 64-bit phones; the x86_64 build serves the emulator.
         externalNativeBuild { cmake { abiFilters += listOf("arm64-v8a", "x86_64"); arguments += "-DCMAKE_BUILD_TYPE=Release" } }

@@ -210,9 +210,9 @@
     <string name="settings_cloud_ai_key">नामांकन कोड</string>
     <string name="settings_cloud_ai_enrolled">नामांकित</string>
     <string name="settings_cloud_ai_direct">ऑनलाइन सहायक (तीसरा पक्ष)</string>
-    <string name="settings_cloud_ai_summary_direct">ऑनलाइन होने पर रिपोर्ट और सुझावों के लिए छिपाया हुआ पाठ बाहरी AI सेवा (OpenRouter) को भेजता है। डिफ़ॉल्ट रूप से बंद; कनेक्शन न होने पर भी फ़ोन वैसे ही चलता है।</string>
+    <string name="settings_cloud_ai_summary_direct">ऑनलाइन होने पर रिपोर्ट और सुझावों के लिए छिपाया हुआ पाठ बाहरी AI सेवा को भेजता है। डिफ़ॉल्ट रूप से बंद; कनेक्शन न होने पर भी फ़ोन वैसे ही चलता है।</string>
     <string name="cloud_notice_title_direct">पाठ तीसरे पक्ष को भेजें?</string>
-    <string name="cloud_notice_body_direct">इसके चालू और फ़ोन के ऑनलाइन रहने पर, सत्र का पाठ विभाग को नहीं, एक बाहरी AI सेवा (OpenRouter) को जाता है। भेजने से पहले व्यक्ति के नाम \"Ravi\" से बदल दिए जाते हैं और फ़ोन नंबर छिपा दिए जाते हैं; असली नाम इसी फ़ोन पर वापस लगाए जाते हैं। अधिकारी के लिखे नोट जाँचे नहीं जाते, इसलिए उनमें नाम न लिखें। सेवा न मिले तो फ़ोन पर बना संस्करण इस्तेमाल होता है।</string>
+    <string name="cloud_notice_body_direct">इसके चालू और फ़ोन के ऑनलाइन रहने पर, सत्र का पाठ विभाग को नहीं, एक बाहरी AI सेवा को जाता है। भेजने से पहले व्यक्ति के नाम \"Ravi\" से बदल दिए जाते हैं और फ़ोन नंबर छिपा दिए जाते हैं; असली नाम इसी फ़ोन पर वापस लगाए जाते हैं। अधिकारी के लिखे नोट जाँचे नहीं जाते, इसलिए उनमें नाम न लिखें। सेवा न मिले तो फ़ोन पर बना संस्करण इस्तेमाल होता है।</string>
     <string name="notice_offline">इंटरनेट नहीं है। फ़ोन पर बना सहायक इस्तेमाल हो रहा है।</string>
     <string name="notice_gateway_error">विभागीय गेटवे नहीं मिल रहा। फ़ोन पर बना सहायक इस्तेमाल हो रहा है।</string>
     <string name="notice_revoked">यह फ़ोन अब नामांकित नहीं है। फ़ोन पर बना सहायक इस्तेमाल हो रहा है।</string>
@@ -524,6 +524,7 @@
     <string name="call_signing">इशारा हो रहा है…</string>
     <string name="call_you">आप</string>
     <string name="call_live">इशारे: %1$s</string>
+    <string name="call_courtesy">कहने के लिए दबाएँ: %1$s</string>
     <string name="call_sign_hint">इशारे से, या सिर हिलाकर हाँ-ना में जवाब दें</string>
     <string name="call_breath_title">शांति से साँस</string>
     <string name="call_inhale">साँस अंदर</string>

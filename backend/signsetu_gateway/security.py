@@ -133,7 +133,8 @@ def _role_auth(request: Request, authorization: str, role: str) -> dict[str, Any
         claims = jwt.decode(token, key, algorithms=["RS256", "ES256"], audience=s.oidc_audience, issuer=s.oidc_issuer)
     except jwt.PyJWTError:
         raise HTTPException(401, "invalid token") from None
-    if role not in claims.get("realm_access", {}).get("roles", []):
+    # A token may carry the claim with a null body; that is a refusal, not a server error.
+    if role not in (claims.get("realm_access") or {}).get("roles", []):
         raise HTTPException(403, f"{role} role required")
     return claims
 
