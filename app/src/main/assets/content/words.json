@@ -2,228 +2,2570 @@
   "status": "draft: every word list needs language review (Hindi, English, Chhattisgarhi, Gondi, Halbi) and every sign needs ISL review before release",
   "note": "Typed words to what the character does. w lists every written form, lower case: English, Hindi, Hindi in Latin letters, and local words. sign is the ISL sign, gesture the everyday gesture for people who do not sign, card the picture. A word with none of these is fingerspelled when spelling is on.",
   "words": [
-    { "w": ["i", "me", "my", "mine", "myself", "मैं", "मुझे", "मेरा", "मेरी", "मेरे", "main", "mai", "mujhe", "mera", "meri", "mere"], "sign": "me.chest", "gesture": "me.chest", "card": "person" },
-    { "w": ["you", "your", "yours", "yourself", "आप", "तुम", "तू", "आपका", "आपकी", "आपके", "आपको", "तुम्हारा", "तुम्हें", "aap", "tum", "tu", "aapka", "aapki", "aapke", "aapko", "tumhara", "tumhe"], "sign": "you.palm", "gesture": "you.palm" },
-    { "w": ["mother", "mom", "mum", "mummy", "amma", "maa", "ma", "mata", "माँ", "मां", "माता", "मम्मी", "अम्मा", "दाई", "याया"], "sign": "mother.nosering", "gesture": "mother.bindi", "card": "mother" },
-    { "w": ["father", "dad", "daddy", "papa", "baba", "abba", "पिता", "पापा", "बाबा", "बापू", "अब्बा", "ददा"], "sign": "father.moustache", "gesture": "father.moustache", "card": "father" },
-    { "w": ["grandmother", "granny", "dadi", "nani", "दादी", "नानी"], "gesture": "grandparent.stick", "card": "grandmother" },
-    { "w": ["grandfather", "grandpa", "dada", "nana", "दादा", "नाना"], "gesture": "grandparent.stick", "card": "grandfather" },
-    { "w": ["baby", "infant", "शिशु", "बेबी"], "sign": "baby.rock", "gesture": "baby.rock", "card": "baby" },
-    { "w": ["child", "kid", "kids", "children", "boy", "girl", "बच्चा", "बच्ची", "बच्चे", "लड़का", "लड़की", "bachcha", "bacha", "bachchi", "ladka", "ladki"], "sign": "sign.child", "gesture": "sign.child" },
-    { "w": ["brother", "brothers", "bhai", "bhaiya", "भाई", "भैया"], "sign": "sign.brother", "gesture": "sibling.rakhi", "card": "brother" },
-    { "w": ["sister", "sisters", "behen", "bahan", "didi", "बहन", "बहनें", "दीदी"], "sign": "sign.sister", "gesture": "sibling.rakhi", "card": "sister" },
-    { "w": ["home", "house", "ghar", "makaan", "घर", "मकान", "लोन"], "sign": "home.roof", "gesture": "home.roof", "card": "home" },
-    { "w": ["village", "gaon", "gaanv", "गाँव", "गांव"], "sign": "sign.village", "gesture": "home.roof", "card": "village" },
-    { "w": ["eat", "ate", "eating", "food", "meal", "khana", "khaana", "khao", "khaya", "bhojan", "roti", "खाना", "खाओ", "खाया", "भोजन", "रोटी", "भात"], "sign": "eat.fingers", "gesture": "eat.fingers", "card": "food" },
-    { "w": ["hungry", "hunger", "bhook", "bhukh", "bhookh", "भूख", "भूखा", "भूखी", "भूखे"], "gesture": "hungry.belly", "card": "food" },
-    { "w": ["water", "drink", "thirsty", "pani", "paani", "pyaas", "pyas", "पानी", "प्यास", "प्यासा", "प्यासी", "पियो", "पीना", "एर"], "sign": "sign.water", "gesture": "water.cup", "card": "water" },
-    { "w": ["toilet", "bathroom", "washroom", "pee", "potty", "latrine", "शौचालय", "टॉयलेट", "बाथरूम", "पेशाब"], "gesture": "toilet.finger", "card": "toilet" },
-    { "w": ["sleep", "sleeping", "slept", "tired", "rest", "neend", "sona", "soya", "aaram", "नींद", "सोना", "सोओ", "सोए", "थका", "थकी", "थके", "आराम"], "sign": "sleep.palms", "gesture": "sleep.palms", "card": "rest" },
-    { "w": ["pain", "hurt", "hurts", "hurting", "injury", "injured", "dard", "chot", "takleef", "दर्द", "चोट", "तकलीफ"], "sign": "pain.point", "gesture": "pain.point", "card": "pain" },
-    { "w": ["sick", "ill", "fever", "bimar", "bukhar", "बीमार", "बुखार"], "gesture": "sick.forehead", "card": "sick" },
-    { "w": ["medicine", "tablet", "pill", "dawa", "dawai", "दवा", "दवाई", "गोली"], "gesture": "medicine.pill", "card": "medicine" },
-    { "w": ["doctor", "dr", "daktar", "डॉक्टर", "डाक्टर"], "sign": "sign.doctor", "gesture": "doctor.listen", "card": "doctor" },
-    { "w": ["hospital", "aspatal", "अस्पताल"], "sign": "sign.doctor", "gesture": "doctor.listen", "card": "hospital" },
-    { "w": ["cold", "thand", "thanda", "ठंड", "ठंडा", "ठंडी", "सर्दी"], "gesture": "cold.hug", "card": "cold" },
-    { "w": ["hot", "heat", "garmi", "garam", "गर्मी", "गरम", "गर्म"], "gesture": "hot.fan", "card": "hot" },
-    { "w": ["scared", "afraid", "fear", "frightened", "darr", "dar", "dara", "dari", "डर", "डरा", "डरी", "डरो", "भय"], "gesture": "scared.cover", "card": "scared" },
-    { "w": ["cry", "crying", "sad", "rona", "udaas", "रोना", "रोए", "उदास", "दुखी"], "sign": "sign.cry", "gesture": "sign.cry", "card": "sad" },
-    { "w": ["yes", "yeah", "haan", "han", "ji", "हाँ", "हां", "जी"], "sign": "yes.nod", "gesture": "yes.nod", "card": "yes" },
-    { "w": ["no", "not", "nahi", "nahin", "mat", "na", "नहीं", "ना", "मत"], "sign": "no.shake", "gesture": "no.shake", "card": "no" },
-    { "w": ["ok", "okay", "fine", "good", "accha", "achha", "theek", "thik", "badhiya", "अच्छा", "अच्छी", "ठीक", "बढ़िया"], "sign": "thumbs_up", "gesture": "thumbs_up", "card": "okay" },
-    { "w": ["bad", "wrong", "bura", "buri", "galat", "kharab", "बुरा", "बुरी", "गलत", "खराब"], "sign": "sign.bad", "gesture": "sign.bad" },
-    { "w": ["hello", "hi", "हेलो", "हैलो"], "sign": "namaste", "gesture": "namaste" },
-    { "w": ["namaste", "namaskar", "johar", "नमस्ते", "नमस्कार", "जोहार"], "sign": "namaste", "gesture": "namaste" },
-    { "w": ["bye", "goodbye", "alvida", "अलविदा"], "sign": "wave", "gesture": "wave" },
-    { "w": ["thanks", "thank", "dhanyavad", "dhanyawad", "shukriya", "धन्यवाद", "शुक्रिया"], "sign": "sign.thanks", "gesture": "sign.thanks", "card": "thank_you" },
-    { "w": ["sorry", "maaf", "maafi", "माफ़", "माफ", "माफ़ी", "माफी", "क्षमा"], "sign": "sign.sorry", "gesture": "sign.sorry" },
-    { "w": ["help", "madad", "sahayata", "bachao", "मदद", "सहायता", "बचाओ"], "sign": "sign.help", "gesture": "sign.help" },
-    { "w": ["safe", "surakshit", "सुरक्षित"], "sign": "thumbs_up", "gesture": "thumbs_up", "card": "okay" },
-    { "w": ["come", "aao", "aaiye", "आओ", "आइए", "आइये"], "sign": "sign.come", "gesture": "sign.come" },
-    { "w": ["go", "went", "gone", "jao", "jana", "gaya", "gayi", "जाओ", "जाना", "गया", "गई", "गए"], "sign": "sign.go", "gesture": "sign.go" },
-    { "w": ["stop", "ruko", "roko", "रुको", "रोको"], "sign": "sign.stop", "gesture": "sign.stop", "card": "stop" },
-    { "w": ["wait", "thahro", "intezaar", "ठहरो", "इंतज़ार", "इंतजार"], "sign": "sign.wait", "gesture": "sign.wait" },
-    { "w": ["sit", "baitho", "baithiye", "बैठो", "बैठिए", "बैठिये"], "sign": "sign.sit", "gesture": "sign.sit" },
-    { "w": ["finish", "finished", "done", "khatam", "ख़त्म", "खत्म", "समाप्त"], "sign": "sign.finish", "gesture": "sign.finish" },
-    { "w": ["hit", "beat", "beaten", "slap", "slapped", "maara", "mara", "maar", "peeta", "मारा", "मार", "पीटा", "थप्पड़"], "sign": "sign.hit", "gesture": "sign.hit" },
-    { "w": ["time", "when", "kab", "samay", "waqt", "kal", "कब", "समय", "वक़्त", "वक्त", "कल"], "sign": "sign.time", "gesture": "sign.time" },
-    { "w": ["see", "saw", "look", "watch", "dekho", "dekha", "dekhna", "देखो", "देखा", "देखना"], "sign": "sign.see", "gesture": "sign.see" },
-    { "w": ["know", "knew", "pata", "jaante", "jaanta", "jaanti", "पता", "जानते", "जानता", "जानती"], "sign": "sign.know", "gesture": "sign.know" },
-    { "w": ["introduce", "parichay", "परिचय"], "gesture": "show_me" },
-    { "w": ["show", "dikhao", "दिखाओ", "दिखाइए"], "gesture": "show_me" },
-    { "w": ["who", "why", "which", "whom", "kaun", "kyon", "kyun", "kyu", "कौन", "क्यों", "किस"], "sign": "ask", "gesture": "ask" },
-    { "w": ["what", "kya", "क्या"], "sign": "sign.what", "gesture": "ask" },
-    { "w": ["where", "kahan", "kahaan", "kaha", "कहाँ", "कहां"], "sign": "sign.where", "gesture": "ask" },
-    { "w": ["how", "kaise", "kaisa", "कैसे", "कैसा", "कैसी"], "sign": "sign.how", "gesture": "ask" },
-    { "w": ["how many", "how much", "kitna", "kitne", "kitni", "कितना", "कितने", "कितनी"], "sign": "sign.how_many", "gesture": "ask" },
-    { "w": ["walk", "walked", "walking", "chalo", "chalna", "paidal", "चलो", "चलना", "पैदल"], "gesture": "walk.fingers", "card": "walk" },
-    { "w": ["road", "street", "sadak", "rasta", "सड़क", "रास्ता"], "gesture": "walk.fingers", "card": "road" },
-    { "w": ["train", "rail", "railway", "ट्रेन", "रेल"], "gesture": "train.arm", "card": "train" },
-    { "w": ["car", "vehicle", "gaadi", "gadi", "गाड़ी", "कार"], "gesture": "vehicle.steer", "card": "car" },
-    { "w": ["bus", "बस"], "gesture": "vehicle.steer", "card": "bus" },
-    { "w": ["auto", "rickshaw", "ऑटो", "रिक्शा"], "gesture": "vehicle.steer", "card": "auto" },
-    { "w": ["phone", "call", "mobile", "फ़ोन", "फोन", "मोबाइल", "कॉल", "bulao", "bulaya", "बुलाओ", "बुलाया"], "sign": "phone.ear", "gesture": "phone.ear", "card": "phone" },
-    { "w": ["money", "rupees", "rupee", "paisa", "paise", "पैसा", "पैसे", "रुपये", "रुपया"], "sign": "money.rub", "gesture": "money.rub", "card": "money" },
-    { "w": ["school", "study", "padhai", "padhna", "स्कूल", "पढ़ाई", "पढ़ना", "विद्यालय"], "gesture": "school.write", "card": "school" },
-    { "w": ["write", "wrote", "writing", "draw", "drew", "drawing", "likho", "likhna", "likhiye", "banao", "लिखो", "लिखिए", "लिखना", "बनाओ"], "gesture": "school.write" },
-    { "w": ["shop", "market", "dukaan", "bazaar", "दुकान", "बाज़ार", "बाजार"], "gesture": "money.rub", "card": "shop" },
-    { "w": ["police", "policeman", "officer", "cop", "पुलिस", "अधिकारी"], "sign": "police.salute", "gesture": "police.salute", "card": "police" },
-    { "w": ["head", "sar", "सिर"], "sign": "sign.body.head", "card": "head" },
-    { "w": ["eye", "eyes", "aankh", "आँख", "आंख"], "sign": "sign.body.eye", "card": "eye" },
-    { "w": ["ear", "ears", "kaan", "कान"], "sign": "sign.body.ear", "card": "ear" },
-    { "w": ["mouth", "muh", "munh", "मुँह", "मुंह"], "sign": "sign.body.mouth", "card": "mouth" },
-    { "w": ["throat", "gala", "गला"], "card": "throat" },
-    { "w": ["stomach", "tummy", "belly", "पेट"], "sign": "sign.body.stomach", "gesture": "hungry.belly", "card": "stomach" },
-    { "w": ["back", "kamar", "peeth", "कमर", "पीठ"], "sign": "sign.body.back", "card": "back" },
-    { "w": ["arm", "hand", "haath", "हाथ", "बाँह"], "sign": "sign.body.arm", "card": "arm" },
-    { "w": ["leg", "legs", "tang", "taang", "टाँग", "टांग"], "sign": "sign.body.leg", "card": "leg" },
-    { "w": ["foot", "feet", "पैर"], "card": "foot" },
-    { "w": ["nose", "naak", "नाक"], "sign": "sign.body.nose" },
-    { "w": ["today", "aaj", "आज"], "sign": "sign.today" },
-    { "w": ["yesterday"], "sign": "sign.yesterday" },
-    { "w": ["tomorrow"], "sign": "sign.tomorrow" },
-    { "w": ["now", "abhi", "अभी"], "sign": "sign.now" },
-    { "w": ["morning", "subah", "सुबह"], "sign": "sign.morning" },
-    { "w": ["night", "tonight", "raat", "रात"], "sign": "sign.night" },
-    { "w": ["day", "din", "दिन"], "sign": "sign.day" },
-    { "w": ["man", "men", "aadmi", "admi", "आदमी"], "sign": "sign.man", "card": "person" },
-    { "w": ["woman", "women", "lady", "aurat", "mahila", "औरत", "महिला"], "sign": "sign.woman" },
-    { "w": ["friend", "friends", "dost", "mitra", "दोस्त", "मित्र"], "sign": "sign.friend", "card": "friends" },
-    { "w": ["name", "naam", "नाम"], "sign": "sign.name" },
-    { "w": ["give", "gave", "do", "de", "dena", "diya", "दो", "दे", "देना", "दिया"], "sign": "sign.give" },
-    { "w": ["take", "took", "lo", "le", "lena", "liya", "लो", "ले", "लेना", "लिया"], "sign": "sign.take" },
-    { "w": ["touch", "touched", "chhoo", "chhua", "chhuo", "छू", "छुआ", "छुओ"], "sign": "sign.touch" },
-    { "w": ["run", "ran", "running", "bhaag", "bhago", "bhaaga", "bhaga", "भाग", "भागो", "भागा"], "sign": "sign.run" },
-    { "w": ["hide", "hid", "hiding", "chhup", "chhupo", "chhupa", "छुप", "छुपो", "छुपा", "छिपा"], "sign": "sign.hide" },
-    { "w": ["lost", "lose", "kho", "khoya", "khoyi", "खो", "खोया", "खोई"], "sign": "sign.lost" },
-    { "w": ["find", "found", "search", "dhoondo", "dhundo", "dhoondh", "ढूंढो", "ढूँढो", "ढूंढ"], "sign": "sign.find" },
-    { "w": ["play", "played", "playing", "khelo", "khel", "khela", "खेल", "खेलो", "खेला"], "sign": "sign.play" },
-    { "w": ["wash", "washed", "dho", "dhoo", "dhona", "dhoyo", "धो", "धोओ", "धोना"], "sign": "sign.wash" },
-    { "w": ["age", "old", "umar", "umr", "उम्र", "उमर", "आयु", "aayu"], "sign": "sign.age" },
-    { "w": ["number", "nambar", "नंबर", "संख्या", "numbers", "sankhya"], "sign": "sign.number" },
-    { "w": ["family", "parivar", "परिवार"], "sign": "sign.family" },
-    { "w": ["live", "lives", "living", "rehte", "rahte", "रहते", "रहती", "रहता", "रहना", "stay", "rehta", "rehti"], "sign": "sign.live" },
-    { "w": ["city", "town", "shahar", "शहर", "नगर", "कस्बा", "shehar", "nagar"], "sign": "sign.city" },
-    { "w": ["district", "zila", "jila", "ज़िला", "जिला", "ज़िले", "जिले"], "sign": "sign.district" },
-    { "w": ["state", "rajya", "राज्य", "प्रदेश", "pradesh"], "sign": "sign.state" },
-    { "w": ["near", "nearby", "paas", "पास", "नज़दीक", "नजदीक", "close", "nazdeek"], "sign": "sign.near" },
-    { "w": ["class", "kaksha", "कक्षा", "क्लास"], "sign": "sign.class" },
-    { "w": ["teacher", "shikshak", "शिक्षक", "अध्यापक", "टीचर", "teachers", "adhyapak", "masterji"], "sign": "sign.teacher" },
-    { "w": ["favourite", "favorite", "pasandida", "पसंदीदा"], "sign": "sign.favourite" },
-    { "w": ["subject", "vishay", "विषय"], "sign": "sign.subject" },
-    { "w": ["like", "pasand", "पसंद", "likes"], "sign": "sign.like" },
-    { "w": ["understand", "understood", "samajh", "samjha", "समझ", "समझा", "समझी", "समझे", "samjhe", "samjhi", "समझना"], "sign": "sign.understand" },
-    { "w": ["again", "repeat", "phir", "dobara", "फिर", "दोबारा", "fir", "dubara", "दुबारा"], "sign": "sign.again" },
-    { "w": ["please", "kripya", "कृपया", "kripaya"], "sign": "sign.please" },
-    { "w": ["student", "students", "vidyarthi", "chhatra", "विद्यार्थी", "छात्र"] },
-    { "w": ["one", "ek", "एक"], "sign": "digit.1", "card": "n1" },
-    { "w": ["two"], "sign": "digit.2", "card": "n2" },
-    { "w": ["three", "teen", "तीन"], "sign": "digit.3", "card": "n3" },
-    { "w": ["four", "chaar", "char", "चार"], "sign": "digit.4", "card": "n4" },
-    { "w": ["five", "paanch", "panch", "पाँच", "पांच"], "sign": "digit.5", "card": "n5" },
-    { "w": ["six", "chhah", "chhe", "छह", "छः"], "sign": "digit.6", "card": "n6" },
-    { "w": ["seven", "saat", "सात"], "sign": "digit.7", "card": "n7" },
-    { "w": ["eight", "aath", "आठ"], "sign": "digit.8", "card": "n8" },
-    { "w": ["nine", "nau", "नौ"], "sign": "digit.9", "card": "n9" },
-    { "w": ["ten", "das", "दस"], "sign": "sign.ten", "card": "n10" },
-    { "w": ["want", "chahiye", "chahta", "chahti", "चाहिए", "चाहता", "चाहती", "need", "needs", "zaroorat", "ज़रूरत", "जरूरत"] },
-    { "w": ["here", "yahan", "yaha", "यहाँ", "यहां"] },
-    { "w": ["there", "wahan", "waha", "वहाँ", "वहां"] },
-    { "w": ["happen", "happened", "hua", "hui", "हुआ", "हुई"] },
-    { "w": ["ask", "asked", "poocho", "poochho", "puchna", "पूछो", "पूछना"] },
-    { "w": ["many", "bahut", "kai", "बहुत", "कई"] },
-    { "w": ["before", "pehle", "pahle", "पहले"] },
-    { "w": ["after", "baad", "बाद"] },
-    { "w": ["place", "places", "jagah", "जगह"] },
-    { "w": ["far", "door", "दूर"] },
-    { "w": ["remember", "yaad", "याद"] },
-    { "w": ["forget", "bhool", "bhoolna", "भूल", "भूलना"] },
-    { "w": ["speak", "bolo", "bolna", "बोलो", "बोलना", "tell", "told", "say", "said", "batao", "bataiye", "kaho", "बताओ", "बताइए", "कहो", "कहिए"] },
-    { "w": ["talk", "baat", "baatcheet", "बात", "बातचीत"] },
-    { "w": ["truth", "sach", "सच"] },
-    { "w": ["lie", "jhooth", "jhoot", "झूठ"] },
-    { "w": ["mistake", "galti", "गलती", "ग़लती"] },
-    { "w": ["big", "bada", "badi", "बड़ा", "बड़ी"] },
-    { "w": ["small", "chhota", "chhoti", "छोटा", "छोटी"] },
-    { "w": ["more", "zyada", "jyada", "ज़्यादा", "ज्यादा"] },
-    { "w": ["less", "kam", "कम"] },
-    { "w": ["room", "kamra", "कमरा"] },
-    { "w": ["knife", "chaku", "chaaku", "चाकू"], "card": "knife" },
-    { "w": ["stick", "danda", "lathi", "डंडा", "लाठी"] },
-    { "w": ["blood", "khoon", "खून", "ख़ून"] },
-    { "w": ["kill", "killed", "hatya", "हत्या"] },
-    { "w": ["steal", "stole", "stolen", "churaya", "चुराया"] },
-    { "w": ["fight", "ladai", "jhagda", "लड़ाई", "झगड़ा"] },
-    { "w": ["threat", "threatened", "dhamki", "धमकी"] },
-    { "w": ["rape", "balatkar", "बलात्कार"] },
-    { "w": ["marry", "married", "shaadi", "vivah", "शादी", "विवाह"] },
-    { "w": ["uncle", "chacha", "mama", "tau", "चाचा", "मामा", "ताऊ"] },
-    { "w": ["aunt", "chachi", "mausi", "bua", "चाची", "मौसी", "बुआ"] },
-    { "w": ["down", "neeche", "नीचे"] },
-    { "w": ["up", "upar", "ऊपर"] },
-    { "w": ["open", "kholo", "खोलो"] },
-    { "w": ["send", "sent", "bhejo", "bhejna", "भेजो", "भेजना"] },
-    { "w": ["sell", "sold", "becho", "bechna", "बेचो", "बेचना"] },
-    { "w": ["work", "kaam", "काम"] },
-    { "w": ["owner", "maalik", "malik", "मालिक"] },
-    { "w": ["people", "log", "लोग", "member", "members", "sadasya", "सदस्य"] },
-    { "w": ["famous", "prominent", "important", "prasiddh", "pramukh", "प्रसिद्ध", "प्रमुख", "मशहूर"] },
-    { "w": ["alone", "akela", "akeli", "अकेला", "अकेली"] },
-    { "w": ["parents", "mata-pita", "माता-पिता"] },
-    { "w": ["judge", "jaj", "nyayadhish", "जज", "न्यायाधीश"] },
-    { "w": ["arrest", "arrested", "giraftar", "गिरफ्तार", "गिरफ़्तार"] },
-    { "w": ["bail", "zamanat", "jamanat", "ज़मानत", "जमानत"] },
-    { "w": ["rights", "adhikar", "अधिकार"] },
-    { "w": ["legal", "kanooni", "kanuni", "कानूनी", "क़ानूनी"] },
-    { "w": ["government", "sarkar", "सरकार"] },
-    { "w": ["free", "muft", "मुफ़्त", "मुफ्त"] },
-    { "w": ["ready", "taiyaar", "taiyar", "तैयार"] },
-    { "w": ["next", "agla", "agli", "अगला", "अगली"] },
-    { "w": ["change", "badlo", "badalna", "बदलो", "बदलना"] },
-    { "w": ["explain", "samjhao", "समझाओ"] },
-    { "w": ["health", "sehat", "सेहत", "स्वास्थ्य"] },
-    { "w": ["body", "shareer", "sharir", "शरीर"] },
-    { "w": ["river", "nadi", "नदी"] },
-    { "w": ["forest", "jangal", "जंगल"] },
-    { "w": ["pond", "talab", "तालाब"] },
-    { "w": ["mosque", "masjid", "मस्जिद"] },
-    { "w": ["music", "sangeet", "संगीत"] },
-    { "w": ["push", "pushed", "dhakka", "धक्का"] },
-    { "w": ["pull", "kheencho", "खींचो"] },
-    { "w": ["angry", "gussa", "गुस्सा"], "card": "angry" },
-    { "w": ["red", "laal", "lal", "लाल"], "card": "red" },
-    { "w": ["blue", "neela", "nila", "नीला", "नीली"], "card": "blue" },
-    { "w": ["black", "kaala", "kala", "काला", "काली"], "card": "black" },
-    { "w": ["white", "safed", "सफ़ेद", "सफेद"], "card": "white" },
-    { "w": ["green", "hara", "hari", "हरा", "हरी"], "card": "green" },
-    { "w": ["yellow", "peela", "pila", "पीला", "पीली"], "card": "yellow" },
-    { "w": ["brown", "bhura", "भूरा", "भूरी"], "card": "brown" },
-    { "w": ["shirt", "t-shirt", "tshirt", "kameez", "kamiz", "कमीज़", "कमीज", "शर्ट"], "card": "shirt" },
-    { "w": ["pant", "pants", "trousers", "jeans", "patloon", "पैंट", "पतलून"], "card": "trousers" },
-    { "w": ["shoe", "shoes", "joota", "juta", "joote", "जूता", "जूते"], "card": "shoes" },
-    { "w": ["cap", "hat", "topi", "टोपी"], "card": "cap" },
-    { "w": ["dress", "frock", "फ्रॉक", "ड्रेस"], "card": "dress" },
-    { "w": ["happy", "khush", "खुश"], "card": "happy" },
-    { "w": ["husband", "wife", "spouse", "pati", "patni", "पति", "पत्नी"], "card": "spouse" },
-    { "w": ["computer", "कंप्यूटर"], "card": "computer" },
-    { "w": ["science", "vigyan", "विज्ञान"], "card": "science" },
-    { "w": ["temple", "mandir", "मंदिर"], "card": "temple" },
-    { "w": ["railway station", "station", "स्टेशन"], "card": "railway_station" },
-    { "w": ["sport", "sports", "khelkood", "खेलकूद"], "card": "sports" },
-    { "w": ["hear", "suno", "sunna", "सुनो", "सुनना"] },
-    { "w": ["stand", "khade", "khada", "खड़े", "खड़ा"] },
-    { "w": ["travel", "safar", "yatra", "सफ़र", "यात्रा"] },
-    { "w": ["disability", "viklang", "विकलांग"] },
-    { "w": ["personal", "niji", "निजी"] },
-    { "w": ["offence", "apradh", "अपराध"] },
-    { "w": ["force", "zabardasti", "ज़बरदस्ती"] },
-    { "w": ["handcuffs", "hathkadi", "हथकड़ी"] },
-    { "w": ["juvenile", "kishor", "किशोर"] },
-    { "w": ["group", "samooh", "समूह"] },
-    { "w": ["things", "cheezein", "saman", "चीज़ें", "सामान"] },
-    { "w": ["feelings", "bhavna", "भावना"] },
-    { "w": ["other", "doosra", "dusra", "दूसरा"] },
-    { "w": ["relatives", "rishtedar", "रिश्तेदार"] },
-    { "w": ["something", "kuch", "कुछ"] }
+    {
+      "w": [
+        "i",
+        "me",
+        "my",
+        "mine",
+        "myself",
+        "मैं",
+        "मुझे",
+        "मेरा",
+        "मेरी",
+        "मेरे",
+        "main",
+        "mai",
+        "mujhe",
+        "mera",
+        "meri",
+        "mere"
+      ],
+      "sign": "me.chest",
+      "gesture": "me.chest",
+      "card": "person"
+    },
+    {
+      "w": [
+        "you",
+        "your",
+        "yours",
+        "yourself",
+        "आप",
+        "तुम",
+        "तू",
+        "आपका",
+        "आपकी",
+        "आपके",
+        "आपको",
+        "तुम्हारा",
+        "तुम्हें",
+        "aap",
+        "tum",
+        "tu",
+        "aapka",
+        "aapki",
+        "aapke",
+        "aapko",
+        "tumhara",
+        "tumhe"
+      ],
+      "sign": "you.palm",
+      "gesture": "you.palm"
+    },
+    {
+      "w": [
+        "mother",
+        "mom",
+        "mum",
+        "mummy",
+        "amma",
+        "maa",
+        "ma",
+        "mata",
+        "माँ",
+        "मां",
+        "माता",
+        "मम्मी",
+        "अम्मा",
+        "दाई",
+        "याया"
+      ],
+      "sign": "mother.nosering",
+      "gesture": "mother.bindi",
+      "card": "mother"
+    },
+    {
+      "w": [
+        "father",
+        "dad",
+        "daddy",
+        "papa",
+        "baba",
+        "abba",
+        "पिता",
+        "पापा",
+        "बाबा",
+        "बापू",
+        "अब्बा",
+        "ददा"
+      ],
+      "sign": "father.moustache",
+      "gesture": "father.moustache",
+      "card": "father"
+    },
+    {
+      "w": [
+        "grandmother",
+        "granny",
+        "dadi",
+        "nani",
+        "दादी",
+        "नानी"
+      ],
+      "gesture": "grandparent.stick",
+      "card": "grandmother",
+      "sign": "isl.grandmother"
+    },
+    {
+      "w": [
+        "grandfather",
+        "grandpa",
+        "dada",
+        "nana",
+        "दादा",
+        "नाना"
+      ],
+      "gesture": "grandparent.stick",
+      "card": "grandfather",
+      "sign": "isl.grandfather"
+    },
+    {
+      "w": [
+        "baby",
+        "infant",
+        "शिशु",
+        "बेबी"
+      ],
+      "sign": "baby.rock",
+      "gesture": "baby.rock",
+      "card": "baby"
+    },
+    {
+      "w": [
+        "child",
+        "kid",
+        "kids",
+        "children",
+        "boy",
+        "girl",
+        "बच्चा",
+        "बच्ची",
+        "बच्चे",
+        "लड़का",
+        "लड़की",
+        "bachcha",
+        "bacha",
+        "bachchi",
+        "ladka",
+        "ladki"
+      ],
+      "sign": "sign.child",
+      "gesture": "sign.child"
+    },
+    {
+      "w": [
+        "brother",
+        "brothers",
+        "bhai",
+        "bhaiya",
+        "भाई",
+        "भैया"
+      ],
+      "sign": "sign.brother",
+      "gesture": "sibling.rakhi",
+      "card": "brother"
+    },
+    {
+      "w": [
+        "sister",
+        "sisters",
+        "behen",
+        "bahan",
+        "didi",
+        "बहन",
+        "बहनें",
+        "दीदी"
+      ],
+      "sign": "sign.sister",
+      "gesture": "sibling.rakhi",
+      "card": "sister"
+    },
+    {
+      "w": [
+        "home",
+        "house",
+        "ghar",
+        "makaan",
+        "घर",
+        "मकान",
+        "लोन"
+      ],
+      "sign": "home.roof",
+      "gesture": "home.roof",
+      "card": "home"
+    },
+    {
+      "w": [
+        "village",
+        "gaon",
+        "gaanv",
+        "गाँव",
+        "गांव"
+      ],
+      "sign": "sign.village",
+      "gesture": "home.roof",
+      "card": "village"
+    },
+    {
+      "w": [
+        "eat",
+        "ate",
+        "eating",
+        "food",
+        "meal",
+        "khana",
+        "khaana",
+        "khao",
+        "khaya",
+        "bhojan",
+        "roti",
+        "खाना",
+        "खाओ",
+        "खाया",
+        "भोजन",
+        "रोटी",
+        "भात"
+      ],
+      "sign": "eat.fingers",
+      "gesture": "eat.fingers",
+      "card": "food"
+    },
+    {
+      "w": [
+        "hungry",
+        "hunger",
+        "bhook",
+        "bhukh",
+        "bhookh",
+        "भूख",
+        "भूखा",
+        "भूखी",
+        "भूखे"
+      ],
+      "gesture": "hungry.belly",
+      "card": "food"
+    },
+    {
+      "w": [
+        "water",
+        "drink",
+        "thirsty",
+        "pani",
+        "paani",
+        "pyaas",
+        "pyas",
+        "पानी",
+        "प्यास",
+        "प्यासा",
+        "प्यासी",
+        "पियो",
+        "पीना",
+        "एर"
+      ],
+      "sign": "sign.water",
+      "gesture": "water.cup",
+      "card": "water"
+    },
+    {
+      "w": [
+        "toilet",
+        "bathroom",
+        "washroom",
+        "pee",
+        "potty",
+        "latrine",
+        "शौचालय",
+        "टॉयलेट",
+        "बाथरूम",
+        "पेशाब"
+      ],
+      "gesture": "toilet.finger",
+      "card": "toilet",
+      "sign": "isl.bathroom"
+    },
+    {
+      "w": [
+        "sleep",
+        "sleeping",
+        "slept",
+        "tired",
+        "rest",
+        "neend",
+        "sona",
+        "soya",
+        "aaram",
+        "नींद",
+        "सोना",
+        "सोओ",
+        "सोए",
+        "थका",
+        "थकी",
+        "थके",
+        "आराम"
+      ],
+      "sign": "sleep.palms",
+      "gesture": "sleep.palms",
+      "card": "rest"
+    },
+    {
+      "w": [
+        "pain",
+        "hurt",
+        "hurts",
+        "hurting",
+        "injury",
+        "injured",
+        "dard",
+        "chot",
+        "takleef",
+        "दर्द",
+        "चोट",
+        "तकलीफ"
+      ],
+      "sign": "pain.point",
+      "gesture": "pain.point",
+      "card": "pain"
+    },
+    {
+      "w": [
+        "sick",
+        "ill",
+        "fever",
+        "bimar",
+        "bukhar",
+        "बीमार",
+        "बुखार"
+      ],
+      "gesture": "sick.forehead",
+      "card": "sick",
+      "sign": "isl.sick"
+    },
+    {
+      "w": [
+        "medicine",
+        "tablet",
+        "pill",
+        "dawa",
+        "dawai",
+        "दवा",
+        "दवाई",
+        "गोली"
+      ],
+      "gesture": "medicine.pill",
+      "card": "medicine",
+      "sign": "isl.medicine"
+    },
+    {
+      "w": [
+        "doctor",
+        "dr",
+        "daktar",
+        "डॉक्टर",
+        "डाक्टर"
+      ],
+      "sign": "sign.doctor",
+      "gesture": "doctor.listen",
+      "card": "doctor"
+    },
+    {
+      "w": [
+        "hospital",
+        "aspatal",
+        "अस्पताल"
+      ],
+      "sign": "sign.doctor",
+      "gesture": "doctor.listen",
+      "card": "hospital"
+    },
+    {
+      "w": [
+        "cold",
+        "thand",
+        "thanda",
+        "ठंड",
+        "ठंडा",
+        "ठंडी",
+        "सर्दी"
+      ],
+      "gesture": "cold.hug",
+      "card": "cold",
+      "sign": "isl.cold"
+    },
+    {
+      "w": [
+        "hot",
+        "heat",
+        "garmi",
+        "garam",
+        "गर्मी",
+        "गरम",
+        "गर्म"
+      ],
+      "gesture": "hot.fan",
+      "card": "hot",
+      "sign": "isl.hot"
+    },
+    {
+      "w": [
+        "scared",
+        "afraid",
+        "fear",
+        "frightened",
+        "darr",
+        "dar",
+        "dara",
+        "dari",
+        "डर",
+        "डरा",
+        "डरी",
+        "डरो",
+        "भय"
+      ],
+      "gesture": "scared.cover",
+      "card": "scared"
+    },
+    {
+      "w": [
+        "cry",
+        "crying",
+        "sad",
+        "rona",
+        "udaas",
+        "रोना",
+        "रोए",
+        "उदास",
+        "दुखी"
+      ],
+      "sign": "sign.cry",
+      "gesture": "sign.cry",
+      "card": "sad"
+    },
+    {
+      "w": [
+        "yes",
+        "yeah",
+        "haan",
+        "han",
+        "ji",
+        "हाँ",
+        "हां",
+        "जी"
+      ],
+      "sign": "yes.nod",
+      "gesture": "yes.nod",
+      "card": "yes"
+    },
+    {
+      "w": [
+        "no",
+        "not",
+        "nahi",
+        "nahin",
+        "mat",
+        "na",
+        "नहीं",
+        "ना",
+        "मत"
+      ],
+      "sign": "no.shake",
+      "gesture": "no.shake",
+      "card": "no"
+    },
+    {
+      "w": [
+        "ok",
+        "okay",
+        "fine",
+        "good",
+        "accha",
+        "achha",
+        "theek",
+        "thik",
+        "badhiya",
+        "अच्छा",
+        "अच्छी",
+        "ठीक",
+        "बढ़िया"
+      ],
+      "sign": "thumbs_up",
+      "gesture": "thumbs_up",
+      "card": "okay"
+    },
+    {
+      "w": [
+        "bad",
+        "wrong",
+        "bura",
+        "buri",
+        "galat",
+        "kharab",
+        "बुरा",
+        "बुरी",
+        "गलत",
+        "खराब"
+      ],
+      "sign": "sign.bad",
+      "gesture": "sign.bad"
+    },
+    {
+      "w": [
+        "hello",
+        "hi",
+        "हेलो",
+        "हैलो"
+      ],
+      "sign": "namaste",
+      "gesture": "namaste"
+    },
+    {
+      "w": [
+        "namaste",
+        "namaskar",
+        "johar",
+        "नमस्ते",
+        "नमस्कार",
+        "जोहार"
+      ],
+      "sign": "namaste",
+      "gesture": "namaste"
+    },
+    {
+      "w": [
+        "bye",
+        "goodbye",
+        "alvida",
+        "अलविदा"
+      ],
+      "sign": "wave",
+      "gesture": "wave"
+    },
+    {
+      "w": [
+        "thanks",
+        "thank",
+        "dhanyavad",
+        "dhanyawad",
+        "shukriya",
+        "धन्यवाद",
+        "शुक्रिया"
+      ],
+      "sign": "sign.thanks",
+      "gesture": "sign.thanks",
+      "card": "thank_you"
+    },
+    {
+      "w": [
+        "sorry",
+        "maaf",
+        "maafi",
+        "माफ़",
+        "माफ",
+        "माफ़ी",
+        "माफी",
+        "क्षमा"
+      ],
+      "sign": "sign.sorry",
+      "gesture": "sign.sorry"
+    },
+    {
+      "w": [
+        "help",
+        "madad",
+        "sahayata",
+        "bachao",
+        "मदद",
+        "सहायता",
+        "बचाओ"
+      ],
+      "sign": "sign.help",
+      "gesture": "sign.help"
+    },
+    {
+      "w": [
+        "safe",
+        "surakshit",
+        "सुरक्षित"
+      ],
+      "sign": "thumbs_up",
+      "gesture": "thumbs_up",
+      "card": "okay"
+    },
+    {
+      "w": [
+        "come",
+        "aao",
+        "aaiye",
+        "आओ",
+        "आइए",
+        "आइये"
+      ],
+      "sign": "sign.come",
+      "gesture": "sign.come"
+    },
+    {
+      "w": [
+        "go",
+        "went",
+        "gone",
+        "jao",
+        "jana",
+        "gaya",
+        "gayi",
+        "जाओ",
+        "जाना",
+        "गया",
+        "गई",
+        "गए"
+      ],
+      "sign": "sign.go",
+      "gesture": "sign.go"
+    },
+    {
+      "w": [
+        "stop",
+        "ruko",
+        "roko",
+        "रुको",
+        "रोको"
+      ],
+      "sign": "sign.stop",
+      "gesture": "sign.stop",
+      "card": "stop"
+    },
+    {
+      "w": [
+        "wait",
+        "thahro",
+        "intezaar",
+        "ठहरो",
+        "इंतज़ार",
+        "इंतजार"
+      ],
+      "sign": "sign.wait",
+      "gesture": "sign.wait"
+    },
+    {
+      "w": [
+        "sit",
+        "baitho",
+        "baithiye",
+        "बैठो",
+        "बैठिए",
+        "बैठिये"
+      ],
+      "sign": "sign.sit",
+      "gesture": "sign.sit"
+    },
+    {
+      "w": [
+        "finish",
+        "finished",
+        "done",
+        "khatam",
+        "ख़त्म",
+        "खत्म",
+        "समाप्त"
+      ],
+      "sign": "sign.finish",
+      "gesture": "sign.finish"
+    },
+    {
+      "w": [
+        "hit",
+        "beat",
+        "beaten",
+        "slap",
+        "slapped",
+        "maara",
+        "mara",
+        "maar",
+        "peeta",
+        "मारा",
+        "मार",
+        "पीटा",
+        "थप्पड़"
+      ],
+      "sign": "sign.hit",
+      "gesture": "sign.hit"
+    },
+    {
+      "w": [
+        "time",
+        "when",
+        "kab",
+        "samay",
+        "waqt",
+        "kal",
+        "कब",
+        "समय",
+        "वक़्त",
+        "वक्त",
+        "कल"
+      ],
+      "sign": "sign.time",
+      "gesture": "sign.time"
+    },
+    {
+      "w": [
+        "see",
+        "saw",
+        "look",
+        "watch",
+        "dekho",
+        "dekha",
+        "dekhna",
+        "देखो",
+        "देखा",
+        "देखना"
+      ],
+      "sign": "sign.see",
+      "gesture": "sign.see"
+    },
+    {
+      "w": [
+        "know",
+        "knew",
+        "pata",
+        "jaante",
+        "jaanta",
+        "jaanti",
+        "पता",
+        "जानते",
+        "जानता",
+        "जानती"
+      ],
+      "sign": "sign.know",
+      "gesture": "sign.know"
+    },
+    {
+      "w": [
+        "introduce",
+        "parichay",
+        "परिचय"
+      ],
+      "gesture": "show_me",
+      "sign": "isl.introduce"
+    },
+    {
+      "w": [
+        "show",
+        "dikhao",
+        "दिखाओ",
+        "दिखाइए"
+      ],
+      "gesture": "show_me",
+      "sign": "isl.show"
+    },
+    {
+      "w": [
+        "who",
+        "why",
+        "which",
+        "whom",
+        "kaun",
+        "kyon",
+        "kyun",
+        "kyu",
+        "कौन",
+        "क्यों",
+        "किस"
+      ],
+      "sign": "ask",
+      "gesture": "ask"
+    },
+    {
+      "w": [
+        "what",
+        "kya",
+        "क्या"
+      ],
+      "sign": "sign.what",
+      "gesture": "ask"
+    },
+    {
+      "w": [
+        "where",
+        "kahan",
+        "kahaan",
+        "kaha",
+        "कहाँ",
+        "कहां"
+      ],
+      "sign": "sign.where",
+      "gesture": "ask"
+    },
+    {
+      "w": [
+        "how",
+        "kaise",
+        "kaisa",
+        "कैसे",
+        "कैसा",
+        "कैसी"
+      ],
+      "sign": "sign.how",
+      "gesture": "ask"
+    },
+    {
+      "w": [
+        "how many",
+        "how much",
+        "kitna",
+        "kitne",
+        "kitni",
+        "कितना",
+        "कितने",
+        "कितनी"
+      ],
+      "sign": "sign.how_many",
+      "gesture": "ask"
+    },
+    {
+      "w": [
+        "walk",
+        "walked",
+        "walking",
+        "chalo",
+        "chalna",
+        "paidal",
+        "चलो",
+        "चलना",
+        "पैदल"
+      ],
+      "gesture": "walk.fingers",
+      "card": "walk"
+    },
+    {
+      "w": [
+        "road",
+        "street",
+        "sadak",
+        "rasta",
+        "सड़क",
+        "रास्ता"
+      ],
+      "gesture": "walk.fingers",
+      "card": "road"
+    },
+    {
+      "w": [
+        "train",
+        "rail",
+        "railway",
+        "ट्रेन",
+        "रेल"
+      ],
+      "gesture": "train.arm",
+      "card": "train",
+      "sign": "isl.train"
+    },
+    {
+      "w": [
+        "car",
+        "vehicle",
+        "gaadi",
+        "gadi",
+        "गाड़ी",
+        "कार"
+      ],
+      "gesture": "vehicle.steer",
+      "card": "car",
+      "sign": "isl.car"
+    },
+    {
+      "w": [
+        "bus",
+        "बस"
+      ],
+      "gesture": "vehicle.steer",
+      "card": "bus",
+      "sign": "isl.bus"
+    },
+    {
+      "w": [
+        "auto",
+        "rickshaw",
+        "ऑटो",
+        "रिक्शा"
+      ],
+      "gesture": "vehicle.steer",
+      "card": "auto"
+    },
+    {
+      "w": [
+        "phone",
+        "call",
+        "mobile",
+        "फ़ोन",
+        "फोन",
+        "मोबाइल",
+        "कॉल",
+        "bulao",
+        "bulaya",
+        "बुलाओ",
+        "बुलाया"
+      ],
+      "sign": "phone.ear",
+      "gesture": "phone.ear",
+      "card": "phone"
+    },
+    {
+      "w": [
+        "money",
+        "rupees",
+        "rupee",
+        "paisa",
+        "paise",
+        "पैसा",
+        "पैसे",
+        "रुपये",
+        "रुपया"
+      ],
+      "sign": "money.rub",
+      "gesture": "money.rub",
+      "card": "money"
+    },
+    {
+      "w": [
+        "school",
+        "study",
+        "padhai",
+        "padhna",
+        "स्कूल",
+        "पढ़ाई",
+        "पढ़ना",
+        "विद्यालय"
+      ],
+      "gesture": "school.write",
+      "card": "school",
+      "sign": "isl.school"
+    },
+    {
+      "w": [
+        "write",
+        "wrote",
+        "writing",
+        "draw",
+        "drew",
+        "drawing",
+        "likho",
+        "likhna",
+        "likhiye",
+        "banao",
+        "लिखो",
+        "लिखिए",
+        "लिखना",
+        "बनाओ"
+      ],
+      "gesture": "school.write"
+    },
+    {
+      "w": [
+        "shop",
+        "market",
+        "dukaan",
+        "bazaar",
+        "दुकान",
+        "बाज़ार",
+        "बाजार"
+      ],
+      "gesture": "money.rub",
+      "card": "shop",
+      "sign": "isl.market"
+    },
+    {
+      "w": [
+        "police",
+        "policeman",
+        "officer",
+        "cop",
+        "पुलिस",
+        "अधिकारी"
+      ],
+      "sign": "police.salute",
+      "gesture": "police.salute",
+      "card": "police"
+    },
+    {
+      "w": [
+        "head",
+        "sar",
+        "सिर"
+      ],
+      "sign": "sign.body.head",
+      "card": "head"
+    },
+    {
+      "w": [
+        "eye",
+        "eyes",
+        "aankh",
+        "आँख",
+        "आंख"
+      ],
+      "sign": "sign.body.eye",
+      "card": "eye"
+    },
+    {
+      "w": [
+        "ear",
+        "ears",
+        "kaan",
+        "कान"
+      ],
+      "sign": "sign.body.ear",
+      "card": "ear"
+    },
+    {
+      "w": [
+        "mouth",
+        "muh",
+        "munh",
+        "मुँह",
+        "मुंह"
+      ],
+      "sign": "sign.body.mouth",
+      "card": "mouth"
+    },
+    {
+      "w": [
+        "throat",
+        "gala",
+        "गला"
+      ],
+      "card": "throat",
+      "sign": "isl.throat"
+    },
+    {
+      "w": [
+        "stomach",
+        "tummy",
+        "belly",
+        "पेट"
+      ],
+      "sign": "sign.body.stomach",
+      "gesture": "hungry.belly",
+      "card": "stomach"
+    },
+    {
+      "w": [
+        "back",
+        "kamar",
+        "peeth",
+        "कमर",
+        "पीठ"
+      ],
+      "sign": "sign.body.back",
+      "card": "back"
+    },
+    {
+      "w": [
+        "arm",
+        "hand",
+        "haath",
+        "हाथ",
+        "बाँह"
+      ],
+      "sign": "sign.body.arm",
+      "card": "arm"
+    },
+    {
+      "w": [
+        "leg",
+        "legs",
+        "tang",
+        "taang",
+        "टाँग",
+        "टांग"
+      ],
+      "sign": "sign.body.leg",
+      "card": "leg"
+    },
+    {
+      "w": [
+        "foot",
+        "feet",
+        "पैर"
+      ],
+      "card": "foot",
+      "sign": "isl.foot"
+    },
+    {
+      "w": [
+        "nose",
+        "naak",
+        "नाक"
+      ],
+      "sign": "sign.body.nose"
+    },
+    {
+      "w": [
+        "today",
+        "aaj",
+        "आज"
+      ],
+      "sign": "sign.today"
+    },
+    {
+      "w": [
+        "yesterday"
+      ],
+      "sign": "sign.yesterday"
+    },
+    {
+      "w": [
+        "tomorrow"
+      ],
+      "sign": "sign.tomorrow"
+    },
+    {
+      "w": [
+        "now",
+        "abhi",
+        "अभी"
+      ],
+      "sign": "sign.now"
+    },
+    {
+      "w": [
+        "morning",
+        "subah",
+        "सुबह"
+      ],
+      "sign": "sign.morning"
+    },
+    {
+      "w": [
+        "night",
+        "tonight",
+        "raat",
+        "रात"
+      ],
+      "sign": "sign.night"
+    },
+    {
+      "w": [
+        "day",
+        "din",
+        "दिन"
+      ],
+      "sign": "sign.day"
+    },
+    {
+      "w": [
+        "man",
+        "men",
+        "aadmi",
+        "admi",
+        "आदमी"
+      ],
+      "sign": "sign.man",
+      "card": "person"
+    },
+    {
+      "w": [
+        "woman",
+        "women",
+        "lady",
+        "aurat",
+        "mahila",
+        "औरत",
+        "महिला"
+      ],
+      "sign": "sign.woman"
+    },
+    {
+      "w": [
+        "friend",
+        "friends",
+        "dost",
+        "mitra",
+        "दोस्त",
+        "मित्र"
+      ],
+      "sign": "sign.friend",
+      "card": "friends"
+    },
+    {
+      "w": [
+        "name",
+        "naam",
+        "नाम"
+      ],
+      "sign": "sign.name"
+    },
+    {
+      "w": [
+        "give",
+        "gave",
+        "do",
+        "de",
+        "dena",
+        "diya",
+        "दो",
+        "दे",
+        "देना",
+        "दिया"
+      ],
+      "sign": "sign.give"
+    },
+    {
+      "w": [
+        "take",
+        "took",
+        "lo",
+        "le",
+        "lena",
+        "liya",
+        "लो",
+        "ले",
+        "लेना",
+        "लिया"
+      ],
+      "sign": "sign.take"
+    },
+    {
+      "w": [
+        "touch",
+        "touched",
+        "chhoo",
+        "chhua",
+        "chhuo",
+        "छू",
+        "छुआ",
+        "छुओ"
+      ],
+      "sign": "sign.touch"
+    },
+    {
+      "w": [
+        "run",
+        "ran",
+        "running",
+        "bhaag",
+        "bhago",
+        "bhaaga",
+        "bhaga",
+        "भाग",
+        "भागो",
+        "भागा"
+      ],
+      "sign": "sign.run"
+    },
+    {
+      "w": [
+        "hide",
+        "hid",
+        "hiding",
+        "chhup",
+        "chhupo",
+        "chhupa",
+        "छुप",
+        "छुपो",
+        "छुपा",
+        "छिपा"
+      ],
+      "sign": "sign.hide"
+    },
+    {
+      "w": [
+        "lost",
+        "lose",
+        "kho",
+        "khoya",
+        "khoyi",
+        "खो",
+        "खोया",
+        "खोई"
+      ],
+      "sign": "sign.lost"
+    },
+    {
+      "w": [
+        "find",
+        "found",
+        "search",
+        "dhoondo",
+        "dhundo",
+        "dhoondh",
+        "ढूंढो",
+        "ढूँढो",
+        "ढूंढ"
+      ],
+      "sign": "sign.find"
+    },
+    {
+      "w": [
+        "play",
+        "played",
+        "playing",
+        "khelo",
+        "khel",
+        "khela",
+        "खेल",
+        "खेलो",
+        "खेला"
+      ],
+      "sign": "sign.play"
+    },
+    {
+      "w": [
+        "wash",
+        "washed",
+        "dho",
+        "dhoo",
+        "dhona",
+        "dhoyo",
+        "धो",
+        "धोओ",
+        "धोना"
+      ],
+      "sign": "sign.wash"
+    },
+    {
+      "w": [
+        "age",
+        "old",
+        "umar",
+        "umr",
+        "उम्र",
+        "उमर",
+        "आयु",
+        "aayu"
+      ],
+      "sign": "sign.age"
+    },
+    {
+      "w": [
+        "number",
+        "nambar",
+        "नंबर",
+        "संख्या",
+        "numbers",
+        "sankhya"
+      ],
+      "sign": "sign.number"
+    },
+    {
+      "w": [
+        "family",
+        "parivar",
+        "परिवार"
+      ],
+      "sign": "sign.family"
+    },
+    {
+      "w": [
+        "live",
+        "lives",
+        "living",
+        "rehte",
+        "rahte",
+        "रहते",
+        "रहती",
+        "रहता",
+        "रहना",
+        "stay",
+        "rehta",
+        "rehti"
+      ],
+      "sign": "sign.live"
+    },
+    {
+      "w": [
+        "city",
+        "town",
+        "shahar",
+        "शहर",
+        "नगर",
+        "कस्बा",
+        "shehar",
+        "nagar"
+      ],
+      "sign": "sign.city"
+    },
+    {
+      "w": [
+        "district",
+        "zila",
+        "jila",
+        "ज़िला",
+        "जिला",
+        "ज़िले",
+        "जिले"
+      ],
+      "sign": "sign.district"
+    },
+    {
+      "w": [
+        "state",
+        "rajya",
+        "राज्य",
+        "प्रदेश",
+        "pradesh"
+      ],
+      "sign": "sign.state"
+    },
+    {
+      "w": [
+        "near",
+        "nearby",
+        "paas",
+        "पास",
+        "नज़दीक",
+        "नजदीक",
+        "close",
+        "nazdeek"
+      ],
+      "sign": "sign.near"
+    },
+    {
+      "w": [
+        "class",
+        "kaksha",
+        "कक्षा",
+        "क्लास"
+      ],
+      "sign": "sign.class"
+    },
+    {
+      "w": [
+        "teacher",
+        "shikshak",
+        "शिक्षक",
+        "अध्यापक",
+        "टीचर",
+        "teachers",
+        "adhyapak",
+        "masterji"
+      ],
+      "sign": "sign.teacher"
+    },
+    {
+      "w": [
+        "favourite",
+        "favorite",
+        "pasandida",
+        "पसंदीदा"
+      ],
+      "sign": "sign.favourite"
+    },
+    {
+      "w": [
+        "subject",
+        "vishay",
+        "विषय"
+      ],
+      "sign": "sign.subject"
+    },
+    {
+      "w": [
+        "like",
+        "pasand",
+        "पसंद",
+        "likes"
+      ],
+      "sign": "sign.like"
+    },
+    {
+      "w": [
+        "understand",
+        "understood",
+        "samajh",
+        "samjha",
+        "समझ",
+        "समझा",
+        "समझी",
+        "समझे",
+        "samjhe",
+        "samjhi",
+        "समझना"
+      ],
+      "sign": "sign.understand"
+    },
+    {
+      "w": [
+        "again",
+        "repeat",
+        "phir",
+        "dobara",
+        "फिर",
+        "दोबारा",
+        "fir",
+        "dubara",
+        "दुबारा"
+      ],
+      "sign": "sign.again"
+    },
+    {
+      "w": [
+        "please",
+        "kripya",
+        "कृपया",
+        "kripaya"
+      ],
+      "sign": "sign.please"
+    },
+    {
+      "w": [
+        "student",
+        "students",
+        "vidyarthi",
+        "chhatra",
+        "विद्यार्थी",
+        "छात्र"
+      ],
+      "sign": "isl.student"
+    },
+    {
+      "w": [
+        "one",
+        "ek",
+        "एक"
+      ],
+      "sign": "digit.1",
+      "card": "n1"
+    },
+    {
+      "w": [
+        "two"
+      ],
+      "sign": "digit.2",
+      "card": "n2"
+    },
+    {
+      "w": [
+        "three",
+        "teen",
+        "तीन"
+      ],
+      "sign": "digit.3",
+      "card": "n3"
+    },
+    {
+      "w": [
+        "four",
+        "chaar",
+        "char",
+        "चार"
+      ],
+      "sign": "digit.4",
+      "card": "n4"
+    },
+    {
+      "w": [
+        "five",
+        "paanch",
+        "panch",
+        "पाँच",
+        "पांच"
+      ],
+      "sign": "digit.5",
+      "card": "n5"
+    },
+    {
+      "w": [
+        "six",
+        "chhah",
+        "chhe",
+        "छह",
+        "छः"
+      ],
+      "sign": "digit.6",
+      "card": "n6"
+    },
+    {
+      "w": [
+        "seven",
+        "saat",
+        "सात"
+      ],
+      "sign": "digit.7",
+      "card": "n7"
+    },
+    {
+      "w": [
+        "eight",
+        "aath",
+        "आठ"
+      ],
+      "sign": "digit.8",
+      "card": "n8"
+    },
+    {
+      "w": [
+        "nine",
+        "nau",
+        "नौ"
+      ],
+      "sign": "digit.9",
+      "card": "n9"
+    },
+    {
+      "w": [
+        "ten",
+        "das",
+        "दस"
+      ],
+      "sign": "sign.ten",
+      "card": "n10"
+    },
+    {
+      "w": [
+        "want",
+        "chahiye",
+        "chahta",
+        "chahti",
+        "चाहिए",
+        "चाहता",
+        "चाहती",
+        "need",
+        "needs",
+        "zaroorat",
+        "ज़रूरत",
+        "जरूरत"
+      ],
+      "sign": "isl.want"
+    },
+    {
+      "w": [
+        "here",
+        "yahan",
+        "yaha",
+        "यहाँ",
+        "यहां"
+      ],
+      "sign": "isl.here"
+    },
+    {
+      "w": [
+        "there",
+        "wahan",
+        "waha",
+        "वहाँ",
+        "वहां"
+      ],
+      "sign": "isl.there"
+    },
+    {
+      "w": [
+        "happen",
+        "happened",
+        "hua",
+        "hui",
+        "हुआ",
+        "हुई"
+      ],
+      "sign": "isl.happen"
+    },
+    {
+      "w": [
+        "ask",
+        "asked",
+        "poocho",
+        "poochho",
+        "puchna",
+        "पूछो",
+        "पूछना"
+      ],
+      "sign": "isl.ask"
+    },
+    {
+      "w": [
+        "many",
+        "bahut",
+        "kai",
+        "बहुत",
+        "कई"
+      ],
+      "sign": "isl.many"
+    },
+    {
+      "w": [
+        "before",
+        "pehle",
+        "pahle",
+        "पहले"
+      ],
+      "sign": "isl.before"
+    },
+    {
+      "w": [
+        "after",
+        "baad",
+        "बाद"
+      ],
+      "sign": "isl.after"
+    },
+    {
+      "w": [
+        "place",
+        "places",
+        "jagah",
+        "जगह"
+      ],
+      "sign": "isl.place"
+    },
+    {
+      "w": [
+        "far",
+        "door",
+        "दूर"
+      ],
+      "sign": "isl.far"
+    },
+    {
+      "w": [
+        "remember",
+        "yaad",
+        "याद"
+      ],
+      "sign": "isl.remember"
+    },
+    {
+      "w": [
+        "forget",
+        "bhool",
+        "bhoolna",
+        "भूल",
+        "भूलना"
+      ],
+      "sign": "isl.forget"
+    },
+    {
+      "w": [
+        "speak",
+        "bolo",
+        "bolna",
+        "बोलो",
+        "बोलना",
+        "tell",
+        "told",
+        "say",
+        "said",
+        "batao",
+        "bataiye",
+        "kaho",
+        "बताओ",
+        "बताइए",
+        "कहो",
+        "कहिए"
+      ],
+      "sign": "isl.speak"
+    },
+    {
+      "w": [
+        "talk",
+        "baat",
+        "baatcheet",
+        "बात",
+        "बातचीत"
+      ],
+      "sign": "isl.talk"
+    },
+    {
+      "w": [
+        "truth",
+        "sach",
+        "सच"
+      ],
+      "sign": "isl.truth"
+    },
+    {
+      "w": [
+        "lie",
+        "jhooth",
+        "jhoot",
+        "झूठ"
+      ],
+      "sign": "isl.lie"
+    },
+    {
+      "w": [
+        "mistake",
+        "galti",
+        "गलती",
+        "ग़लती"
+      ],
+      "sign": "isl.mistake"
+    },
+    {
+      "w": [
+        "big",
+        "bada",
+        "badi",
+        "बड़ा",
+        "बड़ी"
+      ],
+      "sign": "isl.big"
+    },
+    {
+      "w": [
+        "small",
+        "chhota",
+        "chhoti",
+        "छोटा",
+        "छोटी"
+      ],
+      "sign": "isl.small"
+    },
+    {
+      "w": [
+        "more",
+        "zyada",
+        "jyada",
+        "ज़्यादा",
+        "ज्यादा"
+      ],
+      "sign": "isl.more"
+    },
+    {
+      "w": [
+        "less",
+        "kam",
+        "कम"
+      ],
+      "sign": "isl.less"
+    },
+    {
+      "w": [
+        "room",
+        "kamra",
+        "कमरा"
+      ],
+      "sign": "isl.room"
+    },
+    {
+      "w": [
+        "knife",
+        "chaku",
+        "chaaku",
+        "चाकू"
+      ],
+      "card": "knife",
+      "sign": "isl.knife"
+    },
+    {
+      "w": [
+        "stick",
+        "danda",
+        "lathi",
+        "डंडा",
+        "लाठी"
+      ],
+      "sign": "isl.stick"
+    },
+    {
+      "w": [
+        "blood",
+        "khoon",
+        "खून",
+        "ख़ून"
+      ],
+      "sign": "isl.blood"
+    },
+    {
+      "w": [
+        "kill",
+        "killed",
+        "hatya",
+        "हत्या"
+      ],
+      "sign": "isl.kill"
+    },
+    {
+      "w": [
+        "steal",
+        "stole",
+        "stolen",
+        "churaya",
+        "चुराया"
+      ],
+      "sign": "isl.steal"
+    },
+    {
+      "w": [
+        "fight",
+        "ladai",
+        "jhagda",
+        "लड़ाई",
+        "झगड़ा"
+      ],
+      "sign": "isl.fight"
+    },
+    {
+      "w": [
+        "threat",
+        "threatened",
+        "dhamki",
+        "धमकी"
+      ],
+      "sign": "isl.threat"
+    },
+    {
+      "w": [
+        "rape",
+        "balatkar",
+        "बलात्कार"
+      ],
+      "sign": "isl.rape"
+    },
+    {
+      "w": [
+        "marry",
+        "married",
+        "shaadi",
+        "vivah",
+        "शादी",
+        "विवाह"
+      ],
+      "sign": "isl.marry"
+    },
+    {
+      "w": [
+        "uncle",
+        "chacha",
+        "mama",
+        "tau",
+        "चाचा",
+        "मामा",
+        "ताऊ"
+      ],
+      "sign": "isl.uncle"
+    },
+    {
+      "w": [
+        "aunt",
+        "chachi",
+        "mausi",
+        "bua",
+        "चाची",
+        "मौसी",
+        "बुआ"
+      ],
+      "sign": "isl.aunt"
+    },
+    {
+      "w": [
+        "down",
+        "neeche",
+        "नीचे"
+      ],
+      "sign": "isl.down"
+    },
+    {
+      "w": [
+        "up",
+        "upar",
+        "ऊपर"
+      ],
+      "sign": "isl.up"
+    },
+    {
+      "w": [
+        "open",
+        "kholo",
+        "खोलो"
+      ],
+      "sign": "isl.open"
+    },
+    {
+      "w": [
+        "send",
+        "sent",
+        "bhejo",
+        "bhejna",
+        "भेजो",
+        "भेजना"
+      ],
+      "sign": "isl.send"
+    },
+    {
+      "w": [
+        "sell",
+        "sold",
+        "becho",
+        "bechna",
+        "बेचो",
+        "बेचना"
+      ],
+      "sign": "isl.sell"
+    },
+    {
+      "w": [
+        "work",
+        "kaam",
+        "काम"
+      ],
+      "sign": "isl.work"
+    },
+    {
+      "w": [
+        "owner",
+        "maalik",
+        "malik",
+        "मालिक"
+      ],
+      "sign": "isl.owner"
+    },
+    {
+      "w": [
+        "people",
+        "log",
+        "लोग",
+        "member",
+        "members",
+        "sadasya",
+        "सदस्य"
+      ],
+      "sign": "isl.people"
+    },
+    {
+      "w": [
+        "famous",
+        "prominent",
+        "important",
+        "prasiddh",
+        "pramukh",
+        "प्रसिद्ध",
+        "प्रमुख",
+        "मशहूर"
+      ],
+      "sign": "isl.famous"
+    },
+    {
+      "w": [
+        "alone",
+        "akela",
+        "akeli",
+        "अकेला",
+        "अकेली"
+      ],
+      "sign": "isl.alone"
+    },
+    {
+      "w": [
+        "parents",
+        "mata-pita",
+        "माता-पिता"
+      ],
+      "sign": "isl.parents"
+    },
+    {
+      "w": [
+        "judge",
+        "jaj",
+        "nyayadhish",
+        "जज",
+        "न्यायाधीश"
+      ],
+      "sign": "isl.judge"
+    },
+    {
+      "w": [
+        "arrest",
+        "arrested",
+        "giraftar",
+        "गिरफ्तार",
+        "गिरफ़्तार"
+      ],
+      "sign": "isl.arrest"
+    },
+    {
+      "w": [
+        "bail",
+        "zamanat",
+        "jamanat",
+        "ज़मानत",
+        "जमानत"
+      ],
+      "sign": "isl.bail"
+    },
+    {
+      "w": [
+        "rights",
+        "adhikar",
+        "अधिकार"
+      ],
+      "sign": "isl.rights"
+    },
+    {
+      "w": [
+        "legal",
+        "kanooni",
+        "kanuni",
+        "कानूनी",
+        "क़ानूनी"
+      ],
+      "sign": "isl.legal"
+    },
+    {
+      "w": [
+        "government",
+        "sarkar",
+        "सरकार"
+      ],
+      "sign": "isl.government"
+    },
+    {
+      "w": [
+        "free",
+        "muft",
+        "मुफ़्त",
+        "मुफ्त"
+      ],
+      "sign": "isl.free"
+    },
+    {
+      "w": [
+        "ready",
+        "taiyaar",
+        "taiyar",
+        "तैयार"
+      ],
+      "sign": "isl.ready"
+    },
+    {
+      "w": [
+        "next",
+        "agla",
+        "agli",
+        "अगला",
+        "अगली"
+      ],
+      "sign": "isl.next"
+    },
+    {
+      "w": [
+        "change",
+        "badlo",
+        "badalna",
+        "बदलो",
+        "बदलना"
+      ],
+      "sign": "isl.change"
+    },
+    {
+      "w": [
+        "explain",
+        "samjhao",
+        "समझाओ"
+      ],
+      "sign": "isl.explain"
+    },
+    {
+      "w": [
+        "health",
+        "sehat",
+        "सेहत",
+        "स्वास्थ्य"
+      ],
+      "sign": "isl.health"
+    },
+    {
+      "w": [
+        "body",
+        "shareer",
+        "sharir",
+        "शरीर"
+      ],
+      "sign": "isl.body"
+    },
+    {
+      "w": [
+        "river",
+        "nadi",
+        "नदी"
+      ],
+      "sign": "isl.river"
+    },
+    {
+      "w": [
+        "forest",
+        "jangal",
+        "जंगल"
+      ],
+      "sign": "isl.forest"
+    },
+    {
+      "w": [
+        "pond",
+        "talab",
+        "तालाब"
+      ],
+      "sign": "isl.pond"
+    },
+    {
+      "w": [
+        "mosque",
+        "masjid",
+        "मस्जिद"
+      ],
+      "sign": "isl.mosque"
+    },
+    {
+      "w": [
+        "music",
+        "sangeet",
+        "संगीत"
+      ],
+      "sign": "isl.music"
+    },
+    {
+      "w": [
+        "push",
+        "pushed",
+        "dhakka",
+        "धक्का"
+      ],
+      "sign": "isl.push"
+    },
+    {
+      "w": [
+        "pull",
+        "kheencho",
+        "खींचो"
+      ],
+      "sign": "isl.pull"
+    },
+    {
+      "w": [
+        "angry",
+        "gussa",
+        "गुस्सा"
+      ],
+      "card": "angry",
+      "sign": "isl.angry"
+    },
+    {
+      "w": [
+        "red",
+        "laal",
+        "lal",
+        "लाल"
+      ],
+      "card": "red",
+      "sign": "isl.red"
+    },
+    {
+      "w": [
+        "blue",
+        "neela",
+        "nila",
+        "नीला",
+        "नीली"
+      ],
+      "card": "blue",
+      "sign": "isl.blue"
+    },
+    {
+      "w": [
+        "black",
+        "kaala",
+        "kala",
+        "काला",
+        "काली"
+      ],
+      "card": "black",
+      "sign": "isl.black"
+    },
+    {
+      "w": [
+        "white",
+        "safed",
+        "सफ़ेद",
+        "सफेद"
+      ],
+      "card": "white",
+      "sign": "isl.white"
+    },
+    {
+      "w": [
+        "green",
+        "hara",
+        "hari",
+        "हरा",
+        "हरी"
+      ],
+      "card": "green",
+      "sign": "isl.green"
+    },
+    {
+      "w": [
+        "yellow",
+        "peela",
+        "pila",
+        "पीला",
+        "पीली"
+      ],
+      "card": "yellow",
+      "sign": "isl.yellow"
+    },
+    {
+      "w": [
+        "brown",
+        "bhura",
+        "भूरा",
+        "भूरी"
+      ],
+      "card": "brown",
+      "sign": "isl.brown"
+    },
+    {
+      "w": [
+        "shirt",
+        "t-shirt",
+        "tshirt",
+        "kameez",
+        "kamiz",
+        "कमीज़",
+        "कमीज",
+        "शर्ट"
+      ],
+      "card": "shirt",
+      "sign": "isl.shirt"
+    },
+    {
+      "w": [
+        "pant",
+        "pants",
+        "trousers",
+        "jeans",
+        "patloon",
+        "पैंट",
+        "पतलून"
+      ],
+      "card": "trousers",
+      "sign": "isl.pant"
+    },
+    {
+      "w": [
+        "shoe",
+        "shoes",
+        "joota",
+        "juta",
+        "joote",
+        "जूता",
+        "जूते"
+      ],
+      "card": "shoes",
+      "sign": "isl.shoes"
+    },
+    {
+      "w": [
+        "cap",
+        "hat",
+        "topi",
+        "टोपी"
+      ],
+      "card": "cap",
+      "sign": "isl.hat"
+    },
+    {
+      "w": [
+        "dress",
+        "frock",
+        "फ्रॉक",
+        "ड्रेस"
+      ],
+      "card": "dress",
+      "sign": "isl.dress"
+    },
+    {
+      "w": [
+        "happy",
+        "khush",
+        "खुश"
+      ],
+      "card": "happy",
+      "sign": "isl.happy"
+    },
+    {
+      "w": [
+        "husband",
+        "wife",
+        "spouse",
+        "pati",
+        "patni",
+        "पति",
+        "पत्नी"
+      ],
+      "card": "spouse",
+      "sign": "isl.husband"
+    },
+    {
+      "w": [
+        "computer",
+        "कंप्यूटर"
+      ],
+      "card": "computer",
+      "sign": "isl.computer"
+    },
+    {
+      "w": [
+        "science",
+        "vigyan",
+        "विज्ञान"
+      ],
+      "card": "science",
+      "sign": "isl.science"
+    },
+    {
+      "w": [
+        "temple",
+        "mandir",
+        "मंदिर"
+      ],
+      "card": "temple",
+      "sign": "isl.temple"
+    },
+    {
+      "w": [
+        "railway station",
+        "station",
+        "स्टेशन"
+      ],
+      "card": "railway_station"
+    },
+    {
+      "w": [
+        "sport",
+        "sports",
+        "khelkood",
+        "खेलकूद"
+      ],
+      "card": "sports",
+      "sign": "isl.sport"
+    },
+    {
+      "w": [
+        "hear",
+        "suno",
+        "sunna",
+        "सुनो",
+        "सुनना"
+      ],
+      "sign": "isl.hear"
+    },
+    {
+      "w": [
+        "stand",
+        "khade",
+        "khada",
+        "खड़े",
+        "खड़ा"
+      ],
+      "sign": "isl.stand"
+    },
+    {
+      "w": [
+        "travel",
+        "safar",
+        "yatra",
+        "सफ़र",
+        "यात्रा"
+      ],
+      "sign": "isl.travel"
+    },
+    {
+      "w": [
+        "disability",
+        "viklang",
+        "विकलांग"
+      ],
+      "sign": "isl.disability"
+    },
+    {
+      "w": [
+        "personal",
+        "niji",
+        "निजी"
+      ],
+      "sign": "isl.personal"
+    },
+    {
+      "w": [
+        "offence",
+        "apradh",
+        "अपराध"
+      ],
+      "sign": "isl.offence"
+    },
+    {
+      "w": [
+        "force",
+        "zabardasti",
+        "ज़बरदस्ती"
+      ],
+      "sign": "isl.force"
+    },
+    {
+      "w": [
+        "handcuffs",
+        "hathkadi",
+        "हथकड़ी"
+      ],
+      "sign": "isl.handcuffs"
+    },
+    {
+      "w": [
+        "juvenile",
+        "kishor",
+        "किशोर"
+      ],
+      "sign": "isl.juvenile"
+    },
+    {
+      "w": [
+        "group",
+        "samooh",
+        "समूह"
+      ],
+      "sign": "isl.group"
+    },
+    {
+      "w": [
+        "things",
+        "cheezein",
+        "saman",
+        "चीज़ें",
+        "सामान"
+      ],
+      "sign": "isl.things"
+    },
+    {
+      "w": [
+        "feelings",
+        "bhavna",
+        "भावना"
+      ],
+      "sign": "isl.feelings"
+    },
+    {
+      "w": [
+        "other",
+        "doosra",
+        "dusra",
+        "दूसरा"
+      ],
+      "sign": "isl.other"
+    },
+    {
+      "w": [
+        "relatives",
+        "rishtedar",
+        "रिश्तेदार"
+      ],
+      "sign": "isl.relatives"
+    },
+    {
+      "w": [
+        "something",
+        "kuch",
+        "कुछ"
+      ],
+      "sign": "isl.something"
+    }
   ]
 }

@@ -65,12 +65,21 @@ export function sourceClip(id: string): string | undefined {
 export function meaning(id: string): { label: string; how: string } {
   const e = lexicon.get(id);
   if (e) return { label: e.label.en, how: e.how.en };
+  if (id.startsWith("letter.hi."))
+    return {
+      label: `Akshara ${id.slice("letter.hi.".length)}`,
+      how: "Two-handed ISL alphabet (same pose as the Latin letter). Draft until Deaf review.",
+    };
   if (id.startsWith("letter.")) return { label: `Letter ${id.slice(-1).toUpperCase()}`, how: "" };
   if (id.startsWith("digit.")) return { label: `Number ${id.slice(-1)}`, how: "" };
   const a = asl.get(id);
   if (a) return { label: a.word, how: `ASL, ${aslFile.source}${a.rec ? `, recording ${a.rec}` : ""}. Draft until Deaf ASL review.` };
   const s = isl.get(id);
-  if (s) return { label: `${s.word} (${s.hi})`, how: `Recorded signer, ${islFile.source}, recording ${s.rec}. Draft until Deaf review.` };
+  if (s)
+    return {
+      label: s.hi ? `${s.word} (${s.hi})` : s.word,
+      how: `Recorded signer, ${islFile.source}, recording ${s.rec}. Draft until Deaf review.`,
+    };
   if (drafts.has(id)) return { label: wordFor.get(id) ?? id, how: "Authored lesson sign. Draft until Deaf review." };
   return { label: wordFor.get(id) ?? id, how: "" };
 }

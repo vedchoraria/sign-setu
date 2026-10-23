@@ -190,7 +190,7 @@ internal fun HeldCard(cardId: String, label: String?, modifier: Modifier) {
 
 /** The word being fingerspelled, its current letter large, so a reader can follow the hands. */
 @Composable
-internal fun LetterTile(letters: String, current: Int, modifier: Modifier) {
+internal fun LetterTile(letters: List<String>, current: Int, modifier: Modifier) {
     Surface(shape = RoundedCornerShape(18.dp), color = Color.White, shadowElevation = 4.dp, modifier = modifier.rotate(-4f).size(SideBand, 108.dp)) {
         Column(Modifier.padding(horizontal = 8.dp, vertical = 6.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
             Text(
@@ -203,8 +203,8 @@ internal fun LetterTile(letters: String, current: Int, modifier: Modifier) {
             )
             Text(
                 buildAnnotatedString {
-                    letters.uppercase().forEachIndexed { i, c ->
-                        withStyle(SpanStyle(color = if (i == current) Ink else Color(0xFFB8A99A), fontWeight = if (i == current) FontWeight.Bold else FontWeight.Normal)) { append(c) }
+                    letters.forEachIndexed { i, unit ->
+                        withStyle(SpanStyle(color = if (i == current) Ink else Color(0xFFB8A99A), fontWeight = if (i == current) FontWeight.Bold else FontWeight.Normal)) { append(unit.uppercase()) }
                     }
                 },
                 style = MaterialTheme.typography.labelMedium,

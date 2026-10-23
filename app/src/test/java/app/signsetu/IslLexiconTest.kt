@@ -186,6 +186,7 @@ class IslLexiconTest {
     fun aSpelledReadingSignsBackAsLetters() {
         val spell = setOf(SignMode.SIGNS, SignMode.SPELL)
         assertEquals(listOf("letter.r"), bundle.planText("r", spell).motions)
+        assertEquals(listOf("letter.hi.प", "letter.hi.आ", "letter.hi.न", "letter.hi.ई"), bundle.planText("पानी", setOf(SignMode.SPELL)).motions)
         assertNotNull(bundle.signBack("r"))
         assertEquals(listOf("r", "a", "v", "i").map { "asl.letter.$it" }, asl.planText("ravi", spell).motions)
         assertNotNull(asl.signBack("ravi"))

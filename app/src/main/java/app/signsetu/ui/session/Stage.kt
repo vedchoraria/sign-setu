@@ -269,10 +269,8 @@ fun Stage(
     }
     val letter by remember(plan) {
         derivedStateOf {
-            val b = beat
-            val letters = b?.letters ?: return@derivedStateOf -1
-            val t = playClock.floatValue - Timeline.LEAD_IN
-            ((t - b.start) / (b.end - b.start) * letters.length).toInt().coerceIn(0, letters.length - 1)
+            val b = beat ?: return@derivedStateOf -1
+            spelledIndex(b, playClock.floatValue - Timeline.LEAD_IN)
         }
     }
     val caption = when {
@@ -631,3 +629,16 @@ private fun speechFor(pending: Pending?, content: ContentBundle, lang: String): 
 
 /** Recorded speech below normal speed only goes to 0.75: slower than that, words smear. */
 private fun audioRate(pace: Float) = if (pace < 1f) 0.75f else 1f
+
+/**
+ * Which unit of a spelled word the letter tile shows [t] seconds into the plan's gesture, before its lead-in: one
+ * akshara at a time, left to right. -1 when the beat only holds a picture.
+ */
+internal fun spelledIndex(beat: WordBeat, t: Float): Int {
+    val n = beat.letters?.size ?: return -1
+    if (n == 0) return -1
+    // A zero-length beat cannot be divided; show its first unit rather than crashing on the range.
+    if (beat.end <= beat.start) return 0
+    val progress = ((t - beat.start) / (beat.end - beat.start)).coerceIn(0f, 1f)
+    return (progress * n).toInt().coerceIn(0, n - 1)
+}

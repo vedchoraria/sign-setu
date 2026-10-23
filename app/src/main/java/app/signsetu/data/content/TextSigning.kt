@@ -1,6 +1,7 @@
 package app.signsetu.data.content
 
 import androidx.compose.runtime.Immutable
+import java.text.Normalizer
 import app.signsetu.ui.avatar.Gesture
 import app.signsetu.ui.avatar.Key
 import app.signsetu.ui.avatar.QuestionKind
@@ -16,7 +17,7 @@ data class WordEntry(val w: List<String>, val sign: String? = null, val gesture:
 
 /** One typed word as played: [start] and [end] are seconds into the plan's gesture, before its lead-in. */
 @Immutable
-data class WordBeat(val range: IntRange, val card: String?, val letters: String?, val start: Float, val end: Float)
+data class WordBeat(val range: IntRange, val card: String?, val letters: List<String>?, val start: Float, val end: Float)
 
 @Immutable
 data class TextPlan(val gesture: Gesture?, val beats: List<WordBeat>, val motions: List<String> = emptyList())
@@ -71,7 +72,8 @@ private val PAUSE = Gesture("pause", listOf(Key(0f), Key(0.6f)))
 
 /**
  * Turns free text into one gesture, word by word: a sign or gesture where the vocabulary
- * has one, otherwise fingerspelling, with Hindi spelled in Latin letters. A question mark adds the asking face.
+ * has one, otherwise fingerspelling. Hindi is spelled akshara by akshara on the ISL two-handed
+ * alphabet. A question mark adds the asking face.
  */
 fun ContentBundle.planText(text: String, modes: Set<SignMode>): TextPlan {
     val parts = mutableListOf<Gesture>()
@@ -89,24 +91,32 @@ fun ContentBundle.planText(text: String, modes: Set<SignMode>): TextPlan {
     fun grammar(i: Int) = (tokens[i].second in FILLER && i != tokens.lastIndex) || (isl && tokens[i].second in ISL_UNSIGNED)
     fun entryOf(i: Int) = tokens[i].second.let { w -> words[w]?.takeIf { !grammar(i) } }
     val order = tokens.indices.let { all -> if (isl && SignMode.TYPED_ORDER !in modes) all.sortedBy { islRank(tokens[it].second, entryOf(it)) } else all }
+    // A sentence break inside the text is a pause in the signing: without it two sentences read as one long run.
+    val sentenceEnd = tokens.indices.filter { i ->
+        i < tokens.lastIndex && text.substring(tokens[i].first.last + 1, tokens[i + 1].first.first).any { it in ".।!?" }
+    }.toSet()
     for (i in order) {
         val (range, word) = tokens[i]
         val entry = entryOf(i)
         val start = t
         val card = if (SignMode.PICTURES in modes) entry?.card ?: word.toIntOrNull()?.takeIf { it in 1..10 }?.let { "n$it" } else null
         val motion = if (grammar(i)) null else motionFor(word, entry, modes)
-        var letters: String? = null
+        var letters: List<String>? = null
         when {
             motion != null -> add(motion)
             SignMode.SPELL in modes && word !in FILLER && !grammar(i) -> {
-                letters = spelling(word).filter { gestures.containsKey(letterId(it)) }
-                letters.forEach { add(gestures.getValue(letterId(it))) }
+                val units = spelling(word).filter { gestures.containsKey(letterId(it)) }
+                letters = units.takeIf { it.isNotEmpty() }
+                units.forEach { add(gestures.getValue(letterId(it))) }
             }
             card != null -> add(PAUSE)
         }
-        if (t > start) beats += WordBeat(range, card, letters?.ifEmpty { null }, start, t)
+        if (t > start) beats += WordBeat(range, card, letters, start, t)
+        if (i in sentenceEnd) add(PAUSE)
     }
-    if (text.trimEnd().endsWith("?") && parts.none { it.id in QUESTION_SIGNS }) gestures["ask"]?.let(::add)
+    if (text.trimEnd().endsWith("?") || text.trimEnd().endsWith("\u061F")) {
+        if (parts.none { it.id in QUESTION_SIGNS }) gestures["ask"]?.let(::add)
+    }
     return TextPlan(chain("text", parts, GAP).takeIf { it.keys.isNotEmpty() }, beats, parts.map { it.id })
 }
 
@@ -150,29 +160,57 @@ private val DOER = mapOf("i" to "मुझे", "you" to "आपको")
  * English moves the verb after the subject, Hindi keeps it last with the question word and नहीं just before it.
  */
 fun glossToText(gloss: List<String>, words: Map<String, WordEntry>, lang: SignLanguage = SignLanguage.ISL, browsUp: Boolean = false): SignedText {
+    // A reader may hand back a gesture id (no.shake), a Hindi headword (पानी) or the English word itself.
+    // Everything is normalised to the English headword here, so reordering, negation and the Hindi draft
+    // all look the same sign up the same way.
+    fun headword(g: String): String {
+        val entry = words[g]
+        if (entry != null && !g.isDevanagari()) return g
+        return entry?.w?.firstOrNull { w -> w.any { it in 'a'..'z' } }
+            ?: words.values.firstOrNull { it.sign == g }?.w?.firstOrNull { w -> w.any { it in 'a'..'z' } }
+            ?: g
+    }
     val tokens = mutableListOf<Pair<String, Boolean>>()
     for (g in gloss.map { it.lowercase() }.filter { it.isNotBlank() && it != "?" }) {
         val letter = g.length == 1 && g[0].isLetterOrDigit()
         val last = tokens.lastOrNull()
-        if (letter && last?.second == true) tokens[tokens.lastIndex] = last.first + g to true else tokens += g to letter
+        if (letter && last?.second == true) tokens[tokens.lastIndex] = last.first + g to true else tokens += headword(g) to letter
     }
-    // ASL is already subject-verb-object as signed: no reordering, no verb move.
-    fun rank(w: String, spelled: Boolean) = if (spelled || lang == SignLanguage.ASL) 1 else islRank(w, words[w])
-    val time = tokens.filter { rank(it.first, it.second) == 0 }
-    val rest = tokens.filter { rank(it.first, it.second) == 1 }
+    fun rank(w: String, spelled: Boolean) = if (spelled) 1 else islRank(w, words[w])
+    // ASL is already subject-verb-object as signed, so nothing moves: time words stay where they were signed.
+    val asl = lang == SignLanguage.ASL
+    val time = tokens.filter { !asl && rank(it.first, it.second) == 0 }
+    val rest = tokens.filter { rank(it.first, it.second) == 1 || (asl && rank(it.first, it.second) == 0) }
     val negated = tokens.any { rank(it.first, it.second) == 2 }
     val ask = tokens.filter { rank(it.first, it.second) == 3 }.map { it.first }
     val question = ask.isNotEmpty() || browsUp
 
-    fun en(t: Pair<String, Boolean>) = if (t.second) t.first.replaceFirstChar { it.uppercase() } else words[t.first]?.w?.firstOrNull() ?: t.first
+    // Nothing readable came back: no sentence, not a bare full stop.
+    if (tokens.isEmpty()) return SignedText("", "")
+
+    // The word as read is already English ("your" stays "your"); only a Hindi headword needs translating.
+    fun en(t: Pair<String, Boolean>) = if (t.second) t.first.replaceFirstChar { it.uppercase() } else t.first
+    // HINDI_VERB and DOER are keyed by the entry's first written form: "me" is the entry that starts at "i".
+    fun key(t: Pair<String, Boolean>) = if (t.second) t.first
+        else words[t.first]?.w?.firstOrNull { w -> w.any { c -> c in 'a'..'z' } } ?: t.first
     val verbLast = rest.map(::en).toMutableList()
-    if (lang == SignLanguage.ISL && verbLast.size >= 3) verbLast.add(1, verbLast.removeAt(verbLast.lastIndex))
+    if (!asl && verbLast.size >= 3) verbLast.add(1, verbLast.removeAt(verbLast.lastIndex))
     val svo = verbLast.mapIndexed { i, w -> if (i == 0 && w in setOf("i", "me")) "I" else if (w == "i") "me" else w }.toMutableList()
+    // A shake on its own is the answer "no", not a sentence with a dangling auxiliary: "Do not." reads as nonsense.
+    if (negated && rest.isEmpty()) return SignedText("No.", "नहीं।", hne = "नइ।")
     val aux = if (time.any { it.first == "yesterday" }) "did" else "do"
-    if (negated) svo.add(minOf(1, svo.size), "$aux not")
+    if (negated) {
+        // "I am not hungry" but "I do not want": a state takes the copula, anything else the auxiliary.
+        val predicate = svo.getOrNull(1)?.lowercase()
+        val copula = when (svo.firstOrNull()) { "I" -> "am not"; "you", "we", "they" -> "are not"; else -> "is not" }
+        svo.add(minOf(1, svo.size), if (predicate != null && predicate in STATE) copula else "$aux not")
+    }
+    // The auxiliary only makes sense before a verb: "What do you want?", never "What do?" or "Where do your mother?".
+    val hasVerb = rest.any { !it.second && HINDI_VERB[key(it)] != null }
     val enWords = buildList {
         addAll(ask)
-        if (question && !negated) add(aux)
+        // A wh-sign carries the question; raised brows on a bare statement only need the mark, not a "do" the signs never had.
+        if (!asl && question && !negated && ask.isNotEmpty() && svo.isNotEmpty() && hasVerb) add(aux)
         if (!question) addAll(time.map(::en))
         addAll(svo)
         if (question) addAll(time.map(::en))
@@ -183,10 +221,10 @@ fun glossToText(gloss: List<String>, words: Map<String, WordEntry>, lang: SignLa
         ?: words[t.first]?.w?.firstOrNull { w -> w.isDevanagari() } ?: t.first
     val hiRest = rest.map(::hi).toMutableList()
     // A past sign keeps the bare verb: the present forms below would change the tense.
-    val verb = rest.lastOrNull()?.takeIf { !it.second && time.none { t -> t.first == "yesterday" } }?.let { HINDI_VERB[en(it)] }
+    val verb = rest.lastOrNull()?.takeIf { !it.second && time.none { t -> t.first == "yesterday" } }?.let { HINDI_VERB[key(it)] }
     if (verb != null) {
         hiRest[hiRest.lastIndex] = verb
-        if (rest.size > 1) rest.first().takeIf { !it.second }?.let { DOER[en(it)] }?.let { hiRest[0] = it }
+        if (rest.size > 1) rest.first().takeIf { !it.second }?.let { DOER[key(it)] }?.let { hiRest[0] = it }
     }
     val hindi = (time.map(::hi) + hiRest.dropLast(1) + ask.map { HINDI[it] ?: it } + listOfNotNull("नहीं".takeIf { negated }) + hiRest.takeLast(1))
         .joinToString(" ") + if (question) "?" else "।"
@@ -201,9 +239,20 @@ fun glossToText(gloss: List<String>, words: Map<String, WordEntry>, lang: SignLa
     return SignedText(english, hindi, hne = chhattisgarhi)
 }
 
-/** The letters to fingerspell: Latin as typed, Devanagari transliterated. */
-fun spelling(word: String): String =
-    (if (word.isDevanagari()) devanagariToLatin(word) else word).lowercase().filter { it in 'a'..'z' || it.isDigit() }
+/** Words that describe a state, so English negates them with a copula: "I am not hungry", not "I do not hungry". */
+private val STATE = setOf(
+    "hungry", "thirsty", "scared", "afraid", "cold", "hot", "tired", "sleepy", "sick", "ill", "fine", "ok", "okay",
+    "ready", "sad", "happy", "angry", "upset", "worried", "busy", "late", "alone",
+)
+
+/** "café" is spelled c-a-f-e: accents fold to the plain letter instead of dropping out of the word. */
+private fun foldAccents(word: String): String =
+    Normalizer.normalize(word, Normalizer.Form.NFD).replace(Regex("\\p{Mn}+"), "")
+
+/** The letters to fingerspell: Latin as typed, Hindi as written akshara (matras become independent swar). */
+fun spelling(word: String): List<String> =
+    if (word.isDevanagari()) spellingAkshara(word)
+    else foldAccents(word).lowercase().filter { it in 'a'..'z' || it.isDigit() }.map { it.toString() }
 
 private val WH_WORDS = setOf(
     "what", "where", "who", "whom", "whose", "when", "why", "how", "which",
@@ -221,47 +270,48 @@ fun questionKind(text: String): QuestionKind? {
     return if (rest.any { it in WH_WORDS }) QuestionKind.WH else QuestionKind.YES_NO
 }
 
-private fun letterId(c: Char) = if (c.isDigit()) "digit.$c" else "letter.$c"
+private fun letterId(g: String) = when {
+    g.length == 1 && g[0].isDigit() -> "digit.${g[0]}"
+    g.any { it in DEVANAGARI } -> "letter.hi.$g"
+    else -> "letter.$g"
+}
 
-private val CONSONANTS = mapOf(
-    'क' to "k", 'ख' to "kh", 'ग' to "g", 'घ' to "gh", 'ङ' to "n", 'च' to "ch", 'छ' to "chh", 'ज' to "j", 'झ' to "jh",
-    'ञ' to "n", 'ट' to "t", 'ठ' to "th", 'ड' to "d", 'ढ' to "dh", 'ण' to "n", 'त' to "t", 'थ' to "th", 'द' to "d",
-    'ध' to "dh", 'न' to "n", 'प' to "p", 'फ' to "ph", 'ब' to "b", 'भ' to "bh", 'म' to "m", 'य' to "y", 'र' to "r",
-    'ल' to "l", 'व' to "v", 'श' to "sh", 'ष' to "sh", 'स' to "s", 'ह' to "h",
+private val CONSONANTS = setOf(
+    'क', 'ख', 'ग', 'घ', 'ङ', 'च', 'छ', 'ज', 'झ', 'ञ', 'ट', 'ठ', 'ड', 'ढ', 'ण',
+    'त', 'थ', 'द', 'ध', 'न', 'प', 'फ', 'ब', 'भ', 'म', 'य', 'र', 'ल', 'व', 'श', 'ष', 'स', 'ह',
 )
-private val NUKTA = mapOf('ड' to "r", 'ढ' to "rh", 'ज' to "z", 'फ' to "f", 'क' to "q", 'ख' to "kh", 'ग' to "g")
-private val VOWELS = mapOf(
-    'अ' to "a", 'आ' to "a", 'इ' to "i", 'ई' to "i", 'उ' to "u", 'ऊ' to "u", 'ए' to "e", 'ऐ' to "ai", 'ओ' to "o",
-    'औ' to "au", 'ऋ' to "ri",
-)
-private val SIGNS = mapOf(
-    'ा' to "a", 'ि' to "i", 'ी' to "i", 'ु' to "u", 'ू' to "u", 'े' to "e", 'ै' to "ai", 'ो' to "o", 'ौ' to "au",
-    'ृ' to "ri", 'ं' to "n", 'ँ' to "n", 'ः' to "h",
+private val VOWELS = setOf('अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ए', 'ऐ', 'ओ', 'औ', 'ऋ')
+private val MATRA = mapOf(
+    'ा' to 'आ', 'ि' to 'इ', 'ी' to 'ई', 'ु' to 'उ', 'ू' to 'ऊ',
+    'े' to 'ए', 'ै' to 'ऐ', 'ो' to 'ओ', 'ौ' to 'औ', 'ृ' to 'ऋ',
 )
 private const val VIRAMA = '्'
 private const val NUKTA_SIGN = '़'
+private val CONJUNCT = listOf("क्ष", "त्र", "ज्ञ")
+private val SWAR_MARK = listOf("अं", "अः")
 
-/**
- * Hindi in the Latin letters Deaf signers fingerspell (पानी to pani). The inherent vowel is dropped at the end of a
- * word, as Hindi speech drops it.
- * Word-final schwa deletion only; medial deletion (समझना as samjhna) needs a syllable model if reviewers ask.
- */
-fun devanagariToLatin(word: String): String = buildString {
+/** Written Hindi as one sign per akshara: virama and nukta drop, matras become स्वर, anusvara is न, digits become ASCII. */
+internal fun spellingAkshara(word: String): List<String> = buildList {
     var i = 0
     while (i < word.length) {
+        val rest = word.substring(i)
+        val cluster = CONJUNCT.firstOrNull { rest.startsWith(it) } ?: SWAR_MARK.firstOrNull { rest.startsWith(it) }
+        if (cluster != null) {
+            add(cluster)
+            i += cluster.length
+            continue
+        }
         val c = word[i]
-        val nukta = word.getOrNull(i + 1) == NUKTA_SIGN
-        val consonant = (if (nukta) NUKTA[c] else null) ?: CONSONANTS[c]
         when {
-            consonant != null -> {
-                append(consonant)
-                if (nukta) i++
-                val next = word.getOrNull(i + 1)
-                val vowelSign = next != null && next in SIGNS && next !in "ंँः"
-                val ends = next == null || next !in DEVANAGARI
-                if (!vowelSign && next != VIRAMA && !ends) append('a')
-            }
-            else -> append(VOWELS[c] ?: SIGNS[c] ?: if (c in DEVANAGARI) "" else c.toString())
+            c == VIRAMA || c == NUKTA_SIGN -> Unit
+            c == 'ं' || c == 'ँ' -> add("न")
+            c == 'ः' -> add("ह")
+            c in MATRA -> add(MATRA.getValue(c).toString())
+            c in CONSONANTS || c in VOWELS -> add(c.toString())
+            // A digit inside a Hindi word (कोविड19) is still a digit: keep it, and ASCII already is what letterId wants.
+            c in '0'..'9' -> add(c.toString())
+            // letterId sends a digit to digit.n, so a Devanagari numeral must become its ASCII value first.
+            c in '०'..'९' -> add(('0' + (c - '०')).toString())
         }
         i++
     }

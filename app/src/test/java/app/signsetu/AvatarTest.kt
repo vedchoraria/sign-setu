@@ -18,6 +18,7 @@ import app.signsetu.data.content.WordEntry
 import app.signsetu.data.content.planText
 import app.signsetu.data.content.spelling
 import app.signsetu.data.content.questionKind
+import app.signsetu.ui.session.spelledIndex
 import app.signsetu.ui.avatar.QuestionKind
 import app.signsetu.ui.avatar.elbowAt
 import app.signsetu.ui.avatar.solveElbow
@@ -107,7 +108,8 @@ class AvatarTest {
 
     @Test
     fun everyVocabularyWordPointsAtRealSignsAndPictures() {
-        val ids = gestures.map { it.id }.toSet()
+        // words.json links both authored signs (signs.json) and recorded ISLRTC signs (isl_signs.json).
+        val ids = (gestures + recorded).map { it.id }.toSet()
         val cards = json.parseToJsonElement(File(content, "cards.json").readText()).jsonObject["cards"]!!.jsonArray
             .map { it.jsonObject["id"]!!.jsonPrimitive.content }.toSet()
         val words = json.decodeFromString<WordsFile>(File(content, "words.json").readText()).words
@@ -120,17 +122,44 @@ class AvatarTest {
         }
         for (c in 'a'..'z') assertTrue("no letter $c", "letter.$c" in ids)
         for (d in '0'..'9') assertTrue("no digit $d", "digit.$d" in ids)
+        for (ak in listOf("अ", "क", "प", "आ", "न", "क्ष", "त्र", "ज्ञ", "अं", "अः")) assertTrue("no letter.hi.$ak", "letter.hi.$ak" in ids)
     }
 
     @Test
-    fun hindiIsSpelledInLatinLetters() {
-        assertEquals("pani", spelling("पानी"))
-        assertEquals("ghar", spelling("घर"))
-        assertEquals("madad", spelling("मदद"))
-        assertEquals("bachcha", spelling("बच्चा"))
-        assertEquals("rang", spelling("रंग"))
-        assertEquals("zamin", spelling("ज़मीन"))
-        assertEquals("ram", spelling("Ram!"))
+    fun hindiIsSpelledAsAkshara() {
+        assertEquals(listOf("प", "आ", "न", "ई"), spelling("पानी"))
+        assertEquals(listOf("घ", "र"), spelling("घर"))
+        assertEquals(listOf("म", "द", "द"), spelling("मदद"))
+        assertEquals(listOf("ब", "च", "च", "आ"), spelling("बच्चा"))
+        assertEquals(listOf("र", "न", "ग"), spelling("रंग"))
+        assertEquals(listOf("ज", "म", "ई", "न"), spelling("ज़मीन"))
+        assertEquals(listOf("2", "0", "2", "6"), spelling("२०२६"))
+        assertEquals(listOf("r", "a", "m"), spelling("Ram!"))
+        assertEquals(listOf("श", "इ", "क्ष", "क"), spelling("शिक्षक"))
+        assertEquals(listOf("अं"), spelling("अं"))
+        assertEquals(listOf("letter.hi.प", "letter.hi.आ", "letter.hi.न", "letter.hi.ई"), bundle.planText("पानी", setOf(SignMode.SPELL)).motions)
+        assertEquals(listOf("letter.hi.श", "letter.hi.इ", "letter.hi.क्ष", "letter.hi.क"), bundle.planText("शिक्षक", setOf(SignMode.SPELL)).motions)
+        assertEquals(listOf("श", "इ", "क्ष", "क"), bundle.planText("शिक्षक", setOf(SignMode.SPELL)).beats.single().letters)
+    }
+
+    @Test
+    fun theLetterTileLightsOneAksharaAtATime() {
+        // पानी is four signs; शिक्षक is श, इ, क्ष, क because the conjunct counts as one akshara.
+        for ((word, units) in listOf("पानी" to listOf("प", "आ", "न", "ई"), "शिक्षक" to listOf("श", "इ", "क्ष", "क"))) {
+            val beat = bundle.planText(word, setOf(SignMode.SPELL)).beats.single()
+            assertEquals(units, beat.letters)
+            // A sample in the middle of each unit lights that unit: none skipped, none out of order.
+            val lit = units.indices.map { i ->
+                spelledIndex(beat, beat.start + (i + 0.5f) / units.size * (beat.end - beat.start))
+            }
+            assertEquals(units.indices.toList(), lit)
+            assertEquals(0, spelledIndex(beat, beat.start))
+            assertEquals(units.lastIndex, spelledIndex(beat, beat.end - 1e-4f))
+        }
+        // A beat that only holds a picture has no tile to advance.
+        val picture = bundle.planText("brother", setOf(SignMode.PICTURES)).beats.single()
+        assertEquals(null, picture.letters)
+        assertEquals(-1, spelledIndex(picture, picture.start))
     }
 
     private val bundle by lazy {
@@ -166,7 +195,7 @@ class AvatarTest {
         val plan = bundle.planText(text, setOf(SignMode.GESTURES, SignMode.SPELL, SignMode.PICTURES))
         // "Is" is a grammar word, "Ravi" is spelled, "your" and "brother" have gestures, and "?" adds the asking face.
         assertEquals(listOf("Ravi", "your", "brother"), plan.beats.map { text.substring(it.range) })
-        assertEquals("ravi", plan.beats[0].letters)
+        assertEquals(listOf("r", "a", "v", "i"), plan.beats[0].letters)
         assertEquals("brother", plan.beats[2].card)
         assertTrue(plan.beats.zipWithNext().all { (a, b) -> a.end <= b.start + 1e-4f })
         val statement = bundle.planText(text.removeSuffix("?"), setOf(SignMode.GESTURES, SignMode.SPELL, SignMode.PICTURES))
@@ -176,7 +205,7 @@ class AvatarTest {
         assertEquals("water", still.beats.single().card)
         assertTrue(still.beats.single().end > 0f)
         assertEquals(null, bundle.planText("Ravi", setOf(SignMode.GESTURES)).gesture)
-        assertEquals(listOf("ravi"), bundle.planText("Ravi's", setOf(SignMode.SPELL)).beats.map { it.letters })
+        assertEquals(listOf(listOf("r", "a", "v", "i")), bundle.planText("Ravi's", setOf(SignMode.SPELL)).beats.map { it.letters })
         // With Signs on, a word that has only an everyday gesture plays the gesture rather than being spelled.
         assertEquals(listOf(null), bundle.planText("hungry", setOf(SignMode.SIGNS, SignMode.SPELL)).beats.map { it.letters })
     }
@@ -210,8 +239,29 @@ class AvatarTest {
     }
 
     @Test
+    fun aHeldLetterLandsEarlyAndThenHoldsStill() {
+        for (id in listOf("letter.a", "letter.e", "letter.hi.क", "letter.hi.प")) {
+            val g = gestures.first { it.id == id }
+            val hold = g.keys.last().t
+            assertTrue("$id: held too briefly to read", hold >= 0.3f)
+            // A held shape is the same pose at both keys: the move happens on the way in, not during the hold.
+            assertEquals("$id: the hold drifts", g.keys.first().R, g.keys.last().R)
+            val t = Timeline(g, AdultBuild)
+            val settled = t.pose(Timeline.LEAD_IN + hold * 0.75f).r
+            for (step in 0..5) {
+                val p = t.pose(Timeline.LEAD_IN + hold * (0.75f + 0.05f * step)).r
+                assertEquals("$id: drifts inside the hold", settled.x, p.x, 1e-3f)
+                assertEquals("$id: drifts inside the hold", settled.y, p.y, 1e-3f)
+            }
+        }
+    }
+
+    @Test
     fun bothHandsStayInsideTheBodyView() {
         val v = AvatarView.Body
+        // Keeping 2 units clear of the edge is a comfort margin, not the view itself. Recorded signs round dx/dy to
+        // whole rig units (retarget.py), so half a unit of that is rounding rather than a clipped hand.
+        val edge = 1.5f
         val outside = mutableListOf<String>()
         for ((name, build) in listOf("child" to ChildBuild, "adult" to AdultBuild)) {
             val rest = Timeline.restPose(build)
@@ -224,7 +274,7 @@ class AvatarTest {
                 while (s <= t.duration) {
                     val pose = t.pose(s)
                     for ((h, side) in listOf(pose.r to Side.R, pose.l to Side.L)) for ((x, y) in handPoints(h, side, build)) {
-                        val inside = x >= v.left + 2f && x <= v.left + v.width - 2f && y >= v.top + 2f && y <= v.top + v.height - 2f
+                        val inside = x >= v.left + edge && x <= v.left + v.width - edge && y >= v.top + edge && y <= v.top + v.height - edge
                         if (!inside) outside += "${g.id} $name ${s}s $side (${x.toInt()}, ${y.toInt()})"
                     }
                     s += 0.05f

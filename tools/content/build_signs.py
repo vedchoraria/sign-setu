@@ -47,38 +47,121 @@ UPRIGHT_INDEX = base(shape="POINT", roll=0, angle=-15)
 FLAT_PALM = base(shape="FLAT")
 
 LETTERS = {
-    # Vowels point at the base hand's fingertips, thumb to little finger.
-    "a": held(r("thumb_opp")),
-    "e": held(r("index_opp")),
-    "i": held(r("middle_opp")),
-    "o": held(r("ring_opp")),
-    "u": held(r("pinky_opp")),
-    "b": held(r("palm_opp", "CUP", "palm", roll=-1, angle=-80), base(shape="CUP", roll=1, angle=-40)),
-    "c": held(r("front", "CUP", "wrist", roll=0, angle=-20, dx=6, dy=-34), {"at": "rest"}),
-    "d": held(r("index_opp", "PINCH", "thumb", roll=0, angle=-90, dy=10), UPRIGHT_INDEX),
-    "f": held(r("palm_opp", "TWO", "tip", roll=-1, angle=-100), base(shape="TWO", roll=-1, angle=-70)),
-    "g": held(r("palm_opp", "FIST", "palm", roll=0, angle=-10, dy=-16), base(shape="FIST", roll=0, angle=-10)),
-    "h": moving([r("palm_opp", "FLAT", "palm", roll=-1, angle=-30, dy=-8), r("palm_opp", "FLAT", "palm", roll=-1, angle=-30, dy=8)], FLAT_PALM),
-    "j": moving([r("palm_opp", dy=-8), r("palm_opp", dy=4), r("palm_opp", dy=6, dx=6)], FLAT_PALM, step=0.2),
-    "k": held(r("index_opp", angle=-90, dy=8), UPRIGHT_INDEX),
-    "l": held(r("palm_opp"), FLAT_PALM),
-    "m": held(r("palm_opp", "THREE", roll=-1, angle=-80), FLAT_PALM),
-    "n": held(r("palm_opp", "TWO", roll=-1, angle=-80), FLAT_PALM),
-    "p": held(r("index_opp", "PINCH", "thumb", roll=0, angle=-80), UPRIGHT_INDEX),
-    "q": held(r("index_opp", "PINCH", "thumb", roll=0, angle=160, dy=14), UPRIGHT_INDEX),
-    "r": held(r("palm_opp", "HOOK", roll=0, angle=-80), FLAT_PALM),
-    "s": held(r("pinky_opp", "PINKY", "palm", roll=0, angle=-100), base(shape="PINKY", roll=0, angle=-80)),
-    "t": held(r("palm_opp", angle=-90, dy=10), SIDEWAYS),
-    "v": held(r("palm_opp", "TWO", roll=-1, angle=-90), FLAT_PALM),
-    "w": held(r("palm_opp", "OPEN", "palm", roll=-1, angle=40, dy=-8), base(roll=-1, angle=-50)),
-    "x": held(r("index_opp", angle=-45, dy=6), base(shape="POINT", roll=0, angle=-45)),
-    "y": held(r("thumb_opp", dy=6), FLAT_PALM),
-    "z": moving(
-        [r("front", "POINT", "tip", 1, 0, dx=10, dy=-50), r("front", "POINT", "tip", 1, 0, dx=-8, dy=-50),
-         r("front", "POINT", "tip", 1, 0, dx=10, dy=-30), r("front", "POINT", "tip", 1, 0, dx=-8, dy=-30)],
-        {"at": "rest"}, step=0.2,
-    ),
+    # Standard ISL / BANZSL two-handed fingerspelling:
+    # Dominant Right hand acts as pointer/shaper onto Non-dominant Left base hand.
+    "a": held(r("thumb_opp", angle=-70)),
+    "e": held(r("index_opp", angle=-70)),
+    "i": held(r("middle_opp", angle=-70)),
+    "o": held(r("ring_opp", angle=-70)),
+    "u": held(r("pinky_opp", angle=-70)),
+    # B: Both hands form curved loops (thumb touches index tip), joined together.
+    "b": held(r("palm_opp", "CUP", "palm", roll=-1, angle=-75, dx=2, dy=-4), base(shape="CUP", roll=1, angle=-35)),
+    # C: Single-handed curved C in front.
+    "c": held(r("front", "CUP", "wrist", roll=0, angle=-15, dx=8, dy=-32), {"at": "rest"}),
+    # D: Left index points up; Right pinch loop touches index tip & base to form a closed D.
+    "d": held(r("index_opp", "PINCH", "thumb", roll=0, angle=-85, dy=8), UPRIGHT_INDEX),
+    # F: Two fingers of right hand placed across two fingers of left hand.
+    "f": held(r("palm_opp", "TWO", "tip", roll=-1, angle=-90, dy=-2), base(shape="TWO", roll=-1, angle=-60)),
+    # G: Closed fist of right placed on top of left fist.
+    "g": held(r("palm_opp", "FIST", "palm", roll=0, angle=-10, dy=-14), base(shape="FIST", roll=0, angle=-10)),
+    # H: Right flat palm sweeping across left flat palm from heel to fingertips.
+    "h": moving([r("palm_opp", "FLAT", "palm", roll=-1, angle=-25, dy=-10), r("palm_opp", "FLAT", "palm", roll=-1, angle=-25, dy=10)], FLAT_PALM),
+    # J: Index draws down left middle finger and hooks around thumb base.
+    "j": moving([r("middle_opp", "POINT", "tip", roll=0, angle=-70, dy=-4), r("palm_opp", "POINT", "tip", roll=0, angle=-70, dy=4), r("thumb_opp", "POINT", "tip", roll=0, angle=-60, dy=8, dx=6)], FLAT_PALM, step=0.2),
+    # K: Bent index of right touches middle knuckle of left upright index finger.
+    "k": held(r("index_opp", "HOOK", "tip", roll=0, angle=-85, dy=4), UPRIGHT_INDEX),
+    # L: Right index laid flat across palm of left hand.
+    "l": held(r("palm_opp", "POINT", "tip", roll=0, angle=-75), FLAT_PALM),
+    # M: Three fingers of right laid across palm of left hand.
+    "m": held(r("palm_opp", "THREE", "tip", roll=-1, angle=-85), FLAT_PALM),
+    # N: Two fingers of right laid across palm of left hand.
+    "n": held(r("palm_opp", "TWO", "tip", roll=-1, angle=-85), FLAT_PALM),
+    # P: Right pinch forms loop touching left upright index tip to form upper P bowl.
+    "p": held(r("index_opp", "PINCH", "thumb", roll=0, angle=-75, dy=-2), UPRIGHT_INDEX),
+    # Q: Circle formed by left thumb and index; right index hooks through / across.
+    "q": held(r("index_opp", "POINT", "tip", roll=0, angle=135, dy=10), base(shape="CUP", roll=1, angle=-30)),
+    # R: Hooked index finger of right laid across left flat palm.
+    "r": held(r("palm_opp", "HOOK", "tip", roll=0, angle=-75), FLAT_PALM),
+    # S: Right pinky hooks around left pinky.
+    "s": held(r("pinky_opp", "PINKY", "palm", roll=0, angle=-95), base(shape="PINKY", roll=0, angle=-75)),
+    # T: Right index touches lower edge (ulnar edge) of left flat hand near wrist.
+    "t": held(r("wrist_opp", "POINT", "tip", roll=0, angle=-85, dy=-4), FLAT_PALM),
+    # V: Two fingers forming V laid on left palm.
+    "v": held(r("palm_opp", "TWO", "tip", roll=-1, angle=-85), FLAT_PALM),
+    # W: Both hands interlace fingers palm-to-palm / fingers crossed.
+    "w": held(r("palm_opp", "OPEN", "palm", roll=-1, angle=35, dy=-6), base(shape="OPEN", roll=-1, angle=-45)),
+    # X: Right index finger crossed over left index finger to form an X.
+    "x": held(r("index_opp", "POINT", "tip", roll=0, angle=-45, dy=4), base(shape="POINT", roll=0, angle=45)),
+    # Y: Right index placed in the crook/cleft between left thumb and index finger.
+    "y": held(r("thumb_opp", "POINT", "tip", roll=0, angle=-65, dy=4, dx=2), FLAT_PALM),
+    # Z: Right hand palm facing left hand, fingertips touching left open palm (or Z diagonal).
+    "z": held(r("palm_opp", "FLAT", "tip", roll=0, angle=-90, dy=0), FLAT_PALM),
 }
+
+# ponytail: BANZSL contact is the ISL letter; modifiers mark length / aspiration / retroflex until a reviewed chart lands.
+VARNAMALA_SWAR = {
+    "अ": "a", "आ": "a", "इ": "i", "ई": "i", "उ": "u", "ऊ": "u", "ऋ": "r",
+    "ए": "e", "ऐ": "e", "ओ": "o", "औ": "o",
+    "अं": "a", "अः": "h",
+}
+VARNAMALA_VYANJAN = {
+    "क": "k", "ख": "k", "ग": "g", "घ": "g", "ङ": "n",
+    "च": "c", "छ": "c", "ज": "j", "झ": "j", "ञ": "n",
+    "ट": "t", "ठ": "t", "ड": "d", "ढ": "d", "ण": "n",
+    "त": "t", "थ": "t", "द": "d", "ध": "d", "न": "n",
+    "प": "p", "फ": "f", "ब": "b", "भ": "b", "म": "m",
+    "य": "y", "र": "r", "ल": "l", "व": "v",
+    "श": "s", "ष": "s", "स": "s", "ह": "h",
+    "क्ष": "k", "त्र": "t", "ज्ञ": "j",
+}
+HI_TO_LATIN = VARNAMALA_SWAR | VARNAMALA_VYANJAN
+LONG = {"आ", "ई", "ऊ", "ऐ", "औ"}
+ASP = {"ख", "घ", "छ", "झ", "ठ", "ढ", "थ", "ध", "फ", "भ"}
+RETRO = {"ट", "ठ", "ड", "ढ", "ण", "ष"}
+CONJUNCT = {
+    "क्ष": held(r("index_opp", "TWO", "tip", roll=0, angle=-85, dy=4), UPRIGHT_INDEX),
+    "त्र": held(r("wrist_opp", "TWO", "tip", roll=0, angle=-85, dy=-4), FLAT_PALM),
+    "ज्ञ": held(r("middle_opp", "HOOK", "tip", roll=0, angle=-70, dy=4), FLAT_PALM),
+}
+
+
+def _copy(keys):
+    out = []
+    for k in keys:
+        nk = {kk: vv for kk, vv in k.items() if kk not in ("R", "L")}
+        nk["R"] = dict(k["R"])
+        if "L" in k and isinstance(k["L"], dict):
+            nk["L"] = dict(k["L"])
+        elif "L" in k:
+            nk["L"] = k["L"]
+        out.append(nk)
+    return out
+
+
+def _extend(keys, dy, extra):
+    keys = _copy(keys)
+    last = keys[-1]
+    r = dict(last["R"])
+    r["dy"] = r.get("dy", 0) + dy
+    keys.append({**{kk: vv for kk, vv in last.items() if kk != "R"}, "t": round(last["t"] + extra, 2), "R": r})
+    return keys
+
+
+def hi_keys(ak, lat):
+    if ak in CONJUNCT:
+        return CONJUNCT[ak]
+    keys = LETTERS[lat]
+    if ak in RETRO:
+        keys = _copy(keys)
+        for k in keys:
+            k["R"]["roll"] = max(-1, min(1, k["R"].get("roll", 0) - 0.4))
+    if ak in LONG:
+        return _extend(keys, 6, 0.2)
+    if ak in ASP:
+        return _extend(keys, -5, 0.15)
+    if ak == "अं":
+        return _extend(keys, 4, 0.15)
+    return keys
 
 # Numbers are held up beside the face; six to nine add a full left hand for five.
 COUNT = ["CUP", "POINT", "TWO", "THREE", "FOUR", "OPEN"]
@@ -229,8 +312,12 @@ GAP = {
 
 
 def main() -> None:
+    missing = [ak for ak, lat in HI_TO_LATIN.items() if lat not in LETTERS]
+    if missing:
+        raise SystemExit(f"HI_TO_LATIN points at missing letters: {missing}")
     made = (
         [{"id": f"letter.{k}", "keys": v} for k, v in LETTERS.items()]
+        + [{"id": f"letter.hi.{ak}", "keys": hi_keys(ak, lat)} for ak, lat in HI_TO_LATIN.items()]
         + [{"id": f"digit.{k}", "keys": v} for k, v in DIGITS.items()]
         + [{"id": f"sign.{k}", "keys": v} for k, v in SIGNS.items()]
         + [{"id": f"sign.{k}", "review": "draft", "keys": v} for k, v in GAP.items()]
