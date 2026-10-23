@@ -46,6 +46,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Warning
@@ -120,6 +121,7 @@ fun StartScreen(
     cameraWanted: Boolean,
     onOpenSession: (String) -> Unit,
     onSettings: () -> Unit,
+    onPractice: () -> Unit = {},
     onSecondScreen: (() -> Unit)? = null,
 ) {
     val scope = rememberCoroutineScope()
@@ -174,6 +176,7 @@ fun StartScreen(
                     Row(Modifier.fillMaxWidth().height(56.dp).padding(start = Spacing.lg, end = Spacing.xs), verticalAlignment = Alignment.CenterVertically) {
                         Text(stringResource(R.string.app_name), fontFamily = Baloo, fontWeight = FontWeight.ExtraBold, fontSize = 22.sp, modifier = Modifier.weight(1f).semantics { heading() })
                         onSecondScreen?.let { IconButton(onClick = it) { Icon(Icons.Filled.Phone, contentDescription = stringResource(R.string.second_screen)) } }
+                        IconButton(onClick = onPractice) { Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.practice_title)) }
                         IconButton(onClick = onSettings) { Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.settings_title)) }
                     }
                     Text(

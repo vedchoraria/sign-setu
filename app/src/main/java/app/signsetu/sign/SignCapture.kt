@@ -14,10 +14,48 @@ const val NARRATIVE_LIMIT_MS = 180_000L
 /**
  * An explicit window in which the camera's frames are analysed; outside one the mirror is preview only.
  * A narrative pauses longer between phrases than a short answer between signs, so its chunks are phrase-sized.
+ * [firstSignMs] is the grace before anything at all is signed, and [quietMs] how long quiet hands are given before
+ * what was signed is ingested without a tap; a narrative is allowed to think longer between sentences.
  */
-enum class SignWindow(val limitMs: Long, val pauseMs: Long, val minMs: Long, val keepFace: Boolean) {
+enum class SignWindow(
+    val limitMs: Long,
+    val pauseMs: Long,
+    val minMs: Long,
+    val keepFace: Boolean,
+    val firstSignMs: Long = 3_000,
+    val quietMs: Long = 2_000,
+) {
     ANSWER(SIGN_LIMIT_MS, pauseMs = 300, minMs = 180, keepFace = true),
-    NARRATIVE(NARRATIVE_LIMIT_MS, pauseMs = 700, minMs = 200, keepFace = false),
+    NARRATIVE(NARRATIVE_LIMIT_MS, pauseMs = 700, minMs = 200, keepFace = false, quietMs = 5_000),
+}
+
+/**
+ * Judges when the subject has stopped giving anything, so a window can be ingested on its own instead of waiting for
+ * a tap that may never come. Timestamps are the camera's, so it needs no wall clock and cannot run ahead of the frames.
+ * Before any movement the whole window is grace: a person who never raises a hand empties it, they do not hold it open.
+ */
+class SignQuiet(private val firstSignMs: Long = 3_000, private val quietMs: Long = 2_000) {
+    private var firstMs = -1L
+    private var lastMovedMs = -1L
+
+    /** Every frame of the window, with whether a hand moved on it. */
+    fun see(frameMs: Long, moved: Boolean) {
+        if (firstMs < 0) firstMs = frameMs
+        if (moved) lastMovedMs = frameMs
+    }
+
+    /** True once the hands have been quiet for [quietMs], or nothing has moved at all for [firstSignMs]. */
+    fun settled(newestMs: Long): Boolean = when {
+        firstMs < 0 -> false
+        lastMovedMs >= 0 -> newestMs - lastMovedMs >= quietMs
+        else -> newestMs - firstMs >= firstSignMs
+    }
+
+    /** Opens a new window: the last one's grace and motion must not carry over. */
+    fun reset() {
+        firstMs = -1L
+        lastMovedMs = -1L
+    }
 }
 
 /**
@@ -71,6 +109,7 @@ private fun handMoving(a: List<Offset>?, b: List<Offset>?, seconds: Float, still
  */
 class SignCapture(private val window: SignWindow = SignWindow.ANSWER, private val limitMs: Long = window.limitMs) {
     private val frames = ArrayList<LandmarkFrame>()
+    private val quiet = SignQuiet(window.firstSignMs, window.quietMs)
     private var start = -1
     private var lastActive = -1
     private var activeFrames = 0
@@ -86,7 +125,9 @@ class SignCapture(private val window: SignWindow = SignWindow.ANSWER, private va
         val out = ArrayList<List<LandmarkFrame>>(1)
         val i = frames.lastIndex
         if (start >= 0 && frame.timestampMs - frames[lastActive].timestampMs >= window.pauseMs) close(out)
-        if (moving(frames.getOrNull(i - 1), frames[i], STILL_SPEED)) {
+        val moved = moving(frames.getOrNull(i - 1), frames[i], STILL_SPEED)
+        quiet.see(frame.timestampMs, moved)
+        if (moved) {
             if (start < 0) start = maxOf(0, i - 1)
             lastActive = i
             activeFrames++
@@ -95,15 +136,57 @@ class SignCapture(private val window: SignWindow = SignWindow.ANSWER, private va
         return out
     }
 
+    /**
+     * True once the subject has stopped giving anything: quiet hands for the window's quiet time, or no movement at all
+     * within its first-sign grace. The caller then ingests what was captured instead of waiting for a Done tap.
+     */
+    @Synchronized
+    fun settled(): Boolean = !full && frames.isNotEmpty() && quiet.settled(frames.last().timestampMs)
+
     /** Closes the answer and returns the signs not yet handed out. */
     @Synchronized
     fun finish(): List<List<LandmarkFrame>> = ArrayList<List<LandmarkFrame>>(1).also { if (start >= 0) close(it); full = true }
 
     private fun close(out: MutableList<List<LandmarkFrame>>) {
-        if (frames[lastActive].timestampMs - frames[start].timestampMs >= window.minMs && activeFrames >= 3) out.add(frames.subList(start, lastActive + 1).toList())
+        val longEnough = frames[lastActive].timestampMs - frames[start].timestampMs >= window.minMs && activeFrames >= 3
+        // Lowering the arms after a sign is movement too; read as a sign it becomes a phantom word ("husband" then
+        // "light" in a dictionary clip, a digit then "key" in every digit clip).
+        if (longEnough && !droppingToRest(start, lastActive)) out.add(frames.subList(start, lastActive + 1).toList())
         start = -1
         activeFrames = 0
+    }
+
+    /**
+     * Whether the chunk is the hands on their way back down, not a sign: short, every hand that is there drops at least
+     * half a shoulder width, and they end well below the shoulders, where the arms hang. Needs the pose to measure a
+     * shoulder, so a frame without one never drops a sign.
+     */
+    private fun droppingToRest(a: Int, b: Int): Boolean {
+        if (frames[b].timestampMs - frames[a].timestampMs > RETRACT_MAX_MS) return false
+        if ((frames[a].pose?.size ?: 0) <= 12) return false
+        val ends = frames[b].pose?.takeIf { it.size > 12 } ?: return false
+        // y is a share of the frame's height, so a vertical distance needs the same aspect correction as wristReach.
+        val aspect = frames[b].aspect.takeIf { it > 1e-3f } ?: 1f
+        val width = hypot(ends[11].x - ends[12].x, (ends[11].y - ends[12].y) / aspect)
+        if (width < 1e-3f) return false
+        val shoulderY = (ends[11].y + ends[12].y) / 2f
+        var seen = 0
+        for ((from, to) in listOf(frames[a].leftHand to frames[b].leftHand, frames[a].rightHand to frames[b].rightHand)) {
+            if (from.isNullOrEmpty() || to.isNullOrEmpty()) continue
+            seen++
+            val down = (to[0].y - from[0].y) / aspect
+            val below = (to[0].y - shoulderY) / aspect
+            if (down < RETRACT_DROP * width || below < RETRACT_LOW * width) return false
+        }
+        return seen > 0
     }
 }
 
 internal const val STILL_SPEED = 0.3f
+
+/** Longest chunk that can be a hand dropping back to rest. */
+private const val RETRACT_MAX_MS = 500L
+/** How far, in shoulder widths, a dropping wrist must travel down. */
+private const val RETRACT_DROP = 0.6f
+/** How far below the shoulder line (in shoulder widths) the wrist must end for the arm to be hanging. */
+private const val RETRACT_LOW = 1.2f

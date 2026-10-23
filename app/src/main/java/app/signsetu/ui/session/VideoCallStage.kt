@@ -187,11 +187,21 @@ fun VideoCallStage(
     var heldFingerCount by remember { mutableIntStateOf(-1) }
     var heldFingerSince by remember { mutableLongStateOf(0L) }
 
+    // Hands raised when a window closes on its own must come down once before they open the next one, or the answer
+    // just ingested would be read again straight away.
+    val handsDown = remember { mutableStateOf(true) }
+    var wasSigning by remember { mutableStateOf(signing) }
+    LaunchedEffect(signing) {
+        if (wasSigning && !signing) handsDown.value = false
+        wasSigning = signing
+    }
+
     val onFrameAnalyzed: (LandmarkFrame) -> Unit = { frame ->
         onSignFrame(frame)
         val now = frame.timestampMs
         val handsVisible = frame.leftHand != null || frame.rightHand != null
-        if (handsVisible && !signing) onStartSigning()
+        if (!handsVisible) handsDown.value = true
+        if (handsVisible && !signing && handsDown.value) onStartSigning()
         if (isNumberOrAgeQuestion && handsVisible) {
             val fingers = countOpenFingers(frame)
             if (fingers != null) {

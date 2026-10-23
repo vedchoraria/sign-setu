@@ -617,4 +617,11 @@
     <string name="saved_finish_open_first">Finish the open session first.</string>
     <string name="saved_all">Show all %1$d</string>
     <string name="saved_fewer">Show fewer</string>
+    <string name="practice_title">Type and sign</string>
+    <string name="practice_hint">Type a sentence</string>
+    <string name="practice_sign">Sign it</string>
+    <string name="practice_empty">Type anything to see it signed, word by word.</string>
+    <string name="practice_no_sign">Nothing in this text can be signed. Try other words.</string>
+    <string name="practice_signed">signed</string>
+    <string name="practice_spelled">spelled</string>
 </resources>

@@ -4,6 +4,8 @@ An offline Android app that helps a police officer communicate with a person who
 
 - Version 0.5.0 (version code 7). Android 10 (API 29) and later; Kotlin and Jetpack Compose; one `app` module.
 - Works fully offline. A build with a department gateway (`-PgatewayUrl=https://...`) also uses it while online; without one, nothing ever connects. No RECORD_AUDIO permission, and no location or scanning permission in the `standard` flavor; every build fails if a forbidden permission reaches the merged manifest.
+- Includes a standalone Type-to-Sign practice screen directly on the home screen so officers can test arbitrary Hindi or English sentences outside a formal interview session.
+- Automatic quiet-settle sign capture: answers ingest naturally when the signer's hands come to rest, without requiring a physical screen tap.
 - Sessions live in an encrypted SQLCipher database under a Keystore key that works only while the phone is unlocked. A finished session is saved under a name the officer types and deleted after 24 hours by default; an officer or department can pick 4 to 72 hours or keep sessions until deleted.
 
 ---

@@ -101,7 +101,8 @@ class SessionViewModel(
     @Volatile private var capture: SignCapture? = null
     // Cards that answer the item shown when the window opened: the reader's guesses that match them come first.
     @Volatile private var context: Set<String> = emptySet()
-    private val reads = mutableListOf<Job>()
+    // Added to on the camera's analysis thread, drained on the main thread when the window closes.
+    private val reads = java.util.concurrent.CopyOnWriteArrayList<Job>()
     private val readDispatcher = Dispatchers.Default.limitedParallelism(2)
 
     val auto = AutoPilot(
@@ -224,12 +225,14 @@ class SessionViewModel(
     /** Every tracked camera frame, on the analysis thread. */
     fun onSignFrame(frame: LandmarkFrame) {
         val c = capture ?: return
-        val reachedCap = synchronized(c) {
+        // Three seconds with nothing raised, or two since the hands stopped: what was given is ingested, no tap needed.
+        val (segments, done) = synchronized(c) {
             val wasFull = c.full
-            c.add(frame).forEach(::readSegment)
-            !wasFull && c.full
+            val closed = c.add(frame)
+            closed to (!wasFull && c.full || c.settled())
         }
-        if (reachedCap) viewModelScope.launch { finishReading() }
+        segments.forEach(::readSegment)
+        if (done) viewModelScope.launch { finishReading() }
     }
 
     private fun readSegment(frames: List<LandmarkFrame>) {
@@ -637,7 +640,8 @@ class SessionViewModel(
     /** A lesson-sheet answer: a confirmed one is logged now; an unconfirmed one is logged as such if the item closes first. */
     fun give(g: Given?) {
         if (hold(g, null)) return
-        viewModelScope.launch { logGiven(g!!); advanceRun() }
+        val given = g ?: return
+        viewModelScope.launch { logGiven(given); advanceRun() }
     }
 
     /** Keeps [g] for the item's close unless it is confirmed; true when there is nothing to log now. */

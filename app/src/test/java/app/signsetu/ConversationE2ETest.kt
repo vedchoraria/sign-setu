@@ -308,4 +308,44 @@ class ConversationE2ETest {
         vm.addNote("checked")
         assertNotEquals(recordDigest(rows), recordDigest(export()))
     }
+
+    @Test
+    fun aQuietAnswerIsIngestedWithoutAnyTap() = runTest {
+        // Nobody presses Done: the person signs three words, lowers their hands, and the app reads what it was given.
+        val dao = MemoryDao()
+        val repo = SessionRepository(dao)
+        val vm = SessionViewModel(repo.start(Profile.ISL_USER, "hi"), repo, content, "en", SessionReport(ContextWrapper(null)), reader)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.ui.collect {} }
+        waitFor("the opening on the stage") { vm.ui.value?.onStage is Pending.GroundRules }
+        vm.returnToOfficer()
+        val before = vm.events().size
+        vm.startReading()
+        val frames = stream()
+        frames.forEach(vm::onSignFrame)
+        assertTrue("nothing is ingested while the person could still be signing", vm.events().drop(before).none { it.type == EventType.ANSWER_SIGNED })
+        // The camera keeps sending frames with no hands in them; after two seconds the window ingests on its own.
+        var t = frames.last().timestampMs
+        repeat(70) { t += 33; vm.onSignFrame(LandmarkFrame(t, aspect = frames.first().aspect)) }
+        waitFor("the signed line ingested without a tap") { vm.events().drop(before).any { it.type == EventType.ANSWER_SIGNED } }
+        val line = vm.events().drop(before).single { it.type == EventType.ANSWER_SIGNED }
+        assertEquals("every sign read, none lost", 3, line.text!!.split(' ').size)
+        assertEquals(null, vm.now().reading)
+        vm.wipeSigns()
+    }
+
+    @Test
+    fun aWindowWithNoSignsClosesItselfAfterThreeSeconds() = runTest {
+        // The officer opens a read window and the person never raises a hand: it closes, it does not sit for 20 s.
+        val dao = MemoryDao()
+        val repo = SessionRepository(dao)
+        val vm = SessionViewModel(repo.start(Profile.ISL_USER, "hi"), repo, content, "en", SessionReport(ContextWrapper(null)), reader)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.ui.collect {} }
+        waitFor("the opening on the stage") { vm.ui.value?.onStage is Pending.GroundRules }
+        vm.returnToOfficer()
+        val before = vm.events().size
+        vm.startReading()
+        (0 until 100).forEach { i -> vm.onSignFrame(LandmarkFrame(i * 33L, aspect = signs[0][0].aspect)) }
+        waitFor("the empty window closed") { vm.ui.value?.reading == null }
+        assertEquals("nothing is logged for an answer nobody gave", emptyList<SessionEvent>(), vm.events().drop(before).filter { it.type == EventType.ANSWER_SIGNED })
+    }
 }

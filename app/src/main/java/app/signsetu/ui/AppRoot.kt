@@ -39,6 +39,7 @@ import androidx.compose.material3.TextButton
 import app.signsetu.data.settings.AppSettings
 import app.signsetu.data.settings.InterpreterApp
 import app.signsetu.data.settings.whatsappNumber
+import app.signsetu.ui.practice.PracticeScreen
 import app.signsetu.ui.settings.SettingsScreen
 import app.signsetu.ui.start.FirstRunScreen
 import kotlinx.coroutines.launch
@@ -116,6 +117,7 @@ import app.signsetu.ui.pair.UseAsStageButton
 @Serializable data object StartKey : NavKey
 @Serializable data class SessionKey(val id: String) : NavKey
 @Serializable data object SettingsKey : NavKey
+@Serializable data object PracticeKey : NavKey
 
 private const val SANDES_PACKAGE = "in.nic.gimkerala"
 
@@ -235,8 +237,12 @@ private fun Navigation(repo: SessionRepository, content: ContentBundle, settings
                     cameraWanted = settings.cameraEnabled,
                     onOpenSession = { id -> backStack.add(SessionKey(id)) },
                     onSettings = { backStack.add(SettingsKey) },
+                    onPractice = { backStack.add(PracticeKey) },
                     onSecondScreen = onSecondScreen,
                 )
+            }
+            entry<PracticeKey> {
+                PracticeScreen(content, onBack = { backStack.removeLastOrNull() })
             }
             entry<SettingsKey> {
                 SettingsScreen(container.settings, container.models, onBack = { backStack.removeLastOrNull() }, onClearAll = container::clearAllData)

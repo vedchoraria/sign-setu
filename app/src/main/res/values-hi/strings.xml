@@ -610,4 +610,11 @@
     <string name="saved_finish_open_first">पहले खुला सत्र पूरा करें।</string>
     <string name="saved_all">सभी %1$d दिखाएँ</string>
     <string name="saved_fewer">कम दिखाएँ</string>
+    <string name="practice_title">लिखें और साइन देखें</string>
+    <string name="practice_hint">वाक्य लिखें</string>
+    <string name="practice_sign">साइन करें</string>
+    <string name="practice_empty">कुछ भी लिखें और उसे शब्द-दर-शब्द साइन होते देखें।</string>
+    <string name="practice_no_sign">इस पाठ में साइन करने योग्य कुछ नहीं है। दूसरे शब्द आज़माएँ।</string>
+    <string name="practice_signed">साइन</string>
+    <string name="practice_spelled">अक्षर-दर-अक्षर</string>
 </resources>
