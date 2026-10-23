@@ -114,10 +114,8 @@ internal fun advancesRun(pending: Pending?, yes: Boolean) = !reopensInput(pendin
 fun characterFor(profile: Profile) = if (profile == Profile.YOUNG_CHILD) Character.CHILD else Character.ADULT
 fun characterFor(ui: SessionUi) = if (ui.child) Character.CHILD else Character.ADULT
 
-/**
- * The stage: what the subject sees while the phone faces them. The character on top, a live mirror of their hands
- * below, and the answers within reach of a thumb. Nothing here shows notes, the log, or unconfirmed input.
- */
+/** The stage: what the subject sees while the phone faces them. The character on top, a live mirror of their
+ * hands below, and the answers within reach of a thumb. */
 @Composable
 fun Stage(
     ui: SessionUi,
@@ -167,7 +165,6 @@ fun Stage(
     val signing = ui.reading != null
     val narrative = ui.signWindow == SignWindow.NARRATIVE
     val choices = ui.confirm?.queue?.firstOrNull()
-    // Lesson-sheet hook (LessonInputs.kt): an answer input or the phrase board takes the panel under the character.
     var saying by remember(pending) { mutableStateOf(false) }
     val lesson = lessonQuestion(pending)?.takeIf { onGiven != null && !signing }
     var replays by remember(pending) { mutableIntStateOf(0) }
@@ -199,9 +196,7 @@ fun Stage(
     val item = describeItem(pending, content, lang)
     // A show-back or say-back with pictures asks which one; the character must not act out the officer's reading.
     val checking = pending.asksChoice
-    // One camera for the stage: a sign window adds analysis to it instead of restarting the preview.
-    // A nod or shake only highlights Yes or No; the subject's tap is the answer.
-    // One state object: the remembered camera keeps the first one it captured.
+    // One camera for the stage: a sign window adds analysis to it instead of restarting the preview. A nod or shake only highlights Yes or No; the subject's tap is the answer.
     val nod = remember { mutableStateOf<Boolean?>(null) }
     val point = remember { mutableStateOf<String?>(null) }
     val palm = remember { mutableStateOf(false) }
@@ -431,7 +426,6 @@ fun Stage(
                             modifier = Modifier.align(Alignment.CenterStart).padding(start = Spacing.lg),
                         )
                     }
-                    // Lesson-sheet hook: the phrase board's button.
                     if (onGiven != null && !signing && !saying) SayButton(content, lang, { saying = true }, Modifier.align(Alignment.TopStart).padding(start = 4.dp, top = if (glance != null) 44.dp else 4.dp))
                     glance?.let { GlanceStrip(it, onHide = { StagePace.glanceHidden.value = true }, Modifier.align(Alignment.TopCenter)) }
                 }
@@ -478,7 +472,6 @@ fun Stage(
                         pauseRow = { PauseRow(content, lang, ui.answeredCard, onCard, compact = true) },
                         modifier = Modifier.weight(1f),
                     )
-                    // Lesson-sheet hook: phrase board and answer inputs.
                     saying && onGiven != null -> PhraseBoard(content, lang, ui.answeredCard, onCard, { onGiven(it); saying = false; reacting = true }, { saying = false }, Modifier.weight(1f))
                     lesson != null && onGiven != null -> AnswerPanel(
                         lesson, content, lang, ui.answeredCard, onCard, { onGiven(it); if (it?.confirmed == true) reacting = true },
@@ -630,10 +623,8 @@ private fun speechFor(pending: Pending?, content: ContentBundle, lang: String): 
 /** Recorded speech below normal speed only goes to 0.75: slower than that, words smear. */
 private fun audioRate(pace: Float) = if (pace < 1f) 0.75f else 1f
 
-/**
- * Which unit of a spelled word the letter tile shows [t] seconds into the plan's gesture, before its lead-in: one
- * akshara at a time, left to right. -1 when the beat only holds a picture.
- */
+/** Which unit of a spelled word the letter tile shows [t] seconds into the plan's gesture, before its lead-in:
+ * one akshara at a time, left to right. -1 when the beat only holds a picture. */
 internal fun spelledIndex(beat: WordBeat, t: Float): Int {
     val n = beat.letters?.size ?: return -1
     if (n == 0) return -1

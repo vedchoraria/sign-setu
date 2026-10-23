@@ -38,7 +38,7 @@ import app.signsetu.pair.StageLink
 import app.signsetu.pair.StageTransport
 import app.signsetu.pair.StageTransports
 import app.signsetu.ui.session.HardKeys
-import app.signsetu.ui.session.StageGuard
+import app.signsetu.ui.components.OfficerAuth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -48,6 +48,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.io.File
 import java.time.LocalDate
 
@@ -72,7 +74,6 @@ class AppContainer(private val app: Application) : DefaultLifecycleObserver, Com
     val cloudAi = CloudAi({ settings.current().cloudAi }, BuildConfig.GATEWAY_URL, UrlHttp(), KeystoreVault(app), Direct(BuildConfig.ASSIST_URL, BuildConfig.ASSIST_MODEL, BuildConfig.ASSIST_KEY)) { isOnline(app) }
     val assistant = Assistant(models, cloudAi)
     val hardKeys = HardKeys()
-    val stageGuard = StageGuard(app)
 
     /** Landmark tracking, created per build type; without it the stage shows a plain mirror. */
     private val tracker = lazy { LandmarkTrackers.create(app) }
@@ -90,8 +91,15 @@ class AppContainer(private val app: Application) : DefaultLifecycleObserver, Com
             listOf("/system/bin/su", "/system/xbin/su", "/sbin/su", "/su/bin/su").any { File(it).exists() }
     }
 
+    // The latest day this app has seen: turning the phone's date back does not make an old build young again.
+    private val clock = app.getSharedPreferences("clock", android.content.Context.MODE_PRIVATE)
+
     val buildExpired: Boolean
-        get() = buildExpired(LocalDate.now().toEpochDay(), BuildConfig.BUILD_EPOCH_DAY)
+        get() {
+            val today = maxOf(LocalDate.now().toEpochDay(), clock.getLong("seen_day", 0L))
+            clock.edit().putLong("seen_day", today).apply()
+            return buildExpired(today, BuildConfig.BUILD_EPOCH_DAY)
+        }
     private val databaseKey = DatabaseKey(app)
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var database: SessionDatabase? = null
@@ -103,6 +111,12 @@ class AppContainer(private val app: Application) : DefaultLifecycleObserver, Com
     val keyReset: StateFlow<Boolean> = _keyReset.asStateFlow()
     fun acknowledgeKeyReset() { _keyReset.value = false }
 
+    private val _keyUnbound = MutableStateFlow(false)
+    /** True after an unlock on a phone with no secure lock screen: records are then not tied to unlocking it. */
+    val keyUnbound: StateFlow<Boolean> = _keyUnbound.asStateFlow()
+    fun acknowledgeKeyUnbound() { _keyUnbound.value = false }
+    @Volatile private var unboundTold = false
+
     private val _downgraded = MutableStateFlow(false)
     /** True after stored sessions were reset because of a database downgrade; the officer is notified. */
     val downgraded: StateFlow<Boolean> = _downgraded.asStateFlow()
@@ -111,26 +125,39 @@ class AppContainer(private val app: Application) : DefaultLifecycleObserver, Com
     /** Null while the app is locked: no session data can be read without the officer's credential. */
     val sessions: StateFlow<SessionRepository?> = _sessions.asStateFlow()
 
+    // One unlock at a time; a lock() while it runs bumps the epoch, and the unlock then closes what it opened.
+    private val unlocking = Mutex()
+    @Volatile private var epoch = 0
+
     /** Call right after a successful authentication prompt, while the Keystore key is usable. */
-    suspend fun unlock() = withContext(Dispatchers.IO) {
-        if (_sessions.value != null) return@withContext
-        val db = try {
-            openDatabase()
-        } catch (e: SQLiteNotADatabaseException) {
-            // The file does not match the key (corrupted, or left from an older key): unreadable for good.
-            databaseKey.destroy()
-            openDatabase().also { _keyReset.value = true }
+    suspend fun unlock() = unlocking.withLock {
+        val started = epoch
+        withContext(Dispatchers.IO) {
+            if (_sessions.value != null) return@withContext
+            val db = try {
+                openDatabase()
+            } catch (e: SQLiteNotADatabaseException) {
+                // The file does not match the key (corrupted, or left from an older key): unreadable for good.
+                databaseKey.destroy()
+                openDatabase().also { _keyReset.value = true }
+            }
+            if (epoch != started) { db.close(); return@withContext }
+            val repo = SessionRepository(db.dao(), onSessionStarted = { settings.setNewestSessionAt(it) })
+            repo.purgeExpired(settings.current().retentionHours)
+            // Exported reports are only needed while the share sheet hands them over.
+            SessionReport.exportsDir(app).deleteRecursively()
+            withContext(Dispatchers.Main) {
+                if (epoch != started) { db.close(); return@withContext }
+                database = db
+                _sessions.value = repo
+            }
         }
-        database = db
-        val repo = SessionRepository(db.dao(), onSessionStarted = { settings.setNewestSessionAt(it) })
-        repo.purgeExpired(settings.current().retentionHours)
-        // Exported reports are only needed while the share sheet hands them over.
-        SessionReport.exportsDir(app).deleteRecursively()
-        _sessions.value = repo
     }
 
     private fun openDatabase(): SessionDatabase = databaseKey.unwrap().use { unwrapped ->
         if (unwrapped.reset) _keyReset.value = true
+        // Once per process: an officer without a lock screen is not stopped at every unlock.
+        if (databaseKey.unbound && !unboundTold) { unboundTold = true; _keyUnbound.value = true }
         // SQLCipher clears the key bytes itself once the database is open.
         SessionDatabase.open(app, unwrapped.key, onDestructiveMigration = { _downgraded.value = true }).also { db ->
             runCatching { db.openHelper.writableDatabase }.onFailure { db.close(); throw it }
@@ -182,6 +209,10 @@ class AppContainer(private val app: Application) : DefaultLifecycleObserver, Com
 
     /** Main thread only. Screens still composed may write once more; the repository drops those writes. */
     fun lock() {
+        epoch++
+        OfficerAuth.reset()
+        // The records were in use until now; the locked-time wipe counts retention from here.
+        if (_sessions.value != null) scope.launch { settings.setNewestSessionAt(System.currentTimeMillis()) }
         _sessions.value?.closed = true
         _sessions.value = null
         officerLink?.let { endLink() }
@@ -221,13 +252,18 @@ class AppContainer(private val app: Application) : DefaultLifecycleObserver, Com
         officerLink?.hold()
     }
 
+    /** Set while a session screen is open: a trip to a video call and back does not lock the conversation. */
+    @Volatile var inSession = false
+
     override fun onStart(owner: LifecycleOwner) {
-        if (backgroundedAt != 0L && SystemClock.elapsedRealtime() - backgroundedAt > RELOCK_AFTER_MS) lock()
+        val limit = if (inSession) RELOCK_IN_SESSION_MS else RELOCK_AFTER_MS
+        if (backgroundedAt != 0L && SystemClock.elapsedRealtime() - backgroundedAt > limit) lock()
         officerLink?.unhold()
     }
 
     private companion object {
         const val RELOCK_AFTER_MS = 5 * 60 * 1000L
+        const val RELOCK_IN_SESSION_MS = 30 * 60 * 1000L
         const val TAG = "SignSetu"
     }
 }

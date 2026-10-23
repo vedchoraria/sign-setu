@@ -40,7 +40,6 @@ enum class Character { CHILD, ADULT }
 enum class AvatarView(val left: Float, val top: Float, val width: Float, val height: Float) {
     /** To the hips: both hands stay inside at rest, at waist level and flat on the head. */
     Body(-10f, 0f, 220f, 258f),
-    /** The old square framing, for [MiniFace]. */
     Head(0f, 0f, 200f, 200f),
 }
 
@@ -75,12 +74,8 @@ private val AdultLook = Look(
     longSleeves = true,
 )
 
-/**
- * Draws a character and plays [gesture] once each time [playKey] changes. Speed below 1 plays slowly.
- * With [idle] the character breathes and blinks; the system "remove animations" setting turns that off.
- * With [glance] the character looks down at the answers once the gesture is over. [question] adds the
- * question face while the gesture plays.
- */
+/** Draws a character and plays [gesture] once each time [playKey] changes. Speed below 1 plays slowly. With
+ * [idle] the character breathes and blinks; the system "remove animations" setting turns that off. */
 @Composable
 fun Avatar(
     character: Character,
@@ -89,7 +84,6 @@ fun Avatar(
     modifier: Modifier = Modifier,
     speed: Float = 1f,
     idle: Boolean = true,
-    /** Draws one still frame of the gesture instead of playing it. */
     atSeconds: Float? = null,
     glance: Boolean = false,
     view: AvatarView = AvatarView.Body,
@@ -193,10 +187,8 @@ private fun questionFace(p: Pose, kind: QuestionKind, e: Float): Pose {
     }
 }
 
-/**
- * Everything the draw reuses from frame to frame. Brushes are in character or hand units, so they stay valid under
- * the draw's translate, rotate and scale; paths are rewound and rebuilt each frame.
- */
+/** Everything the draw reuses from frame to frame. Brushes are in character or hand units, so they stay valid
+ * under the draw's translate, rotate and scale; paths are rewound and rebuilt each frame. */
 internal class Kit(val build: Build, val look: Look, val child: Boolean) {
     val torsoBrush = Brush.verticalGradient(
         listOf(lerp(look.top, Color.White, 0.14f), look.top, look.topShade), startY = build.shoulderY - 20f, endY = 240f,
@@ -355,7 +347,6 @@ private fun DrawScope.drawTorso(k: Kit, liftR: Float, liftL: Float) {
     // Soft fold shadows give the top some volume without lines.
     drawOval(look.topShade, Offset(c - sh - 6f, sy + 26f), Size(14f, 60f), alpha = 0.55f)
     drawOval(look.topShade, Offset(c + sh - 8f, sy + 26f), Size(14f, 60f), alpha = 0.55f)
-    // Hem or belt, then trousers to the bottom edge.
     val w = sh + 3f
     if (k.child) {
         drawRect(look.topShade, Offset(c - w, 236f), Size(w * 2f, 3f))
@@ -397,7 +388,6 @@ private fun DrawScope.drawHead(k: Kit, pose: Pose, blink: Float) {
     val fx = hx + pose.turn * 7f
     val fy = hy + pose.nod * 2.5f
 
-    // Ears, then the head shape over them.
     val earY = hy + if (child) 5f else 3f
     for (s in SIDES) {
         val ex = hx + s * (b.headRx - 1f) - pose.turn * 3f
@@ -607,7 +597,6 @@ private fun DrawScope.drawArm(
         quad(k, s, e, aw * 1.2f + 2f, elbowW + 2f, k.sleeve)
         drawCircle(k.sleeve, elbowW / 2f + 1f, e)
         quad(k, e, cuff, elbowW + 2f, foreW + 2f, k.sleeve)
-        // A 4 unit rolled band at the sleeve's end.
         val len = hypot(w.x - e.x, w.y - e.y).coerceAtLeast(1e-3f)
         val band = lerpOffset(e, w, (0.22f - 4f / len).coerceAtLeast(0.05f))
         quad(k, band, cuff, foreW + 4.4f, foreW + 4.4f, look.topShade)
@@ -621,7 +610,6 @@ private fun DrawScope.drawArm(
         drawCircle(look.skin, elbowW / 2f, e)
         quad(k, e, w, foreW, wrist, look.skin)
         drawCircle(look.skin, wrist / 2f, w)
-        // Short sleeve over the top of the upper arm.
         val sleeveEnd = lerpOffset(s, e, 0.5f)
         drawLine(look.topShade, s, sleeveEnd, aw * 1.2f + 4f, StrokeCap.Round)
         drawLine(look.top, s, sleeveEnd, aw * 1.2f + 2.5f, StrokeCap.Round)

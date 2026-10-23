@@ -126,10 +126,8 @@ internal fun PauseRow(content: ContentBundle, lang: String, chosenCard: String?,
     SmallAnswer("stop", content.subjectText("stop", lang), stringResource(R.string.stage_stop), answer.pause, answer.onPause, chosenCard == "stop", { onCard("stop") }, Modifier.fillMaxWidth(), height = if (compact) 48.dp else 52.dp)
 }
 
-/**
- * Yes, No and the answers that keep a conversation honest sit in narrow rails either side of the camera, always in the
- * same place with picture, word and colour (ABE 2.104 to 2.108). Every tap is logged after the prompt shown.
- */
+/** Yes, No and the answers that keep a conversation honest sit in narrow rails either side of the camera,
+ * always in the same place with picture, word and colour (ABE 2.104 to 2.108). */
 @Composable
 internal fun Rail(content: @Composable ColumnScope.() -> Unit) =
     Column(Modifier.width(68.dp).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(Spacing.sm, Alignment.CenterVertically), content = content)

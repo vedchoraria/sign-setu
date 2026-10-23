@@ -52,10 +52,8 @@ private const val SLOWER_CUE_MS = 3_000L
 /** A hairline round the white tiles, so they keep an edge on the light stage. */
 internal val TileEdge = BorderStroke(1.dp, Color(0x22000000))
 
-/**
- * The subject says what their sign meant: two or three pictures, in their language, and "none of these". Nothing is
- * pre-selected and nothing counts until they tap.
- */
+/** The subject says what their sign meant: two or three pictures, in their language, and "none of these".
+ * Nothing is pre-selected and nothing counts until they tap. */
 @Composable
 internal fun SignChoicePanel(choices: List<SignChoice>, content: ContentBundle, lang: String, onChoose: (SignChoice?) -> Unit, modifier: Modifier) {
     Column(modifier, verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
@@ -90,10 +88,8 @@ internal fun SignChoicePanel(choices: List<SignChoice>, content: ContentBundle, 
     }
 }
 
-/**
- * While signing, one quiet dot per sign seen: the subject knows they are being followed, without being shown the
- * reader's guesses, which are only proposals.
- */
+/** While signing, one quiet dot per sign seen: the subject knows they are being followed, without being shown
+ * the reader's guesses, which are only proposals. */
 @Composable
 internal fun SeenSigns(segments: List<SignSegment>, modifier: Modifier) {
     if (segments.isEmpty()) return
@@ -110,10 +106,8 @@ internal fun SeenSigns(segments: List<SignSegment>, modifier: Modifier) {
     }
 }
 
-/**
- * Shown only after a failed read of fast or lost hands, never up front: a picture and a gentle caption. Each new
- * [failed] read shows it for a few seconds, so it never sits over the hands while they sign again.
- */
+/** Shown only after a failed read of fast or lost hands, never up front: a picture and a gentle caption. Each
+ * new [failed] read shows it for a few seconds, so it never sits over the hands while they sign again. */
 @Composable
 internal fun SignSlowerCue(failed: Any?, content: ContentBundle, lang: String, modifier: Modifier) {
     var visible by remember { mutableStateOf(false) }

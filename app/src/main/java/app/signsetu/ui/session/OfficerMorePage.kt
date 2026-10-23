@@ -9,6 +9,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -128,6 +129,32 @@ internal fun MorePage(
             modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.lg),
         )
         val groups = content.groupsFor(ui.session.role, ui.juvenile)
+        // Search-only since 0.5.1; a category chip is still a way in when the officer does not know the wording.
+        if (query.isBlank()) {
+            SectionLabel(stringResource(R.string.more_browse), Modifier.padding(horizontal = Spacing.lg).padding(top = Spacing.sm))
+            FlowRow(
+                Modifier.fillMaxWidth().padding(horizontal = Spacing.lg),
+                horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+                verticalArrangement = Arrangement.spacedBy(Spacing.xs),
+            ) {
+                groups.forEach { g ->
+                    val label = g.label.pick(officerLang) ?: g.id
+                    key(g.id) {
+                        Surface(
+                            shape = RoundedCornerShape(20.dp),
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                            modifier = Modifier.clip(RoundedCornerShape(20.dp)).clickable(role = Role.Button) { query = label },
+                        ) {
+                            Text(
+                                label,
+                                style = MaterialTheme.typography.labelLarge,
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                            )
+                        }
+                    }
+                }
+            }
+        }
         val words = query.trim().lowercase().split(' ').filter { it.isNotEmpty() }
         // A word matches a question's text in any language, or the name of its category.
         fun hit(vararg texts: Localized?) = words.all { w -> texts.any { t -> t?.values?.any { it.lowercase().contains(w) } == true } }
@@ -136,7 +163,6 @@ internal fun MorePage(
             val askedIds = remember(asked) { asked.values.filterNotNull().toSet() }
             val answeredIds = remember(ui.events, asked) { ui.events.filter { it.type in AnswerEvents }.mapNotNull { e -> e.shownId?.let(asked::get) }.toSet() }
             val phrases = if (words.isEmpty()) emptyList() else content.phrases.filter { p -> hit(p.label, *p.slots.map { it.text }.toTypedArray()) }
-            // Lesson-sheet hook: role and profile filter (Lesson.kt askable). A locked sensitive item asks to unlock first.
             val questions = if (words.isEmpty()) emptyList()
                 else groups.flatMap { g -> content.questionsIn(g.id, ui.session.role, ui.session.profile).filter { hit(it.text, g.label) }.map { g to it } }
             Column(Modifier.padding(horizontal = Spacing.lg, vertical = Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {

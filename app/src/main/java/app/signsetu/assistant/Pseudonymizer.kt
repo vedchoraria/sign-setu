@@ -1,40 +1,35 @@
 package app.signsetu.assistant
 
-/**
- * Swaps what the officer's phone knows to be personal for stand-ins before text leaves it, and swaps them back in what
- * returns. This is pattern matching, not anonymisation: a name, place or number the phone was not told about, a
- * misspelling, or a detail described in words ("the red house behind the school") passes through unchanged.
- *
- * Known names become "Ravi", "Ravi 2", and so on; other details the subject gave, such as a village or school, become
- * "[detail 1]". Emails, web addresses, PAN-style ids and runs of six or more digits are masked wherever they appear.
- */
+/** Swaps what the officer's phone knows to be personal for stand-ins before text leaves it, and swaps them back
+ * in what returns. */
 class Pseudonymizer(names: Collection<String>, details: Collection<String> = emptyList()) {
-    private val forward = LinkedHashMap<Regex, String>()
+    private val known = names.map { it.trim() }.filter { it.length >= 2 }.distinct()
+    private val extra = details.map { it.trim() }.filter { it.length >= 3 && it.any(Char::isLetter) && it !in known }.distinct()
+    private var forward: Map<Regex, String>? = null
     private val back = LinkedHashMap<String, String>()
 
-    init {
+    // The stand-in is a name the text does not already hold, so restoring never turns a real "Ravi" into someone else.
+    private fun build(text: String): Map<Regex, String> {
+        val base = STAND_INS.firstOrNull { !word(it).containsMatchIn(text) } ?: STAND_INS.first()
         val standIn = HashMap<String, String>()
-        val known = names.map { it.trim() }.filter { it.length >= 2 }.distinct()
         for ((i, full) in known.withIndex()) {
-            val tag = if (i == 0) "Ravi" else "Ravi ${i + 1}"
+            val tag = if (i == 0) base else "$base ${i + 1}"
             back[tag] = full
             for (p in listOf(full) + full.split(WHITESPACE)) if (p.length >= 2) standIn.putIfAbsent(p, tag)
         }
-        val extra = details.map { it.trim() }.filter { it.length >= 3 && it.any(Char::isLetter) && it !in known }.distinct()
         for ((i, value) in extra.withIndex()) {
             val tag = "[detail ${i + 1}]"
             back[tag] = value
             standIn.putIfAbsent(value, tag)
         }
         // Longest first, so a full name is replaced before its parts.
-        for ((part, tag) in standIn.entries.sortedByDescending { it.key.length }) {
-            forward[Regex("""(?<![\p{L}\p{M}\p{N}])""" + Regex.escape(part) + """(?![\p{L}\p{M}\p{N}])""", RegexOption.IGNORE_CASE)] = tag
-        }
+        return standIn.entries.sortedByDescending { it.key.length }.associate { (part, tag) -> word(part, RegexOption.IGNORE_CASE) to tag }
     }
 
     fun mask(text: String): String {
+        val map = forward ?: build(text).also { forward = it }
         var out = text
-        for ((re, tag) in forward) out = re.replace(out, tag)
+        for ((re, tag) in map) out = re.replace(out, tag)
         for ((re, label) in PATTERNS) {
             out = re.replace(out) { m ->
                 if (label == "number" && m.value.count(Char::isDigit) < MIN_DIGITS) return@replace m.value
@@ -48,14 +43,17 @@ class Pseudonymizer(names: Collection<String>, details: Collection<String> = emp
 
     fun restore(text: String): String {
         var out = text
-        // Longest tags first, so "Ravi 2" is not eaten by "Ravi".
-        for ((tag, real) in back.entries.sortedByDescending { it.key.length }) out = out.replace(tag, real)
+        // Longest tags first, so "Ravi 2" is not eaten by "Ravi"; whole words only, so "Ravindra" stays.
+        for ((tag, real) in back.entries.sortedByDescending { it.key.length }) out = word(tag).replace(out, Regex.escapeReplacement(real))
         return out
     }
 
     private companion object {
         const val MIN_DIGITS = 6
         val WHITESPACE = Regex("""\s+""")
+        val STAND_INS = listOf("Ravi", "Arun", "Kiran", "Gopal", "Mohan")
+        fun word(text: String, vararg options: RegexOption) =
+            Regex("""(?<![\p{L}\p{M}\p{N}])""" + Regex.escape(text) + """(?![\p{L}\p{M}\p{N}])""", options.toSet())
         // Order matters: an email or address is masked before the digit rule can cut into it. \p{Nd} covers Devanagari digits.
         val PATTERNS = listOf(
             Regex("""[\p{L}\p{N}._%+-]+@[\p{L}\p{N}.-]+\.\p{L}{2,}""") to "email",

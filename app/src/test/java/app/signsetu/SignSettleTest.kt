@@ -10,10 +10,8 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/**
- * When a sign window ends itself: three seconds with nothing raised, or two since the hands stopped moving.
- * The point of it is that what was given is ingested without anyone tapping Done.
- */
+/** When a sign window ends itself: three seconds with nothing raised, or two since the hands stopped moving.
+ * The point of it is that what was given is ingested without anyone tapping Done. */
 class SignSettleTest {
 
     private fun hand(x: Float) = List(21) { Offset(x + it * 0.01f, 0.5f) }
@@ -84,7 +82,7 @@ class SignSettleTest {
 
     @Test
     fun theTwoSecondsAreCountedFromTheHandsStoppingNotTheSignClosing() {
-        // A held sign closes 300 ms after it stops moving; settling must still give the person the full two seconds.
+        // A held sign closes 400 ms after it stops moving; settling must still give the person the full two seconds.
         val capture = SignCapture(SignWindow.ANSWER, limitMs = Long.MAX_VALUE)
         val script = gone(3) + moving(12) + still(70)
         val frames = script.mapIndexed(::frame)

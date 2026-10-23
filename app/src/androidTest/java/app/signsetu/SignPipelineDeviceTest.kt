@@ -17,10 +17,8 @@ import org.junit.runner.RunWith
 import java.io.File
 import kotlin.math.roundToLong
 
-/**
- * Dictionary clips of other signers through the real chain: MediaPipe Holistic on the device, sign segmentation and
- * the bundled ISL reader. Tracking and segmentation are asserted; the reader's top three are only reported.
- */
+/** Dictionary clips of other signers through the real chain: MediaPipe Holistic on the device, sign
+ * segmentation and the bundled ISL reader. */
 @RunWith(AndroidJUnit4::class)
 class SignPipelineDeviceTest {
 

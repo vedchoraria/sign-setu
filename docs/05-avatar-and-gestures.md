@@ -1,6 +1,6 @@
 # 05. Avatar and Gesture Design
 
-Status: Accepted. Replaces the earlier skeleton avatar. The app draws both characters in code (§5.7) and plays authored and recorded motions.
+The app draws both characters in code (§5.7) and plays authored and recorded motions.
 
 ## 1. Answers in brief
 
@@ -190,16 +190,7 @@ This works offline, needs no model, and works with home signs, because the confi
 
 Reviewers use the reviewer portal (`portal/`): every motion plays on both characters with speed and scrub, and verdicts export to the content review record.
 
-
-## 9. Building it in-house with no budget
-
-The characters and their motions are built with free tools chosen so that no 3D modelling skill is needed.
-
-- **Characters and authored motions.** Drawn and keyframed in code (§5.7); simple gestures take three to five keys each.
-- **Recorded signs.** Retargeted from the INCLUDE pose release (§5.3); further signs need a volunteer Deaf signer, filmed after signing the consent form, with landmarks extracted by MediaPipe and retargeted by the same script.
-- **People.** Performers and reviewers are volunteers from Deaf associations, deaf schools and child-welfare bodies, recruited through the department.
-
-## 10. Risks
+## 9. Risks
 
 | Risk | Mitigation |
 | --- | --- |

@@ -561,10 +561,8 @@ export class Timeline {
 export const elbowAt = (h: HandPose, sx: number, sy: number, b: Build, side: Side, prefer?: [number, number]): [number, number] =>
   Number.isNaN(h.elbowX) ? solveElbow(sx, sy, h.x, h.y, b.upperArm, b.foreArm, side, h.elbowOut, prefer) : [sx + h.elbowX, sy + h.elbowY];
 
-/**
- * The reachable wrist for a target: a two-bone arm cannot put the hand further than upper + fore from the shoulder.
- * Kept in step with Rig.kt so the portal preview matches the app.
- */
+/** The reachable wrist for a target: a two-bone arm cannot put the hand further than upper + fore from the
+ * shoulder. Kept in step with Rig.kt so the portal preview matches the app. */
 export function clampReach(sx: number, sy: number, target: [number, number], upper: number, fore: number): [number, number] {
   const dx = target[0] - sx;
   const dy = target[1] - sy;

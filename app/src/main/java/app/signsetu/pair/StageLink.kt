@@ -28,10 +28,8 @@ sealed interface LinkState {
     data object Idle : LinkState
     /** Officer connecting, or stage waiting for the officer. */
     data object Connecting : LinkState
-    /**
-     * Keys agreed; the stage holds [code], the officer (null) must type it. [check] appears on the officer's phone once
-     * it accepts the code, and on the stage once that acceptance arrives; the stage's Match waits for it.
-     */
+    /** Keys agreed; the stage holds [code], the officer (null) must type it. [check] appears on the officer's phone
+     * once it accepts the code, and on the stage once that acceptance arrives. */
     data class Code(val code: String?, val check: String? = null) : LinkState
     data object Live : LinkState
     data object Lost : LinkState
@@ -51,10 +49,8 @@ class LinkTiming(
     val resumeWindowMs: Long = 120_000,
 )
 
-/**
- * One officer-to-stage link. All logic runs on [scope], which must be single-threaded; blocking reads and
- * writes go to the IO dispatcher. Nothing here is persisted, and the only log lines are exception class names.
- */
+/** One officer-to-stage link. All logic runs on [scope], which must be single-threaded; blocking reads and
+ * writes go to the IO dispatcher. */
 class StageLink(
     val role: LinkRole,
     private val transport: StageTransport,
@@ -159,10 +155,8 @@ class StageLink(
         relisten()
     }
 
-    /**
-     * The stage's Match, possible only once a peer has accepted the code. Any peer can send that, so the person taps
-     * Match only when the officer's phone shows the same check value as this screen.
-     */
+    /** The stage's Match, possible only once a peer has accepted the code. Any peer can send that, so the person
+     * taps Match only when the officer's phone shows the same check value as this screen. */
     fun match() = scope.launch { if (!officer && !myConfirm && peerConfirm && _state.value is LinkState.Code) confirm() }
 
     /** Cancel on the code screen: back to waiting for the officer. */

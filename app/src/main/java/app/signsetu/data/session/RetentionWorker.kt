@@ -12,15 +12,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 
-/**
- * The database key can only be used after the officer authenticates, so a background job cannot delete single rows.
- * When even the newest session is past the retention period, every session is, and the job destroys the key and the
- * database file instead. Older sessions inside a still-current set are purged at the next unlock.
- */
+/** While the app is unlocked, idle sessions are purged row by row. While it is locked the database key cannot be
+ * used, so the job can only wipe everything, and does so once even the latest session activity is past retention. */
 class RetentionWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
         val container = (applicationContext as SignSetuApp).container
         val settings = container.settings.current()
+        container.sessions.value?.let { repo ->
+            repo.purgeExpired(settings.retentionHours)
+            return Result.success()
+        }
         if (allSessionsExpired(System.currentTimeMillis(), settings.newestSessionAt, settings.retentionHours)) {
             // lock() touches the link and the UI's state, which live on the main thread.
             withContext(Dispatchers.Main) { container.clearAllData() }

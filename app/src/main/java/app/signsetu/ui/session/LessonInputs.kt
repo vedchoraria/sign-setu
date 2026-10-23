@@ -97,10 +97,8 @@ fun lessonQuestion(pending: Pending?): Question? = (pending as? Pending.Ask)?.qu
 
 private fun Localized.or(lang: String) = this[lang] ?: this["en"].orEmpty()
 
-/**
- * Answer inputs for the lesson-sheet questions. A written or typed answer is read back large and logged as the
- * subject's own only when they accept it; a read-back left open is logged unconfirmed. The ways out stay below.
- */
+/** Answer inputs for the lesson-sheet questions. A written or typed answer is read back large and logged as the
+ * subject's own only when they accept it; a read-back left open is logged unconfirmed. */
 @Composable
 internal fun AnswerPanel(
     q: Question,

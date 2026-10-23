@@ -30,11 +30,8 @@ import java.io.PipedOutputStream
 import java.security.SecureRandom
 import java.util.concurrent.ConcurrentHashMap
 
-/**
- * Google Nearby Connections under the same link (nearby flavor only; the shape of Ping's NearbyConnectionsTransport).
- * Nearby's own auth digits are ignored: the link's handshake and typed code authenticate the peer. Each device
- * announces a random per-run name, never its Bluetooth name, and that name pins a resume.
- */
+/** Google Nearby Connections under the same link (nearby flavor only; the shape of Ping's
+ * NearbyConnectionsTransport). */
 class NearbyStageTransport(context: Context) : StageTransport {
     private val client: ConnectionsClient = Nearby.getConnectionsClient(context)
     private val name = "Display-" + ByteArray(2).also(SecureRandom()::nextBytes).toHexString(HexFormat.UpperCase)

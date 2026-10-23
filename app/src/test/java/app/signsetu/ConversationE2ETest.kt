@@ -61,11 +61,8 @@ import org.junit.Before
 import org.junit.Test
 import java.io.File
 
-/**
- * One whole conversation through the view model with the bundled content and the real ISL reader: a question shown,
- * tapped answers with and without a gesture cue, a sign window over recorded landmarks, the officer's reading taught
- * back, the subject's picks and No, and the record built from it all.
- */
+/** One whole conversation through the view model with the bundled content and the real ISL reader: a question
+ * shown, tapped answers with and without a gesture cue, a sign window over recorded landmarks. */
 @OptIn(ExperimentalCoroutinesApi::class)
 class ConversationE2ETest {
 

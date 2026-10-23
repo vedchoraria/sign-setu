@@ -11,10 +11,8 @@ const val DONT_UNDERSTAND = "dont_understand"
 private val AnswerCards = setOf("yes", "no", "dont_know", "stop", SOMETHING_ELSE, DONT_UNDERSTAND)
 private val NUMBER = Regex("n\\d+")
 
-/**
- * Picture choices in a fresh random order, so the first or last picture is not favoured, with ways out that do not
- * force a choice. "I don't know" and "I don't understand" are always on the stage's answer strip.
- */
+/** Picture choices in a fresh random order, so the first or last picture is not favoured, with ways out that do
+ * not force a choice. "I don't know" and "I don't understand" are always on the stage's answer strip. */
 fun offered(cards: List<String>, random: Random): List<String> {
     val pictures = cards.filter { it != "draw" }
     if (pictures.size < 2 || "draw" in cards || pictures.any { it in AnswerCards || NUMBER.matches(it) }) return cards
@@ -28,10 +26,8 @@ fun unseen(all: List<String>, shown: List<String>): List<String>? {
     return when (rest.size) { 0 -> null; 1 -> rest + SOMETHING_ELSE; else -> rest }
 }
 
-/**
- * The pictures a show-back or say-back offers: the reading under check and up to two others from [pool]. A single
- * picture is no choice, so then only the reading comes back and a Yes to it confirms nothing.
- */
+/** The pictures a show-back or say-back offers: the reading under check and up to two others from [pool]. A
+ * single picture is no choice, so then only the reading comes back and a Yes to it confirms nothing. */
 fun checkChoices(meant: String?, pool: List<String>, max: Int = 3): List<String> {
     meant ?: return emptyList()
     val others = pool.filter { it != meant && it != "draw" && it !in AnswerCards && !NUMBER.matches(it) }.distinct()

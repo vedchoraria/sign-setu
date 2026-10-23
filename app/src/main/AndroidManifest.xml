@@ -7,6 +7,8 @@
     <uses-feature android:name="android.hardware.camera.any" android:required="false" />
     <!-- Answer codes felt by the officer holding the phone; a normal permission. -->
     <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- The officer's screen lock or fingerprint before records are opened, left, exported or deleted. -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
 
     <!-- Only the department gateway client uses it: off by default, HTTPS only, nothing else in the app opens a connection. -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -35,13 +37,16 @@
         android:theme="@style/Theme.SignSetu"
         tools:targetApi="37">
 
+        <!-- Portrait is the officer's working posture; the stage rotates its own content in-app and never
+             recreates the activity. Chrome OS and Android 16 lint advice does not apply to a handed-over phone. -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTask"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize"
             android:screenOrientation="portrait"
-            android:windowSoftInputMode="adjustResize">
+            android:windowSoftInputMode="adjustResize"
+            tools:ignore="LockedOrientationActivity,DiscouragedApi">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

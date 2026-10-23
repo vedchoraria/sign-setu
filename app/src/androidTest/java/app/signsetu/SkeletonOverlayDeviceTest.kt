@@ -26,10 +26,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
 
-/**
- * A real signer's frame through MediaPipe and the camera overlay's own drawing: both hands and the arms must be traced
- * where the person is. The picture is pulled to build/outputs/connected_android_test_additional_output for a person to look at.
- */
+/** A real signer's frame through MediaPipe and the camera overlay's own drawing: both hands and the arms must
+ * be traced where the person is. */
 @RunWith(AndroidJUnit4::class)
 class SkeletonOverlayDeviceTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()

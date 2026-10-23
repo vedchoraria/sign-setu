@@ -22,16 +22,17 @@ class ForensicAiBackendTest {
 
         val report = OfflineReport.synthesizeOfflineForensicReport(rawLog, role = "VICTIM", regionalDialect = "Chhattisgarhi")
 
-        assertTrue(report.contains("Subject Classification : Victim / Reporting Subject"))
-        assertTrue(report.contains("Questions Formulated   : 3 structured"))
-        assertTrue(report.contains("Evidentiary Responses  : 3 recorded answers, 1 drawing/landmark exhibits"))
+        assertTrue(report.startsWith("MACHINE DRAFT SUMMARY: NOT PART OF THE RECORD"))
+        assertTrue(report.contains("Role: Victim or witness"))
+        assertTrue(report.contains("Items shown: 3"))
+        assertTrue(report.contains("Drawings: 1"))
         // An answer with no text is recorded by its card.
-        assertTrue(report.contains("• n9"))
-        assertTrue(report.contains("Pointed / Indicated Pain Areas : arm\n"))
-        assertTrue(report.contains("Reported via finger gestures: 9 years"))
-        assertTrue(report.contains("Observed Physical Cues        : nod\n"))
+        assertTrue(report.contains("   • n9"))
+        assertTrue(report.contains("Body areas the subject picked: arm\n"))
         assertTrue(report.contains("   • Victim accompanied by aunt; appears shaken but communicative."))
-        assertTrue(OfflineReport.synthesizeOfflineForensicReport("", "ACCUSED", "hi").contains("Accused / Subject in Custody"))
+        // No legal, medical or reliability claim is made for the officer.
+        listOf("Verified", "MLC", "Section", "tamper").forEach { assertTrue(it, it !in report) }
+        assertTrue(OfflineReport.synthesizeOfflineForensicReport("", "ACCUSED", "hi").contains("Role: Accused or in custody"))
     }
 
     @Test
@@ -41,9 +42,9 @@ class ForensicAiBackendTest {
         assertEquals("Do you need medical attention right away?", first("मुझे दर्द है", child = false))
         assertEquals("Do you feel safe in this room?", first("I am afraid", child = false))
         assertEquals("When did this happen?", first("they hit me", child = false))
-        assertEquals("Do you feel safe returning home?", first("at home", child = true))
+        assertEquals("Can you tell me more about home?", first("at home", child = true))
         assertEquals("Do you feel safe at school?", first("teacher at school", child = true))
-        assertEquals("Can you point on the body map to where?", first("bad touch", child = false))
+        assertEquals("Can you tell me more about that?", first("bad touch", child = false))
         assertEquals("Can you tell me more about that night?", first("it happened at night in the dark", child = true))
         assertEquals("Are you feeling comfortable?", first("blue", child = true))
         assertEquals("Are you comfortable continuing?", first("blue", child = false))

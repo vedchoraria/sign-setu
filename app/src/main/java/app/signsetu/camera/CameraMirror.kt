@@ -65,7 +65,8 @@ object SkeletonOverlay {
     val on = mutableStateOf(true)
 }
 
-/** Whether a skeleton snapshot (biometric landmarks) is kept in the record when a signed answer is logged; off unless the officer turns it on. */
+/** Whether a skeleton snapshot (biometric landmarks) is kept in the record when a signed answer is logged; off unless
+ * the officer turns it on, and off again with every new session. */
 object EvidenceMode {
     val autoCapture = mutableStateOf(false)
 }
@@ -73,12 +74,8 @@ object EvidenceMode {
 fun hasCameraPermission(context: Context) =
     ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
 
-/**
- * A live mirror of the subject's hands. Only Preview and, when a [tracker] is supplied, ImageAnalysis are bound:
- * no image is captured, recorded or saved. The skeleton, brows and lips are drawn whenever the camera shows;
- * frames go to [onFrame] for sign capture only inside a sign window, which also raises the analysis rate.
- * The camera stops when this leaves the screen. [placeholder] shows instead when there is no permission or no camera.
- */
+/** A live mirror of the subject's hands. Only Preview and, when a [tracker] is supplied, ImageAnalysis are
+ * bound: no image is captured, recorded or saved. */
 @Composable
 fun CameraMirror(
     tracker: LandmarkTracker?,
@@ -311,10 +308,8 @@ internal fun outOfView(p: Offset): Edge? = when {
 internal fun labelledHands(frame: LandmarkFrame): List<Pair<String, List<Offset>>> =
     listOfNotNull(frame.leftHand?.takeIf { it.size >= 21 }?.let { "L" to it }, frame.rightHand?.takeIf { it.size >= 21 }?.let { "R" to it })
 
-/**
- * Where a normalised landmark lands in a [viewW] x [viewH] view showing the frame letterboxed (Fit) and centred.
- * [frameAspect] is the analysed frame's width / height; [rotation] is the clockwise turn that makes it upright.
- */
+/** Where a normalised landmark lands in a [viewW] x [viewH] view showing the frame letterboxed (Fit) and
+ * centred. */
 internal fun overlayPoint(p: Offset, frameAspect: Float, viewW: Float, viewH: Float, mirrored: Boolean, rotation: Int = 0): Offset {
     val (x, y) = when (rotation.mod(360)) {
         90 -> 1f - p.y to p.x
@@ -328,8 +323,8 @@ internal fun overlayPoint(p: Offset, frameAspect: Float, viewW: Float, viewH: Fl
     return Offset((viewW - w) / 2f + (if (mirrored) 1f - x else x) * w, (viewH - h) / 2f + y * h)
 }
 
-// About 40 frames a second inside a sign window, 30 in preview, 4 in an empty room.
-private const val ANALYSIS_INTERVAL_MS = 25L
+// About 33 frames a second inside a sign window, 30 in preview, 4 in an empty room.
+private const val ANALYSIS_INTERVAL_MS = 30L
 private const val PREVIEW_INTERVAL_MS = 33L
 private const val IDLE_INTERVAL_MS = 250L
 private const val IDLE_AFTER_MS = 10_000L

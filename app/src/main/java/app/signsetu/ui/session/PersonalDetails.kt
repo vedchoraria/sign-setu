@@ -17,10 +17,8 @@ data class Detail(val field: String, val value: String, val method: Method, val 
 /** Taps that are not a detail: the ways out of a question, and a Yes or No to an open one. */
 private val NotDetails = setOf("stop", "break", DONT_UNDERSTAND, "wrong", "yes", "no", SOMETHING_ELSE)
 
-/**
- * Every answer the subject gave to a question with an answer type, in order. A reading the officer said back counts
- * only once the subject confirmed it, and then as signed and confirmed.
- */
+/** Every answer the subject gave to a question with an answer type, in order. A reading the officer said back
+ * counts only once the subject confirmed it, and then as signed and confirmed. */
 fun personalDetails(events: List<SessionEvent>, content: ContentBundle, lang: String): List<Detail> {
     val byId = events.associateBy { it.id }
     fun field(itemId: String?) = itemId?.let(content::question)?.takeIf { it.answer != null }

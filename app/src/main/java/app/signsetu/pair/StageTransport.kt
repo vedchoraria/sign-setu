@@ -18,10 +18,8 @@ class Pipe(val input: InputStream, val output: OutputStream, val peer: String, p
     override fun close() = onClose()
 }
 
-/**
- * The byte transport under a link, kept free of Android types so the protocol runs in JVM tests over an in-process
- * fake (the shape of Ping's NearbyTransport). Bluetooth RFCOMM is the default; Nearby Connections is a build flavor.
- */
+/** The byte transport under a link, kept free of Android types so the protocol runs in JVM tests over an in-
+ * process fake (the shape of Ping's NearbyTransport). */
 interface StageTransport {
     /** Devices the officer may connect to; bonded devices for Bluetooth, discovered ones for Nearby. */
     fun peers(): Flow<List<Peer>>
@@ -36,10 +34,8 @@ interface StageTransport {
     fun localName(): String? = null
 }
 
-/**
- * Runs blocking I/O on the IO dispatcher; cancellation (a timeout too) calls [close], since platform sockets ignore
- * coroutine cancellation and thread interrupts.
- */
+/** Runs blocking I/O on the IO dispatcher; cancellation (a timeout too) calls [close], since platform sockets
+ * ignore coroutine cancellation and thread interrupts. */
 suspend fun <T> closing(close: () -> Unit, block: () -> T): T = coroutineScope {
     var finished = false
     val watcher = launch { try { awaitCancellation() } finally { if (!finished) close() } }

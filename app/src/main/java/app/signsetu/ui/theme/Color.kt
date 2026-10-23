@@ -140,7 +140,6 @@ data class StageColors(
     val windowFrame: Color,
     val handle: Color,
     val onHandle: Color,
-    /** Wordmark and icons drawn straight on the backdrop. */
     val title: Color,
     /** Behind the word the character is signing; the bubble stays light in both themes. */
     val highlight: Color = Color(0xFFFFD98A),

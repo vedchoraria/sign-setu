@@ -52,9 +52,8 @@ private class SpellReader(private val inner: SignReader) : SignReader by inner {
 const val SPELL_MIN_LETTERS = 3
 const val SPELL_MIN_PEAK = 0.9f
 
-/**
- * With the real-trained letter reader, 2 lets through 0.24 correct spelled reads against 0.09 at 3, losing no INCLUDE words.
- */
+/** With the real-trained letter reader, 2 lets through 0.24 correct spelled reads against 0.09 at 3, losing no
+ * INCLUDE words. */
 const val SPELL_ODDS = 2f
 
 /** How far a wrist strays from its middle position, in shoulder widths, above which a segment is not read as a letter:
@@ -76,10 +75,7 @@ internal fun wristReach(frames: List<LandmarkFrame>): Float? {
     return maxOf(reach { it.leftHand }, reach { it.rightHand }) / sw
 }
 
-/**
- * The format 2 CTC reader as a [SignReader]: one guess, the letters read, scored by its least sure letter. Reads with
- * fewer or weaker letters are left to the word reader, which also lets a failed read ask for slower signing.
- */
+/** The format 2 CTC reader as a [SignReader]: one guess, the letters read, scored by its least sure letter. */
 private class CtcSpell(private val ctc: CtcSpellReader) : SignReader {
     override val labels = ctc.alphabet.map { it.lowercaseChar().toString() }
     override fun read(frames: List<LandmarkFrame>): List<SignGuess> {
@@ -107,11 +103,8 @@ fun glossOf(guess: SignGuess?, signWords: Map<String, String>): List<String> = w
 
 internal fun letterOf(label: String) = label.lowercase().removePrefix("letter.").removePrefix("digit.")
 
-/**
- * Word and fingerspelling readers over one segment: the words' guesses, unless the spelling's top is more than [odds]
- * times the word top. Then the top letter, the top word and the second letter, so a word mistaken for a letter is still
- * offered; on an unseen ISLRTC signer that keeps 8 more of 199 words in the three shown and loses no real letter.
- */
+/** Word and fingerspelling readers over one segment: the words' guesses, unless the spelling's top is more than
+ * [odds] times the word top. */
 internal class CombinedReader(private val signs: SignReader, private val spell: SignReader, private val odds: Float) : SignReader {
     override val labels = signs.labels + spell.labels
     override val words = signs.words

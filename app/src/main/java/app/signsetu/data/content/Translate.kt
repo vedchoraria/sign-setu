@@ -6,10 +6,8 @@ enum class Made { BANK, NEAR, TEMPLATE, WORDS }
 /** A machine translation for the caption: the officer sees it marked as unchecked before Send. */
 data class HindiDraft(val hi: String, val made: Made)
 
-/**
- * English to Hindi without a model: a reviewed sentence from the content first, then a sentence pattern, then word by
- * word in Hindi order. Null when any word is unknown, so the subject never sees half a translation.
- */
+/** English to Hindi without a model: a reviewed sentence from the content first, then a sentence pattern, then
+ * word by word in Hindi order. */
 fun ContentBundle.toHindi(text: String): HindiDraft? {
     val bank = bank()
     bank.reviewed(text)?.let { return it }

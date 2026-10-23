@@ -4,10 +4,8 @@ import app.signsetu.camera.LandmarkFrame
 import app.signsetu.sign.STILL_SPEED
 import app.signsetu.sign.moving
 
-/**
- * The reference for SignCapture: one full scan of a finished stream, split at pauses of [pauseMs], as index ranges.
- * A sign still open at the end is returned only when [final].
- */
+/** The reference for SignCapture: one full scan of a finished stream, split at pauses of [pauseMs], as index
+ * ranges. A sign still open at the end is returned only when [final]. */
 fun segmentSigns(frames: List<LandmarkFrame>, final: Boolean, pauseMs: Long = 400, minMs: Long = 200): List<IntRange> {
     val out = ArrayList<IntRange>()
     var start = -1

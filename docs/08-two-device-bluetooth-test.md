@@ -1,4 +1,4 @@
-# 04. Bluetooth Two-Device Acceptance Testing Protocol
+# 08. Bluetooth Two-Device Acceptance Testing Protocol
 
 ## 1. Scope & Objective
 

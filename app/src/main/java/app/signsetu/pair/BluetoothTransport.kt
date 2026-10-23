@@ -12,11 +12,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import java.util.UUID
 
-/**
- * Secure RFCOMM to devices already paired in system settings. The app never scans, never makes itself
- * discoverable and never bonds, so it needs only BLUETOOTH_CONNECT (BLUETOOTH up to Android 11).
- * Callers hold the runtime permission before any call; the stage is the server, the officer the client.
- */
+/** Secure RFCOMM to devices already paired in system settings. The app never scans, never makes itself
+ * discoverable and never bonds, so it needs only BLUETOOTH_CONNECT (BLUETOOTH up to Android 11). */
 @SuppressLint("MissingPermission")
 class BluetoothTransport(val adapter: BluetoothAdapter) : StageTransport {
 

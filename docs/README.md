@@ -4,9 +4,8 @@ Sign Setu is an offline Android app that helps a police officer communicate with
 
 | Field | Value |
 | --- | --- |
-| Baseline | Application version 0.5.0 (version code 7), applicationId `in.signsetu` |
-| Status | Baseline for departmental review |
-| Classification | Internal, for review |
+| Version | 0.5.1 (version code 8), applicationId `in.signsetu` |
+| Classification | Internal |
 | Scope | Requirements, design, data protection, security controls, assurance, release and operation, with the data flow model and the architecture views |
 | Source of truth | Repository `Yash-Awasthi/sign-setu`; requirements in `docs/01-requirements.md`, security controls in `04-security.md` |
 
@@ -20,8 +19,8 @@ Sign Setu is an offline Android app that helps a police officer communicate with
 6. [Security](#6-security)
 7. [Quality assurance](#7-quality-assurance)
 8. [Build, release and operation](#8-build-release-and-operation)
-9. [Risks, limitations and traceability](#9-risks-limitations-and-traceability)
-11. [Glossary](#glossary)
+9. [Limitations and traceability](#9-limitations-and-traceability)
+10. [Glossary](#glossary)
 
 ## 1. Document set and conventions
 
@@ -33,15 +32,16 @@ Sign Setu is an offline Android app that helps a police officer communicate with
 | [02-architecture.md](02-architecture.md) | Technology, packages and flavor source sets, content bundle, data model, storage, export, build, performance, second-screen protocol, reviewer portal |
 | [03-ux.md](03-ux.md) | Officer and stage states, profiles, flows, accessibility, visual and content style |
 | [04-security.md](04-security.md) | Security controls (SEC-), keys, threats in scope |
+| [06-hardware-baseline-protocol.md](06-hardware-baseline-protocol.md) | Android 10 ARM64 benchmark procedure and acceptance thresholds |
 | [05-avatar-and-gestures.md](05-avatar-and-gestures.md) | Gesture and ISL lexicons, the two characters, motion pipelines, the code-drawn rig, validation |
-| [07-decisions.md](07-decisions.md) | Decision log (D-01 to D-54): context, choice, alternatives and consequences; changed only by adding a superseding entry |
+| [08-two-device-bluetooth-test.md](08-two-device-bluetooth-test.md) | Two-device pairing, handshake, transmission and recovery protocol |
 | [09-open-source.md](09-open-source.md) | Reusable open-source components per module, with licences and attribution |
 | [11-hand-model-integration.md](11-hand-model-integration.md) | The vision engine and sign reader, sign windows, and the contract for a replacement model |
 | [12-on-device-assistant.md](12-on-device-assistant.md) | The optional on-device translation assistant: model, installation, budgets |
-| [13-product-overview.md](13-product-overview.md) | One reference for explaining the product: features, mechanisms, character, sign reading, export, stack, frontend, readiness |
+| [13-product-overview.md](13-product-overview.md) | Product reference: features, mechanisms, character, sign reading, export and stack |
 | [14-screens.md](14-screens.md) | Catalogue of every screen, with screenshots in [screens/](screens/) |
 | [15-dpia.md](15-dpia.md) | Data protection impact assessment: processing, lawful basis, statutory recording and risks |
-| [17-attestation-and-pinning.md](17-attestation-and-pinning.md) | Assessment and design for certificate pinning and Key Attestation: threat model, safeguards, unresolved decisions; not built |
+| [17-attestation-and-pinning.md](17-attestation-and-pinning.md) | Threat model, certificate pinning and Key Attestation safeguards, and deployment inputs |
 
 ### 1.2 Other folders
 
@@ -105,7 +105,7 @@ Process decomposition is in [section 3.4](#34-level-2-stage-interaction); the me
 | --- | --- |
 | Target devices | Android 10 (API 29) or later, 64-bit (arm64-v8a phones; the universal build adds x86_64), 3 GB RAM or more, 5 to 6.9 inch portrait |
 | Flavors | `standard` (reference, Bluetooth RFCOMM) and `nearby` (adds Nearby Connections) |
-| Release package | Signed APKs: arm64-v8a for phones, 78.9 MiB, and universal (arm64-v8a and x86_64), 104.2 MiB; nothing compressed; float32 sign readers; native libraries stored uncompressed |
+| Release package | APKs (signed at distribution): arm64-v8a for phones, 78.9 MiB, and universal (arm64-v8a and x86_64), 104.1 MiB; nothing compressed; float32 sign readers; native libraries stored uncompressed |
 | Permissions (standard) | `CAMERA` (mirror and sign window), `BLUETOOTH_CONNECT` (second screen), `VIBRATE`. `INTERNET` only for the department gateway; no microphone or location (build gate) |
 | Languages (17) | English, Hindi, Chhattisgarhi, Gondi, Halbi, Bengali, Nepali, Assamese, Odia, Tamil, Telugu, Kannada, Malayalam, Marathi, Gujarati, Punjabi, Urdu |
 
@@ -1028,7 +1028,7 @@ All content is data, not code, and every file except `models/` is checked agains
 
 | Path | Content |
 | --- | --- |
-| `triage.json` | 15 question groups, 78 questions with text per language, cards, roles |
+| `triage.json` | 15 question groups, 80 questions with text per language, cards, roles |
 | `cards.json`, `cards/*.webp` | 12 categories, 117 picture cards |
 | `gestures.json`, `signs.json` | 42 authored gestures; letters, digits and draft word signs |
 | `isl_signs.json`, `asl_signs.json` | 262 ISL and 250 ASL recorded signs retargeted from INCLUDE, ISLRTC and PopSign signers |
@@ -1042,7 +1042,7 @@ All content is data, not code, and every file except `models/` is checked agains
 
 ### 5.1 Requirements
 
-Requirements are numbered and traced to controls, tests and decisions. The register is [01-requirements.md](01-requirements.md).
+Requirements are numbered and traced to controls and tests. The register is [01-requirements.md](01-requirements.md).
 
 | Category | Count | Examples |
 | --- | --- | --- |
@@ -1083,10 +1083,6 @@ Native Kotlin was chosen over cross-platform frameworks because the product is a
 | Subject text | Every stage word, question, phrase and picture label exists in all 17 languages; speech exists for English, Hindi and most others as placeholder voices; Gondi and Halbi have none |
 | Hindi caption | Typed English is captioned on the phone: reviewed wording first, then sentence patterns, then word by word; returns nothing rather than a wrong modal verb |
 | Review | Every sign and question passes the reviewer portal before release; drafts are labelled |
-
-#### 5.2.4 Design decisions
-
-Each decision, with its alternatives, is recorded in [07-decisions.md](07-decisions.md).
 
 ### 5.3 Data and privacy
 
@@ -1146,27 +1142,18 @@ Objectives: subject data is unreadable without the officer's credential; it does
 
 ### 7.2 Continuous integration
 
-Every push to `main` runs these jobs.
+Every push to `master` and every pull request runs these jobs.
 
 | Job | Checks |
 | --- | --- |
-| android | Unit tests, release lint, release and nearby builds |
+| android | Unit tests on both flavors, release lint, release and nearby builds |
 | instrumented | Stage accessibility, overlay-touch, database migration and report export tests on an API 34 pixel_6 emulator. Not run in CI: the end-to-end stage test (needs a camera feed) and the two MediaPipe pipeline tests (need a GPU); run them on a phone or a local emulator |
 | release-record | Release APK and bundle, dependency and vulnerability record |
-| portal, tools | Portal format, lint and tests; Python tool tests |
+| portal, tools | Portal format, lint and tests; Python tool tests; content manifest and reference checks |
+| backend | Gateway tests |
 | semgrep, osv, gitleaks | Code patterns, known vulnerabilities in shipped libraries, secrets |
 
-### 7.3 Results at this baseline
-
-| Measure | Result |
-| --- | --- |
-| CI | All eight jobs pass on the baseline commit |
-| Unit tests | 201 per flavor passed locally; instrumented suite passed locally (76 of 76 at last full run) |
-| Portal tests | 918 passed |
-| Release smoke test | Signed 0.5.0 APK installs and runs on an arm64 phone and on the emulator without a crash |
-| Pipeline test (3 dictionary clips) | Hands and pose tracked in line with the desktop run; each clip segmented; true word in the top three for 2 of 3 clips |
-
-### 7.4 Sign reader accuracy
+### 7.3 Sign reader accuracy
 
 Measured values, not targets.
 
@@ -1185,10 +1172,10 @@ The reader generalises poorly to people it has not seen. For that reason a readi
 
 | Topic | Practice |
 | --- | --- |
-| Source control | Git; `main` is the integration branch; the repository is public |
+| Source control | Git; `master` is the integration branch; the repository is public |
 | Reproducibility | Gradle wrapper, version catalog, dependency lockfile and checksum verification; vendored llama.cpp at a pinned version; `.gitattributes` forces LF so manifest hashes hold on every checkout |
 | Release build | R8 full mode with resource shrinking, not debuggable, log calls stripped; a universal APK (arm64-v8a and x86_64) and an arm64-v8a phone APK (`-Pabi=arm64-v8a`); zipalign and apksigner with the release key (signature scheme v3). The key is held offline by the release manager and a second custodian |
-| Versioning | Semantic version in `app/build.gradle.kts` (0.5.0, code 7); a build refuses new sessions 180 days after its build date |
+| Versioning | Semantic version in `app/build.gradle.kts` (0.5.1, code 8); a build refuses new sessions 180 days after its build date |
 | Distribution | GitHub release asset for pilots; Mobile Seva AppStore or a department download page for production |
 
 ### 8.2 Installation and operation
@@ -1201,21 +1188,19 @@ The reader generalises poorly to people it has not seen. For that reason a readi
 | Update | Install the newer APK over the old one; updates must carry the same signing key |
 | Shared phone risk | End each conversation; rely on retention; a department PIN can be added if the pilot shows shared phones |
 
-## 9. Risks, limitations and traceability
+## 9. Limitations and traceability
 
-### 9.1 Risks, limitations and open items
+### 9.1 Limitations
 
-| Item | Impact | Mitigation or action |
+| Item | Impact | Handling |
 | --- | --- | --- |
-| Sign reader accuracy on unseen signers | Wrong proposals | Subject confirmation from pictures; evidence grades; collect real signer data |
-| Translations beyond English and Hindi are drafts | Wrong wording shown to a subject | Labelled draft; native-speaker review before production |
-| Gondi and Halbi have low confidence and no speech | Weak support for these languages | Review with speakers; record voices |
-| Placeholder speech is synthetic | Unnatural voices | Replace with recorded speech |
-| Hindi caption patterns are rules, not a model | Odd sentences for unusual input | No caption is better than a wrong one; marked unchecked; extend patterns after review |
-| Android only, 64-bit only | No iOS or 32-bit phones; the universal APK (104.2 MiB) exceeds the 100 MB target, the phone APK meets it | Accepted scope for officers' phones |
-| Not yet tested with children and on a spread of phones | Unknown field behaviour | Pilot devices and user testing |
-| Signing key password handling | Key custody | Rotate the keystore password; keep the file offline |
-| Formal reviews outstanding | No assurance claim yet | Content review record sign-off; CERT-In empanelled audit; MASVS review |
+| Sign reader accuracy on unseen signers | Wrong proposals | Readings are never answers; the subject confirms the meaning from pictures; every answer carries its evidence grade |
+| Translations beyond English and Hindi are drafts | Wording shown to a subject may be wrong | Draft label in the officer interface; English and Hindi are the reviewed pair |
+| Gondi and Halbi have no voice | These subjects rely on captions and pictures | Caption and picture carry every question |
+| Placeholder speech is synthetic | Unnatural voice | Speech is optional; captions and pictures carry the question |
+| Hindi caption patterns are rules, not a model | Odd sentences for unusual input | No caption is shown when any word is unknown; a shown caption is marked unchecked |
+| Android only, 64-bit only | No iOS or 32-bit phones; the universal APK (104.1 MiB) exceeds the 100 MB target, the phone APK meets it | Distribution is the arm64 phone APK |
+| Signing key custody | A lost key blocks updates | Key held offline by two custodians; the build is unsigned until the release step |
 
 ### 9.2 Traceability
 

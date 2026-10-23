@@ -14,10 +14,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 
-/**
- * Turns sun mode on after the light stays above [onLux] for [onMs] and off after it stays below [offLux] for [offMs],
- * so a passing shadow or a hand over the sensor never flickers the stage. Thresholds are parameters: sensors differ.
- */
+/** Turns sun mode on after the light stays above [onLux] for [onMs] and off after it stays below [offLux] for
+ * [offMs], so a passing shadow or a hand over the sensor never flickers the stage. */
 class SunHysteresis(
     val onLux: Float = 10_000f,
     val onMs: Long = 3_000,

@@ -61,10 +61,8 @@ private fun connectedDetail(link: StageLink, contentHash: String): String {
     return "${link.peerModel.orEmpty()} v${BuildConfig.VERSION_CODE} ${contentHash.take(8)} $address"
 }
 
-/**
- * Mounted by the session screen while this phone has an officer link: sends snapshots of what is on stage, logs
- * every answer before acking it, and records the link's life in the session log.
- */
+/** Mounted by the session screen while this phone has an officer link: sends snapshots of what is on stage,
+ * logs every answer before acking it, and records the link's life in the session log. */
 @Composable
 fun rememberPairedStage(
     vm: SessionViewModel,
@@ -100,6 +98,8 @@ fun rememberPairedStage(
             when (m) {
                 is ToOfficer.Answer -> {
                     val fresh = vm.logRemote(m.itemId, m.n, m.body, m.late, from = link)
+                    // Acked only once kept: a stage answer that arrived as the app locked is resent on the next link.
+                    if (!vm.storing) return@collect
                     link.ack(m.itemId, m.n)
                     if (fresh && (m.body as? AnswerBody.Card)?.id == "stop") breakPending = true
                 }

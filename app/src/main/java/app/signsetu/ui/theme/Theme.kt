@@ -30,14 +30,12 @@ object Spacing {
     val xxl: Dp = 32.dp
 }
 
-/** Minimum size of a subject-facing card. */
 val SubjectCardMin: Dp = 96.dp
 
 val LocalAnswerColors = staticCompositionLocalOf { AnswerLight }
 val LocalStageColors = staticCompositionLocalOf { StageLight }
 val LocalInk = staticCompositionLocalOf { Ink }
 
-// Icon wells 12, buttons and fields 14, cards 20, hero cards and sheets 24.
 private val AppShapes = Shapes(
     extraSmall = RoundedCornerShape(8.dp),
     small = RoundedCornerShape(12.dp),
@@ -49,10 +47,8 @@ private val AppShapes = Shapes(
 @OptIn(androidx.compose.ui.text.ExperimentalTextApi::class)
 private fun baloo(weight: Int) = Font(R.font.baloo2, FontWeight(weight), variationSettings = FontVariation.Settings(FontVariation.weight(weight)))
 
-/**
- * Baloo 2 (SIL OFL) carries Latin and Devanagari in one rounded, friendly face for headings and subject captions.
- * Body text stays on the system font; other Indian scripts fall back to the system Noto fonts.
- */
+/** Baloo 2 (SIL OFL) carries Latin and Devanagari in one rounded, friendly face for headings and subject
+ * captions. Body text stays on the system font; other Indian scripts fall back to the system Noto fonts. */
 @OptIn(androidx.compose.ui.text.ExperimentalTextApi::class)
 val Baloo = FontFamily(baloo(400), baloo(500), baloo(600), baloo(700), baloo(800))
 
@@ -91,10 +87,7 @@ fun SignSetuTheme(dark: Boolean = isSystemInDarkTheme(), content: @Composable ()
     }
 }
 
-/**
- * The stage keeps the light scheme in both themes; only its backdrop dims at night (03-ux §6). In strong light, or
- * when the officer switches it on, it turns black, white and yellow; the light sensor runs only while the stage shows.
- */
+/** The stage keeps the light scheme in both themes; only its backdrop dims at night (03-ux §6). */
 @Composable
 fun SubjectTheme(content: @Composable () -> Unit) {
     val bright by rememberSunMode()

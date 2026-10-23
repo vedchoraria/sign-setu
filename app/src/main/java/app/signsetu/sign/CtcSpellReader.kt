@@ -7,11 +7,8 @@ import kotlinx.serialization.json.Json
 import kotlin.math.abs
 import kotlin.math.hypot
 
-/**
- * The bundled ASL fingerspelling reader (format 2), trained by tools/ml/spell_ctc.py: one hand's landmarks to letters
- * by CTC. Features and forward pass must match spell_features in tools/ml/features.py and SpellNet exactly.
- * The letters are a proposal the subject confirms, like every reading.
- */
+/** The bundled ASL fingerspelling reader (format 2), trained by tools/ml/spell_ctc.py: one hand's landmarks to
+ * letters by CTC. */
 class CtcSpellReader(spec: String, weights: ByteArray) {
     @Serializable
     private class Spec(
@@ -125,7 +122,6 @@ class CtcSpellReader(spec: String, weights: ByteArray) {
     }
 }
 
-/** The first index of the largest value. */
 internal fun argmax(row: FloatArray): Int {
     var best = 0
     for (c in 1 until row.size) if (row[c] > row[best]) best = c

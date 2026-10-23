@@ -26,7 +26,6 @@ private const val GAP = 0.3f
 /** One typed word, with a possessive or contraction ("Ravi's") kept on it. */
 internal val TOKEN = Regex("[\\p{L}\\p{M}\\p{N}]+(?:['’]\\p{L}+)?")
 
-/** The Unicode block Hindi is written in. */
 val DEVANAGARI = 'ऀ'..'ॿ'
 
 fun String.isDevanagari() = any { it in DEVANAGARI }
@@ -70,11 +69,8 @@ private fun islRank(word: String, entry: WordEntry?) = when {
 /** A still beat that keeps a picture on screen for a word with no sign. */
 private val PAUSE = Gesture("pause", listOf(Key(0f), Key(0.6f)))
 
-/**
- * Turns free text into one gesture, word by word: a sign or gesture where the vocabulary
- * has one, otherwise fingerspelling. Hindi is spelled akshara by akshara on the ISL two-handed
- * alphabet. A question mark adds the asking face.
- */
+/** Turns free text into one gesture, word by word: a sign or gesture where the vocabulary has one, otherwise
+ * fingerspelling. Hindi is spelled akshara by akshara on the ISL two-handed alphabet. */
 fun ContentBundle.planText(text: String, modes: Set<SignMode>): TextPlan {
     val parts = mutableListOf<Gesture>()
     val beats = mutableListOf<WordBeat>()
@@ -141,10 +137,8 @@ private val HINDI = mapOf(
     "yesterday" to "कल", "tomorrow" to "कल", "today" to "आज", "now" to "अब", "morning" to "सुबह", "night" to "रात",
 )
 
-/**
- * A signed verb as Hindi says it with the doer in को, which needs no gender: "मुझे पानी चाहिए", not "मैं पानी चाहना".
- * Keyed by the word's first written form in words.json.
- */
+/** A signed verb as Hindi says it with the doer in को, which needs no gender: "मुझे पानी चाहिए", not "मैं पानी
+ * चाहना". Keyed by the word's first written form in words.json. */
 private val HINDI_VERB = mapOf(
     "want" to "चाहिए", "go" to "जाना है", "come" to "आना है", "eat" to "खाना है", "sleep" to "सोना है", "sit" to "बैठना है",
     "help" to "मदद चाहिए", "pain" to "दर्द है", "know" to "पता है", "understand" to "समझ आया", "like" to "पसंद है",
@@ -153,16 +147,10 @@ private val HINDI_VERB = mapOf(
 )
 private val DOER = mapOf("i" to "मुझे", "you" to "आपको")
 
-/**
- * The inverse of [planText]'s ISL order. [gloss] is the written word of each sign, in signed order; a run of single
- * letters or digits is one fingerspelled word. [lang] ASL keeps the gloss order. [browsUp]: raised brows, the non-manual
- * mark of a yes/no question in ISL and ASL, make it a question without a question sign. ISL signs time first, the verb last and negation and question after it;
- * English moves the verb after the subject, Hindi keeps it last with the question word and नहीं just before it.
- */
+/** The inverse of [planText]'s ISL order. [gloss] is the written word of each sign, in signed order; a run of
+ * single letters or digits is one fingerspelled word. [lang] ASL keeps the gloss order. */
 fun glossToText(gloss: List<String>, words: Map<String, WordEntry>, lang: SignLanguage = SignLanguage.ISL, browsUp: Boolean = false): SignedText {
     // A reader may hand back a gesture id (no.shake), a Hindi headword (पानी) or the English word itself.
-    // Everything is normalised to the English headword here, so reordering, negation and the Hindi draft
-    // all look the same sign up the same way.
     fun headword(g: String): String {
         val entry = words[g]
         if (entry != null && !g.isDevanagari()) return g

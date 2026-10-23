@@ -540,12 +540,12 @@ class PairTest {
     }
 
     @Test
-    fun singlePhoneReturnStillLogsTheSubject() = vmTest(paired = false) { vm, dao ->
+    fun singlePhoneReturnLogsTheOfficerClosingIt() = vmTest(paired = false) { vm, dao ->
         vm.prepare(Pending.ShowBack(entry))
         vm.show()
         vm.returnToOfficer()
         val unclear = dao.rows.value.single { it.type == EventType.ANSWER_UNCLEAR.name }
-        assertEquals(EventSource.SUBJECT.name, unclear.source)
+        assertEquals(EventSource.OFFICER.name, unclear.source)
         assertNull(vm.ui.value!!.pending)
     }
 

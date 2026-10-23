@@ -32,10 +32,8 @@ class OverlayMappingTest {
         near(Offset(500f, 400f - 1000f * 9f / 32f), overlayPoint(Offset(0.5f, 0f), 16f / 9f, viewW, viewH, mirrored = false))
     }
 
-    /**
-     * A recorded INCLUDE clip: the hand model's wrist goes through [overlayPoint], upright and from a sensor buffer, and
-     * must land within 3% of the shown frame's width of the hand-labelled wrist pixel on the mirrored, letterboxed preview.
-     */
+    /** A recorded INCLUDE clip: the hand model's wrist goes through [overlayPoint], upright and from a sensor
+     * buffer, and must land within 3% of the shown frame's width of the hand-labelled wrist pixel. */
     @Test fun recordedClipWristLandsOnTheLabelledPixel() {
         val rows = javaClass.classLoader!!.getResource("include_hello_wrists.csv")!!.readText().lines()
             .filter { it.isNotBlank() && !it.startsWith("#") }.drop(1).map { it.split(",") }

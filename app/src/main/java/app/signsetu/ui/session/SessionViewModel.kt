@@ -23,6 +23,7 @@ import app.signsetu.sign.SignConfirm
 import app.signsetu.sign.SignReader
 import app.signsetu.sign.SignSegment
 import app.signsetu.pair.AnswerBody
+import app.signsetu.pair.TEXT_CAP
 import app.signsetu.pair.reencodeRemotePng
 import app.signsetu.sign.SignWindow
 import app.signsetu.sign.glossOf
@@ -123,6 +124,8 @@ class SessionViewModel(
     internal var reencodePng: (ByteArray) -> ByteArray? = ::reencodeRemotePng
 
     init {
+        // Keeping skeleton snapshots is the officer's choice for one session, never carried into the next.
+        EvidenceMode.autoCapture.value = false
         viewModelScope.launch {
             val session = repo.session(sessionId).first() ?: return@launch
             // Starting a session is the officer's confirmation of its opening: the stage greets the person first,
@@ -154,6 +157,8 @@ class SessionViewModel(
 
     // The open group may not exist for the new role (sensitive is victim-only), so fall back to the shared first one.
     fun setRole(role: Role) = viewModelScope.launch {
+        // The counsellor is only for a victim or witness; any other role stops it before its next line.
+        if (role != Role.VICTIM) counsellor.takeOver()
         local.update { it.copy(selectedGroup = Local().selectedGroup) }
         // The change sheet shows the Juvenile Justice notice with the accused role.
         if (role == Role.ACCUSED && ui.value?.session?.role != Role.ACCUSED) repo.log(sessionId, EventType.SYSTEM, EventSource.OFFICER, text = SYSTEM_JJ_NOTICE)
@@ -172,7 +177,7 @@ class SessionViewModel(
         viewModelScope.launch {
             try {
                 // Only a paired officer can show while something is on stage; replacing it is the officer's act.
-                if (local.value.mode == Mode.SHOW) finishShown(EventSource.OFFICER)
+                if (local.value.mode == Mode.SHOW) finishShown()
                 auto.onManualShow(pending)
                 present(pending, state.session.subjectLang)
             } finally {
@@ -296,10 +301,8 @@ class SessionViewModel(
         return id
     }
 
-    /**
-     * Like [askSubject], but from the stage itself: the question stays, so the subject returns to it after choosing.
-     * With no officer reading the choices are all pictures, so no English word reaches someone who reads another script.
-     */
+    /** Like [askSubject], but from the stage itself: the question stays, so the subject returns to it after
+     * choosing. */
     private suspend fun confirmOnStage(eventId: Long) {
         // A held or repeated sign reads the same several times; the person is asked once per meaning, three at most.
         val asked = choiceQueue(eventId, emptyList()).distinctBy { (choices, read) -> read ?: choices.mapNotNull { it.card }.sorted().joinToString() }.take(STAGE_CHECKS)
@@ -308,10 +311,8 @@ class SessionViewModel(
         local.update { it.copy(answeredCard = null, answeredYes = null, confirm = SignConfirm(eventId, asked.map { it.first }, asked.map { it.second })) }
     }
 
-    /**
-     * The subject chooses what each sign meant, from the officer's reading and the reader's guesses. Each set of
-     * choices is logged before it is shown.
-     */
+    /** The subject chooses what each sign meant, from the officer's reading and the reader's guesses. Each set of
+     * choices is logged before it is shown. */
     fun askSubject(eventId: Long, words: List<String>) {
         val asked = choiceQueue(eventId, words)
         if (asked.isEmpty()) return
@@ -372,7 +373,10 @@ class SessionViewModel(
         local.update { it.copy(reading = null, signed = emptyMap(), signWindow = null, confirm = null) }
     }
 
-    override fun onCleared() = wipeSigns()
+    override fun onCleared() {
+        wipeSigns()
+        EvidenceMode.autoCapture.value = false
+    }
 
     // The same item with the pictures [offered] left out, shown if the subject answers "Something else".
     private var more: Pending? = null
@@ -441,10 +445,8 @@ class SessionViewModel(
         }
     }
 
-    /**
-     * The single entry for answers from a second screen; returns after the row is committed so the link can ack.
-     * Nothing is dropped: an answer to an earlier item is logged against that item and marked late.
-     */
+    /** The single entry for answers from a second screen; returns after the row is committed so the link can ack.
+     * Nothing is dropped: an answer to an earlier item is logged against that item and marked late. */
     suspend fun logRemote(itemId: Long, n: Int, body: AnswerBody, late: Boolean = false, from: Any? = null): Boolean {
         // A new link numbers its answers from 0 again, so only a repeat from the same link is a resend.
         if (from !== remoteFrom) { remoteLogged.clear(); remoteFrom = from }
@@ -481,7 +483,7 @@ class SessionViewModel(
                 }
             }
             AnswerBody.Change -> if (current) hold(null, via)
-            is AnswerBody.Text -> repo.log(sessionId, EventType.ANSWER_TEXT, EventSource.SUBJECT, ui.value?.session?.subjectLang, text = body.text.trim(), shownId = q, via = via)
+            is AnswerBody.Text -> repo.log(sessionId, EventType.ANSWER_TEXT, EventSource.SUBJECT, ui.value?.session?.subjectLang, text = body.text.trim().take(TEXT_CAP), shownId = q, via = via)
             is AnswerBody.Drawing -> {
                 val png = remotePng(body.png)
                 if (png != null) {
@@ -492,7 +494,7 @@ class SessionViewModel(
                 if (current) local.update { it.copy(onStage = null, itemId = null) }
             }
             is AnswerBody.Signed -> {
-                val text = body.words.joinToString(" ")
+                val text = body.words.joinToString(" ").take(TEXT_CAP)
                 if (text.isNotBlank()) {
                     repo.log(sessionId, EventType.ANSWER_SIGNED, EventSource.SUBJECT, lang, text = text, shownId = q, via = via)
                 }
@@ -503,9 +505,14 @@ class SessionViewModel(
                 }
             }
         }
+        // A write dropped because the app locked is not remembered, so the stage's resend is logged later.
+        if (repo.closed) return false
         remoteLogged += itemId to n
         return true
     }
+
+    /** False once the app has locked: rows are no longer written, so nothing may be acknowledged as kept. */
+    val storing: Boolean get() = !repo.closed
 
     /** Only a bitmap this phone re-encoded itself reaches the database and the report. */
     private fun remotePng(base64: String): ByteArray? = runCatching { Base64.getDecoder().decode(base64) }.getOrNull()?.let(reencodePng)
@@ -572,11 +579,8 @@ class SessionViewModel(
         }
     }
 
-    /**
-     * Answers to a show-back or say-back. A meaning becomes the subject's only when they pick it among two or more
-     * pictures; a Yes to a single reading is logged as their Yes, and the reading stays the officer's.
-     * Returns false for an answer that is not about the reading, such as Stop, which is logged as usual.
-     */
+    /** Answers to a show-back or say-back. A meaning becomes the subject's only when they pick it among two or more
+     * pictures; a Yes to a single reading is logged as their Yes, and the reading stays the officer's. */
     private suspend fun logChecked(item: Pending?, card: String?, yes: Boolean?, shownId: Long?, via: String? = null): Boolean {
         val meant: String?
         val text: String?
@@ -670,23 +674,24 @@ class SessionViewModel(
         }
     }
 
-    /** Called after the officer re-authenticates. */
+    /** The officer took the phone back: the lock handle held, or both volume keys. */
     fun returnToOfficer() {
         finishReading()
         local.update { it.copy(confirm = null) }
-        viewModelScope.launch { finishShown(if (paired) EventSource.OFFICER else EventSource.SUBJECT) }
+        viewModelScope.launch { finishShown() }
     }
 
-    private suspend fun finishShown(source: EventSource) {
+    private suspend fun finishShown() {
         flushGiven()
         val l = local.value
         val pending = if (paired) l.onStage else l.pending
+        // The officer closed the item unanswered; the subject gave nothing, so the row is the officer's.
         if (pending is Pending.ShowBack && l.answeredYes == null && l.answeredCard == null) {
-            repo.log(sessionId, EventType.ANSWER_UNCLEAR, source, officerLang, text = pending.entry.label.pick(officerLang), cardId = pending.entry.card, lexiconId = pending.entry.id, shownId = l.itemId)
+            repo.log(sessionId, EventType.ANSWER_UNCLEAR, EventSource.OFFICER, officerLang, text = pending.entry.label.pick(officerLang), cardId = pending.entry.card, lexiconId = pending.entry.id, shownId = l.itemId)
         }
         if (pending is Pending.GroundRules && !isPractice(pending)) repo.log(sessionId, EventType.SYSTEM, EventSource.OFFICER, text = SYSTEM_RULES_SKIPPED)
         if (pending is Pending.FreeText && pending.ref != null && l.answeredYes == null && l.answeredCard == null) {
-            repo.log(sessionId, EventType.ANSWER_UNCLEAR, source, officerLang, text = pending.text, lexiconId = REF_PREFIX + pending.ref, shownId = l.itemId)
+            repo.log(sessionId, EventType.ANSWER_UNCLEAR, EventSource.OFFICER, officerLang, text = pending.text, lexiconId = REF_PREFIX + pending.ref, shownId = l.itemId)
         }
         endRun()
         l.chosenLanguage?.let { repo.setSubjectLang(sessionId, it) }
@@ -694,7 +699,6 @@ class SessionViewModel(
         auto.onReturn()
     }
 
-    // Question runs and say-back (main page).
 
     private var step: Job? = null
 
@@ -731,10 +735,8 @@ class SessionViewModel(
         local.update { it.copy(queue = emptyList(), runTotal = 0) }
     }
 
-    /**
-     * Shows the officer's reading of an answer line back to the subject among the item's other pictures, so they pick
-     * the meaning rather than agree to one. With no other picture it is shown alone, and a Yes leaves it the officer's.
-     */
+    /** Shows the officer's reading of an answer line back to the subject among the item's other pictures, so they
+     * pick the meaning rather than agree to one. */
     fun sayBack(e: SessionEvent, words: String, modes: Set<SignMode>) {
         val text = words.trim().takeIf { it.isNotEmpty() } ?: return
         val card = e.cardId?.takeIf { it !in setOf("yes", "no", "dont_know", "stop") }
@@ -760,17 +762,17 @@ class SessionViewModel(
         val rows = reportRows(detail)
         val currentUi = ui.value
         val sessionObj = currentUi?.session ?: Session(sessionId, System.currentTimeMillis(), Profile.NOT_SURE, "en")
-        val events = currentUi?.events ?: emptyList()
-        val chainDigest = EvidenceIntegrity.computeChainHash(sessionObj, events)
-        val recDigest = recordDigest(rows)
+        // Re-checked from the database as it is now, not from what this screen last saw.
+        val events = repo.eventsNow(sessionId)
+        val chain = EvidenceIntegrity.verifyChain(sessionObj, events) { repo.drawing(it) }
         val certificate = EvidenceIntegrity.generateSection63Certificate(
             session = sessionObj,
             events = events,
-            chainDigest = chainDigest,
-            recordDigest = recDigest,
+            chain = chain,
+            recordDigest = recordDigest(rows),
             signLanguage = currentUi?.signLanguage ?: SignLanguage.ISL,
         )
-        return report.export(rows, text, { repo.drawing(it) }, section, aiSummary, certificate, chainDigest)
+        return report.export(rows, text, { repo.drawing(it) }, section, aiSummary, certificate, chain.short)
     }
 
     internal fun reportRows(detail: (SessionEvent) -> String): List<ReportRow> {

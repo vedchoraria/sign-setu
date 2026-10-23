@@ -8,12 +8,8 @@ import kotlin.math.cos
 import kotlin.math.hypot
 import kotlin.math.sin
 
-/*
- * A 2D upper-body rig for the two characters (05-avatar-and-gestures §5.1).
- * Character space is 200 x 200 units, y down, the character facing the viewer: the character's right hand is on
- * the viewer's left. Gestures are keyframes in assets/content/gestures.json, written in character terms
- * ("outward", "own right cheek"), so both characters play the same file.
- */
+/* A 2D upper-body rig shared by both characters (05-avatar-and-gestures §5.1). Character space is 200 x 200,
+ * y down, facing the viewer; gestures.json keyframes are character-relative, so both play the same file. */
 
 enum class Side(val sign: Float) { R(-1f), L(1f) }
 
@@ -139,11 +135,8 @@ data class HandPose(
     val elbowY: Float = Float.NaN,
 )
 
-/**
- * The elbow for the (possibly shifted) shoulder [sx], [sy]: recorded if the keys carry it, else the two-bone solve.
- * [prefer] is the elbow drawn on the previous frame: the solve keeps the same bend instead of flipping when the
- * wrist passes the shoulder line, where the two solutions are mirror images.
- */
+/** The elbow for the (possibly shifted) shoulder [sx], [sy]: recorded if the keys carry it, else the two-bone
+ * solve. */
 fun HandPose.elbowAt(
     sx: Float, sy: Float, build: Build, side: Side, prefer: Pair<Float, Float>? = null,
 ): Pair<Float, Float> = if (elbowX.isNaN()) {
@@ -152,10 +145,7 @@ fun HandPose.elbowAt(
     (sx + elbowX) to (sy + elbowY)
 }
 
-/**
- * A point on this hand in character space: "wrist", "palm", "thumb" or a fingertip ("index" to "pinky").
- * Mirrors the frontal layout in Avatar.drawHand; a hand that follows its forearm (NaN angle) is taken as upright.
- */
+/** A point on this hand in character space: "wrist", "palm", "thumb" or a fingertip ("index" to "pinky"). */
 fun HandPose.point(part: String, side: Side, handScale: Float): Pair<Float, Float> {
     val pw = 13f
     val thumbSide = if (roll > 0f) -side.sign else side.sign
@@ -254,11 +244,8 @@ val AdultBuild = Build(
 
 private val RestKey = HandKey()
 
-/**
- * Plays [parts] one after another as a single gesture. Each part's first key spells out everything it
- * leaves out. A part that omits a hand continues from the hand the previous part ended on: only the first part of
- * a sentence starts at rest, so words join instead of the arms dropping and rising between every one.
- */
+/** Plays [parts] one after another as a single gesture. Each part's first key spells out everything it leaves
+ * out. */
 fun chain(id: String, parts: List<Gesture>, gap: Float = 0.3f): Gesture {
     var offset = 0f
     var last: Key? = null
@@ -525,9 +512,7 @@ fun solveElbow(
     }
     val s1 = score(e1)
     val s2 = score(e2)
-    // The elbow drawn last frame decides whenever there is one. The two solves are most of an upper arm apart, so any
-    // score-based switch mid-move is the snap a viewer sees as a broken elbow; a sweep right round the shoulder keeps
-    // the same branch the whole way. The score only seeds the first frame of a movement, where no elbow exists yet.
+    // The elbow drawn last frame decides whenever there is one. The two solves are most of an upper arm apart, so any score-based switch mid-move is the snap a viewer sees as a broken elbow.
     if (prefer != null) {
         val d1 = hypot(e1.first - prefer.first, e1.second - prefer.second)
         val d2 = hypot(e2.first - prefer.first, e2.second - prefer.second)
@@ -537,11 +522,8 @@ fun solveElbow(
     return if (s1 >= s2 - 1e-3f) e1 else e2
 }
 
-/**
- * The reachable wrist for [target]: a two-bone arm cannot put the hand further than upper + fore from the shoulder.
- * Without this the arm is drawn straight and the forearm stretches, which is what made the elbow look wrong on
- * signs that reach across the body.
- */
+/** The reachable wrist for [target]: a two-bone arm cannot put the hand further than upper + fore from the
+ * shoulder. */
 fun clampReach(sx: Float, sy: Float, target: Pair<Float, Float>, upper: Float, fore: Float): Pair<Float, Float> {
     val dx = target.first - sx
     val dy = target.second - sy

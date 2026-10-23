@@ -20,7 +20,7 @@ jobs:
         with:
           dependency-graph: disabled
       - name: Unit tests
-        run: ./gradlew --console=plain :app:testStandardDebugUnitTest
+        run: ./gradlew --console=plain :app:testStandardDebugUnitTest :app:testNearbyDebugUnitTest
       - name: Lint
         run: ./gradlew --console=plain :app:lintStandardRelease
       - name: Assemble
@@ -55,11 +55,11 @@ jobs:
       - run: pip install numpy resvg-py pillow
       - name: Python tool tests
         run: |
-          for d in tools/isl tools/security; do python -m unittest discover -s "$d" -p 'test_*.py' -v; done
+          for d in tools/isl tools/security tools/content; do python -m unittest discover -s "$d" -p 'test_*.py' -v; done
       - name: Content manifest is current
-        run: |
-          python tools/content/build_content.py --manifest-only
-          git diff --exit-code
+        run: python tools/content/build_content.py --check
+      - name: Content references, ids and language coverage
+        run: python tools/content/check_content.py
 
   backend:
     runs-on: ubuntu-24.04

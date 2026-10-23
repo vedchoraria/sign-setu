@@ -7,7 +7,10 @@
     <string name="notice_aid">साइन सेतु बातचीत में मदद करता है। यह दुभाषिया नहीं है, और यह कभी बयान दर्ज नहीं करता।</string>
 
     <string name="lock_title">साइन सेतु लॉक है</string>
-    <string name="lock_body">साइन सेतु अपने रिकॉर्ड नहीं खोल सका। दोबारा कोशिश के लिए अनलॉक दबाएँ।</string>
+    <string name="lock_body">इस फ़ोन के पिन, पैटर्न, पासवर्ड या फ़िंगरप्रिंट से खोलें।</string>
+    <string name="auth_title">पुष्टि करें कि यह आप हैं</string>
+    <string name="key_unbound_title">इस फ़ोन पर स्क्रीन लॉक नहीं है</string>
+    <string name="key_unbound_body">रिकॉर्ड एन्क्रिप्टेड हैं, पर यह फ़ोन पकड़ने वाला कोई भी उन्हें खोल सकता है। फ़ोन की सेटिंग में पिन, पैटर्न या पासवर्ड लगाएँ; अगली बार खोलने पर रिकॉर्ड उसके अधीन हो जाएँगे।</string>
     <string name="lock_button">खोलें</string>
     <string name="lock_failed">नहीं खुला। फिर कोशिश करें।</string>
 
@@ -51,8 +54,6 @@
     <string name="sensitive_body">ये सवाल बच्चे को परेशान कर सकते हैं। तभी पूछें जब व्यक्ति शांत और सुरक्षित हो, और कभी इनसे शुरुआत न करें।</string>
     <string name="sensitive_confirm">संवेदनशील सवाल दिखाएँ</string>
 
-    <string name="end_title">यह सत्र समाप्त करें?</string>
-    <string name="end_body">इस सत्र का सारा रिकॉर्ड इस फ़ोन से मिट जाएगा। अगर केस फ़ाइल में ज़रूरत हो, तो पहले पासवर्ड वाली रिपोर्ट निकाल लें।</string>
 
     <string name="log_shown">दिखाया</string>
     <string name="log_answer">जवाब</string>
@@ -110,7 +111,6 @@
     <string name="show_replay">फिर से दिखाएँ</string>
 
     <string name="end_export">रिपोर्ट निर्यात करें</string>
-    <string name="end_no_export">बिना रिपोर्ट के पूरा करें</string>
     <string name="export_working">एन्क्रिप्टेड रिपोर्ट तैयार हो रही है…</string>
     <string name="export_title">रिपोर्ट तैयार</string>
     <string name="export_body">रिपोर्ट एन्क्रिप्टेड है। यह पासवर्ड फ़ाइल से अलग दें, जैसे बोलकर। यह केवल एक बार दिखेगा।</string>
@@ -219,6 +219,7 @@
     <string name="notice_back_online">फिर ऑनलाइन। विभागीय गेटवे इस्तेमाल हो रहा है।</string>
     <string name="notice_enrolled">फ़ोन विभागीय गेटवे में नामांकित हो गया।</string>
     <string name="notice_enroll_failed">नामांकन नहीं हो सका। कोड और कनेक्शन जाँचें।</string>
+    <string name="notice_enroll_rate_limited">बहुत बार कोशिश हुई। एक मिनट रुककर कोड फिर डालें।</string>
     <string name="cloud_notice_title">पाठ विभागीय गेटवे को भेजें?</string>
     <string name="cloud_notice_body">इसके चालू और फ़ोन के ऑनलाइन रहने पर, सत्र का पाठ विभागीय गेटवे को जाता है, जो उसे एक AI सेवा तक पहुँचाता है। भेजने से पहले व्यक्ति के नाम \"Ravi\" से बदल दिए जाते हैं और फ़ोन नंबर छिपा दिए जाते हैं; असली नाम इसी फ़ोन पर वापस लगाए जाते हैं। अधिकारी के लिखे नोट जाँचे नहीं जाते, इसलिए उनमें नाम न लिखें। सेवा न मिले तो फ़ोन पर बना संस्करण इस्तेमाल होता है।</string>
     <string name="cloud_notice_accept">मैं समझता/समझती हूँ, चालू करें</string>
@@ -239,7 +240,6 @@
     <string name="start_damaged_body">ऐप की इस कॉपी के सवाल या चित्र स्वीकृत सामग्री से मेल नहीं खाते, इसलिए नया सत्र शुरू नहीं हो सकता। अपने विभाग से नया संस्करण इंस्टॉल करें।</string>
     <string name="start_media_rejected">कुछ चित्र, आवाज़ें या इशारे जाँच में विफल रहे और हटा दिए गए हैं।</string>
     <string name="start_asl_off">ASL बंद है: उसके इशारे या शब्द जाँच में विफल रहे। ISL पर कोई असर नहीं है।</string>
-    <string name="officer_phrases">वाक्य</string>
     <string name="quick_hint">कुछ भी लिखें और दिखाएँ</string>
     <string name="mode_signs">संकेत</string>
     <string name="mode_gestures">इशारे</string>
@@ -305,6 +305,7 @@
     <string name="more_questions">प्रश्न और वाक्य</string>
     <string name="more_search">प्रश्न या श्रेणी खोजें</string>
     <string name="more_search_clear">खोज हटाएँ</string>
+    <string name="more_browse">श्रेणी से देखें</string>
     <string name="more_search_none">कुछ नहीं मिला। दूसरा शब्द आज़माएँ या अपना प्रश्न लिखें।</string>
     <string name="open_translate">अनुवाद ऐप</string>
     <string name="open_translate_missing">इस फ़ोन पर Google Translate नहीं है।</string>
@@ -529,7 +530,10 @@
     <string name="call_exhale">साँस बाहर</string>
     <string name="call_breath_body">आप यहाँ सुरक्षित हैं। गोले के साथ अपनी गति से साँस लें।</string>
     <string name="call_ready">मैं आगे बढ़ने के लिए तैयार हूँ</string>
-    <string name="call_r_fingers">%1$d उँगलियाँ दिखाईं</string>
+    <plurals name="call_r_fingers">
+        <item quantity="one">%1$d उँगली दिखाई</item>
+        <item quantity="other">%1$d उँगलियाँ दिखाईं</item>
+    </plurals>
     <string name="call_r_yes">हाँ</string>
     <string name="call_r_no">नहीं</string>
     <string name="call_r_point">इशारा: %1$s</string>
@@ -538,6 +542,13 @@
     <string name="call_r_water">पानी</string>
     <string name="call_r_food">खाना</string>
     <string name="ai_report_title">मसौदा रिपोर्ट</string>
+    <string name="ai_report_attach">निर्यात में मसौदे के रूप में जोड़ें</string>
+    <string name="ai_needs_victim">AI परामर्शदाता शुरू करने से पहले भूमिका पीड़ित या गवाह चुनें।</string>
+    <string name="cloud_consent_title">यह सत्र विभाग के गेटवे को भेजें?</string>
+    <string name="cloud_consent_title_direct">यह सत्र किसी AI सेवा को भेजें?</string>
+    <string name="cloud_consent_body_direct">सत्र का लॉग, इस फ़ोन को ज्ञात नाम छिपाकर, मसौदा लिखने के लिए बाहरी AI सेवा पर जाता है। क्या बाकी सत्र के लिए इसकी अनुमति है?</string>
+    <string name="cloud_consent_body">सत्र का लॉग, इस फ़ोन को ज्ञात नाम छिपाकर, मसौदा लिखने के लिए विभाग के गेटवे पर जाता है। क्या बाकी सत्र के लिए इसकी अनुमति है?</string>
+    <string name="cloud_consent_allow">अनुमति दें</string>
     <string name="ai_report_note">सत्र रिकॉर्ड से बना मसौदा। उपयोग से पहले हर पंक्ति रिकॉर्ड से मिलाएँ।</string>
     <string name="ai_followups_title">सुझाए गए अगले प्रश्न (बिना संकेत वाले)</string>
     <string name="call_skeleton_on">ढाँचा</string>
@@ -576,7 +587,7 @@
     <string name="report_by_ai">AI परामर्शदाता ने लिखा, अधिकारी देख रहे थे</string>
     <string name="counsel_thinking">परामर्शदाता अगली पंक्ति लिख रहा है…</string>
     <string name="counsel_waiting">उनके जवाब की प्रतीक्षा</string>
-    <string name="counsel_next">%1$d सेकंड में उनकी स्क्रीन पर</string>
+    <string name="counsel_next">दो सेकंड में अपने आप चला जाएगा — रोकने के लिए बातचीत संभालें।</string>
     <string name="counsel_send_now">अभी भेजें</string>
     <string name="counsel_skip">दूसरी पंक्ति</string>
     <string name="counsel_take_over">बातचीत संभालें</string>

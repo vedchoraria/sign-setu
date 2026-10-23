@@ -340,7 +340,6 @@ private fun appName(app: InterpreterApp) = when (app) {
     InterpreterApp.SANDES -> R.string.settings_sandes
 }
 
-/** One titled card of settings on the page background. */
 @Composable
 private fun Group(@StringRes title: Int, content: @Composable ColumnScope.() -> Unit) {
     SectionLabel(stringResource(title), Modifier.padding(start = Spacing.xxl, end = Spacing.lg, top = Spacing.xl, bottom = Spacing.sm))

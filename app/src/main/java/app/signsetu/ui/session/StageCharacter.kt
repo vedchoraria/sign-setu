@@ -2,6 +2,10 @@ package app.signsetu.ui.session
 
 import androidx.compose.foundation.layout.only
 import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.onLongClick
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.ui.semantics.role
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
@@ -216,20 +220,31 @@ internal fun LetterTile(letters: List<String>, current: Int, modifier: Modifier)
     }
 }
 
+internal const val HANDLE_HOLD_MS = 1_000L
+
 @Composable
 internal fun OfficerHandle(onClick: () -> Unit, modifier: Modifier) {
     val stage = LocalStageColors.current
-    // Small and quiet: the subject should not be drawn to it; the officer knows where it is.
+    val label = stringResource(R.string.show_officer)
+    val current by androidx.compose.runtime.rememberUpdatedState(onClick)
+    // Small and quiet, and held for a second: a subject's stray tap does not hand them the officer's screen.
     Box(
         modifier
             .padding(6.dp)
             .size(48.dp)
             .clip(CircleShape)
-            .clickable(role = Role.Button, onClick = onClick),
+            .pointerInput(Unit) {
+                awaitEachGesture {
+                    awaitFirstDown()
+                    val released = withTimeoutOrNull(HANDLE_HOLD_MS) { waitForUpOrCancellation() }
+                    if (released == null) current()
+                }
+            }
+            .semantics { role = Role.Button; contentDescription = label; onLongClick(label) { current(); true } },
         contentAlignment = Alignment.Center,
     ) {
         Surface(shape = CircleShape, color = stage.handle, modifier = Modifier.size(34.dp)) {
-            Icon(Icons.Filled.Lock, contentDescription = stringResource(R.string.show_officer), tint = stage.onHandle, modifier = Modifier.padding(8.dp))
+            Icon(Icons.Filled.Lock, contentDescription = null, tint = stage.onHandle, modifier = Modifier.padding(8.dp))
         }
     }
 }
@@ -332,11 +347,8 @@ private fun Modifier.mirrorFrame(): Modifier {
         .border(4.dp, stage.windowFrame.copy(alpha = 0.4f), shape)
 }
 
-/**
- * A sign window: a large mirror with the hand and arm skeleton, a dot per sign seen, and Done. Only landmarks are kept,
- * in memory. A short answer shows its time bar and, after a failed read, the "sign slower" cue; a [narrative]
- * shows neither, so nothing interrupts the person while they tell what happened.
- */
+/** A sign window: a large mirror with the hand and arm skeleton, a dot per sign seen, and Done. Only landmarks
+ * are kept, in memory. */
 @Composable
 internal fun SigningPanel(
     camera: @Composable (((LandmarkFrame) -> Unit)?) -> Unit,

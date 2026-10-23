@@ -23,14 +23,8 @@ set(GGML_NATIVE OFF CACHE BOOL "" FORCE)
 set(GGML_OPENMP OFF CACHE BOOL "" FORCE)
 set(GGML_LLAMAFILE OFF CACHE BOOL "" FORCE)
 set(GGML_BACKEND_DL OFF CACHE BOOL "" FORCE)
-# The x86_64 build only serves the emulator, whose host CPU has AVX2.
-# ponytail: arm64 stays on the plain ARMv8 baseline; per-CPU variants (GGML_CPU_ALL_VARIANTS) if phones prove slow.
-if(ANDROID_ABI STREQUAL "x86_64")
-    set(GGML_AVX ON CACHE BOOL "" FORCE)
-    set(GGML_AVX2 ON CACHE BOOL "" FORCE)
-    set(GGML_FMA ON CACHE BOOL "" FORCE)
-    set(GGML_F16C ON CACHE BOOL "" FORCE)
-endif()
+# Every ABI stays on its baseline instruction set: the universal APK also reaches x86_64 tablets without AVX2,
+# where forced AVX2 code would crash on load. ponytail: per-CPU variants (GGML_CPU_ALL_VARIANTS) if speed matters.
 add_subdirectory(third_party/llama.cpp)
 
 add_library(assistant SHARED assistant.cpp)

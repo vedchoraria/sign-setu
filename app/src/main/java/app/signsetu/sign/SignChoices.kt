@@ -37,11 +37,7 @@ fun cardFor(label: String, signWords: Map<String, String>, words: Map<String, Wo
 fun cardsFor(label: String, signWords: Map<String, String>, words: Map<String, WordEntry>, extra: Map<String, List<String>> = emptyMap()) =
     listOfNotNull(cardFor(label, signWords, words)) + extra[label].orEmpty()
 
-/**
- * Guesses whose concept answers the item on screen first, each group by score; none are dropped. Taken over every
- * label, this reads the sign among the item's own answers: on an unseen signer the right lesson answer is first for
- * 0.73 of signs and among three for 0.88, against 0.38 and 0.42 when only the overall top three were reordered.
- */
+/** Guesses whose concept answers the item on screen first, each group by score; none are dropped. */
 fun inContext(
     guesses: List<SignGuess>,
     context: Set<String>,
@@ -60,17 +56,13 @@ fun inContext(
 @Immutable
 data class SignChoice(val card: String?, val text: String)
 
-/**
- * The signs whose meaning the subject is choosing, one at a time; [eventId] is the signed answer they came from.
- * [read] is the reader's top label for each, signed back on the character.
- */
+/** The signs whose meaning the subject is choosing, one at a time; [eventId] is the signed answer they came
+ * from. [read] is the reader's top label for each, signed back on the character. */
 @Immutable
 data class SignConfirm(val eventId: Long, val queue: List<List<SignChoice>>, val read: List<String?> = emptyList())
 
-/**
- * Two or three alternatives for one sign, picked in this priority: the officer's reading, the reader's guesses, then the
- * item's own answer cards. Fewer than two is no choice at all, so none are offered. The subject sees them shuffled.
- */
+/** Two or three alternatives for one sign, picked in this priority: the officer's reading, the reader's
+ * guesses, then the item's own answer cards. Fewer than two is no choice at all, so none are offered. */
 fun signChoices(
     officerWord: String?,
     segment: SignSegment,

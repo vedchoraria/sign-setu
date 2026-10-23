@@ -4,6 +4,7 @@ Run with the tools environment (resvg-py, Pillow):
     python tools/content/build_content.py                  # cards and manifest
     python tools/content/build_content.py --manifest-only  # after editing JSON or audio
     python tools/content/build_content.py --only a,b       # render only these cards, then the manifest
+    python tools/content/build_content.py --check          # exit 1 if the manifest is stale; writes nothing
 Audio is generated separately by build_audio.py, which needs the GPU environment.
 """
 import hashlib
@@ -46,18 +47,46 @@ def normalise_text() -> None:
             path.write_bytes(raw.replace(b"\r\n", b"\n"))
 
 
-def write_manifest() -> None:
-    normalise_text()
+def current_manifest() -> dict:
     files = {}
     for path in sorted(ASSETS.rglob("*")):
         if path.is_file() and path.name != "manifest.json":
             files[path.relative_to(ASSETS).as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()
-    manifest = {"version": 1, "files": files}
+    return {"version": 1, "files": files}
+
+
+def write_manifest() -> None:
+    normalise_text()
+    manifest = current_manifest()
     (ASSETS / "manifest.json").write_bytes(json.dumps(manifest, indent=1, sort_keys=True).encode("utf-8"))
-    print(f"manifest: {len(files)} files")
+    print(f"manifest: {len(manifest['files'])} files")
+
+
+def check_manifest() -> bool:
+    """True when the checked-in manifest matches the files on disk. Never normalises or writes, so CI can use it."""
+    manifest = current_manifest()
+    try:
+        existing = json.loads((ASSETS / "manifest.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        print("manifest.json is missing or unreadable; run build_content.py --manifest-only")
+        return False
+    if existing == manifest:
+        print(f"manifest is current: {len(manifest['files'])} files")
+        return True
+    old = existing.get("files", {}) if isinstance(existing, dict) else {}
+    new = manifest["files"]
+    added = sorted(set(new) - set(old))
+    removed = sorted(set(old) - set(new))
+    changed = sorted(k for k in set(old) & set(new) if old[k] != new[k])
+    print("manifest is stale; run build_content.py --manifest-only")
+    for label, paths in (("added", added), ("removed", removed), ("changed", changed)):
+        print(f"  {label}: {', '.join(paths) if paths else '-'}")
+    return False
 
 
 if __name__ == "__main__":
+    if "--check" in sys.argv:
+        sys.exit(0 if check_manifest() else 1)
     if "--only" in sys.argv:
         render_cards(set(sys.argv[sys.argv.index("--only") + 1].split(",")))
     elif "--manifest-only" not in sys.argv:

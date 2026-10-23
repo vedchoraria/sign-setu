@@ -6,10 +6,8 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.window.DialogProperties
 
-/**
- * Dialogs, sheets and menus open windows of their own, which do not inherit the activity's touch filter.
- * Call this inside one to drop touches that arrive through another app's overlay there too.
- */
+/** Dialogs, sheets and menus open windows of their own, which do not inherit the activity's touch filter. Call
+ * this inside one to drop touches that arrive through another app's overlay there too. */
 @Composable
 fun FilterObscuredTouches() {
     val view = LocalView.current

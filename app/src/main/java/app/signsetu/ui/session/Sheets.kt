@@ -315,10 +315,8 @@ fun LogSheet(events: List<SessionEvent>, note: String, onNote: (String) -> Unit,
     }
 }
 
-/**
- * Pairs each answer with its question, so the log reads "Water? Yes" rather than a bare "Yes": by the shown item's id
- * when the answer names it, otherwise the question shown before it.
- */
+/** Pairs each answer with its question, so the log reads "Water? Yes" rather than a bare "Yes": by the shown
+ * item's id when the answer names it, otherwise the question shown before it. */
 fun List<SessionEvent>.withQuestions(): List<Pair<SessionEvent, String?>> {
     // Answers from a second screen name their question, since they can arrive after the next one was shown.
     val shown = filter { it.type == EventType.QUESTION_SHOWN }.associate { it.id to it.text }
@@ -501,10 +499,8 @@ fun EventType.label() = when (this) {
     EventType.PROMPT -> R.string.log_prompt
 }
 
-/**
- * Replays a signed answer slowly, sign by sign, so the officer can accept a guess or type the word for each sign.
- * Without a sign reader every sign starts blank: the officer transcribes by watching.
- */
+/** Replays a signed answer slowly, sign by sign, so the officer can accept a guess or type the word for each
+ * sign. Without a sign reader every sign starts blank: the officer transcribes by watching. */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun SignedSheet(

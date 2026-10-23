@@ -9,11 +9,8 @@ import app.signsetu.data.session.SessionEvent
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
-/**
- * Exactly what the subject was shown for one prompt: the caption in their language, the motions the character
- * played, the pictures in the order offered, and the content they came from. Logged as a PROMPT row right after
- * the row that showed it, so the record keeps the officer's words and the subject's view as separate layers.
- */
+/** Exactly what the subject was shown for one prompt: the caption in their language, the motions the character
+ * played, the pictures in the order offered, and the content they came from. */
 @Serializable
 data class PromptRecord(
     val caption: String? = null,

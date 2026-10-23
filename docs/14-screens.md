@@ -20,6 +20,7 @@ Every screen of the application, captured from the `standard` debug build on an 
 | First run, step 3 | [03-first-run-3.png](screens/03-first-run-3.png) | App pinning |
 | Home | [04-home.png](screens/04-home.png) | Profile, subject language, role |
 | Home, Signs profile | [05-home-signs.png](screens/05-home-signs.png) | Indian (ISL) or American (ASL) chosen before start |
+| Practice, type and sign | [39-practice-type-and-sign.png](screens/39-practice-type-and-sign.png) | Reached from the pencil on Home, outside a session: the same planner and character, with nothing recorded |
 
 ## 3. The stage
 
@@ -47,7 +48,7 @@ Every screen of the application, captured from the `standard` debug build on an 
 | Transcribe | [20-officer-transcribe.png](screens/20-officer-transcribe.png) | Conversation with grades, trails and how each answer was given |
 | Ready to show | [21-officer-ready-to-show.png](screens/21-officer-ready-to-show.png) | A prepared question and its media marks |
 | Typed text with Hindi | [22-officer-typed-hindi.png](screens/22-officer-typed-hindi.png) | Instant on-phone English to Hindi caption, marked unchecked |
-| More | [23-officer-more.png](screens/23-officer-more.png) | Question groups, other ways to ask, session tools |
+| More | [23-officer-more.png](screens/23-officer-more.png) | Search, category browse, other ways to ask, session tools |
 | Question groups | [24-officer-question-groups.png](screens/24-officer-question-groups.png) | Personal details questions |
 | They gestured | [25-officer-they-gestured.png](screens/25-officer-they-gestured.png) | Where the hand went and what it did |
 | Picture board | [26-officer-picture-board.png](screens/26-officer-picture-board.png) | Categories, search and favourites |

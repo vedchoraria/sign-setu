@@ -6,7 +6,10 @@
 
     <!-- Lock -->
     <string name="lock_title">Sign Setu is locked</string>
-    <string name="lock_body">Sign Setu could not open its records. Tap Unlock to try again.</string>
+    <string name="lock_body">Unlock with this phone\'s PIN, pattern, password or fingerprint.</string>
+    <string name="auth_title">Confirm it is you</string>
+    <string name="key_unbound_title">This phone has no screen lock</string>
+    <string name="key_unbound_body">Records are encrypted, but anyone holding this phone can open them. Set a PIN, pattern or password in the phone\'s settings; the records move under it at the next unlock.</string>
     <string name="lock_button">Unlock</string>
     <string name="lock_failed">Could not unlock. Try again.</string>
 
@@ -52,8 +55,6 @@
     <string name="sensitive_body">These questions can upset a child. Ask them only when the person is calm and safe, and never start with them.</string>
     <string name="sensitive_confirm">Show sensitive questions</string>
 
-    <string name="end_title">End this session?</string>
-    <string name="end_body">Everything recorded in this session is deleted from this phone. Export a password-protected report first if the case file needs it.</string>
 
     <!-- Log -->
     <string name="log_shown">Shown</string>
@@ -116,7 +117,6 @@
 
     <!-- Export -->
     <string name="end_export">Export report</string>
-    <string name="end_no_export">Finish without a report</string>
     <string name="export_working">Preparing the encrypted report…</string>
     <string name="export_title">Report ready</string>
     <string name="export_body">The report is encrypted. Give this password separately from the file, for example by reading it out. It is shown only once.</string>
@@ -226,6 +226,7 @@
     <string name="notice_back_online">Back online. Department gateway in use.</string>
     <string name="notice_enrolled">Phone enrolled with the department gateway.</string>
     <string name="notice_enroll_failed">Could not enrol. Check the code and the connection.</string>
+    <string name="notice_enroll_rate_limited">Too many attempts. Wait a minute, then try the code again.</string>
     <string name="cloud_notice_title">Send text to the department gateway?</string>
     <string name="cloud_notice_body">While this is on and the phone is online, session text goes to the department gateway, which passes it to an AI service. The subject\'s names are replaced with \"Ravi\" and phone numbers are masked before sending; the real names are put back on this phone. Words the officer types as notes are not checked, so avoid names there. If the service cannot be reached, the on-device version is used.</string>
     <string name="cloud_notice_accept">I understand, turn on</string>
@@ -246,7 +247,6 @@
     <string name="start_damaged_body">The questions or pictures in this copy of the app do not match the approved content, so no new session can start. Install the current version from your department.</string>
     <string name="start_media_rejected">Some pictures, sounds or gestures failed a check and are left out.</string>
     <string name="start_asl_off">ASL is off: its signs or words failed a check. ISL is not affected.</string>
-    <string name="officer_phrases">Phrases</string>
     <string name="quick_hint">Type anything to show them</string>
     <string name="mode_signs">Signs</string>
     <string name="mode_gestures">Gestures</string>
@@ -312,6 +312,7 @@
     <string name="more_questions">Questions and phrases</string>
     <string name="more_search">Search questions or category</string>
     <string name="more_search_clear">Clear search</string>
+    <string name="more_browse">Browse by category</string>
     <string name="more_search_none">Nothing matches. Try another word or type your own question.</string>
     <string name="open_translate">Translate app</string>
     <string name="open_translate_missing">Google Translate is not installed on this phone.</string>
@@ -536,7 +537,10 @@
     <string name="call_exhale">Breathe out</string>
     <string name="call_breath_body">You are safe here. Breathe with the circle at your own pace.</string>
     <string name="call_ready">I am ready to go on</string>
-    <string name="call_r_fingers">%1$d fingers shown</string>
+    <plurals name="call_r_fingers">
+        <item quantity="one">%1$d finger shown</item>
+        <item quantity="other">%1$d fingers shown</item>
+    </plurals>
     <string name="call_r_yes">Yes</string>
     <string name="call_r_no">No</string>
     <string name="call_r_point">Pointed: %1$s</string>
@@ -583,7 +587,7 @@
     <string name="report_by_ai">written by the AI counsellor, officer monitoring</string>
     <string name="counsel_thinking">The counsellor is writing its next line…</string>
     <string name="counsel_waiting">Waiting for their answer</string>
-    <string name="counsel_next">Shows on their screen in %1$d s</string>
+    <string name="counsel_next">Sends on its own in two seconds — Take over to stop it.</string>
     <string name="counsel_send_now">Send now</string>
     <string name="counsel_skip">Another line</string>
     <string name="counsel_take_over">Take over</string>
@@ -594,6 +598,13 @@
     <string name="counsel_resume">Start again</string>
     <string name="ai_needs_online">Turn on the online assistant in Settings and enrol this phone first.</string>
     <string name="ai_not_for_accused">The AI counsellor is only for victims and witnesses, never for a person accused or in custody.</string>
+    <string name="ai_needs_victim">Set the role to victim or witness before starting the AI counsellor.</string>
+    <string name="cloud_consent_title">Send this session to the department gateway?</string>
+    <string name="cloud_consent_title_direct">Send this session to an AI service?</string>
+    <string name="cloud_consent_body_direct">The session log, with the names this phone knows masked, goes to an outside AI service to write a draft. Allow this for the rest of the session?</string>
+    <string name="cloud_consent_body">The session log, with the names this phone knows masked, goes to the department gateway to write a draft. Allow this for the rest of the session?</string>
+    <string name="cloud_consent_allow">Allow</string>
+    <string name="ai_report_attach">Attach to export as a draft</string>
     <string name="wrap_name">Save as</string>
     <string name="wrap_rooted_note">This phone looks rooted, so no history is kept. Finishing deletes the session. Export a report first if you need one.</string>
     <string name="leave_title">Leave this session?</string>

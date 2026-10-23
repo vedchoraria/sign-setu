@@ -54,7 +54,7 @@ Target: OWASP MASVS v2 with the MAS-L2 testing profile, plus the CERT-In require
 | --- | --- |
 | `FLAG_SECURE` on the activity: blocks screenshots, screen recording and recents thumbnails. | |
 | Only the launcher activity exported, apart from WorkManager's job service, which Android requires and protects with BIND_JOB_SERVICE; unused library receivers are removed from the merged manifest; export through `FileProvider` with a temporary grant. | MASVS-PLATFORM-1 |
-| Runtime permissions: CAMERA for the stage mirror and sign windows, asked of the officer at session start; BLUETOOTH_CONNECT ("nearby devices", Android 12 and later) for the second screen, asked only when a second screen is set up on either device. VIBRATE is a normal permission. No RECORD_AUDIO, location or INTERNET in the standard build. | CERT-In 6.2.6 |
+| Runtime permissions: CAMERA for the stage mirror and sign windows, asked of the officer at session start; BLUETOOTH_CONNECT ("nearby devices", Android 12 and later) for the second screen, asked only when a second screen is set up on either device. VIBRATE is a normal permission. No RECORD_AUDIO or location in any build; INTERNET is used only by the gateway client. | CERT-In 6.2.6 |
 | No WebView. | MASVS-PLATFORM-2 |
 | No notifications containing subject data. | |
 | `filterTouchesWhenObscured` on every window the app opens (the activity, and each dialog, sheet and menu), so Show, export and clear actions ignore touches that come through another app's overlay. | MASVS-PLATFORM-3 |
@@ -78,7 +78,7 @@ Target: OWASP MASVS v2 with the MAS-L2 testing profile, plus the CERT-In require
 | --- |
 | R8 full-mode shrinking and obfuscation. |
 | Release signing key generated offline, held by the release manager with a second custodian and an offline backup in department custody; APK Signature Scheme v3. |
-| Rooted or test-key device: warn the officer, keep no history and do not block the app in an emergency [confirm with department]. See D-53. |
+| Rooted or test-key device: warn the officer, keep no history and still allow the app in an emergency. |
 | Build expiry: new sessions refused 180 days after the build date, because personal phones have no device management. |
 | The assistant model is imported from a file, never downloaded; it is kept only if its SHA-256 is on the app's allow-list, computed while copying, so no other file reaches the native parser. Each request starts from an empty context and nothing typed is stored by the assistant. |
 

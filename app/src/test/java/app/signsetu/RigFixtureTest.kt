@@ -17,10 +17,8 @@ import org.junit.Test
 import java.io.File
 import java.util.Locale
 
-/**
- * Poses of every gesture at fixed times, which the reviewer portal's TypeScript rig must reproduce (portal/src/rig.test.ts).
- * When Rig.kt changes on purpose, delete portal/src/rig-fixtures.json, run this test to write it again, and update rig.ts.
- */
+/** Poses of every gesture at fixed times, which the reviewer portal's TypeScript rig must reproduce
+ * (portal/src/rig.test.ts). */
 class RigFixtureTest {
 
     @Serializable private data class GesturesFile(val gestures: List<Gesture>)

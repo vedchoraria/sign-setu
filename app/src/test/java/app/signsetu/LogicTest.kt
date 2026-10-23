@@ -10,6 +10,7 @@ import app.signsetu.data.session.EventType
 import app.signsetu.data.session.SessionEvent
 import app.signsetu.data.settings.whatsappNumber
 import app.signsetu.ui.session.withQuestions
+import app.signsetu.ui.sanitizeSandesHandoffClipboard
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -22,7 +23,7 @@ class LogicTest {
     fun contentLoadSkipsHashingModels() {
         assertFalse(eagerlyChecked("models/holistic_landmarker.task"))
         assertTrue(eagerlyChecked("triage.json"))
-        assertTrue(eagerlyChecked("audio/en/s1.ogg"))
+        assertFalse(eagerlyChecked("audio/en/s1.ogg"))
     }
 
     private fun entry(id: String, locations: List<BodyLocation>, actions: List<HandAction>) =
@@ -82,6 +83,12 @@ class LogicTest {
         assertEquals("447700900123", whatsappNumber("+44 7700 900123"))
         assertNull(whatsappNumber("Interpreter desk"))
         assertNull(whatsappNumber("12345"))
+    }
+
+    @Test
+    fun theInterpreterHandoffCopiesOnlyTheConfiguredContact() {
+        assertEquals("+919876543210", sanitizeSandesHandoffClipboard("  +919876543210\n"))
+        assertEquals("officer.interpreter.nic", sanitizeSandesHandoffClipboard("officer.interpreter.nic"))
     }
 
     @Test

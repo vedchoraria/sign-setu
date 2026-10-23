@@ -10,18 +10,14 @@ import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
-/** Where the gateway token lives between runs. */
 interface TokenVault {
     fun get(): String?
-    fun put(token: String)
+    /** False when the token could not be written; the caller must not claim enrolment succeeded. */
+    fun put(token: String): Boolean
     fun clear()
 }
 
-/**
- * The token is stored only wrapped by a non-exportable Keystore key, in a file excluded from backup.
- * That key needs no screen unlock, so the token is the one secret the app can use while locked; it reaches only the
- * gateway's own endpoints and can be revoked there.
- */
+/** The token is stored only wrapped by a non-exportable Keystore key, in a file excluded from backup. */
 class KeystoreVault(context: Context) : TokenVault {
     private val file = File(context.noBackupFilesDir, "gw.bin")
 
@@ -29,12 +25,18 @@ class KeystoreVault(context: Context) : TokenVault {
         val b = file.takeIf { it.exists() }?.readBytes() ?: return null
         Cipher.getInstance(TRANSFORM).apply { init(Cipher.DECRYPT_MODE, key(), GCMParameterSpec(128, b, 0, IV_LEN)) }
             .doFinal(b, IV_LEN, b.size - IV_LEN).decodeToString()
-    }.getOrNull()
+    }.getOrElse {
+        // A rotated or invalidated Keystore key, or a truncated file, can never be read again. Drop it so the
+        // next enrolment starts clean instead of failing the same way on every launch.
+        runCatching { file.delete() }
+        null
+    }
 
-    override fun put(token: String) {
+    override fun put(token: String): Boolean = runCatching {
         val cipher = Cipher.getInstance(TRANSFORM).apply { init(Cipher.ENCRYPT_MODE, key()) }
         file.writeBytes(cipher.iv + cipher.doFinal(token.toByteArray()))
-    }
+        true
+    }.getOrElse { false }
 
     override fun clear() {
         file.delete()

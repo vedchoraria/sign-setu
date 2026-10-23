@@ -33,14 +33,19 @@ class MemoryDao : SessionDao {
         id
     }
     override fun events(sessionId: String): Flow<List<EventEntity>> = rows
-    override suspend fun insertDrawing(drawing: DrawingEntity) = synchronized(this) { next++ }
-    override suspend fun drawing(id: Long): ByteArray? = null
+    private val drawings = mutableMapOf<Long, ByteArray>()
+    override suspend fun insertDrawing(drawing: DrawingEntity) = synchronized(this) { next++.also { drawings[it] = drawing.png } }
+    override suspend fun drawing(id: Long): ByteArray? = synchronized(this) { drawings[id] }
     override suspend fun deleteSession(id: String) = sessions.update { it - id }.also { rows.update { all -> all.filter { e -> e.sessionId != id } } }
     override suspend fun endSession(id: String, endedAt: Long, title: String) = edit(id) { it.copy(endedAt = endedAt, title = title) }
     override suspend fun reopen(id: String) = edit(id) { it.copy(endedAt = null) }
     override fun saved(): Flow<List<SessionEntity>> = sessions.map { all -> all.values.filter { it.endedAt != null }.sortedByDescending { it.endedAt } }
-    override suspend fun deleteStartedBefore(cutoff: Long): Int {
-        val old = sessions.value.filterValues { it.startedAt < cutoff }.keys
+    override suspend fun lastHash(sessionId: String): String? = rows.value.lastOrNull { it.sessionId == sessionId && it.hash != null }?.hash
+    override suspend fun startedAt(id: String): Long? = sessions.value[id]?.startedAt
+    override suspend fun deleteIdleBefore(cutoff: Long): Int {
+        val old = sessions.value.filterValues { s ->
+            (s.endedAt ?: rows.value.filter { it.sessionId == s.id }.maxOfOrNull { it.ts } ?: s.startedAt) < cutoff
+        }.keys
         old.forEach { deleteSession(it) }
         return old.size
     }

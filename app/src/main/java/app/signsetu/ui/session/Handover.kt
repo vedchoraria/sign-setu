@@ -1,6 +1,5 @@
 package app.signsetu.ui.session
 
-import androidx.core.content.edit
 import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -20,11 +19,8 @@ import androidx.compose.ui.platform.LocalView
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 
-/**
- * Fires when the phone is tipped over its top edge toward the subject: gravity y goes from top-up to top-down
- * and stays there for [dwellMs]. Gravity cannot see a turn about the vertical axis, so only this gesture is detected.
- * Thresholds are parameters because they need tuning on real phones.
- */
+/** Fires when the phone is tipped over its top edge toward the subject: gravity y goes from top-up to top-down
+ * and stays there for [dwellMs]. */
 class TiltDetector(val dwellMs: Long = 600, val armY: Float = 3f, val flipY: Float = -3f) {
     private var armed = false
     private var flippedSince = -1L
@@ -107,29 +103,12 @@ fun HandoverTilt(enabled: Boolean, onHandover: () -> Unit) {
     }
 }
 
-/**
- * A flag on disk while the stage is shown. Still set when the app is locked means the process died or was locked
- * mid-stage, possibly in a subject's hands, so the silent unlock is skipped and the full biometric or PIN is asked.
- */
-class StageGuard(context: Context) {
-    private val prefs = context.getSharedPreferences("stage_guard", Context.MODE_PRIVATE)
-
-    val forceCredential get() = prefs.getBoolean(KEY, false)
-
-    // commit, not apply: the flag must be on disk before the subject holds the phone.
-    fun onStage(live: Boolean) {
-        if (forceCredential != live) prefs.edit(commit = true) { putBoolean(KEY, live) }
-    }
-
-    private companion object { const val KEY = "stage_live" }
-}
-
 /** True while the officer has a dialog or sheet open: tilt and Volume-Up must not hand the phone over under it. */
 internal object OfficerModal {
     val open = androidx.compose.runtime.mutableStateOf(false)
 }
 
-/** Tilt, volume keys and the crash flag for one session screen; [onLeaveStage] is the usual way back, with its own lock check. */
+/** Tilt and volume keys for one session screen; [onLeaveStage] takes the phone back from the stage. */
 @Composable
 fun HandoverEffects(
     ui: SessionUi,
@@ -137,7 +116,6 @@ fun HandoverEffects(
     tiltToShow: Boolean,
     volumeKeys: Boolean,
     keys: HardKeys,
-    stageGuard: StageGuard,
     onLeaveStage: () -> Unit,
 ) {
     val view = LocalView.current
@@ -151,7 +129,6 @@ fun HandoverEffects(
         vm.show()
     }
 
-    LaunchedEffect(onStage) { stageGuard.onStage(onStage) }
     HandoverTilt(enabled = tiltToShow && ready) { show(true) }
 
     SideEffect {

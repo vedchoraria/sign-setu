@@ -2,7 +2,7 @@
 
 An offline Android app that helps a police officer communicate with a person who cannot communicate in words: deaf, non-verbal, traumatised or speaking another language. A code-drawn character signs and gestures, pictures and captions carry the question, typed text is played in draft Indian Sign Language order, and signed answers are read on the phone inside explicit sign windows. The app is a communication aid, not an interpreter, and never records statements.
 
-- Version 0.5.0 (version code 7). Android 10 (API 29) and later; Kotlin and Jetpack Compose; one `app` module.
+- Version 0.5.1 (version code 8). Android 10 (API 29) and later; Kotlin and Jetpack Compose; one `app` module.
 - Works fully offline. A build with a department gateway (`-PgatewayUrl=https://...`) also uses it while online; without one, nothing ever connects. No RECORD_AUDIO permission, and no location or scanning permission in the `standard` flavor; every build fails if a forbidden permission reaches the merged manifest.
 - Includes a standalone Type-to-Sign practice screen directly on the home screen so officers can test arbitrary Hindi or English sentences outside a formal interview session.
 - Automatic quiet-settle sign capture: answers ingest naturally when the signer's hands come to rest, without requiring a physical screen tap.
@@ -66,4 +66,4 @@ Release builds use R8 with resource shrinking. Add `-PgatewayUrl=https://...` (o
 | `tools/security/` | CycloneDX SBOM of the release APK (`sbom.py`, needs Syft) |
 | `content/` | Source symbols for the picture cards |
 | `render.yaml` | Free hosting blueprint for the gateway |
-| `docs/` | Requirements, architecture, security, decision log and data protection assessment ([index](docs/README.md)) |
+| `docs/` | Requirements, architecture, security and data protection assessment ([index](docs/README.md)) |

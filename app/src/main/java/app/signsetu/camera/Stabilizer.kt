@@ -3,11 +3,8 @@ package app.signsetu.camera
 import androidx.compose.ui.geometry.Offset
 import kotlin.math.hypot
 
-/**
- * Cleans the tracker's output before anything reads it: a hand or pose lost for a frame or two is held, so a sign is not
- * split by a dropout, and still points are smoothed, so held letters stop shimmering. Fast motion passes through
- * untouched, so signs gain no lag. Causal and one frame of state, so it costs nothing at 30 fps.
- */
+/** Cleans the tracker's output before anything reads it: a hand or pose lost for a frame or two is held, so a
+ * sign is not split by a dropout, and still points are smoothed, so held letters stop shimmering. */
 class Stabilizer(private val holdMs: Long = HOLD_MS) {
     private class Track(val points: List<Offset>, val seenAt: Long)
 

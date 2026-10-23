@@ -18,11 +18,8 @@ import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-/**
- * The gateway answers only system prompts that match a template in app_prompts.json. The templates are rendered here
- * from the prompt code itself, so editing a prompt without updating the gateway fails this test. Regenerate the file
- * with UPDATE_PROMPT_FIXTURE=1 and commit it; the gateway tests then check its behaviour against the same file.
- */
+/** The gateway answers only system prompts that match a template in app_prompts.json. The templates are
+ * rendered here from the prompt code itself, so editing a prompt without updating the gateway fails this test. */
 class GatewayPromptContractTest {
     private val fixture = File("../backend/signsetu_gateway/app_prompts.json")
     private val lang = "§LANG§"

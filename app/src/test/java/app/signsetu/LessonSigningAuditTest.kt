@@ -8,10 +8,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/**
- * Every lesson-sheet sentence as the character signs it: each word a recorded sign, an authored one, letters or
- * nothing. Prints the plan so a reviewer can read it.
- */
+/** Every lesson-sheet sentence as the character signs it: each word a recorded sign, an authored one, letters
+ * or nothing. Prints the plan so a reviewer can read it. */
 class LessonSigningAuditTest {
 
     private val content = shipped

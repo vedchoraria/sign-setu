@@ -26,6 +26,8 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalActivity
+import app.signsetu.ui.components.OfficerAuth
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Call
@@ -92,7 +94,6 @@ import app.signsetu.ui.theme.LocalAnswerColors
 import app.signsetu.ui.theme.LocalInk
 import app.signsetu.ui.theme.Spacing
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeoutOrNull
 import java.io.File
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Tab
@@ -109,11 +110,8 @@ private enum class Sheet { BOARD_SHOW, BOARD_ATTACH, GESTURE, LOG, CHANGE, DICTI
 /** The phrase bank sits beside the triage groups as one more group. */
 private const val WORD_SEP = "\u0001"
 
-/**
- * The officer's side of the phone. The main page is quick two-way transcription, laid out like a messaging app: the
- * conversation, a few prepared questions, a composer that signs typed text, and Read signs for a signed answer.
- * Every other way to ask is one tap away on the second page.
- */
+/** The officer's side of the phone. The main page is quick two-way transcription, laid out like a messaging
+ * app: the conversation, a few prepared questions, a composer that signs typed text. */
 @Composable
 fun OfficerPane(
     ui: SessionUi,
@@ -157,9 +155,18 @@ fun OfficerPane(
     val cloud = LocalCloudAi.current
     var aiReport by remember { mutableStateOf<String?>(null) }
     var aiExtracting by remember { mutableStateOf(false) }
+    // A draft summary reaches the export only when the officer attaches it from the draft dialog.
+    var attachedSummary by remember { mutableStateOf<String?>(null) }
+    // Session data leaves the phone only after the officer allows it once for this session.
+    var cloudConsent by rememberSaveable { mutableStateOf(false) }
+    var awaitingConsent by remember { mutableStateOf<(() -> Unit)?>(null) }
+    val activity = LocalActivity.current
     var stopSeen by rememberSaveable { mutableStateOf<Long?>(null) }
     var phrase by remember { mutableStateOf<Phrase?>(null) }
     val scope = rememberCoroutineScope()
+    val withConsent: (() -> Unit) -> Unit = { action ->
+        scope.launch { if (!cloudConsent && cloud.sendsSessionData()) awaitingConsent = action else action() }
+    }
     val res = LocalResources.current
     val attached = rememberSaveable(saver = stateListSaver()) { mutableStateListOf<String>() }
     // Typed words held by event id ("say:", "sign:") and Show picks ("show"), so dismiss and rotation keep them.
@@ -200,7 +207,6 @@ fun OfficerPane(
         onDispose { before?.let { controller.isAppearanceLightStatusBars = it } }
     }
 
-    // Main page: question run and say-back.
     var run by rememberSaveable { mutableStateOf(listOf<String>()) }
     var sayingBackId by rememberSaveable { mutableStateOf<Long?>(null) }
     val sayingBack = ui.events.firstOrNull { it.id == sayingBackId }
@@ -232,8 +238,9 @@ fun OfficerPane(
     val startCounsel: () -> Unit = {
         when {
             ui.session.role == app.signsetu.data.session.Role.ACCUSED -> Toast.makeText(context, R.string.ai_not_for_accused, Toast.LENGTH_LONG).show()
+            ui.session.role != app.signsetu.data.session.Role.VICTIM -> Toast.makeText(context, R.string.ai_needs_victim, Toast.LENGTH_LONG).show()
             !cloud.available || !cloud.enrolled -> Toast.makeText(context, R.string.ai_needs_online, Toast.LENGTH_LONG).show()
-            else -> {
+            else -> withConsent {
                 page = 0
                 vm.counsellor.start(
                     counselPrompt(subjectLanguage?.english ?: subjectLang, ui.session.profile == Profile.YOUNG_CHILD),
@@ -241,7 +248,7 @@ fun OfficerPane(
                         val events = vm.ui.value?.events.orEmpty()
                         cloud.ask(system, transcript, subjectNames(events, content, officerLang), 300, subjectDetails(events, content, officerLang))
                     },
-                    transcript = { counselTranscript(it, content) },
+                    transcript = { counselHistory(it, content) },
                 )
             }
         }
@@ -313,12 +320,14 @@ fun OfficerPane(
                     vm = vm,
                     canChangeSignLanguage = paired == null || ui.onStage == null,
                     onAiReport = {
-                        aiExtracting = true
-                        scope.launch {
-                            try {
-                                aiReport = cloud.report(sessionLog(ui.events), ui.session.role.name, subjectLang, subjectNames(ui.events, content, officerLang), signLanguage, subjectDetails(ui.events, content, officerLang))
-                            } finally {
-                                aiExtracting = false
+                        withConsent {
+                            aiExtracting = true
+                            scope.launch {
+                                try {
+                                    aiReport = cloud.report(sessionLog(ui.events), ui.session.role.name, subjectLang, subjectNames(ui.events, content, officerLang), signLanguage, subjectDetails(ui.events, content, officerLang))
+                                } finally {
+                                    aiExtracting = false
+                                }
                             }
                         }
                     },
@@ -459,7 +468,6 @@ fun OfficerPane(
         )
         Sheet.GESTURE -> GestureSheet(content, officerLang, onPick = { entry, found -> vm.prepare(Pending.ShowBack(entry, checkChoices(entry.card, found.map { it.card }))); sheet = null; page = 0 }, onDismiss = { sheet = null })
         Sheet.LOG -> LogSheet(ui.events, logNote, { logNote = it }, onAddNote = vm::addNote, onDismiss = { sheet = null })
-        // ISL hook: the dictionary's Show prepares the sign like a question.
         Sheet.DICTIONARY -> IslDictionarySheet(content, officerLang, signLanguage, onShow = { vm.prepare(Pending.Ask(it)); sheet = null; page = 0 }, onDismiss = { sheet = null })
         // Profile and language stay fixed while an item is on a second screen.
         Sheet.CHANGE -> if (paired == null || ui.onStage == null) ChangeSheet(
@@ -496,19 +504,16 @@ fun OfficerPane(
         if (saveAs.isEmpty()) saveAs = ui.session.title ?: defaultTitle(res, ui.session.startedAt)
         val startExport: () -> Unit = {
             askEnd = false
-            export = ExportState.Working
-            scope.launch {
-                val by = shownBy(ui.events)
-                val idle = notActedOn(ui.events)
-                // Lesson-sheet hook: the report's personal details section (PersonalDetails.kt).
-                val section = detailsSection(res, content, officerLang, ui.events)
-                // The officer waits behind a dialog that cannot be closed, so a slow network gets 8 s, then no summary.
-                val reportSummary = aiReport ?: runCatching {
-                    withTimeoutOrNull(8_000) { cloud.report(sessionLog(ui.events), ui.session.role.name, subjectLang, subjectNames(ui.events, content, officerLang), signLanguage, subjectDetails(ui.events, content, officerLang)) }
-                }.getOrNull()
-                export = runCatching { vm.exportReport(reportText(res, ui, content), recordDetail(res, content, officerLang, ui.events) { eventDetail(res, it, by, idle) }, section, reportSummary) }
-                    .fold({ (file, pass) -> ExportState.Ready(file, pass) }, { ExportState.Failed })
-            }
+            OfficerAuth.confirm(activity, {
+                export = ExportState.Working
+                scope.launch {
+                    val by = shownBy(ui.events)
+                    val idle = notActedOn(ui.events)
+                    val section = detailsSection(res, content, officerLang, ui.events)
+                    export = runCatching { vm.exportReport(reportText(res, ui, content), recordDetail(res, content, officerLang, ui.events) { eventDetail(res, it, by, idle) }, section, attachedSummary) }
+                        .fold({ (file, pass) -> ExportState.Ready(file, pass) }, { ExportState.Failed })
+                }
+            })
         }
         // The everyday "Thank you." from the lesson sheet closes the conversation on the stage.
         val thanks = content.question(THANK_YOU)
@@ -524,10 +529,20 @@ fun OfficerPane(
             onDismiss = { askEnd = false },
         )
     }
-    val modal = askLeave || askEnd || export != null || aiExtracting || aiReport != null || sheet != null || askSensitive || phrase != null || sayingBack != null || replaying != null
+    val modal = askLeave || askEnd || export != null || aiExtracting || aiReport != null || awaitingConsent != null || sheet != null || askSensitive || phrase != null || sayingBack != null || replaying != null
     SideEffect { OfficerModal.open.value = modal }
     DisposableEffect(Unit) { onDispose { OfficerModal.open.value = false } }
-    aiReport?.let { AiReportDialog(it, onDismiss = { aiReport = null }) }
+    aiReport?.let { r -> AiReportDialog(r, onDismiss = { aiReport = null }, onAttach = { attachedSummary = r; aiReport = null }) }
+    awaitingConsent?.let { action ->
+        GuardedAlertDialog(
+            onDismissRequest = { awaitingConsent = null },
+            // A build without a gateway sends to a third party, so the question names that instead.
+            title = { Text(stringResource(if (cloud.viaGateway) R.string.cloud_consent_title else R.string.cloud_consent_title_direct)) },
+            text = { Text(stringResource(if (cloud.viaGateway) R.string.cloud_consent_body else R.string.cloud_consent_body_direct)) },
+            confirmButton = { TextButton(onClick = { awaitingConsent = null; cloudConsent = true; action() }) { Text(stringResource(R.string.cloud_consent_allow)) } },
+            dismissButton = { TextButton(onClick = { awaitingConsent = null }) { Text(stringResource(R.string.cancel)) } },
+        )
+    }
     if (aiExtracting) AiPreparingDialog()
 
     export?.let { state ->

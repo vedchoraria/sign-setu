@@ -4,11 +4,8 @@ import android.util.LruCache
 
 private val shapeCache = LruCache<String, HandShape>(128)
 
-/**
- * A named hand shape, or one measured from a signer (isl_signs.json): "c:" then thumb, index, middle, ring and
- * pinky curl, thumbAcross and spread, in percent. Anything else is unknown and plays as the relaxed hand.
- * Results are cached in an LRU cache to eliminate string splitting overhead on every animation frame.
- */
+/** A named hand shape, or one measured from a signer (isl_signs.json): "c:" then thumb, index, middle, ring and
+ * pinky curl, thumbAcross and spread, in percent. */
 fun handShape(name: String): HandShape? {
     HandShape.ALL[name]?.let { return it }
     shapeCache.get(name)?.let { return it }

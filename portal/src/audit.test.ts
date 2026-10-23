@@ -1,6 +1,4 @@
-// Headless stand-in for scrubbing the review portal by hand: every gesture on the visual-audit checklist is played on
-// both characters and its wrist and fingertips must stay inside the body view. Silhouette judgement still needs eyes;
-// geometry, aliasing and draw order do not.
+// Headless stand-in for scrubbing the review portal by hand: every gesture on the visual-audit checklist is played on both characters and its wrist and fingertips must stay inside the body view.
 import { describe, expect, it } from "vite-plus/test";
 import { gestures, aslGestures } from "./content";
 import { VIEW } from "./draw";

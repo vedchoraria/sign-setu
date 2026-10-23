@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -50,10 +51,8 @@ import app.signsetu.ui.avatar.Character
 import app.signsetu.data.content.questionKind
 import app.signsetu.ui.theme.Spacing
 
-/**
- * Type anything and watch the character sign it: the same planner the session uses, with nothing to record and
- * no one to ask. A word with no sign is fingerspelled and marked as such, so it is clear what was signed.
- */
+/** Type anything and watch the character sign it: the same planner the session uses, with nothing to record and
+ * no one to ask. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PracticeScreen(content: ContentBundle, onBack: () -> Unit) {
@@ -81,7 +80,13 @@ fun PracticeScreen(content: ContentBundle, onBack: () -> Unit) {
         },
     ) { padding ->
         Column(
-            Modifier.fillMaxSize().padding(padding).navigationBarsPadding().padding(horizontal = Spacing.lg),
+            Modifier
+                .fillMaxSize()
+                .padding(padding)
+                // The keyboard covers the field and Sign it otherwise; edge-to-edge windows do not resize themselves.
+                .imePadding()
+                .navigationBarsPadding()
+                .padding(horizontal = Spacing.lg),
             verticalArrangement = Arrangement.spacedBy(Spacing.md),
         ) {
             Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {

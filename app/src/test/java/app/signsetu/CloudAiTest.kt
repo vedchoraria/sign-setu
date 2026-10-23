@@ -14,16 +14,22 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class CloudAiTest {
-    private class Vault(var token: String? = null) : TokenVault {
+    private class Vault(var token: String? = null, private val writable: Boolean = true) : TokenVault {
         override fun get() = token
-        override fun put(token: String) { this.token = token }
+        override fun put(token: String): Boolean {
+            if (!writable) return false
+            this.token = token
+            return true
+        }
         override fun clear() { token = null }
     }
 
     private class Server(val reply: (String, String?) -> Reply?) : Http {
         val calls = mutableListOf<Triple<String, String?, String?>>()
-        override fun call(method: String, url: String, body: String?, bearer: String?): Reply? {
+        val timeouts = mutableListOf<Int>()
+        override fun call(method: String, url: String, body: String?, bearer: String?, timeoutMs: Int): Reply? {
             calls += Triple(url, body, bearer)
+            timeouts += timeoutMs
             return reply(url, body)
         }
     }
@@ -32,6 +38,19 @@ class CloudAiTest {
         CloudAi({ on }, url, server, vault) { online }
 
     private val text = Server { _, _ -> Reply(200, """{"text":"hello Ravi"}""") }
+
+    @Test
+    fun aTokenThatCannotBeStoredIsNotReportedAsEnrolled() = runBlocking {
+        val notices = mutableListOf<Notice>()
+        val vault = Vault(writable = false)
+        val server = Server { _, _ -> Reply(200, """{"token":"tok"}""") }
+        val c = ai(server, vault)
+        c.onNotice = { notices += it }
+
+        assertFalse(c.enroll("enrol-code"))
+        assertNull(vault.get())
+        assertEquals(listOf(Notice.ENROLL_FAILED), notices)
+    }
 
     @Test
     fun offlineSwitchedOffOrUnenrolledNeverTouchesTheNetwork() = runBlocking {
@@ -68,6 +87,26 @@ class CloudAiTest {
         assertNull(v.token)
         assertTrue(ai(Server { _, _ -> Reply(200, """{"device_id":"d","token":"abc"}""") }, v).enroll(" code "))
         assertEquals("abc", v.token)
+    }
+
+    @Test
+    fun enrolmentGivesUpSoonerThanAChatDoes() = runBlocking {
+        val enrol = Server { _, _ -> Reply(200, """{"device_id":"d","token":"abc"}""") }
+        assertTrue(ai(enrol, Vault()).enroll("code"))
+        assertEquals(listOf(15_000), enrol.timeouts)
+
+        assertTrue(ai(text).ask("s", "u", emptyList()) != null)
+        assertEquals(listOf(60_000), text.timeouts)
+    }
+
+    @Test
+    fun aRateLimitedEnrolmentAsksTheOfficerToWait() = runBlocking {
+        val notices = mutableListOf<Notice>()
+        val c = ai(Server { _, _ -> Reply(429, "") }, Vault())
+        c.onNotice = { notices += it }
+
+        assertFalse(c.enroll("valid-code"))
+        assertEquals(listOf(Notice.ENROLL_RATE_LIMITED), notices)
     }
 
     @Test

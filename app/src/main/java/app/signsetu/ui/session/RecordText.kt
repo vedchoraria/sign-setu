@@ -56,10 +56,8 @@ fun systemText(res: Resources, text: String?): String = when {
     else -> stageSystemText(res, text) ?: autoKeyLabel(text)?.let(res::getString) ?: text.orEmpty()
 }
 
-/**
- * The layered record line for each row: a prompt row reads as exactly what the subject saw; an answer row carries
- * its grade, the place of the picture chosen, and its timing and change trail.
- */
+/** The layered record line for each row: a prompt row reads as exactly what the subject saw; an answer row
+ * carries its grade, the place of the picture chosen, and its timing and change trail. */
 fun recordDetail(res: Resources, content: ContentBundle, lang: String, events: List<SessionEvent>, base: (SessionEvent) -> String): (SessionEvent) -> String {
     val grades = grades(events)
     val trails = answerTrails(events)

@@ -35,17 +35,17 @@ import androidx.compose.ui.unit.dp
 import app.signsetu.R
 import app.signsetu.ui.theme.Spacing
 
-/** Shown whenever the database is closed. Without a secure lock screen the app refuses to store anything. */
+/** Shown whenever the database is closed; the officer's screen lock opens it (OfficerAuth). */
 @Composable
 fun LockScreen(
     onUnlock: (onFailed: () -> Unit) -> Unit,
-    /** False on a device that has served as a second screen: only an explicit tap opens the database. */
+    /** False on a device that has served as a second screen: only an explicit tap asks for the screen lock. */
     autoPrompt: Boolean = true,
     stageButton: (@Composable () -> Unit)? = null,
 ) {
     var failed by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { if (autoPrompt) onUnlock { failed = true } }
-    // Avoid flashing the lock screen while the silent unlock runs.
+    // Avoid flashing the lock screen while the prompt and the unlock run.
     if (autoPrompt && !failed) {
         Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background))
         return

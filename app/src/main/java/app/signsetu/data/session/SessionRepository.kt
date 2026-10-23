@@ -4,14 +4,14 @@ import androidx.compose.runtime.Immutable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.util.UUID
 
 enum class Profile { YOUNG_CHILD, ISL_USER, OTHER_LANGUAGE, NOT_SURE }
 
-/**
- * Victim or witness, or accused or in custody (suspect, arrested or convicted): sets the question set and safeguards.
- * NOT_KNOWN until the officer sets it, and then it is left out of the export.
- */
+/** Victim or witness, or accused or in custody (suspect, arrested or convicted): sets the question set and
+ * safeguards. NOT_KNOWN until the officer sets it, and then it is left out of the export. */
 enum class Role { NOT_KNOWN, VICTIM, ACCUSED }
 
 enum class EventType {
@@ -29,7 +29,6 @@ data class Session(
     val subjectLang: String,
     val role: Role = Role.NOT_KNOWN,
     val endedAt: Long? = null,
-    /** The officer's name for a saved session. */
     val title: String? = null,
 )
 
@@ -51,12 +50,15 @@ data class SessionEvent(
     val shownId: Long? = null,
     /** "stage" or "stage_late" for answers from the second screen; null on this phone. */
     val via: String? = null,
+    /** The row's seal in the session's hash chain (EventSeal); null on rows from before sealing. */
+    val hash: String? = null,
 )
 
 const val TITLE_MAX = 80
 
 class SessionRepository(
     private val dao: SessionDao,
+    /** A session started, ended or reopened at this time; retention counts from the latest. */
     private val onSessionStarted: suspend (Long) -> Unit = {},
     private val clock: () -> Long = System::currentTimeMillis,
 ) {
@@ -95,7 +97,10 @@ class SessionRepository(
     /** A fresh read, never a cached snapshot: decisions on what to ask next depend on it. */
     suspend fun eventsNow(sessionId: String): List<SessionEvent> = events(sessionId).first()
 
-    /** Persisted before the interface reflects it; returns the event id. */
+    // Reading the last seal and writing the next must not interleave, or two rows would seal the same predecessor.
+    private val sealing = Mutex()
+
+    /** Persisted before the interface reflects it, sealed onto the session's hash chain; returns the event id. */
     suspend fun log(
         sessionId: String,
         type: EventType,
@@ -110,24 +115,37 @@ class SessionRepository(
         shownId: Long? = null,
         via: String? = null,
     ): Long = unlessClosed(-1L) {
-        val drawingId = drawingPng?.let { dao.insertDrawing(DrawingEntity(sessionId = sessionId, png = it)) }
-        dao.insertEvent(EventEntity(0, sessionId, clock(), type.name, source.name, lang, text, cardId, lexiconId, drawingId, itemId, reason, shownId, via))
+        sealing.withLock {
+            val ts = clock()
+            val previous = dao.lastHash(sessionId) ?: EventSeal.genesis(sessionId, dao.startedAt(sessionId) ?: 0L)
+            val hash = EventSeal.seal(previous, sessionId, ts, type.name, source.name, lang, text, cardId, lexiconId, drawingPng, itemId, reason, shownId, via)
+            val drawingId = drawingPng?.let { dao.insertDrawing(DrawingEntity(sessionId = sessionId, png = it)) }
+            dao.insertEvent(EventEntity(0, sessionId, ts, type.name, source.name, lang, text, cardId, lexiconId, drawingId, itemId, reason, shownId, via, hash))
+        }
     }
 
-    suspend fun drawing(id: Long): ByteArray? = dao.drawing(id)
+    suspend fun drawing(id: Long): ByteArray? = unlessClosed(null) { dao.drawing(id) }
 
     /** Ending a session purges it; there is no archive. */
-    suspend fun purge(sessionId: String) = dao.deleteSession(sessionId)
+    suspend fun purge(sessionId: String) = unlessClosed(Unit) { dao.deleteSession(sessionId) }
 
-    /** Zero hours keeps every session until the officer deletes it. */
-    suspend fun purgeExpired(retentionHours: Int): Int = if (retentionHours <= 0) 0 else dao.deleteStartedBefore(clock() - retentionHours * 3_600_000L)
+    /** Zero hours keeps every session until the officer deletes it; a session counts as idle from its end or last row. */
+    suspend fun purgeExpired(retentionHours: Int): Int =
+        if (retentionHours <= 0) 0 else unlessClosed(0) { dao.deleteIdleBefore(clock() - retentionHours * 3_600_000L) }
 
     /** Finished sessions, newest first, kept under the officer's name for them. */
     fun saved(): Flow<List<Session>> = dao.saved().map { list -> list.map { it.toModel() } }
 
-    suspend fun end(id: String, title: String) = unlessClosed(Unit) { dao.endSession(id, clock(), title.trim().take(TITLE_MAX)) }
+    suspend fun end(id: String, title: String) = unlessClosed(Unit) {
+        val now = clock()
+        dao.endSession(id, now, title.trim().take(TITLE_MAX))
+        onSessionStarted(now)
+    }
 
-    suspend fun reopen(id: String) = unlessClosed(Unit) { dao.reopen(id) }
+    suspend fun reopen(id: String) = unlessClosed(Unit) {
+        dao.reopen(id)
+        onSessionStarted(clock())
+    }
 
     private inline fun <reified T : Enum<T>> safeValueOf(value: String, default: T): T =
         try { enumValueOf<T>(value) } catch (_: IllegalArgumentException) { default }
@@ -156,5 +174,6 @@ class SessionRepository(
         reason = reason,
         shownId = shownId,
         via = via,
+        hash = hash,
     )
 }

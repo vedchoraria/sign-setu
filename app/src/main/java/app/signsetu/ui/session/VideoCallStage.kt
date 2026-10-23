@@ -1,5 +1,6 @@
 package app.signsetu.ui.session
 
+import androidx.annotation.PluralsRes
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -48,6 +49,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -75,10 +77,13 @@ import app.signsetu.ui.theme.Baloo
 import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
-/**
- * The stage as a one-to-one video call: the character is the caller, the subject's camera a small window. Head
- * gestures, a palm, a shrug, pointing and held-up fingers only propose an answer; the subject's tap answers.
- */
+/** The transient reaction chip: plain text, or a counted noun that needs a plural form. */
+private sealed interface Reaction {
+    data class Text(@StringRes val id: Int, val arg: Any? = null) : Reaction
+    data class Count(@PluralsRes val id: Int, val n: Int) : Reaction
+}
+
+/** The stage as a one-to-one video call: the character is the caller, the subject's camera a small window. */
 @Composable
 fun VideoCallStage(
     ui: SessionUi,
@@ -102,7 +107,7 @@ fun VideoCallStage(
     var pipExpanded by remember { mutableStateOf(false) }
 
     // A string resource and its optional argument, resolved where it is drawn so a language change is followed.
-    var recentReaction by remember { mutableStateOf<Pair<Int, Any?>?>(null) }
+    var recentReaction by remember { mutableStateOf<Reaction?>(null) }
     var showBreathingGuide by remember { mutableStateOf(false) }
     LaunchedEffect(recentReaction) {
         if (recentReaction != null) {
@@ -112,10 +117,15 @@ fun VideoCallStage(
     }
     fun react(@StringRes reaction: Int, arg: Any? = null, feel: HapticFeedbackType = HapticFeedbackType.LongPress) {
         haptic.performHapticFeedback(feel)
-        recentReaction = reaction to arg
+        recentReaction = Reaction.Text(reaction, arg)
+    }
+    fun reactCount(@PluralsRes reaction: Int, n: Int) {
+        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+        recentReaction = Reaction.Count(reaction, n)
     }
 
-    var showVictimSkeleton by rememberSaveable { mutableStateOf(false) }
+    // Stays as the officer left it for every item: turning it on once is enough for the whole session.
+    var showVictimSkeleton by StageSkeleton.on
 
     // Left alone, the stage signs its own buttons one by one; a touch pauses it and the next quiet spell resumes there.
     var guideStep by rememberSaveable { mutableIntStateOf(0) }
@@ -155,7 +165,7 @@ fun VideoCallStage(
             card == "dont_know" -> react(R.string.call_r_unsure, feel = HapticFeedbackType.TextHandleMove)
             card == "water" -> react(R.string.call_r_water)
             card == "food" -> react(R.string.call_r_food)
-            card.matches(FINGERS) -> react(R.string.call_r_fingers, card.drop(1).toInt())
+            card.matches(FINGERS) -> reactCount(R.plurals.call_r_fingers, card.drop(1).toInt())
             else -> react(R.string.call_r_point, cardLabel(content, card, lang), HapticFeedbackType.TextHandleMove)
         }
         proposal = null
@@ -307,7 +317,6 @@ fun VideoCallStage(
                     when (head) {
                         Head.Nod -> propose("yes", "nod")
                         Head.Shake -> propose("no", "shake")
-                        else -> Unit
                     }
                 },
                 onPoint = { pointId -> propose(pointId, "point") },
@@ -399,7 +408,11 @@ fun VideoCallStage(
                     border = BorderStroke(1.dp, Color(0xFF38BDF8)),
                 ) {
                     Text(
-                        text = recentReaction?.let { (id, arg) -> if (arg == null) stringResource(id) else stringResource(id, arg) }.orEmpty(),
+                        text = when (val reaction = recentReaction) {
+                            null -> ""
+                            is Reaction.Text -> if (reaction.arg == null) stringResource(reaction.id) else stringResource(reaction.id, reaction.arg)
+                            is Reaction.Count -> pluralStringResource(reaction.id, reaction.n, reaction.n)
+                        },
                         fontFamily = Baloo,
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp,
@@ -513,6 +526,12 @@ fun VideoCallStage(
             CalmingBreathingGuide(onDismiss = { showBreathingGuide = false })
         }
     }
+}
+
+/** Whether the subject's own camera picture shows the traced skeleton; kept outside the screen so it survives the
+ * handover between items, where the stage is built again. */
+internal object StageSkeleton {
+    val on = mutableStateOf(false)
 }
 
 /** Each stage button with the sign the character makes while it is pointed out. */

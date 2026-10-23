@@ -2,7 +2,9 @@ package app.signsetu.data.settings
 
 import android.content.Context
 import androidx.compose.runtime.Immutable
+import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
@@ -56,7 +58,11 @@ data class AppSettings(
     }
 }
 
-private val Context.store by preferencesDataStore("settings")
+// A truncated or unreadable preferences file must not take the app down; defaults are safe and the next write repairs it.
+private val Context.store by preferencesDataStore(
+    name = "settings",
+    corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() },
+)
 
 /** Zero means keep until deleted and must survive; any other value is held to the choices on offer. */
 fun storedRetention(hours: Int): Int = if (hours <= 0) 0 else hours.coerceIn(4, 72)
@@ -124,10 +130,8 @@ class SettingsStore(private val context: Context) {
     )
 }
 
-/**
- * The international number wa.me expects, without "+". A 10-digit number, or 11 with a leading trunk 0, is Indian.
- * Returns null when the contact cannot be a phone number.
- */
+/** The international number wa.me expects, without "+". A 10-digit number, or 11 with a leading trunk 0, is
+ * Indian. Returns null when the contact cannot be a phone number. */
 fun whatsappNumber(contact: String): String? {
     val digits = contact.filter(Char::isDigit).let { if (it.length == 11 && it.startsWith("0")) it.drop(1) else it }
     return when (digits.length) {

@@ -32,10 +32,8 @@ sealed interface Conv {
 
 enum class PauseCause { OFFICER, STOP, BREAK }
 
-/**
- * Runs auto mode beside the view model: every proposal, approval and skip is logged before it changes anything, and
- * every decision is re-derived from a fresh read of the log. [present] shows an item exactly as a manual Show does.
- */
+/** Runs auto mode beside the view model: every proposal, approval and skip is logged before it changes
+ * anything, and every decision is re-derived from a fresh read of the log. */
 class AutoPilot(
     private val sessionId: String,
     private val repo: SessionRepository,

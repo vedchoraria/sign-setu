@@ -96,9 +96,7 @@ class SegmentTest {
 
     @Test
     fun aLandscapeFrameIsMeasuredInItsOwnUnits() {
-        // A camera frame is taller than it is wide on a phone, wider on a tablet: y is a share of the height, so a
-        // vertical drop must be scaled by the aspect before it is compared with a shoulder width. Half a frame
-        // down in a 4:3 picture is 0.375 shoulder widths, not 0.5, and an arm ending that high is still signing.
+        // A camera frame is taller than it is wide on a phone, wider on a tablet: y is a share of the height, so a vertical drop must be scaled by the aspect before it is compared with a shoulder width.
         val trail = (0 until 10).map { 0.5f to 0.55f + it * 0.015f }
         val frames = withTrail(trail).map { it.copy(aspect = 4f / 3f) }
         val capture = SignCapture()

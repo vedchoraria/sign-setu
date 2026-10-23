@@ -50,10 +50,8 @@ internal val PauseCards = setOf("stop", "break")
 internal fun pauseSeconds(events: List<SessionEvent>, now: Long): Long? =
     events.lastOrNull { it.cardId in PauseCards }?.let { ((now - it.ts) / 1000).coerceAtLeast(0) }
 
-/**
- * A quiet night sky over the character: a circle that breathes in and out over four seconds and a few bubbles to pop.
- * No score and no sound. The subject ends it with the big Ready button; the officer's lock stays above it.
- */
+/** A quiet night sky over the character: a circle that breathes in and out over four seconds and a few bubbles
+ * to pop. No score and no sound. */
 @Composable
 internal fun PauseLayer(label: String?, onReady: () -> Unit, modifier: Modifier = Modifier, stop: (@Composable (Modifier) -> Unit)? = null) {
     val context = LocalContext.current

@@ -11,7 +11,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 
 /** Plays recorded speech from the content bundle. One player per subject screen; never plays unless asked. */
-class SpeechPlayer(context: Context) {
+class SpeechPlayer(context: Context, private val intact: (String) -> Boolean = { true }) {
     private val player = ExoPlayer.Builder(context).build().apply {
         setAudioAttributes(
             AudioAttributes.Builder().setUsage(C.USAGE_MEDIA).setContentType(C.AUDIO_CONTENT_TYPE_SPEECH).build(),
@@ -21,6 +21,8 @@ class SpeechPlayer(context: Context) {
 
     /** [path] is relative to the content bundle, e.g. `audio/hi/n1.ogg`. */
     fun play(path: String, speed: Float = 1f) {
+        // A recording that fails its manifest check is never played.
+        if (!intact(path)) return
         player.setPlaybackSpeed(speed)
         player.setMediaItem(MediaItem.fromUri("asset:///content/$path"))
         player.prepare()
@@ -35,7 +37,8 @@ class SpeechPlayer(context: Context) {
 @Composable
 fun rememberSpeechPlayer(): SpeechPlayer {
     val context = LocalContext.current.applicationContext
-    val player = remember { SpeechPlayer(context) }
+    val repo = LocalContentRepository.current
+    val player = remember { SpeechPlayer(context, repo::intact) }
     DisposableEffect(player) { onDispose { player.release() } }
     return player
 }

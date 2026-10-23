@@ -6,6 +6,7 @@ import app.signsetu.data.session.Profile
 import app.signsetu.data.session.SessionRepository
 import app.signsetu.data.settings.AppSettings
 import app.signsetu.data.settings.storedRetention
+import app.signsetu.ui.session.titleToKeep
 import java.io.File
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -121,6 +122,13 @@ class RetentionTest {
         assertNull(restarted.openSession())
         restarted.reopen(id)
         assertTrue(dao.sessions.value.isEmpty())
+    }
+
+    @Test
+    fun aRootedPhoneKeepsNoTitleSoFinishingDeletes() {
+        assertNull(titleToKeep("FIR 12", historyOff = true))
+        assertEquals("FIR 12", titleToKeep("FIR 12", historyOff = false))
+        assertNull(titleToKeep(null, historyOff = false))
     }
 
     @Test

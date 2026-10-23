@@ -121,10 +121,8 @@ class ReplayState(segments: List<SignSegment>) {
 @Composable
 fun rememberReplayState(segments: List<SignSegment>) = remember(segments) { ReplayState(segments) }
 
-/**
- * The signed answer as a stick figure: hands, arms and the face outlines that carry ISL grammar, seen as by someone
- * facing the subject. Slowed down so fast signing can be read; nothing here is stored.
- */
+/** The signed answer as a stick figure: hands, arms and the face outlines that carry ISL grammar, seen as by
+ * someone facing the subject. Slowed down so fast signing can be read; nothing here is stored. */
 @Composable
 fun SkeletonPlayer(state: ReplayState, modifier: Modifier = Modifier) {
     LaunchedEffect(state, state.playing) { if (state.playing) state.run() }

@@ -46,10 +46,7 @@ private fun ContentBundle.signFor(label: String): Gesture? = (isl.gestures.first
 /** The recorded sign for a typed word; homonyms and letters are never a typed word's sign. */
 private fun ContentBundle.typedSign(word: String): IslSign? = isl.gestures.firstOrNull { it.word == word && !it.homonym && !it.isLetter }
 
-/**
- * The sign recorded from a signer for a typed or read word: the word itself, else its concept's reader label
- * (sign_words.json), preferring the label written exactly as typed ("mobile" is cell phone, "phone" telephone).
- */
+/** The sign recorded from a signer for a typed or read word: the word itself, else its concept's reader label (sign_words.json). */
 fun ContentBundle.recordedSign(word: String, entry: WordEntry?): Gesture? {
     typedSign(word)?.let { return it.gesture }
     entry ?: return null
@@ -59,10 +56,8 @@ fun ContentBundle.recordedSign(word: String, entry: WordEntry?): Gesture? {
     return label?.let(::signFor) ?: entry.w.firstNotNullOfOrNull(::typedSign)?.gesture
 }
 
-/**
- * The one word lookup the app uses: with Signs on, a sign recorded from a signer, then an authored sign, then
- * the everyday gesture; with Gestures on, the gesture. Null means the word is fingerspelled or shown as a picture.
- */
+/** The one word lookup the app uses: with Signs on, a sign recorded from a signer, then an authored sign, then
+ * the everyday gesture; with Gestures on, the gesture. */
 fun ContentBundle.motionFor(word: String, entry: WordEntry?, modes: Set<SignMode>): Gesture? {
     val signs = SignMode.SIGNS in modes
     return (if (signs) recordedSign(word, entry) else null)
@@ -116,19 +111,15 @@ fun List<DictionaryEntry>.search(query: String, category: String? = null): List<
     return filter { e -> (category == null || e.category == category) && (q.isEmpty() || e.forms.any { q in it.lowercase() }) }
 }
 
-/**
- * The sign language a session is held in: which reader reads the subject, which signs the character makes. Paths are
- * under assets/content/; [spell] is the fingerspelling reader, if one of the same format exists.
- */
+/** The sign language a session is held in: which reader reads the subject, which signs the character makes.
+ * Paths are under assets/content/; [spell] is the fingerspelling reader, if one of the same format exists. */
 enum class SignLanguage(val reader: String, val spell: String?, val words: String, val signs: String, val title: String) {
     ISL("models/sign_reader", "models/isl_spell", "sign_words.json", "signs.json", "Indian Sign Language (ISL)"),
     ASL("models/asl_reader", "models/asl_spell", "asl_words.json", "asl_signs.json", "American Sign Language (ASL)"),
 }
 
-/**
- * The bundle as the character signs in [lang]: everyday gestures stay, the language's own signs and alphabet replace
- * ISL's, and signed questions are planned again. With no ASL signs bundled, ASL text falls back to gestures and pictures.
- */
+/** The bundle as the character signs in [lang]: everyday gestures stay, the language's own signs and alphabet
+ * replace ISL's, and signed questions are planned again. */
 fun ContentBundle.forSignLanguage(lang: SignLanguage): ContentBundle {
     if (lang == SignLanguage.ISL) return this
     val signs = aslSigns.gestures.map { it.gesture }

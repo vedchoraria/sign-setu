@@ -67,19 +67,8 @@ GPL and AGPL code is never shipped in the app (policy §2); it may be used as a 
 | Symbols drawn for the app | Sign Setu original drawings (`content/symbols/sign-setu/`) | CC BY-SA 4.0 | Ship (assets) | Drawn in OpenMoji style for a card OpenMoji lacks ("Something else") |
 | On-device assistant | llama.cpp v0.5.0 | MIT | Ship (native library) | Built from source by CMake; the source is vendored in `app/src/main/cpp/third_party/llama.cpp` (provenance in `PROVENANCE.md`) |
 | | Gemma 3 1B instruction-tuned (GGUF) | Gemma Terms of Use | Ship (optional model file, not in the APK) | Free for government use, not OSI open source; see [on-device assistant](12-on-device-assistant.md) |
-| | Qwen2.5-1.5B-Instruct | Apache-2.0 | Not chosen | Fully open, but mistranslated three of four test questions into Hindi |
 
-## 2. Considered and rejected
-
-| Component | Reason |
-| --- | --- |
-| sign.mt | CC BY-NC-SA, no ISL model; useful only as a reference for pose-to-avatar ideas |
-| CWASA / JASigning | Research licence; HamNoSys authoring per sign |
-| Ready Player Me | Shut down |
-| Google SignGemma | ASL only; weights not openly released |
-| Any hosted avatar or text-to-sign service | Sends officer text to a third party and can disappear |
-
-## 3. Attribution
+## 2. Attribution
 
 The INCLUDE, OpenHands, PopSign ASL, ASLNow! and MediaPipe notices appear in the app's **Settings > Open-source licences**, the ISL dictionary carries the INCLUDE notice for recorded signs, and all travel with any redistribution of the models or motions.
 

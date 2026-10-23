@@ -6,10 +6,8 @@ import kotlin.math.sqrt
 private const val T = 32
 private const val F = 98
 
-/**
- * Signs taught in this session: when the officer reads a sign as a word the reader did not give, its shape is kept and
- * offered first when the subject signs it again. Memory only, gone with the session.
- */
+/** Signs taught in this session: when the officer reads a sign as a word the reader did not give, its shape is
+ * kept and offered first when the subject signs it again. Memory only, gone with the session. */
 class HomeSigns {
     private val taught = mutableListOf<Pair<String, FloatArray>>()
 

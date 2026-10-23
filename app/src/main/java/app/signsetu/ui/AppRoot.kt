@@ -30,6 +30,7 @@ import androidx.compose.ui.platform.toClipEntry
 import android.content.ClipData
 import android.content.Context
 import app.signsetu.ui.components.LocalCloudAi
+import app.signsetu.ui.components.OfficerAuth
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -128,6 +129,7 @@ private fun noticeText(context: Context, n: Notice) = context.getString(when (n)
     Notice.BACK_ONLINE -> R.string.notice_back_online
     Notice.ENROLLED -> R.string.notice_enrolled
     Notice.ENROLL_FAILED -> R.string.notice_enroll_failed
+    Notice.ENROLL_RATE_LIMITED -> R.string.notice_enroll_rate_limited
 })
 
 @Composable
@@ -138,6 +140,7 @@ fun AppRoot(container: AppContainer) {
     val link by container.link.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val activity = LocalActivity.current
     DisposableEffect(container) {
         container.cloudAi.onNotice = { n ->
             context.mainExecutor.execute { Toast.makeText(context, noticeText(context, n), Toast.LENGTH_LONG).show() }
@@ -156,12 +159,10 @@ fun AppRoot(container: AppContainer) {
                 !s.firstRunDone -> FirstRunScreen(c?.gestures.orEmpty(), onDone = { scope.launch { container.settings.setFirstRunDone() } })
                 // A stage device never opens the session database or the navigation.
                 stage != null && c != null -> StageDeviceScreen(stage, c, container)
-                // No credential prompt: LockScreen opens the database itself and only shows if that fails.
+                // The officer's screen lock opens the records; a device that has served as a stage waits for a tap.
                 r == null -> LockScreen(
-                    onUnlock = { onFailed ->
-                        container.stageGuard.onStage(false)
-                        container.unlockAsync(onFailed)
-                    },
+                    onUnlock = { onFailed -> OfficerAuth.confirm(activity, { container.unlockAsync(onFailed) }, onFailed) },
+                    autoPrompt = !s.stageDevice,
                     stageButton = { UseAsStageButton(container) },
                 )
                 c == null -> ScreenSkeleton()
@@ -174,6 +175,15 @@ fun AppRoot(container: AppContainer) {
                     title = { Text(stringResource(R.string.key_reset_title)) },
                     text = { Text(stringResource(R.string.key_reset_body)) },
                     confirmButton = { TextButton(onClick = container::acknowledgeKeyReset) { Text(stringResource(R.string.ok)) } },
+                )
+            }
+            val keyUnbound by container.keyUnbound.collectAsStateWithLifecycle()
+            if (keyUnbound && r != null && !keyReset) {
+                GuardedAlertDialog(
+                    onDismissRequest = container::acknowledgeKeyUnbound,
+                    title = { Text(stringResource(R.string.key_unbound_title)) },
+                    text = { Text(stringResource(R.string.key_unbound_body)) },
+                    confirmButton = { TextButton(onClick = container::acknowledgeKeyUnbound) { Text(stringResource(R.string.ok)) } },
                 )
             }
             val downgraded by container.downgraded.collectAsStateWithLifecycle()
@@ -189,10 +199,7 @@ fun AppRoot(container: AppContainer) {
     } }
 }
 
-/**
- * every text field in the app asks the keyboard not to learn from what is typed, since it is about a subject.
- * Compose has no keyboard option for this, so the flag is added to each input connection as it is created.
- */
+/** every text field in the app asks the keyboard not to learn from what is typed, since it is about a subject. */
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun NoPersonalisedLearning(content: @Composable () -> Unit) {
@@ -213,6 +220,7 @@ private fun NoPersonalisedLearning(content: @Composable () -> Unit) {
 private fun Navigation(repo: SessionRepository, content: ContentBundle, settings: AppSettings, container: AppContainer) {
     val backStack = rememberNavBackStack(StartKey)
     val scope = rememberCoroutineScope()
+    val activity = LocalActivity.current
     var pairing by remember { mutableStateOf(false) }
     val onSecondScreen = { pairing = true }.takeIf { container.pairTransport != null }
     // Each reads and hashes model files, so none is built on the main thread; null until ready, as with no model.
@@ -225,7 +233,8 @@ private fun Navigation(repo: SessionRepository, content: ContentBundle, settings
         transitionSpec = { fadeIn(tween(220, 60)) + slideInHorizontally(tween(260)) { it / 12 } togetherWith fadeOut(tween(120)) },
         popTransitionSpec = { fadeIn(tween(220, 60)) + slideInHorizontally(tween(260)) { -it / 12 } togetherWith fadeOut(tween(120)) },
         predictivePopTransitionSpec = { fadeIn(tween(220, 60)) togetherWith fadeOut(tween(120)) },
-        onBack = { backStack.removeLastOrNull() },
+        // Leaving a session by Back asks for the screen lock, as the Leave button does.
+        onBack = { if (backStack.lastOrNull() is SessionKey) OfficerAuth.confirm(activity, { backStack.removeLastOrNull() }) else backStack.removeLastOrNull() },
         entryDecorators = listOf(rememberSaveableStateHolderNavEntryDecorator(), rememberViewModelStoreNavEntryDecorator()),
         entryProvider = entryProvider {
             entry<StartKey> {
@@ -245,7 +254,7 @@ private fun Navigation(repo: SessionRepository, content: ContentBundle, settings
                 PracticeScreen(content, onBack = { backStack.removeLastOrNull() })
             }
             entry<SettingsKey> {
-                SettingsScreen(container.settings, container.models, onBack = { backStack.removeLastOrNull() }, onClearAll = container::clearAllData)
+                SettingsScreen(container.settings, container.models, onBack = { backStack.removeLastOrNull() }, onClearAll = { OfficerAuth.confirm(activity, container::clearAllData) })
             }
             entry<SessionKey> { key ->
                 SessionRoute(
@@ -298,6 +307,10 @@ internal fun SessionRoute(
     val officerLink = link?.takeIf { it.role == LinkRole.OFFICER }
     val linkState = officerLink?.state?.collectAsStateWithLifecycle()?.value
     val paired = linkState == LinkState.Live || linkState == LinkState.Lost || linkState == LinkState.Hold || linkState is LinkState.Ended
+    DisposableEffect(Unit) {
+        container.inSession = true
+        onDispose { container.inSession = false }
+    }
     // A recreation for dark mode, font scale or locale keeps the session; only really leaving it ends the link.
     DisposableEffect(Unit) { onDispose { if (activity?.isChangingConfigurations != true && container.link.value?.role == LinkRole.OFFICER) container.endLink() } }
     KeepScreenOnWhile(activity, linkState == LinkState.Live)
@@ -315,7 +328,7 @@ internal fun SessionRoute(
     // The assistant's buffers would sit beside the camera and the landmark graph on a small phone.
     LaunchedEffect(localStage || state.signWindow != null) { if (localStage || state.signWindow != null) container.models.release() }
     // With a second screen the officer keeps this phone, so tilt and the volume keys do not hand it over.
-    if (!paired) HandoverEffects(state, vm, settings.tiltToShow, settings.volumeKeys, container.hardKeys, container.stageGuard, backToOfficer)
+    if (!paired) HandoverEffects(state, vm, settings.tiltToShow, settings.volumeKeys, container.hardKeys, backToOfficer)
     // The app locking takes this screen away: landmarks go with it, though not on a mere configuration change.
     DisposableEffect(Unit) { onDispose { if (activity?.isChangingConfigurations != true) vm.wipeSigns() } }
 
@@ -347,18 +360,21 @@ internal fun SessionRoute(
                 activity?.let { shareReport(it, file) }
             },
             historyOff = container.deviceLooksRooted,
-            onLeave = onClosed,
+            onLeave = { OfficerAuth.confirm(activity, onClosed) },
             onEndSession = { asked ->
-                val title = titleToKeep(asked, container.deviceLooksRooted)
-                vm.endSession(title) {
-                    officerLink?.let { container.endLink() }
-                    activity?.let { Toast.makeText(it, if (title == null) R.string.session_deleted else R.string.session_saved, Toast.LENGTH_LONG).show() }
-                    onClosed()
-                }
+                OfficerAuth.confirm(activity, {
+                    val title = titleToKeep(asked, container.deviceLooksRooted)
+                    vm.endSession(title) {
+                        officerLink?.let { container.endLink() }
+                        activity?.let { Toast.makeText(it, if (title == null) R.string.session_deleted else R.string.session_saved, Toast.LENGTH_LONG).show() }
+                        onClosed()
+                    }
+                })
             },
         )
         Mode.SHOW -> {
-            BackHandler(onBack = backToOfficer)
+            // Back on the stage does nothing: the officer holds the lock handle or both volume keys to take the phone back.
+            BackHandler { }
             SubjectTheme {
                 Stage(
                     ui = state,

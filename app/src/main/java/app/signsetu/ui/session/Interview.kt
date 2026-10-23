@@ -8,10 +8,8 @@ import app.signsetu.data.session.EventType
 import app.signsetu.data.session.Role
 import app.signsetu.data.session.SessionEvent
 
-/**
- * Auto mode's sequencer: a pure function of the session log, the bank and the role. It only picks the next reviewed
- * item in welfare-triage order; it never writes text, and nothing it proposes reaches the subject without the officer.
- */
+/** Auto mode's sequencer: a pure function of the session log, the bank and the role. It only picks the next
+ * reviewed item in welfare-triage order. */
 enum class Reason { OPENING, NEXT_PHASE, FOLLOWS_ANSWER, BREAK_AFTER_UNSURE, CARRY_ON, CLOSING }
 
 data class Proposal(val q: Question, val reason: Reason)

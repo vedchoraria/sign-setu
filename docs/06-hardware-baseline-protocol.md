@@ -1,8 +1,8 @@
-# 03. Physical Android 10 ARM64 Hardware Baseline & Verification Protocol
+# 06. Physical Android 10 ARM64 Hardware Baseline & Verification Protocol
 
 ## 1. Executive Context
 
-To date, automated performance and thermal benchmarks have been captured on x86_64 Android Virtual Devices (AVDs) with desktop GPU acceleration passthrough. Because MediaPipe Holistic vision processing, CameraX ImageAnalysis (640x360), 2D vector Canvas avatar rendering, and SQLCipher cryptographic operations execute directly on the target phone's SoC and GPU delegate, **physical hardware verification is mandatory** prior to field pilot deployment.
+The thresholds below apply to physical ARM64 phones. MediaPipe Holistic, CameraX ImageAnalysis (640x360), the Canvas avatar and SQLCipher run on the phone's SoC and GPU delegate, so an emulator is not a valid benchmark target.
 
 This protocol specifies the standard operating procedure, acceptance thresholds, device matrix, and `adb` instrumentation commands for QA and security test engineers.
 
@@ -84,15 +84,3 @@ In accordance with project requirements (Android 10+, >= 3 GB RAM, arm64-v8a arc
   - **Dalvik Heap:** <= 65,000 KB.
   - **Graphics / EGL:** <= 65,000 KB.
   - **Post-Session Memory Reclamation:** Exiting Stage back to StartScreen must drop Total PSS by at least 40 MB within 5 seconds as camera and landmark buffers are disposed.
-
----
-
-## 4. Verification Tracking & Status
-
-- **Status:** **Awaiting Physical ARM64 Hardware Benchmarking**
-- **Blocker:** Requires physical hardware test harness with departmental / reference test devices (Redmi 9 Prime / Vivo Y20 or equivalent Snapdragon 665 / Helio G80 handset).
-- **Emulated Baseline (Reference Only - Passed):**
-  - Cold startup: 0.88s (Pixel 4 API 29 x86_64 emulator).
-  - Memory PSS: 139 MB (Stage + Camera active).
-  - Janky frames: 1.2%.
-- **Next Step:** QA engineering team will execute the above adb test suite upon delivery of physical test units and record the exact device serials, ambient temperatures, and benchmark metrics in the hardware certification report.

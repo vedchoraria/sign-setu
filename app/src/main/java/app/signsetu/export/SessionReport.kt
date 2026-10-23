@@ -49,10 +49,8 @@ class ReportRow(val event: SessionEvent, val question: String?, val detail: Stri
 /** A titled table printed before the conversation, such as the personal details the subject gave. */
 class ReportSection(val title: String, val header: List<String>, val rows: List<List<String>>)
 
-/**
- * Builds the session report as an A4 PDF and encrypts it with AES-256 under a one-time passphrase.
- * The report opens in any PDF reader; nothing else is needed by the case file or CWC.
- */
+/** Builds the session report as an A4 PDF and encrypts it with AES-256 under a one-time passphrase. The report
+ * opens in any PDF reader; nothing else is needed by the case file or CWC. */
 class SessionReport(private val context: Context) {
 
     suspend fun export(
@@ -128,6 +126,28 @@ class SessionReport(private val context: Context) {
             if (canvas == null || y + height > PAGE_H - MARGIN - FOOTER) newPage()
         }
 
+        // Draws [layout] line by line onto as many pages as it needs, so no text runs off a page's bottom.
+        fun flow(layout: StaticLayout, x: Float, onNewPage: () -> Unit = {}) {
+            var line = 0
+            while (line < layout.lineCount) {
+                val room = PAGE_H - MARGIN - FOOTER - y
+                var end = line
+                while (end < layout.lineCount && layout.getLineBottom(end) - layout.getLineTop(line) <= room) end++
+                if (end == line) {
+                    newPage(); onNewPage()
+                    if (layout.getLineBottom(line) - layout.getLineTop(line) > PAGE_H - MARGIN - FOOTER - y) end = line + 1 else continue
+                }
+                val top = layout.getLineTop(line).toFloat()
+                val height = layout.getLineBottom(end - 1) - top
+                canvas!!.withTranslation(x, y - top) {
+                    clipRect(0f, top, layout.width.toFloat(), top + height)
+                    layout.draw(this)
+                }
+                y += height
+                line = end
+            }
+        }
+
         newPage()
         val full = PAGE_W - 2 * MARGIN.toInt()
         listOf(block(text.title, titlePaint, full), block(text.disclaimer, smallPaint, full)).forEach { l ->
@@ -160,14 +180,12 @@ class SessionReport(private val context: Context) {
         }
 
         aiSummary?.takeIf { it.isNotBlank() }?.let { summary ->
-            val title = block("CASE INVESTIGATION & FORENSIC SUMMARY", headPaint, full)
+            val title = block("MACHINE DRAFT SUMMARY: NOT PART OF THE RECORD", headPaint, full)
             ensure(title.height + 30f)
             draw(title, MARGIN, y)
             y += title.height + 4
-            val summaryLayout = block(summary, smallPaint, full)
-            ensure(summaryLayout.height + 15f)
-            draw(summaryLayout, MARGIN, y)
-            y += summaryLayout.height + 8
+            flow(block(summary, smallPaint, full), MARGIN)
+            y += 8
             canvas!!.drawLine(MARGIN, y - 2, PAGE_W - MARGIN, y - 2, rule)
             y += 8
         }
@@ -194,6 +212,26 @@ class SessionReport(private val context: Context) {
             val image = row.event.drawingId?.let { id -> drawing(id)?.let { BitmapFactory.decodeByteArray(it, 0, it.size) } }
             val imageHeight = image?.let { (detailWidth.toFloat() / it.width * it.height).coerceAtMost(260f) } ?: 0f
             val rowHeight = maxOf(detail.height + (reply?.height?.plus(2) ?: 0), eventLayout.height) + imageHeight + 10
+            if (rowHeight > PAGE_H - 2 * MARGIN - FOOTER - 40) {
+                // Taller than a page: time and event first, then the text flows on, then the picture.
+                ensure(eventLayout.height + 20f)
+                draw(block(text.formatTime(row.event.ts), bodyPaint, 50), colTime, y)
+                draw(eventLayout, colEvent, y)
+                flow(detail, colDetail) { headerRow() }
+                reply?.let { y += 2; flow(it, colDetail) { headerRow() } }
+                image?.let { bmp ->
+                    val pageBefore = pages.size
+                    ensure(imageHeight + 8)
+                    if (pages.size != pageBefore) headerRow()
+                    val w = (imageHeight / bmp.height * bmp.width)
+                    canvas!!.drawBitmap(bmp, null, Rect(colDetail.toInt(), (y + 4).toInt(), (colDetail + w).toInt(), (y + 4 + imageHeight).toInt()), null)
+                    bmp.recycle()
+                    y += imageHeight + 4
+                }
+                y += 10
+                canvas!!.drawLine(MARGIN, y - 5, PAGE_W - MARGIN, y - 5, rule)
+                return
+            }
             val pageBefore = pages.size
             ensure(rowHeight)
             if (pages.size != pageBefore) headerRow()
@@ -227,9 +265,8 @@ class SessionReport(private val context: Context) {
             val certTitle = block("STATUTORY ELECTRONIC EVIDENCE CERTIFICATE (SEC. 63 BSA 2023 / SEC. 65B IEA)", headPaint, full)
             draw(certTitle, MARGIN, y)
             y += certTitle.height + 8
-            val certBody = block(cert, smallPaint, full)
-            draw(certBody, MARGIN, y)
-            y += certBody.height + 12
+            flow(block(cert, smallPaint, full), MARGIN)
+            y += 12
         }
 
         page?.let { pdf.finishPage(it) }

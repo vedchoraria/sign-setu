@@ -25,6 +25,7 @@ class Settings:
     # How many reverse proxies in front of the gateway append to X-Forwarded-For; 0 trusts none and uses the socket address.
     trusted_proxy_hops: int = field(default_factory=lambda: int(os.environ.get("TRUSTED_PROXY_HOPS", "0")))
     enroll_per_minute: int = field(default_factory=lambda: int(os.environ.get("ENROLL_PER_MINUTE", "10")))
-    # Wrong codes across all callers: a spoofed X-Forwarded-For defeats the per-address limit, not this one. While it is
-    # reached every enrolment, valid codes too, waits (at most a minute after the last wrong code).
+    # Wrong codes from one address: while reached, that address waits (at most a minute after its last wrong code).
     enroll_failures_per_minute: int = field(default_factory=lambda: int(os.environ.get("ENROLL_FAILURES_PER_MINUTE", "20")))
+    # Wrong codes across all callers, which a spoofed X-Forwarded-For cannot dodge; high, so one caller cannot lock all.
+    enroll_failures_global_per_minute: int = field(default_factory=lambda: int(os.environ.get("ENROLL_FAILURES_GLOBAL_PER_MINUTE", "200")))

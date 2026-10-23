@@ -34,11 +34,8 @@ private fun curl(shape: HandShape, finger: Int) = when (finger) {
     else -> shape.thumb
 }
 
-/**
- * Lays the hand out in its own frame: wrist at the origin, fingers towards -y. Seen from the front (palm or back)
- * curled fingers are foreshortened; seen from the side they bend in the plane, which reads better for bunched or
- * cupped hands. The layout mirrors [HandPose.point], so contacts land where they are drawn.
- */
+/** Lays the hand out in its own frame: wrist at the origin, fingers towards -y. Seen from the front (palm or
+ * back) curled fingers are foreshortened. */
 internal fun layoutHand(k: Kit, h: HandPose, side: Side) {
     val roll = h.roll.coerceIn(-1f, 1f)
     val shape = h.shape
@@ -251,7 +248,6 @@ internal fun DrawScope.drawHand(k: Kit, h: HandPose) {
     }
 }
 
-/** A short crease across a finger at the start of segment [j]. */
 private fun DrawScope.crease(k: Kit, finger: Int, j: Int, alpha: Float) {
     val buf = k.seg
     val i = at(finger, j)

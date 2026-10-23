@@ -2,9 +2,10 @@ import hashlib
 import json
 import re
 import time
-from datetime import timedelta
+from datetime import datetime, timedelta
 from pathlib import Path
 
+import httpx2
 import jwt
 from sqlalchemy import select
 import pytest
@@ -72,6 +73,19 @@ def test_enrol_needs_a_valid_code(env):
     assert c.post("/v1/enroll", json={"code": CODE}).status_code == 403
 
 
+def test_health_is_live_without_touching_the_database_and_readiness_checks_it(env):
+    c, _ = env
+    assert c.get("/healthz").json() == {"ok": True}
+    assert c.get("/readyz").status_code == 200
+
+    def broken():
+        raise RuntimeError("database is down")
+
+    c.app.state.sessions = broken
+    assert c.get("/healthz").status_code == 200
+    assert c.get("/readyz").status_code == 503
+
+
 def test_device_routes_need_a_token(env):
     c, _ = env
     for method, path in [("get", "/v1/models"), ("post", "/v1/assist"), ("post", "/v1/feedback")]:
@@ -86,6 +100,34 @@ def test_model_manifest_and_verified_download(env):
     assert c.get("/v1/models/..%2fmanifest.json", headers=h).status_code == 404
     (d / "sign_reader.bin").write_bytes(b"tampered")
     assert c.get("/v1/models/sign_reader.bin", headers=h).status_code == 500
+
+
+def test_a_model_download_revalidates_and_resumes(env):
+    c, _ = env
+    h = enrolled(c)
+    first = c.get("/v1/models/sign_reader.bin", headers=h)
+    etag = first.headers["etag"]
+    assert etag.startswith('"') and etag.endswith('"') and len(etag) == 66
+    assert first.headers["cache-control"] == "private, max-age=86400"
+
+    # A device that already holds this exact file does not download eleven bytes again.
+    unchanged = c.get("/v1/models/sign_reader.bin", headers={**h, "If-None-Match": etag})
+    assert unchanged.status_code == 304 and unchanged.content == b""
+    assert c.get("/v1/models/sign_reader.bin", headers={**h, "If-None-Match": '"other"'}).content == b"model-bytes"
+
+    # After a dropped connection the rest of the file can be fetched.
+    part = c.get("/v1/models/sign_reader.bin", headers={**h, "Range": "bytes=0-4"})
+    assert part.status_code == 206 and part.content == b"model"
+    assert part.headers["content-range"] == "bytes 0-4/11"
+
+
+def test_a_broken_model_manifest_is_a_server_error_not_a_crash(env):
+    c, d = env
+    h = enrolled(c)
+    (d / "manifest.json").write_text("{not json")
+    assert c.get("/v1/models", headers=h).status_code == 500
+    (d / "manifest.json").write_text(json.dumps({"name": "sign_reader.bin"}))
+    assert c.get("/v1/models", headers=h).status_code == 500
 
 
 def test_assist_proxies_and_limits_size(env):
@@ -113,6 +155,27 @@ def test_admin_needs_the_reviewer_role(env):
     assert c.get("/v1/admin/feedback", headers=bearer(["user"])).status_code == 403
     assert c.get("/v1/admin/feedback", headers=h).status_code == 401
     assert c.get("/v1/admin/feedback", headers=bearer(["reviewer"])).json()[0]["outcome"] == "rejected"
+
+
+def test_reviewers_page_feedback_without_reading_it_twice(env):
+    c, _ = env
+    h = enrolled(c)
+    for outcome in ("confirmed", "corrected", "rejected"):
+        body = {"consent": True, "predicted": "water", "outcome": outcome}
+        if outcome == "corrected":
+            body["confirmed"] = "river"
+        assert c.post("/v1/feedback", json=body, headers=h).status_code == 201
+    reviewer = bearer(["reviewer"])
+
+    first = c.get("/v1/admin/feedback?limit=2", headers=reviewer).json()
+    assert [r["outcome"] for r in first] == ["rejected", "corrected"]
+    rest = c.get(f"/v1/admin/feedback?limit=2&before={first[-1]['id']}", headers=reviewer).json()
+    assert [r["outcome"] for r in rest] == ["confirmed"]
+
+    corrected = c.get("/v1/admin/feedback?outcome=corrected", headers=reviewer).json()
+    assert [r["outcome"] for r in corrected] == ["corrected"] and corrected[0]["confirmed"] == "river"
+    assert c.get("/v1/admin/feedback?outcome=guess", headers=reviewer).status_code == 422
+    assert c.get("/v1/admin/feedback?before=0", headers=reviewer).status_code == 422
 
 
 def test_rate_limit(env):
@@ -213,6 +276,8 @@ def test_an_administrator_can_list_and_revoke_a_device_and_it_stops_working(env)
     admin = bearer(["gateway-admin"])
     devices = c.get("/v1/admin/devices", headers=admin).json()
     assert len(devices) == 1 and devices[0]["revoked"] is False and "token" not in str(devices)
+    with c.app.state.sessions() as db:
+        assert [a.action for a in db.scalars(select(Audit))].count("admin.devices") == 1
     assert c.post(f"/v1/admin/devices/{devices[0]['id']}/revoke", headers=bearer(["reviewer"])).status_code == 403
     assert c.post("/v1/admin/devices/nope/revoke", headers=admin).status_code == 404
     assert c.post(f"/v1/admin/devices/{devices[0]['id']}/revoke", headers=admin).status_code == 200
@@ -248,6 +313,32 @@ def test_a_token_never_expires_when_no_life_is_configured(env):
     assert c.get("/v1/models", headers=h).status_code == 200
 
 
+def test_the_audit_trail_is_readable_by_an_administrator_only(env):
+    c, _ = env
+    admin = bearer(["gateway-admin"])
+    h = enrolled(c)
+    assert c.get("/v1/admin/audit").status_code == 401
+    assert c.get("/v1/admin/audit", headers=bearer(["reviewer"])).status_code == 403
+
+    # The read itself is audited, so it appears from the next read onwards; it never contains a token.
+    first = c.get("/v1/admin/audit", headers=admin).json()
+    assert [r["action"] for r in first] == ["enroll"]
+    rows = c.get("/v1/admin/audit", headers=admin).json()
+    assert [r["action"] for r in rows] == ["admin.audit", "enroll"]
+    assert all("token" not in r and "token_hash" not in r for r in rows)
+
+    only_enrol = c.get("/v1/admin/audit?action=enroll", headers=admin).json()
+    assert [r["action"] for r in only_enrol] == ["enroll"]
+
+    page = c.get("/v1/admin/audit?limit=1", headers=admin).json()
+    older = c.get(f"/v1/admin/audit?limit=1&before={page[0]['id']}", headers=admin).json()
+    assert older[0]["id"] < page[0]["id"]
+
+    device_id = c.get("/v1/admin/devices", headers=admin).json()[0]["id"]
+    mine = c.get(f"/v1/admin/audit?device={device_id}", headers=admin).json()
+    assert [r["action"] for r in mine] == ["enroll"] and mine[0]["device_id"] == device_id
+
+
 def test_the_device_list_shows_when_a_device_was_last_seen(env):
     c, _ = env
     admin = bearer(["gateway-admin"])
@@ -256,6 +347,7 @@ def test_the_device_list_shows_when_a_device_was_last_seen(env):
     assert c.get("/v1/models", headers=h).status_code == 200
     first = c.get("/v1/admin/devices", headers=admin).json()[0]["last_seen"]
     assert first is not None
+    assert (datetime.fromisoformat(first).minute, datetime.fromisoformat(first).second) == (0, 0)
     assert c.get("/v1/models", headers=h).status_code == 200
     assert c.get("/v1/admin/devices", headers=admin).json()[0]["last_seen"] == first
 
@@ -297,6 +389,50 @@ def test_user_text_reaches_the_model_only_as_the_user_message_whatever_it_says(t
         assert r.status_code == 200 and sent["body"]["model"] == "m"
         r = c.post("/v1/assist", json={"system": OK_SYSTEM, "user": "hi", "max_tokens": 99999}, headers=h)
         assert r.status_code == 422
+
+
+def test_an_upstream_failure_falls_back_with_a_gateway_status_not_a_500(tmp_path, monkeypatch):
+    class TimeoutClient:
+        def __init__(self, **kw):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *a):
+            return False
+
+        async def post(self, url, json, headers):
+            raise httpx2.TimeoutException("too slow")
+
+    monkeypatch.setattr("signsetu_gateway.app.httpx2.AsyncClient", TimeoutClient)
+    with _client(tmp_path, assist_url="https://model.example/v1", assist_key="k", assist_model="m", oidc_issuer=ISS) as c:
+        h = enrolled(c)
+        assert c.post("/v1/assist", json={"system": OK_SYSTEM, "user": "hi"}, headers=h).status_code == 504
+
+    class BadBody:
+        status_code = 200
+
+        def json(self):
+            return {"choices": []}
+
+    class BadClient:
+        def __init__(self, **kw):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *a):
+            return False
+
+        async def post(self, url, json, headers):
+            return BadBody()
+
+    monkeypatch.setattr("signsetu_gateway.app.httpx2.AsyncClient", BadClient)
+    with _client(tmp_path, assist_url="https://model.example/v1", assist_key="k", assist_model="m", oidc_issuer=ISS) as c:
+        h = enrolled(c)
+        assert c.post("/v1/assist", json={"system": OK_SYSTEM, "user": "hi"}, headers=h).status_code == 502
 
 
 def _client(tmp_path, **kw):
@@ -347,6 +483,20 @@ def test_an_oversized_body_is_refused_before_it_is_read(env):
     h = enrolled(c)
     # The route's configurable cap is 20 000 chars; the model refuses anything past that outright.
     assert c.post("/v1/assist", json={"system": OK_SYSTEM, "user": "x" * 20_001}, headers=h).status_code in (413, 422)
+
+
+@pytest.mark.parametrize("path", ["/v1/enroll", "/v1/assist"])
+def test_a_body_over_the_transport_cap_is_refused_before_json_is_parsed(env, path):
+    c, _ = env
+    r = c.post(path, content=b"x" * 2_000_001, headers={"Content-Type": "application/json"})
+    assert r.status_code == 413
+
+
+def test_a_chunked_body_without_a_length_is_capped(env):
+    c, _ = env
+    body = (b"x" * 1_000_000 for _ in range(3))
+    r = c.post("/v1/enroll", content=body, headers={"Content-Type": "application/json"})
+    assert r.status_code == 413
 
 
 def test_the_feedback_page_size_is_bounded(env):

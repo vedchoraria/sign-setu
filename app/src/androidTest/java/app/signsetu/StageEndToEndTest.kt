@@ -9,11 +9,15 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.longClick
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.assert
 import androidx.room.Room
@@ -42,11 +46,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * The real session screen on a device: an encrypted database, the bundled content and the emulator's camera, with
- * only the landmark model replaced. A question with pictures goes from the officer pane to the stage, the subject taps,
- * a nod makes Yes pulse, the officer reads the graded lines back, and Skeleton only still draws the camera window.
- */
+/** The real session screen on a device: an encrypted database, the bundled content and the emulator's camera,
+ * with only the landmark model replaced. */
 @RunWith(AndroidJUnit4::class)
 class StageEndToEndTest {
 
@@ -83,7 +84,6 @@ class StageEndToEndTest {
     @After
     fun tearDown() {
         SkeletonOverlay.on.value = true
-        app.container.stageGuard.onStage(false)
         db.close()
         shell("settings put global animator_duration_scale 1")
     }
@@ -116,12 +116,13 @@ class StageEndToEndTest {
         // The session opens on the stage with the ground rules; the officer takes the phone back by the handle.
         val handle = hasContentDescription(str(R.string.show_officer))
         waitFor(handle)
-        rule.onNode(handle).performClick()
+        rule.onNode(handle).performTouchInput { longClick(durationMillis = 1_500) }
 
-        // 1. The officer picks "Does it hurt anywhere?" from its group and shows it.
+        // 1. The officer finds "Does it hurt anywhere?" by searching the More page and shows it.
         val h1 = content.question("h1")!!
         rule.onNodeWithText(str(R.string.officer_tab_more)).performClick()
-        rule.onNodeWithText(content.groups.first { it.id == h1.group }.label.pick("en")!!).performClick()
+        rule.onNode(hasSetTextAction()).performTextInput("hurt")
+        waitFor(hasText(h1.text.getValue("en")))
         rule.onNodeWithText(h1.text.getValue("en")).performClick()
         rule.onNodeWithContentDescription(str(R.string.officer_show)).performClick()
 
@@ -150,7 +151,7 @@ class StageEndToEndTest {
         assertEquals(listOf(null, null, "cue:nod"), taps.map { it.reason })
 
         // 4. Back on the officer pane, each answer carries its grade, and the Yes says it came after a nod.
-        rule.onNode(handle).performClick()
+        rule.onNode(handle).performTouchInput { longClick(durationMillis = 1_500) }
         waitFor(hasText(str(R.string.officer_tab_more)))
         val cue = "(${str(R.string.cue_nod)})"
         waitFor(hasText(cue, substring = true))
@@ -162,6 +163,8 @@ class StageEndToEndTest {
         rule.onNodeWithText(str(R.string.officer_skeleton_show)).performClick()
         assertFalse(SkeletonOverlay.on.value)
         instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_BACK)
+        // Back closes the menu on the More page; the water quick question lives on Transcribe.
+        rule.onNodeWithText(str(R.string.officer_tab_transcribe)).performClick()
         val water = content.question("n1")!!.text.getValue("en")
         rule.onNodeWithText(water).performClick()
         rule.onNodeWithContentDescription(str(R.string.officer_show)).performClick()

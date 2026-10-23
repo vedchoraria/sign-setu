@@ -53,6 +53,8 @@ data class EventEntity(
     val reason: String? = null,
     val shownId: Long? = null,
     val via: String? = null,
+    /** EventSeal over the previous row's hash and this row; null on rows written before sealing existed. */
+    val hash: String? = null,
 )
 
 @Entity(
@@ -87,6 +89,12 @@ interface SessionDao {
 
     @Insert suspend fun insertEvent(event: EventEntity): Long
 
+    @Query("SELECT hash FROM event WHERE sessionId = :sessionId AND hash IS NOT NULL ORDER BY id DESC LIMIT 1")
+    suspend fun lastHash(sessionId: String): String?
+
+    @Query("SELECT startedAt FROM session WHERE id = :id")
+    suspend fun startedAt(id: String): Long?
+
     @Query("SELECT * FROM event WHERE sessionId = :sessionId ORDER BY ts, id")
     fun events(sessionId: String): Flow<List<EventEntity>>
 
@@ -107,11 +115,12 @@ interface SessionDao {
     @Query("SELECT * FROM session WHERE endedAt IS NOT NULL ORDER BY endedAt DESC")
     fun saved(): Flow<List<SessionEntity>>
 
-    @Query("DELETE FROM session WHERE startedAt < :cutoff")
-    suspend fun deleteStartedBefore(cutoff: Long): Int
+    /** A session is idle from its end, or while open from its last row; only one idle past [cutoff] goes. */
+    @Query("DELETE FROM session WHERE COALESCE(endedAt, (SELECT MAX(ts) FROM event WHERE event.sessionId = session.id), startedAt) < :cutoff")
+    suspend fun deleteIdleBefore(cutoff: Long): Int
 }
 
-@Database(entities = [SessionEntity::class, EventEntity::class, DrawingEntity::class], version = 4, exportSchema = true)
+@Database(entities = [SessionEntity::class, EventEntity::class, DrawingEntity::class], version = 5, exportSchema = true)
 abstract class SessionDatabase : RoomDatabase() {
     abstract fun dao(): SessionDao
 
@@ -139,13 +148,19 @@ abstract class SessionDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE event ADD COLUMN hash TEXT")
+            }
+        }
+
         fun open(context: Context, key: ByteArray, onDestructiveMigration: () -> Unit = {}): SessionDatabase {
             System.loadLibrary("sqlcipher")
             return Room.databaseBuilder(context, SessionDatabase::class.java, FILE_NAME)
                 .openHelperFactory(SupportOpenHelperFactory(key))
                 // Purged rows are overwritten in place, and no write-ahead log keeps old pages around.
                 .setJournalMode(JournalMode.TRUNCATE)
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
                 // A downgrade drops sessions rather than failing every unlock; the officer is told (onDestructiveMigration).
                 .fallbackToDestructiveMigrationOnDowngrade(dropAllTables = true)
                 .addCallback(object : Callback() {

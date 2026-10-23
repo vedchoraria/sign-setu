@@ -70,10 +70,8 @@ private val handshakeJson = Json { ignoreUnknownKeys = false }
 private const val MODE_NEW = "new"
 private const val MODE_RESUME = "resume"
 
-/**
- * Keys for one link; [code] is the 6 digits, [resumeKey] is set on new links only. [check] is shown on both screens
- * once the officer's phone has accepted the code, so the stage goes live only for the phone in the officer's hand.
- */
+/** Keys for one link; [code] is the 6 digits, [resumeKey] is set on new links only. [check] is shown on both
+ * screens once the officer's phone has accepted the code. */
 class LinkKeys(val send: ByteArray, val receive: ByteArray, val code: String, val resumeKey: ByteArray?, val peerModel: String, val check: String)
 
 private val P256 by lazy {
@@ -133,10 +131,8 @@ private fun checkPeer(me: Identity, versionCode: Int, contentHash: String) {
     if (versionCode != me.versionCode || contentHash != me.contentHash) throw PairAbort(Abort.VERSION)
 }
 
-/**
- * Officer side of the commit-then-reveal handshake: the officer commits to its key before seeing the stage's, so
- * neither side can search for a key that yields a chosen code. [resumeKey] non-null means a resume.
- */
+/** Officer side of the commit-then-reveal handshake: the officer commits to its key before seeing the stage's,
+ * so neither side can search for a key that yields a chosen code. [resumeKey] non-null means a resume. */
 fun officerHandshake(input: DataInputStream, out: DataOutputStream, me: Identity, resumeKey: ByteArray?): LinkKeys {
     val mode = if (resumeKey == null) MODE_NEW else MODE_RESUME
     val kp = newKeyPair()
@@ -180,10 +176,8 @@ fun stageHandshake(input: DataInputStream, out: DataOutputStream, me: Identity, 
     return derive(ecdh(kp.private, peer), sha256(h1bytes, h2, revealBytes), resumeKey, officer = false, peerModel = h1.model.take(80))
 }
 
-/**
- * Encrypted frames: u32 length | u64 counter | AES-256-GCM ciphertext and tag. The IV is direction and counter, so
- * no IV repeats under a key, and the receiver accepts only the next counter, so replays and gaps close the link.
- */
+/** Encrypted frames: u32 length | u64 counter | AES-256-GCM ciphertext and tag. The IV is direction and
+ * counter, so no IV repeats under a key, and the receiver accepts only the next counter. */
 class LinkSession(private val input: DataInputStream, private val out: DataOutputStream, keys: LinkKeys, officer: Boolean) : AutoCloseable {
     private val sendDir: Byte = if (officer) 1 else 2
     private val recvDir: Byte = if (officer) 2 else 1

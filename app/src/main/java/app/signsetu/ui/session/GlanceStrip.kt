@@ -38,10 +38,8 @@ private val GlanceAnswers = setOf(EventType.ANSWER_CARD, EventType.ANSWER_GESTUR
 /** Answers that ask the officer to stop and look: three short pulses. */
 private val AttentionCards = setOf("stop", "break", "dont_know", "dont_understand", "wrong")
 
-/**
- * "<last question> → <latest answer to it>", in the officer's language, or null before anything was shown.
- * Bystanders can read the strip, so a personal detail ([isPersonal] item id) never appears on it.
- */
+/** "<last question> → <latest answer to it>", in the officer's language, or null before anything was shown.
+ * Bystanders can read the strip, so a personal detail ([isPersonal] item id) never appears on it. */
 internal fun glanceText(events: List<SessionEvent>, isPersonal: (String) -> Boolean): String? {
     val shown = events.indexOfLast { it.type == EventType.QUESTION_SHOWN }
     if (shown < 0) return null
@@ -84,10 +82,8 @@ internal fun buzz(context: Context, pattern: LongArray) {
     if (vibrator?.hasVibrator() == true) vibrator.vibrate(VibrationEffect.createWaveform(pattern, -1))
 }
 
-/**
- * A thin band at the stage edge that faces the officer, drawn upside down so the officer sitting opposite can read
- * the last question and answer without taking the phone back. A long press hides it for the rest of the session.
- */
+/** A thin band at the stage edge that faces the officer, drawn upside down so the officer sitting opposite can
+ * read the last question and answer without taking the phone back. */
 @Composable
 internal fun GlanceStrip(text: String, onHide: () -> Unit, modifier: Modifier = Modifier) {
     val label = stringResource(R.string.glance_label)

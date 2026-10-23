@@ -6,9 +6,10 @@ import app.signsetu.data.session.Profile
 import app.signsetu.data.session.Role
 import app.signsetu.data.session.Session
 import app.signsetu.data.session.SessionEvent
+import app.signsetu.data.session.EventSeal
 import app.signsetu.export.EvidenceIntegrity
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -34,26 +35,49 @@ class EvidenceIntegrityTest {
         SessionEvent(9, 1700000055000, EventType.ANSWER_UNCLEAR, EventSource.SUBJECT, null, null, "unclear", null, null),
     )
 
-    private fun chain(s: Session = session, e: List<SessionEvent> = events) = EvidenceIntegrity.computeChainHash(s, e)
+    private val drawings = mapOf(101L to byteArrayOf(1, 2, 3))
+
+    // Seals each row as SessionRepository.log does, in write order.
+    private fun sealed(s: Session = session, e: List<SessionEvent> = events): List<SessionEvent> {
+        var previous = EventSeal.genesis(s.id, s.startedAt)
+        return e.map { ev ->
+            val hash = EventSeal.seal(previous, s.id, ev.ts, ev.type.name, ev.source.name, ev.lang, ev.text, ev.cardId, ev.lexiconId,
+                ev.drawingId?.let(drawings::get), ev.itemId, ev.reason, ev.shownId, ev.via)
+            previous = hash
+            ev.copy(hash = hash)
+        }
+    }
+
+    private fun check(e: List<SessionEvent>, s: Session = session, d: Map<Long, ByteArray> = drawings) =
+        runBlocking { EvidenceIntegrity.verifyChain(s, e) { d[it] } }
 
     @Test
-    fun theChainIsAStableSealOfTheWholeTimeline() {
-        val seal = Regex("[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}")
-        assertTrue(chain().matches(seal))
-        assertTrue(chain(e = emptyList()).matches(seal))
-        assertEquals(chain(), chain(e = events.shuffled(java.util.Random(1))))
+    fun anIntactLogVerifiesAndItsHeadIsTheLastSeal() {
+        val log = sealed()
+        val c = check(log)
+        assertTrue(c.intact)
+        assertEquals(log.last().hash, c.head)
+        assertEquals(9, c.sealed)
+        assertTrue(c.short.matches(Regex("[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}")))
     }
 
     @Test
-    fun anyChangeToTheSessionOrAnEventBreaksTheSeal() {
-        val original = chain()
-        assertNotEquals(original, chain(e = events + SessionEvent(10, 1700000060000, EventType.NOTE, EventSource.OFFICER, "en", "Extra", null, null, null)))
-        assertNotEquals(original, chain(e = events.dropLast(1)))
-        assertNotEquals(original, chain(e = events.toMutableList().also { it[1] = it[1].copy(text = "TAMPERED") }))
-        assertNotEquals(original, chain(e = events.toMutableList().also { it[1] = it[1].copy(cardId = "no") }))
-        assertNotEquals(original, chain(e = events.toMutableList().also { it[5] = it[5].copy(drawingId = 102L) }))
-        assertNotEquals(original, chain(s = session.copy(id = "different-session")))
-        assertNotEquals(original, chain(s = session.copy(role = Role.ACCUSED)))
+    fun anyChangeToARowOrItsDrawingIsFoundAtThatRow() {
+        val log = sealed()
+        assertEquals(2L, check(log.toMutableList().also { it[1] = it[1].copy(text = "TAMPERED") }).brokenAt)
+        assertEquals(2L, check(log.toMutableList().also { it[1] = it[1].copy(cardId = "no") }).brokenAt)
+        assertEquals(6L, check(log, d = mapOf(101L to byteArrayOf(9))).brokenAt)
+        // A removed row breaks the next one, whose seal covers it.
+        assertEquals(3L, check(log.filterNot { it.id == 2L }).brokenAt)
+        assertEquals(1L, check(log, s = session.copy(id = "different-session")).brokenAt)
+    }
+
+    @Test
+    fun rowsFromBeforeSealingAreCountedNotTrusted() {
+        val c = check(events)
+        assertTrue(c.intact)
+        assertEquals(9, c.unsealed)
+        assertEquals(0, c.sealed)
     }
 
     @Test
@@ -75,22 +99,17 @@ class EvidenceIntegrityTest {
     }
 
     @Test
-    fun theCertificateCarriesTheSessionItsDigestsItsCountsAndTheOfficer() {
+    fun theCertificateCarriesTheSessionItsDigestsAndItsCounts() {
         val record = "abcd-ef01-2345-6789"
-        val cert = EvidenceIntegrity.generateSection63Certificate(
-            session, events, chain(), record,
-            officerName = "Inspector Sharma",
-            officerRank = "Inspector of Police",
-            policeStation = "Bastar PS",
-        )
+        val chain = check(sealed())
+        val cert = EvidenceIntegrity.generateSection63Certificate(session, events, chain, record)
         assertTrue(cert.contains("[Under Section 63 of Bharatiya Sakshya Adhiniyam, 2023 (BSA)]"))
         assertTrue(cert.contains("Electronic Session ID   : test-session-001"))
-        assertTrue(cert.contains("Terminal Chained Hash    : ${chain()}"))
+        assertTrue(cert.contains("Chain Head (SHA-256)     : ${chain.head}"))
+        assertTrue(cert.contains("Chain Status             : Intact: 9 sealed entries re-checked"))
         assertTrue(cert.contains("PDF Record Digest        : $record"))
         assertTrue(cert.contains("Total Recorded Events    : 9"))
-        assertTrue(cert.contains("Non-Leading Inquiries    : 3"))
+        assertTrue(cert.contains("Items Shown              : 3"))
         assertTrue(cert.contains("Subject Direct Answers   : 5 (Affirmative: 1, Negative: 1)"))
-        assertTrue(cert.contains("Producing Officer        : Inspector Sharma (Inspector of Police)"))
-        assertTrue(cert.contains("Station: Bastar PS"))
     }
 }

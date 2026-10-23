@@ -22,10 +22,8 @@ fun ContentBundle.withSignedQuestions(): ContentBundle {
 /** How the subject gave an answer, kept with it so the record says how it was given. */
 enum class Method { WRITTEN, PAD, PICTURE, PICKER, SIGN, BOARD }
 
-/**
- * One answer given through a lesson-sheet input or the phrase board. [value] is what was written or typed on a pad;
- * [picks] are card ids, or a state id then a district id. Only [confirmed] answers were read back and accepted.
- */
+/** One answer given through a lesson-sheet input or the phrase board. [value] is what was written or typed on a
+ * pad; [picks] are card ids, or a state id then a district id. */
 data class Given(
     val question: String,
     val method: Method,

@@ -6,13 +6,14 @@ The department gateway the app uses while online. It is optional: a build withou
 | --- | --- | --- |
 | `GET /healthz` | Host | Health check |
 | `POST /v1/enroll` | Phone | Trades a one-time enrolment code for a device token |
-| `GET /v1/models`, `GET /v1/models/{name}` | Phone | Model manifest (`MODEL_DIR/manifest.json`); a file is served only if it matches its manifest hash |
+| `GET /v1/models`, `GET /v1/models/{name}` | Phone (not yet called by the app, which imports its model from a file) | Model manifest (`MODEL_DIR/manifest.json`); a file is served only if it matches its manifest hash. The file's ETag is that hash (a matching `If-None-Match` gets 304) and `Range` is supported, so a download resumes instead of starting again |
 | `POST /v1/assist` | Phone | Proxy to the AI service; the key stays here and no text is stored. The whole system prompt must match a template in `signsetu_gateway/app_prompts.json` (language names fill the marked slots, one line, up to 80 characters), so a caller cannot add instructions. The file is written by the app's `GatewayPromptContractTest` (`UPDATE_PROMPT_FIXTURE=1`) and that test fails when a prompt changes without it |
-| `POST /v1/feedback` | Phone | Label outcome of a reading, with consent; any extra field is refused, and an `outcome` of `corrected` must carry the `confirmed` label it was corrected to |
-| `GET /v1/admin/feedback` | Reviewer portal | Keycloak access token with the `reviewer` realm role. `limit` is 1–1000, default 200 |
+| `POST /v1/feedback` | Phone (not yet called by the app) | Label outcome of a reading, with consent; any extra field is refused, and an `outcome` of `corrected` must carry the `confirmed` label it was corrected to |
+| `GET /v1/admin/feedback` | Reviewer portal | Keycloak access token with the `reviewer` realm role. Newest first; `limit` is 1–1000, default 200. Each row carries its `id`; pass the oldest as `before` for the next page. `outcome` filters to `confirmed`, `corrected` or `rejected` |
 | `GET /v1/admin/devices`, `POST /v1/admin/devices/{id}/revoke` | Administrator | Keycloak access token with the `gateway-admin` realm role (`ADMIN_ROLE` to rename it). Lists device ids, whether each is revoked and when it was last seen (to the hour), never tokens; `limit` is 1–1000, default 200. A revoked device gets 401 and its app drops the token and falls back to the on-device assistant. Written to the audit table |
+| `GET /v1/admin/audit` | Administrator | The same role. Newest first; `limit` is 1–1000 (default 200), `before` pages by id, and `action` or `device` filters. Returns only id, time, device id and action, never tokens or subject data. The read is itself written to the audit table as `admin.audit` |
 
-Phone routes need the device token and are rate limited to 30 requests a minute. Enrolment is limited per client address (10 a minute) and, across all callers, to 20 wrong codes a minute, because the address comes from a forwarded header a caller can set. While the second limit is reached every enrolment, valid codes included, is refused with 429 and a `Retry-After` header, and it ends by itself a minute after the last wrong code; refused requests are not counted, so an attacker has to keep sending wrong codes to keep it up. The first lockout is written to the audit table as `enroll.locked`. Letting valid codes through would let an attacker test guesses past the cap. Enrolment, assist, feedback and admin reads are written to an audit table. The interactive API docs are switched off.
+Phone routes need the device token and are rate limited to 30 requests a minute. Enrolment is limited per client address to 10 requests and 20 wrong codes a minute, and across all callers to 200 wrong codes a minute, because the address comes from a forwarded header a caller can set. While a wrong-code limit is reached, enrolment from that address (or, for the global limit, from every address) is refused with 429 and a `Retry-After` header, and it ends by itself a minute after the last wrong code; refused requests are not counted. The first lockout is written to the audit table as `enroll.locked`. Enrolment, assist, feedback and admin reads are written to an audit table. The interactive API docs are switched off.
 
 ## Key files
 
@@ -24,6 +25,8 @@ Phone routes need the device token and are rate limited to 30 requests a minute.
 | `signsetu_gateway/security.py` | Device tokens, rate limit, Keycloak token check |
 | `tests/test_gateway.py` | Tests (SQLite, stubbed AI service and JWKS) |
 | `tools/make_codes.py` | Prints enrolment codes and their `ENROLL_HASHES` line |
+| `tools/prune_audit.py` | Deletes audit rows older than the agreed retention period |
+| `tools/export_feedback.py` | Exports consented feedback labels as JSON Lines for training |
 | `Dockerfile` | Container image; the host terminates TLS and passes `$PORT` |
 
 ## Configuration
@@ -32,7 +35,7 @@ Phone routes need the device token and are rate limited to 30 requests a minute.
 | --- | --- | --- |
 | `DATABASE_URL` | `sqlite:///gateway.db` | SQLAlchemy URL. A host's `postgres://` or `postgresql://` URL is accepted and uses the psycopg 3 driver. Keep it a secret |
 | `TRUSTED_PROXY_HOPS` | `0` | How many reverse proxies in front of the gateway append to `X-Forwarded-For`. With 0 the header is ignored and the socket address is the caller, which behind a proxy means every caller shares one per-address budget (safe, but tight). Set it to 1 behind one proxy that appends the real client address on the right; check the host's documentation first, because a wrong value lets callers choose their own address. The image runs uvicorn with `--no-proxy-headers`, since its `--forwarded-allow-ips='*'` believed the leftmost entry, which a caller writes |
-| `ENROLL_PER_MINUTE`, `ENROLL_FAILURES_PER_MINUTE` | `10`, `20` | The two enrolment limits above |
+| `ENROLL_PER_MINUTE`, `ENROLL_FAILURES_PER_MINUTE`, `ENROLL_FAILURES_GLOBAL_PER_MINUTE` | `10`, `20`, `200` | The enrolment limits above |
 | `REQUIRE_PERSISTENT_DB` | empty | Set to `1` to make the gateway refuse to start on SQLite, so a restart cannot lose enrolments |
 | `TOKEN_TTL_DAYS` | `0` | Days a device token stays valid after enrolment; `0` means no expiry. An expired token gets 401, the app drops it, and the phone needs a new enrolment code |
 | `MODEL_DIR` | `models` | Folder holding `manifest.json` and the model files it lists |
@@ -96,4 +99,20 @@ SOURCE_URL=sqlite:///gateway.db TARGET_URL=postgresql://... python tools/migrate
 
 The tool reads both URLs from the environment, copies devices, feedback and audit rows with their ids, refuses a target that already has rows, checks the row counts and writes nothing if they differ. It only reads the source. It has been tested between SQLite files; run the dry run, then the copy, against a new empty PostgreSQL database before pointing the service at it.
 
-The audit table grows without limit and holds no subject data. Decide on a retention period with the department before it matters.
+The audit table grows without limit and holds no subject data. Decide on a retention period with the department, then run the pruning tool on that schedule (a cron job or the host's scheduler), from `backend/`:
+
+```
+DATABASE_URL=postgresql+psycopg://... python tools/prune_audit.py --days 90          # reports, deletes nothing
+DATABASE_URL=postgresql+psycopg://... python tools/prune_audit.py --days 90 --apply  # deletes
+```
+
+It is a dry run unless `--apply` is given, and `--before YYYY-MM-DD` sets the cutoff directly. A cutoff later than now is refused, so a mistyped year cannot empty the table. Each applied run writes an `audit.pruned` row. Feedback labels are training data, not audit records, and are never pruned by this tool.
+
+Consented labels can be exported for the model pipeline, without any device identifier:
+
+```
+DATABASE_URL=postgresql+psycopg://... python tools/export_feedback.py --out labels.jsonl
+DATABASE_URL=postgresql+psycopg://... python tools/export_feedback.py --since 2026-10-01 > labels.jsonl
+```
+
+One JSON object per line, oldest first, with `id`, `at`, `predicted`, `outcome`, `confirmed` and `model_version`; the count goes to stderr. `--since` is UTC. The reviewer route above returns the same rows a page at a time.

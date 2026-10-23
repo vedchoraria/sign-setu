@@ -31,6 +31,7 @@ class AutoPilotTest {
     private val bank = ContentBundle(groups = shipped.groups, questions = shipped.questions)
 
     /** The view model's side of auto mode, reduced to what the pilot calls. */
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     private inner class Phone(private val test: TestScope) {
         // Not backgroundScope: advanceUntilIdle does not wait for background work.
         val scope = CoroutineScope(StandardTestDispatcher(test.testScheduler))
@@ -84,6 +85,7 @@ class AutoPilotTest {
         }
     }
 
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     private fun phone(block: suspend Phone.() -> Unit) = runTest {
         val phone = Phone(this)
         try {

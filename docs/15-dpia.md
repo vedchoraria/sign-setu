@@ -5,7 +5,7 @@
 | Document | Sign Setu data protection impact assessment |
 | Scope | The Android app (both flavors), the optional department gateway (`backend/`) and the reviewer portal (`portal/`) |
 | Controller | The police department that deploys the app **[confirm]** |
-| Status | Draft for the department's legal officer and Data Protection Officer; not legal advice |
+| Audience | Department legal officer and Data Protection Officer; not legal advice |
 
 ## 1. Processing described
 
@@ -42,7 +42,7 @@ Camera, then MediaPipe Holistic on the phone, then the on-device sign reader, th
 | Core session | DPDP Act 2023 s.7 (legitimate uses: State functions, compliance with law) and the s.17(1)(c) exemption for the prevention, detection, investigation or prosecution of offences | s.17(1)(c) does not lift s.8(1) and s.8(5). Accuracy and reasonable security safeguards still bind the controller. Consent is not the basis, so the app does not ask the subject to "consent" to the interview **[confirm]** |
 | Children in the core session | As above | s.9 (verifiable parental consent) falls under Chapter II, which s.17(1)(c) exempts for investigation. JJ Act s.74 and POCSO ss.24, 26 still apply |
 | Label feedback | Consent under s.6 | Not an investigation purpose, so the exemption does not apply. A child's feedback needs verifiable parental consent under s.9 and the 2025 Rules. The app sends none by default |
-| Any future clip upload | Consent under s.6, given separately and in writing | Not built. Needs its own assessment before it is built |
+| Clip upload | None | The app uploads no clips; landmarks stay in memory |
 
 ## 3. Statutory recording and interpretation
 
@@ -82,14 +82,4 @@ Under s.17(1)(c), the core session is exempt from Chapter III. For the consent-b
 
 ## 6. Breach handling
 
-A breach of the gateway or a lost device with records still in retention is notified to the Data Protection Board and to affected persons as the 2025 Rules require. CERT-In is notified within six hours under the CERT-In Directions of 28 April 2022 **[confirm owner]**.
-
-## 7. Open items
-
-| Item | Owner |
-| --- | --- |
-| Confirm the controller, the DPO and the lawful-basis analysis in section 2 | Department legal officer |
-| Approve the wording of the officer notice for section 3 cases; then add it to the session start | Department legal officer, then the team |
-| Decide the retention for device enrolment and label feedback | Department |
-| Process for issuing a BSA s.63 certificate from an export | Department |
-| Re-run this assessment before any clip upload, cloud inference or new data category | Product owner |
+A breach of the gateway or a lost device with records still in retention is notified to the Data Protection Board and to affected persons as the 2025 Rules require. CERT-In is notified within six hours under the CERT-In Directions of 28 April 2022.

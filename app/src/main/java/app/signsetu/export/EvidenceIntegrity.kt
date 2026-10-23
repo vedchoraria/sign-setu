@@ -5,7 +5,7 @@ import app.signsetu.data.content.SignLanguage
 import app.signsetu.data.session.EventType
 import app.signsetu.data.session.Session
 import app.signsetu.data.session.SessionEvent
-import java.security.MessageDigest
+import app.signsetu.data.session.EventSeal
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -25,40 +25,36 @@ data class SessionMetrics(
     val durationSeconds: Long,
 )
 
-/**
- * A SHA-256 hash chain over the session timeline, and the certificate for electronic evidence under Section 63 of the
- * Bharatiya Sakshya Adhiniyam, 2023 (formerly Section 65B of the Indian Evidence Act, 1872).
- */
+/** What re-walking a session's sealed log found: [head] is the last seal, the value the record is anchored to. */
+data class ChainCheck(val head: String, val sealed: Int, val unsealed: Int, val brokenAt: Long?) {
+    val intact: Boolean get() = brokenAt == null
+    /** The head's first 64 bits as "a1b2-c3d4-e5f6-7a8b", for the page footer; the certificate prints it whole. */
+    val short: String get() = head.take(16).chunked(4).joinToString("-")
+}
+
+/** The session's hash chain (EventSeal, sealed as each row was written) and the certificate for electronic
+ * evidence under Section 63 of the Bharatiya Sakshya Adhiniyam, 2023 (formerly Section 65B of the Indian Evidence Act). */
 object EvidenceIntegrity {
 
-    private fun sha256Hex(data: ByteArray): String = MessageDigest.getInstance("SHA-256").digest(data).toHexString()
-
-    /**
-     * H0 hashes the session's id, start, role and language; each event in time order hashes the previous hash with its
-     * own fields. The last hash's first 64 bits, as "a1b2-c3d4-e5f6-7a8b", seal the record.
-     */
-    fun computeChainHash(session: Session, events: List<SessionEvent>): String {
-        val genesis = "GENESIS|${session.id}|${session.startedAt}|${session.role.name}|${session.subjectLang}"
-        var currentHash = sha256Hex(genesis.toByteArray(Charsets.UTF_8))
-        for (event in events.sortedWith(compareBy({ it.ts }, { it.id }))) {
-            val payload = listOf(
-                currentHash,
-                event.id.toString(),
-                event.ts.toString(),
-                event.type.name,
-                event.source.name,
-                event.lang.orEmpty(),
-                event.text.orEmpty(),
-                event.cardId.orEmpty(),
-                (event.drawingId ?: 0L).toString(),
-                event.itemId.orEmpty(),
-                (event.shownId ?: 0L).toString(),
-                event.via.orEmpty(),
-            ).joinToString("|")
-            currentHash = sha256Hex(payload.toByteArray(Charsets.UTF_8))
+    /** Recomputes every seal in write order from the rows and drawings as they are now; the first row whose seal
+     * no longer matches is reported. Rows from before sealing are counted and left out of the chain. */
+    suspend fun verifyChain(session: Session, events: List<SessionEvent>, drawing: suspend (Long) -> ByteArray?): ChainCheck {
+        var running = EventSeal.genesis(session.id, session.startedAt)
+        var sealed = 0
+        var unsealed = 0
+        var broken: Long? = null
+        for (e in events.sortedBy { it.id }) {
+            val stored = e.hash
+            if (stored == null) { unsealed++; continue }
+            val expected = EventSeal.seal(
+                running, session.id, e.ts, e.type.name, e.source.name, e.lang, e.text, e.cardId, e.lexiconId,
+                e.drawingId?.let { drawing(it) }, e.itemId, e.reason, e.shownId, e.via,
+            )
+            if (expected != stored && broken == null) broken = e.id
+            sealed++
+            running = stored
         }
-
-        return currentHash.take(16).chunked(4).joinToString("-")
+        return ChainCheck(running, sealed, unsealed, broken)
     }
 
     /** The session runs from its start to its latest event, or to [now] while it has none. */
@@ -112,12 +108,10 @@ object EvidenceIntegrity {
     fun generateSection63Certificate(
         session: Session,
         events: List<SessionEvent>,
-        chainDigest: String,
+        chain: ChainCheck,
         recordDigest: String,
         signLanguage: SignLanguage = SignLanguage.ISL,
-        officerName: String = "Investigating Officer",
-        officerRank: String = "Sub-Inspector / Inspector of Police",
-        policeStation: String = "Designated Police Station",
+        storage: String = "SQLCipher AES-256; database key wrapped by an Android Keystore key",
         deviceModel: String = "${Build.MANUFACTURER} ${Build.MODEL} (Android ${Build.VERSION.RELEASE})",
     ): String {
         val df = SimpleDateFormat("dd-MM-yyyy HH:mm:ss z", Locale.ENGLISH)
@@ -137,48 +131,53 @@ object EvidenceIntegrity {
             • Session Started At       : $sessionStartDate
             • Subject Communication    : ${session.subjectLang.uppercase()} / ${signLanguage.title}
             • Inquiry Role             : ${session.role.name}
-            • Producing Officer        : $officerName ($officerRank)
-            • Police Station / Unit    : $policeStation
+            • Producing Officer        : ____________________ (Rank: __________)
+            • Police Station / Unit    : ____________________
             • Operating Hardware Device: $deviceModel
-            • Storage & Vault Standard : SQLCipher AES-256 Hardware-backed Keystore Encryption
+            • Storage                  : $storage
 
             2. STATEMENT OF PROPER OPERATION (SECTION 63(2) BSA 2023):
             I, the undersigned police officer, do hereby certify and affirm:
             (a) The mobile application 'Sign Setu' was operating properly throughout the inquiry.
             (b) The said electronic device was under my lawful custody and direct personal control
                 during the entire duration of the communication recording.
-            (c) During the ordinary course of the inquiry, the device was used to display structured,
-                non-leading Augmentative and Alternative Communication (AAC) cards, sign language
-                avatar demonstrations, and to record the subject's touch selections, drawings and signs.
-            (d) No unauthorized interception, electronic alteration, file tampering, or data substitution
-                occurred during or subsequent to the production of this electronic record.
+            (c) During the ordinary course of the inquiry, the device was used to display picture cards,
+                sign language character demonstrations and captions, and to record the subject's touch
+                selections, drawings and signs.
+            (d) To the best of my knowledge, the electronic record was not altered; the hash chain below
+                was sealed as each entry was written and was re-checked when this report was produced.
 
             3. FORENSIC RECORD METRICS:
             • Total Recorded Events    : ${metrics.totalEvents}
-            • Non-Leading Inquiries    : ${metrics.questionCount}
+            • Items Shown              : ${metrics.questionCount}
             • Subject Direct Answers   : ${metrics.answerCount} (Affirmative: ${metrics.affirmativeCount}, Negative: ${metrics.negativeCount})
             • Graphic Exhibits/Drawings: ${metrics.drawingCount}
             • Signed Answers          : ${metrics.signedCount}
             • Active Session Duration  : ${metrics.durationSeconds} seconds
 
             4. CRYPTOGRAPHIC SEAL & CHAIN OF CUSTODY INTEGRITY:
-            • Terminal Chained Hash    : $chainDigest (SHA-256 Backward Chained Digest)
-            • PDF Record Digest        : $recordDigest (SHA-256 Export Integrity Digest)
-            • Evidentiary Chain Status : Hash-chained; verify by recomputing both digests above
+            • Chain Head (SHA-256)     : ${chain.head}
+            • Chain Status             : ${chainStatus(chain)}
+            • PDF Record Digest        : $recordDigest (first 64 bits of SHA-256 over the printed rows)
 
             5. STATUTORY SOLEMN AFFIRMATION (SECTION 63(4) BSA 2023):
-            I hereby certify that the contents of this electronic record and accompanying report
-            are a true, accurate, and unedited representation of the statements and responses
-            provided by the subject on the aforesaid device.
+            I hereby certify that this electronic record is a true reproduction of the entries made
+            on the aforesaid device. It is a communication record, not a statement; readings by the
+            app or the officer and any machine draft are marked as such and are not the subject's words.
 
             Date: $certDate
-            Station: $policeStation
+            Station: ____________________
 
             ____________________________________________
             (Signature & Seal of Investigating Officer)
-            Name: $officerName
-            Rank: $officerRank
+            Name: ____________________
+            Rank: ____________________
             ================================================================================
         """.trimIndent()
+    }
+
+    private fun chainStatus(chain: ChainCheck): String {
+        val base = if (chain.intact) "Intact: ${chain.sealed} sealed entries re-checked" else "BROKEN: entry ${chain.brokenAt} or one before it was altered"
+        return if (chain.unsealed > 0) "$base; ${chain.unsealed} entries predate sealing and are not covered" else base
     }
 }

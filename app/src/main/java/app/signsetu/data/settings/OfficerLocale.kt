@@ -5,10 +5,8 @@ import android.content.res.Configuration
 import androidx.core.content.edit
 import java.util.Locale
 
-/**
- * The officer's interface language, chosen in the app on every Android version.
- * Plain preferences, because it is needed before the first frame; it holds no personal data.
- */
+/** The officer's interface language, chosen in the app on every Android version. Plain preferences, because it
+ * is needed before the first frame; it holds no personal data. */
 object OfficerLocale {
     /** An empty tag follows the phone's language. */
     val CHOICES = listOf("", "en", "hi")

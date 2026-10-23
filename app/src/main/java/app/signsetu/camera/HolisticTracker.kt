@@ -30,11 +30,8 @@ fun holisticTracker(context: Context): LandmarkTracker? =
         HolisticTracker(context.applicationContext)
     } else null
 
-/**
- * MediaPipe Holistic in video mode, on the GPU first with CPU fallback. The model is mapped from the uncompressed asset, checked against
- * the content manifest and opened by [warm] or the first frame; if the check fails the tracker reports nothing.
- * [close] frees the graph, and the next use opens it again.
- */
+/** MediaPipe Holistic in video mode, on the GPU first with CPU fallback. The model is mapped from the
+ * uncompressed asset, checked against the content manifest and opened by [warm] or the first frame. */
 class HolisticTracker(private val context: Context) : LandmarkTracker {
     private var lastTimestampMs = Long.MIN_VALUE
     private val lock = Any()
@@ -118,10 +115,8 @@ class HolisticTracker(private val context: Context) : LandmarkTracker {
     private fun verifiedModel(): ByteBuffer? = verifiedAsset(context, MODEL)
 }
 
-/**
- * MediaPipe Holistic assigns hands from the pose, which names the person's own sides, so on an upright unmirrored
- * frame its left hand is the subject's own left hand (seen on the right of the picture). Empty lists mean not seen.
- */
+/** MediaPipe Holistic assigns hands from the pose, which names the person's own sides, so on an upright
+ * unmirrored frame its left hand is the subject's own left hand (seen on the right of the picture). */
 internal fun landmarkFrame(
     timestampMs: Long,
     leftHand: List<NormalizedLandmark>,
@@ -134,10 +129,8 @@ private fun List<NormalizedLandmark>.points(): List<Offset>? = takeIf { it.isNot
 
 private val verified = ConcurrentHashMap.newKeySet<String>()
 
-/**
- * A content asset mapped, not copied (clean pages the system can reclaim), once its SHA-256 matches the manifest.
- * Assets cannot change while the app runs, so each is hashed once per process.
- */
+/** A content asset mapped, not copied (clean pages the system can reclaim), once its SHA-256 matches the
+ * manifest. Assets cannot change while the app runs, so each is hashed once per process. */
 internal fun verifiedAsset(context: Context, path: String): ByteBuffer? = runCatching {
     val buffer = context.assets.openFd("content/$path").use { fd ->
         FileInputStream(fd.fileDescriptor).channel.use { it.map(FileChannel.MapMode.READ_ONLY, fd.startOffset, fd.length) }

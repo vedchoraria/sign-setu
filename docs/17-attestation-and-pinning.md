@@ -1,6 +1,6 @@
 # 17. Device attestation and certificate pinning: assessment and design
 
-Status: assessment and design. Nothing in this document is built. Both measures depend on facts that do not exist yet (the production gateway host and its certificate authority), so a partial implementation now would be fragile. The decisions that block work are listed in section 6.
+Both measures depend on the production gateway host and its certificate authority. Section 6 lists the deployment inputs.
 
 ## 1. What exists today
 
@@ -11,7 +11,7 @@ Status: assessment and design. Nothing in this document is built. Both measures 
 | Device identity | A one-time enrolment code, kept on the server only as a SHA-256 hash, is traded at `POST /v1/enroll` for a random 256-bit bearer token. The server keeps only the token's SHA-256. |
 | Token handling on the phone | Wrapped by a non-exportable Keystore key (`signsetu.gateway.token`) that needs no screen unlock, stored in a file excluded from backup. Any code running as the app can use it. |
 | Token lifetime | Optional. With `TOKEN_TTL_DAYS` set, a token stops working that many days after enrolment and the phone must enrol again with a new code. Unset or 0, the default, means a token works until an administrator sets `revoked`. There is no rotation. |
-| Abuse limits | A per-device rate limit, and per-address and global wrong-code limits on enrolment (D-54). |
+| Abuse limits | A per-device rate limit, and per-address and global wrong-code limits on enrolment. |
 
 ## 2. Threat model
 
@@ -66,12 +66,8 @@ Server requirements: a nonce table; an X.509 and ASN.1 parser for the key descri
 
 ## 5. Token life and revocation (recommended regardless)
 
-Both measures above are weaker than ordinary token hygiene. Token expiry (`TOKEN_TTL_DAYS`, off by default so existing devices keep working until the department chooses a life) and a `last_seen` timestamp on devices (written at most once an hour, shown by `/v1/admin/devices`) are built. The admin route to list and revoke a device exists (`/v1/admin/devices`). What remains is choosing the life (decision 5) and turning it on.
+Both measures above are weaker than ordinary token hygiene. Token expiry (`TOKEN_TTL_DAYS`, off by default so existing devices keep working until the department chooses a life) and a `last_seen` timestamp on devices (written at most once an hour, shown by `/v1/admin/devices`) are built. The admin route to list and revoke a device exists (`/v1/admin/devices`). The life is set with `TOKEN_TTL_DAYS`; expiry is off by default.
 
-## 6. Decisions needed before building
+## 6. Deployment inputs
 
-1. The production gateway hostname and the certificate authority that issues its certificate, so the pins can be chosen.
-2. Whether the department inspects TLS on its network.
-3. The attestation policy: refuse or flag phones without hardware-backed attestation, and the required patch level.
-4. Who maintains Google's attestation roots and revocation list on the server, and how often.
-5. Token life.
+The gateway hostname, its certificate authority, the attestation policy (refuse or flag unverified phones) and the token life are set at deployment. The attestation roots and revocation list are deployment configuration.

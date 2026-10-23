@@ -19,6 +19,8 @@ fun grades(events: List<SessionEvent>): Map<Long, Grade> {
         if (e.type !in AnswerEvents) continue
         val base = when {
             e.source == EventSource.MACHINE -> Grade.MACHINE_READ
+            // The officer closed an item the subject left unanswered: no reading, just no answer.
+            e.type == EventType.ANSWER_UNCLEAR && e.source == EventSource.OFFICER -> Grade.UNCLEAR
             e.source != EventSource.SUBJECT -> Grade.OFFICER_READ
             e.type == EventType.ANSWER_SIGNED -> Grade.MACHINE_READ
             e.type == EventType.ANSWER_GESTURE -> Grade.CONFIRMED

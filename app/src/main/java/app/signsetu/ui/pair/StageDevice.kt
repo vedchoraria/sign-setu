@@ -4,8 +4,6 @@ import androidx.compose.runtime.produceState
 import android.Manifest
 import android.bluetooth.BluetoothAdapter
 import android.content.pm.PackageManager
-import app.signsetu.camera.EvidenceMode
-import app.signsetu.camera.renderSkeletonPng
 import kotlinx.coroutines.CoroutineScope
 import android.app.ActivityManager
 import android.content.BroadcastReceiver
@@ -145,10 +143,7 @@ fun UseAsStageButton(container: AppContainer) {
     }
 }
 
-/**
- * The stage device: it shows only what the officer phone sends, answers back, and stores nothing. Once Live it
- * stays pinned with no local exit; only a Bye from the officer, a lost link, or this device's own credential ends it.
- */
+/** The stage device: it shows only what the officer phone sends, answers back, and stores nothing. */
 @Composable
 fun StageDeviceScreen(link: StageLink, content: ContentBundle, container: AppContainer) {
     val state by link.state.collectAsStateWithLifecycle()
@@ -242,12 +237,13 @@ fun CheckValue(check: String) {
 
 @Composable
 private fun LiveStage(link: StageLink, baseContent: ContentBundle, state: LinkState, exit: () -> Unit, scope: CoroutineScope, container: AppContainer) {
-    // Landmarks drive the overlay and gesture proposals here; no sign is read on this phone and none leaves it.
+    // Signs are read here and only the words go to the officer's phone; landmarks never leave this device.
     val tracker by produceState<LandmarkTracker?>(null) { value = withContext(Dispatchers.IO) { container.landmarkTracker } }
     var cue by remember { mutableStateOf<String?>(null) }
     val show by link.view.collectAsStateWithLifecycle()
     val unacked by link.unacked.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val mainExecutor = remember(context) { ContextCompat.getMainExecutor(context) }
     val view = show?.view
     val lang = view?.signLanguage?.let { n -> SignLanguage.entries.firstOrNull { it.name == n } } ?: SignLanguage.ISL
     val content = remember(baseContent, lang) { baseContent.forSignLanguage(lang) }
@@ -281,14 +277,10 @@ private fun LiveStage(link: StageLink, baseContent: ContentBundle, state: LinkSt
             signFrames.clear()
             val r = reader
             scope.launch {
-                val (words, skeletonPng) = withContext(Dispatchers.Default) {
-                    val keyFrame = frames.firstOrNull { it.leftHand != null || it.rightHand != null } ?: frames.firstOrNull()
-                    r?.read(frames)?.mapNotNull { it.word }?.filter { it != "?" }?.take(4).orEmpty() to
-                        keyFrame?.takeIf { EvidenceMode.autoCapture.value }?.let { renderSkeletonPng(it).b64() }
+                val words = withContext(Dispatchers.Default) {
+                    r?.read(frames)?.mapNotNull { it.word }?.filter { it != "?" }?.take(4).orEmpty()
                 }
-                if (words.isNotEmpty() || skeletonPng != null) {
-                    send(AnswerBody.Signed(words, skeletonPng))
-                }
+                if (words.isNotEmpty()) send(AnswerBody.Signed(words))
             }
         }
     }
@@ -343,12 +335,15 @@ private fun LiveStage(link: StageLink, baseContent: ContentBundle, state: LinkSt
                     onDrawing = { png -> scope.launch { withContext(Dispatchers.Default) { fitDrawing(png) }?.let { send(AnswerBody.Drawing(it.b64())) } } },
                     onWritten = { send(AnswerBody.Text(it.trim())) },
                     onSignFrame = { frame ->
-                        if (signing) {
-                            quiet.see(frame.timestampMs, moving(signFrames.lastOrNull(), frame, STILL_SPEED))
-                            signFrames.add(frame)
-                            // The officer's phone caps a window at 20 s; this phone's frames are held here, so it does too.
-                            val capped = frame.timestampMs - (signFrames.firstOrNull()?.timestampMs ?: frame.timestampMs) >= SIGN_LIMIT_MS
-                            if (quiet.settled(frame.timestampMs) || capped) endSigning()
+                        // Frames arrive on the camera's thread; the window's state lives on the main thread only.
+                        mainExecutor.execute {
+                            if (signing) {
+                                quiet.see(frame.timestampMs, moving(signFrames.lastOrNull(), frame, STILL_SPEED))
+                                signFrames.add(frame)
+                                // The officer's phone caps a window at 20 s; this phone's frames are held here, so it does too.
+                                val capped = frame.timestampMs - (signFrames.firstOrNull()?.timestampMs ?: frame.timestampMs) >= SIGN_LIMIT_MS
+                                if (quiet.settled(frame.timestampMs) || capped) endSigning()
+                            }
                         }
                     },
                     onStartSigning = {

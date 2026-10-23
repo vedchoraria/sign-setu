@@ -16,15 +16,16 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.io.InputStream
 import java.security.MessageDigest
+import java.util.concurrent.ConcurrentHashMap
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 typealias Localized = Map<String, String>
 
 fun Localized.pick(lang: String): String? = this[lang]
 
-/**
- * [rights] items are shown, never taken as understood: each carries the interpreter notice. [child] true is only for a
- * person who may be under 18, false only for an adult, null for anyone: a child is not told adult arrest rights.
- */
+/** [rights] items are shown, never taken as understood: each carries the interpreter notice. [child] true is
+ * only for a person who may be under 18, false only for an adult. */
 @Immutable @Serializable
 data class Group(
     val id: String,
@@ -35,10 +36,8 @@ data class Group(
     val child: Boolean? = null,
 )
 
-/**
- * Where an item sits in a first-contact conversation; declaration order is the auto mode's proposal order. MANUAL items,
- * such as personal details and everyday phrases, are only ever picked by the officer.
- */
+/** Where an item sits in a first-contact conversation; declaration order is the auto mode's proposal order.
+ * MANUAL items, such as personal details and everyday phrases, are only ever picked by the officer. */
 @Serializable
 enum class Phase { RAPPORT, GROUND_RULES, WELFARE, PRACTICAL, CLOSING, BREAK, RIGHTS, FREE_RECALL, FOLLOW_UP, MANUAL }
 
@@ -127,8 +126,9 @@ data class Phrase(val id: String, val label: Localized, val signs: List<String>,
 @Serializable private data class PlacesFile(val states: List<State>)
 @Serializable private data class Manifest(val files: Map<String, String>)
 
-/** Files hashed on every load. Models are large and their loaders check them against the manifest on first use. */
-internal fun eagerlyChecked(path: String) = !path.startsWith("models/")
+/** Files hashed on every load: the JSON a subject's words come from. Pictures and recordings are hashed on first
+ * use ([ContentRepository.intact]), and models by their loaders, so a cold start does not hash 25 MB. */
+internal fun eagerlyChecked(path: String) = path.endsWith(".json")
 @Serializable private data class GesturesFile(val gestures: List<Gesture>)
 @Serializable private data class WordsFile(val words: List<WordEntry>)
 @Serializable private data class SignWordsFile(val words: Map<String, String>)
@@ -231,14 +231,27 @@ class ContentRepository(private val open: (String) -> InputStream) {
     constructor(assets: AssetManager) : this({ assets.open("content/$it") })
 
     private val json = Json { ignoreUnknownKeys = true }
-    private var bundle: ContentBundle? = null
+    @Volatile private var bundle: ContentBundle? = null
     private val images = LruCache<String, ImageBitmap>(160)
+    private val loading = Mutex()
+    @Volatile private var hashes: Map<String, String> = emptyMap()
+    private val checked = ConcurrentHashMap<String, Boolean>()
 
-    suspend fun load(): ContentBundle = bundle ?: withContext(Dispatchers.IO) {
-        val manifestBytes = open("manifest.json").use { it.readBytes() }
+    /** A picture or recording matches the manifest; hashed once, on first use. One that fails is never shown or played. */
+    fun intact(path: String): Boolean = checked.getOrPut(path) { hashes[path]?.let { sha256(path) == it } == true }
+
+    suspend fun load(): ContentBundle = bundle ?: loading.withLock { bundle ?: loadOnce() }
+
+    private suspend fun loadOnce(): ContentBundle = withContext(Dispatchers.IO) {
+        // Without a readable manifest no file can be trusted. Return the damaged state instead of crashing before
+        // the first-run screen can explain that this copy must be replaced.
+        val manifestBytes = runCatching { open("manifest.json").use { it.readBytes() } }.getOrNull()
+            ?: return@withContext ContentBundle(rejected = setOf("manifest.json")).also { bundle = it }
         val manifestDigest = MessageDigest.getInstance("SHA-256").digest(manifestBytes)
-        val manifest = json.decodeFromString<Manifest>(manifestBytes.decodeToString())
-        val rejected = manifest.files.filter { (path, hash) -> eagerlyChecked(path) && sha256(path) != hash }.keys
+        val manifest = runCatching { json.decodeFromString<Manifest>(manifestBytes.decodeToString()) }.getOrNull()
+            ?: return@withContext ContentBundle(rejected = setOf("manifest.json")).also { bundle = it }
+        hashes = manifest.files
+        val rejected = manifest.files.filter { (path, hash) -> eagerlyChecked(path) && sha256(path) != hash }.keys.toMutableSet()
         // A file that fails its check is never parsed: no content beats wrong content.
         val triage = verified("triage.json", rejected) ?: TriageFile(emptyList(), emptyList())
         val cards = verified("cards.json", rejected) ?: CardsFile(emptyList(), emptyList())
@@ -262,7 +275,7 @@ class ContentRepository(private val open: (String) -> InputStream) {
             lexicon = lexicon.entries.associateBy { it.id },
             languages = languages.languages,
             subjectUi = subjectUi,
-            rejected = rejected,
+            rejected = rejected.toSet(),
             files = manifest.files.keys - rejected,
             gestures = gestures.associateBy { it.id },
             everyday = everyday.associateBy { it.id },
@@ -289,14 +302,23 @@ class ContentRepository(private val open: (String) -> InputStream) {
         images.get(id)?.let { return it }
         if (bundle?.hasCardImage(id) == false) return null
         return withContext(Dispatchers.IO) {
+            if (!intact("cards/$id.webp")) return@withContext null
             runCatching {
                 open("cards/$id.webp").use { BitmapFactory.decodeStream(it) }.asImageBitmap()
             }.getOrNull()?.also { images.put(id, it) }
         }
     }
 
-    private inline fun <reified T> verified(name: String, rejected: Set<String>): T? =
-        if (name in rejected) null else json.decodeFromString<T>(open(name).bufferedReader().use { it.readText() })
+    /** A file that matches its hash can still be unreadable or malformed; mark it rejected rather than crashing the app. */
+    private inline fun <reified T> verified(name: String, rejected: MutableSet<String>): T? {
+        if (name in rejected) return null
+        return try {
+            json.decodeFromString<T>(open(name).bufferedReader().use { it.readText() })
+        } catch (_: Exception) {
+            rejected += name
+            null
+        }
+    }
 
     private fun sha256(path: String): String? = runCatching {
         val digest = MessageDigest.getInstance("SHA-256")

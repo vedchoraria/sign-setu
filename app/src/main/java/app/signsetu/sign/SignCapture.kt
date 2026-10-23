@@ -11,12 +11,7 @@ const val SIGN_LIMIT_MS = 20_000L
 /** Longest "Tell me" narrative: three minutes of landmarks, without faces, fits comfortably in memory. */
 const val NARRATIVE_LIMIT_MS = 180_000L
 
-/**
- * An explicit window in which the camera's frames are analysed; outside one the mirror is preview only.
- * A narrative pauses longer between phrases than a short answer between signs, so its chunks are phrase-sized.
- * [firstSignMs] is the grace before anything at all is signed, and [quietMs] how long quiet hands are given before
- * what was signed is ingested without a tap; a narrative is allowed to think longer between sentences.
- */
+/** An explicit window in which the camera's frames are analysed; outside one the mirror is preview only. */
 enum class SignWindow(
     val limitMs: Long,
     val pauseMs: Long,
@@ -25,15 +20,12 @@ enum class SignWindow(
     val firstSignMs: Long = 3_000,
     val quietMs: Long = 2_000,
 ) {
-    ANSWER(SIGN_LIMIT_MS, pauseMs = 300, minMs = 180, keepFace = true),
+    ANSWER(SIGN_LIMIT_MS, pauseMs = 400, minMs = 200, keepFace = true),
     NARRATIVE(NARRATIVE_LIMIT_MS, pauseMs = 700, minMs = 200, keepFace = false, quietMs = 5_000),
 }
 
-/**
- * Judges when the subject has stopped giving anything, so a window can be ingested on its own instead of waiting for
- * a tap that may never come. Timestamps are the camera's, so it needs no wall clock and cannot run ahead of the frames.
- * Before any movement the whole window is grace: a person who never raises a hand empties it, they do not hold it open.
- */
+/** Judges when the subject has stopped giving anything, so a window can be ingested on its own instead of
+ * waiting for a tap that may never come. */
 class SignQuiet(private val firstSignMs: Long = 3_000, private val quietMs: Long = 2_000) {
     private var firstMs = -1L
     private var lastMovedMs = -1L
@@ -58,11 +50,7 @@ class SignQuiet(private val firstSignMs: Long = 3_000, private val quietMs: Long
     }
 }
 
-/**
- * One sign-sized chunk of a signed answer; [guesses] is null while the reader is still on it. Memory only.
- * [guesses] are already limited to [context], the cards that answer the item on screen; [slower] marks a failed read
- * of fast or badly tracked hands.
- */
+/** One sign-sized chunk of a signed answer; [guesses] is null while the reader is still on it. Memory only. */
 @Immutable
 class SignSegment(
     val frames: List<LandmarkFrame>,
@@ -101,12 +89,8 @@ private fun handMoving(a: List<Offset>?, b: List<Offset>?, seconds: Float, still
     }
 }
 
-/**
- * Collects one sign window's frames in memory, capped at the window's limit, and hands out each sign once its pause
- * closes it: hands gone or nearly still for the window's pause. Hands leaving the frame briefly do not end the capture.
- * Called from the camera's analysis thread and the main thread, so every entry point is synchronised. Each frame is
- * looked at once, so a long unbroken narrative costs the same per frame as a short answer.
- */
+/** Collects one sign window's frames in memory, capped at the window's limit, and hands out each sign once its
+ * pause closes it: hands gone or nearly still for the window's pause. */
 class SignCapture(private val window: SignWindow = SignWindow.ANSWER, private val limitMs: Long = window.limitMs) {
     private val frames = ArrayList<LandmarkFrame>()
     private val quiet = SignQuiet(window.firstSignMs, window.quietMs)
@@ -136,10 +120,8 @@ class SignCapture(private val window: SignWindow = SignWindow.ANSWER, private va
         return out
     }
 
-    /**
-     * True once the subject has stopped giving anything: quiet hands for the window's quiet time, or no movement at all
-     * within its first-sign grace. The caller then ingests what was captured instead of waiting for a Done tap.
-     */
+    /** True once the subject has stopped giving anything: quiet hands for the window's quiet time, or no movement
+     * at all within its first-sign grace. */
     @Synchronized
     fun settled(): Boolean = !full && frames.isNotEmpty() && quiet.settled(frames.last().timestampMs)
 
@@ -156,11 +138,8 @@ class SignCapture(private val window: SignWindow = SignWindow.ANSWER, private va
         activeFrames = 0
     }
 
-    /**
-     * Whether the chunk is the hands on their way back down, not a sign: short, every hand that is there drops at least
-     * half a shoulder width, and they end well below the shoulders, where the arms hang. Needs the pose to measure a
-     * shoulder, so a frame without one never drops a sign.
-     */
+    /** Whether the chunk is the hands on their way back down, not a sign: short, every hand that is there drops at
+     * least half a shoulder width, and they end well below the shoulders, where the arms hang. */
     private fun droppingToRest(a: Int, b: Int): Boolean {
         if (frames[b].timestampMs - frames[a].timestampMs > RETRACT_MAX_MS) return false
         if ((frames[a].pose?.size ?: 0) <= 12) return false

@@ -58,10 +58,8 @@ import app.signsetu.ui.theme.Spacing
 fun DictionaryEntry.asQuestion(): Question =
     Question(id = "dict.$gestureId", group = "dictionary", text = buildMap { put("en", en); if (hi.isNotEmpty()) put("hi", hi) }, gesture = gestureId)
 
-/**
- * The officer's ISL dictionary (More page): every recorded and draft sign by category, searched in English or Hindi.
- * Tapping a word plays it here; only Show puts it on the stage, so the subject reaches it through the officer.
- */
+/** The officer's ISL dictionary (More page): every recorded and draft sign by category, searched in English or
+ * Hindi. */
 @Composable
 fun IslDictionarySheet(content: ContentBundle, lang: String, signLanguage: SignLanguage, onShow: (Question) -> Unit, onDismiss: () -> Unit) {
     val all = remember(content) { content.dictionary() }

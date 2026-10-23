@@ -23,6 +23,8 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.compose.LocalActivity
+import app.signsetu.ui.components.OfficerAuth
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -108,10 +110,8 @@ import kotlinx.coroutines.launch
 import java.text.DateFormat
 import java.util.Date
 
-/**
- * Home: the character greets on top; below, one quick choice of who is being helped and in which language.
- * The session itself opens on the stage, with the camera mirror.
- */
+/** Home: the character greets on top; below, one quick choice of who is being helped and in which language. The
+ * session itself opens on the stage, with the camera mirror. */
 @Composable
 fun StartScreen(
     repo: SessionRepository,
@@ -393,12 +393,13 @@ private fun SavedSessions(repo: SessionRepository, onOpen: (String) -> Unit) {
         }
     }
     deleting?.let { s ->
+        val activity = LocalActivity.current
         GuardedAlertDialog(
             onDismissRequest = { deleting = null },
             title = { Text(stringResource(R.string.saved_delete_title)) },
             text = { Text(stringResource(R.string.saved_delete_body)) },
             confirmButton = {
-                TextButton(onClick = { deleting = null; scope.launch { repo.purge(s.id) } }) {
+                TextButton(onClick = { deleting = null; OfficerAuth.confirm(activity, { scope.launch { repo.purge(s.id) } }) }) {
                     Text(stringResource(R.string.saved_delete_confirm), color = MaterialTheme.colorScheme.error)
                 }
             },
@@ -407,10 +408,8 @@ private fun SavedSessions(repo: SessionRepository, onOpen: (String) -> Unit) {
     }
 }
 
-/**
- * The subject's language: a field that opens a list. A dialog, not a dropdown menu, so seventeen languages never
- * open upward over the header or misplace inside a bottom sheet.
- */
+/** The subject's language: a field that opens a list. A dialog, not a dropdown menu, so seventeen languages
+ * never open upward over the header or misplace inside a bottom sheet. */
 @Composable
 fun LanguagePicker(content: ContentBundle, selected: String, onPick: (String) -> Unit, modifier: Modifier = Modifier, label: String? = null) {
     var open by remember { mutableStateOf(false) }
@@ -456,10 +455,8 @@ fun LanguagePicker(content: ContentBundle, selected: String, onPick: (String) ->
     }
 }
 
-/**
- * Shown for every accused person: the Juvenile Justice rules if they may be under 18, and the officer's mark that
- * they may be, which leaves out adult arrest rights. A young child profile is always treated as under 18.
- */
+/** Shown for every accused person: the Juvenile Justice rules if they may be under 18, and the officer's mark
+ * that they may be, which leaves out adult arrest rights. */
 @Composable
 fun JuvenileNotice(checked: Boolean, enabled: Boolean, onChecked: (Boolean) -> Unit) {
     Surface(color = MaterialTheme.colorScheme.tertiaryContainer, contentColor = MaterialTheme.colorScheme.onTertiaryContainer, shape = MaterialTheme.shapes.medium, modifier = Modifier.fillMaxWidth()) {

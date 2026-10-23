@@ -23,10 +23,8 @@ import androidx.compose.ui.unit.dp
 import app.signsetu.R
 import app.signsetu.data.content.BodyLocation
 
-/**
- * A front-facing figure in a 3:4 box. Zones are in fractions of the box so hit-testing matches drawing at any size.
- * The figure faces the officer, so the subject's left is on the right of the drawing, as when looking at them.
- */
+/** A front-facing figure in a 3:4 box. Zones are in fractions of the box so hit-testing matches drawing at any
+ * size. */
 private val zones: List<Pair<BodyLocation, List<Rect>>> = listOf(
     BodyLocation.EAR to listOf(Rect(0.33f, 0.150f, 0.39f, 0.240f), Rect(0.61f, 0.150f, 0.67f, 0.240f)),
     BodyLocation.EYES to listOf(Rect(0.41f, 0.155f, 0.59f, 0.190f)),
@@ -91,7 +89,6 @@ private fun DrawScope.drawFigure(line: Color, fill: Color) {
     drawRoundRect(fill, Offset(0.30f * w, 0.33f * h), Size(0.40f * w, 0.42f * h), CornerRadius(0.08f * w))
     drawRoundRect(line, Offset(0.30f * w, 0.33f * h), Size(0.40f * w, 0.42f * h), CornerRadius(0.08f * w), style = stroke)
     drawRect(fill, Offset(0.45f * w, 0.29f * h), Size(0.10f * w, 0.05f * h))
-    // Ears, then head.
     listOf(0.36f, 0.64f).forEach { x ->
         drawOval(fill, Offset((x - 0.03f) * w, 0.165f * h), Size(0.06f * w, 0.07f * h))
         drawOval(line, Offset((x - 0.03f) * w, 0.165f * h), Size(0.06f * w, 0.07f * h), style = stroke)

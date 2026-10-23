@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <application>
-        <!-- Debug builds only: lets reviewers and developers see every gesture at once. -->
+        <!-- Debug builds only: lets reviewers and developers see every gesture at once on a portrait phone. -->
         <activity
             android:name=".GalleryActivity"
             android:exported="true"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity,DiscouragedApi" />
     </application>
 </manifest>

@@ -70,7 +70,9 @@ class CounsellorTest {
         c.skip()
         runCurrent()
         assertEquals("Line 2.", (c.counsel.value as Counsel.Holding).line.say)
-        advanceTimeBy(6_001)
+        // The officer can send at once; left alone, the line still goes out when the hold passes.
+        assertTrue(sent.isEmpty())
+        advanceTimeBy(6_500)
         runCurrent()
         assertEquals(listOf("Line 2."), sent)
         assertEquals(Counsel.Waiting, c.counsel.value)

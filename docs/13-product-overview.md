@@ -12,8 +12,8 @@ Sign Setu is an offline Android application that helps a police officer communic
 | Network | Optional: only the department gateway, only when the build has one and the phone is online; everything works without it |
 | Languages for the subject | 17 in the language finder, including Chhattisgarhi, Gondi and Halbi; every stage word, question, phrase and picture label in all 17 (drafts beyond English and Hindi); typed English captioned in Hindi on the phone; sign languages ISL and ASL |
 | Officer interface languages | English, Hindi |
-| Release APK | 0.5.0: 78.9 MiB for arm64-v8a phones, 104.2 MiB universal (arm64-v8a and x86_64); nothing compressed for size |
-| Automated tests | 201 unit tests pass for both build flavors; 76 instrumented tests pass on an API 34 emulator; 918 portal tests pass |
+| Release APK | 0.5.1: 78.9 MiB for arm64-v8a phones, 104.1 MiB universal (arm64-v8a and x86_64); nothing compressed for size |
+| Automated tests | 306 unit tests pass for both build flavors; 78 instrumented tests pass on the API 34 phone and the API 36 tablet; 1,221 portal tests pass; lint 0 errors |
 
 ## 2. How a session works
 
@@ -29,21 +29,21 @@ Sign Setu is an offline Android application that helps a police officer communic
 
 ### 3.1 Officer side
 
-The officer page has two tabs, built from one card and tile style. **Transcribe** holds the conversation, quick questions and the composer; **More** holds every question group and phrase, They gestured, the picture board, Draw, the language finder, Tell me, the ISL dictionary, the session log with notes, and profile, role or language. Picking something on More returns to Transcribe.
+The officer page has two tabs, built from one card and tile style. **Transcribe** holds the conversation, quick questions and the composer; **More** searches every question group and phrase and also holds They gestured, the picture board, Draw, the language finder, Tell me, the ISL dictionary, the session log with notes, and profile, role or language. With a blank search it shows the applicable question groups as category chips. Picking something on More returns to Transcribe.
 
 | Feature | Description |
 | --- | --- |
 | Profiles | Young child (child character, automatic speech), signs (adult character, no sound), other language (language finder first), not sure |
 | Role | Not known yet (default), victim or witness, accused or in custody; sets which question groups appear (§4.8). An accused may be marked "may be under 18" |
 | Conversation | A messaging-style view: items shown to the subject on the right, the subject's answers with pictures on the left, notes and steps in between |
-| Prepared questions | 75 questions in 15 groups: Safety, Health, Needs, Personal, Family, Address, School, Everyday, Talking (ground rules, breaks, closing), Their account, Sensitive (victim only, locked until the officer confirms), Rights, Arrest rights (adult), Child's rights, Disability rights. A young child is not asked for a mobile number; an accused gets the factual Personal, Family, Address and School questions but not the welfare-only ones (introduce yourself, favourite subject, what they like at school) |
+| Prepared questions | 80 questions in 15 groups: Safety, Health, Needs, Personal, Family, Address, School, Everyday, Talking (ground rules, breaks, closing), Their account, Sensitive (victim only, locked until the officer confirms), Rights, Arrest rights (adult), Child's rights, Disability rights. A young child is not asked for a mobile number; an accused gets the factual Personal, Family, Address and School questions but not the welfare-only ones (introduce yourself, favourite subject, what they like at school) |
 | Lesson-sheet questions | An ISL lesson sheet in full: name, age, mobile, introduction; father's and mother's names, family size, brothers and sisters, who they live with; where they live, village or city, district, state, nearby place; school, class, teacher, favourite subject, what they like at school; and eight everyday phrases. Each has an answer type that opens its own input on the stage (§3.2), and the character signs it through the typed-text path in draft ISL order |
 | Quick questions | Hurt, water, hungry, toilet, doctor, mother nearby, age and where you live, each disappearing once asked |
 | Question run | Long-press questions to queue them, or tap "Safety basics": up to 5 on one handover, each 1.4 s after the previous answer. Sensitive questions are never queued. Stop, "Something else" or taking the phone back ends the run, logged "Run ended after k of n" |
 | Phrase bank | 10 reviewed sentences built from two patterns, "Do you want [water]?" and "Are you [cold]?" |
 | Type anything | Typed text is shown at once; the character plays it word by word under four toggles: Signs, Gestures, Spell, Pictures. With Signs on, the order is draft ISL order (§4.4) |
 | Word completions | Above the keyboard; each typed word is tinted by what the character will do with it: green for a sign, teal for a gesture, amber for a picture, no tint when it will be spelled. Reviewed phrase templates about the word prepare a phrase in one tap |
-| Vocabulary | 123 entries covering 850 written forms in English, Hindi, Hindi in Latin letters and local words |
+| Vocabulary | 223 entries covering 1,306 written forms in English, Hindi, Hindi in Latin letters and local words |
 | Answer trail | Under each answer: time taken, every answer in the order given if the person changed it, and the length of a pause after Stop. A changed answer, or one slower than 20 s, gets an amber outline, which means "look again", never deceit |
 | Evidence grades | Said (the person tapped, wrote or drew it), Confirmed (the person picked this meaning from two or three choices shown back), Officer's reading, App's reading, Said no, Unclear |
 | Say it back | Shows the officer's reading, edited if needed, to the person among the item's other pictures; only their pick makes it Confirmed; No marks the line "Said no" |
@@ -70,7 +70,7 @@ The officer page has two tabs, built from one card and tile style. **Transcribe*
 | Characters | A child and an adult character framed to the hips, with jointed fingers and facial expressions; 411 motions: 262 ISL signs retargeted from recorded Deaf signers, 42 gestures, the 26-letter two-handed ISL alphabet, 10 digits and 71 draft word signs |
 | Opening | The officer's introduction (s1), then four pictured and signed ground rules ("I was not there", "you can say I don't know", "tell me if I'm wrong", "you can take a break") and a neutral practice round, "Show me what you did this morning", answered by drawing, writing or signing. The subject moves on with Next; each step is logged as shown. If the officer takes the phone back before the practice round, the log records "Officer skipped the rest of the ground rules" |
 | Caption | The question in the subject's language in large type; during typed text the current word is lit, a spelled word shows its current letter, and a word's picture is held up. Tapping a word replays it alone at half speed; tapping the question replays it |
-| Speech | Placeholder recordings until re-recorded: 853 recordings: the greeting in 15 languages, about 55 questions and every phrase in English and Hindi, and about 55 questions in Chhattisgarhi and twelve more languages (Indic Parler-TTS); the rest show captions and pictures; Gondi and Halbi have no voice yet; automatic for a young child or another language, never for a signer |
+| Speech | Placeholder recordings until re-recorded: 1,350 recordings: the greeting in 15 languages plus 89 clips for each of those languages (Indic Parler-TTS); the rest show captions and pictures; Gondi and Halbi have no voice yet; automatic for a young child or another language, never for a signer |
 | Answers | Rails either side of a 9:16 camera window: Yes, "I don't know", "I don't understand", Draw and Write on the left; Next (opening or Auto), No, "That's wrong", the camera button and Stop (an octagonal stop sign, never an open palm, and the only pause control) on the right. Stop also stays on the drawing, writing and language-finder screens. Every tap is logged right after the prompt that was on screen |
 | Picture choices | Shuffled every time and capped at four pictures, plus "Something else" (which opens the drawing pad) and "I don't understand". Yes/no, number and single-picture questions are not shuffled |
 | Answer inputs | For a lesson-sheet question the panel under the character becomes its input: a number pad with large digits (age 0 to 120, counts, brothers then sisters), a 10-digit mobile pad grouped 5 and 5 with "No phone", a written name or place, a class grid (1 to 12, college, not in school), a state list (Chhattisgarh first, all states and union territories) then its district or a written one, and several pictures with Done. A written or typed answer is read back large and becomes the subject's own only on their Yes; one left unconfirmed is logged as unconfirmed. "I don't know", "I don't understand", "That's wrong" and Stop stay under every input |
@@ -88,7 +88,7 @@ The officer page has two tabs, built from one card and tile style. **Transcribe*
 | Rotate | The stage turns 180 degrees for a subject sitting opposite; tilting the phone to show turns it automatically |
 | Staying on the stage | The app is pinned; Back does nothing; single volume presses do nothing; one tap on the small lock, or both volume keys held for 1.5 s, returns to the officer |
 
-Subject-screen words, questions, phrases and card labels exist in English, Hindi, Chhattisgarhi, Gondi, Halbi and the other twelve languages of the language finder; everything beyond English and Hindi is a draft awaiting native-speaker review.
+Subject-screen words, questions, phrases and card labels exist in English, Hindi, Chhattisgarhi, Gondi, Halbi and the other twelve languages of the language finder; everything beyond English and Hindi is marked draft.
 
 ### 3.3 Paired stage
 
@@ -236,10 +236,10 @@ For the whole session:
 
 | Component | State |
 | --- | --- |
-| Camera mirror (CameraX Preview) | Built; nothing captured or stored |
-| Vision engine (MediaPipe Holistic, `tasks-vision` 1.0.0) | Built; 21 points per hand, 468 face and 33 pose points per frame, GPU delegate with CPU fallback; 64-bit phones only; usage statistics dropped on the device |
-| Segmentation, capture and slow replay | Built |
-| Sign reader | Built: a 262-word isolated-sign classifier trained on INCLUDE (CC BY 4.0), 1.4 MB, plain Kotlin; INCLUDE test top-1 97.8%, top-3 99.4% on studio signers; unmeasured with children on phone cameras |
+| Camera mirror (CameraX Preview) | Preview only; nothing captured or stored |
+| Vision engine (MediaPipe Holistic, `tasks-vision` 1.0.0) | 21 points per hand, 468 face and 33 pose points per frame, GPU delegate with CPU fallback; 64-bit phones only; usage statistics dropped on the device |
+| Segmentation, capture and slow replay | Landmark chunks in memory, slow replay at ¼× or ½× |
+| Sign reader | A 262-word isolated-sign classifier trained on INCLUDE (CC BY 4.0), 1.4 MB, plain Kotlin; INCLUDE test top-1 97.8%, top-3 99.4% on studio signers; unmeasured with children on phone cameras |
 | Partner team's model | Can replace the reader or tracker behind the same interfaces ([hand model integration](11-hand-model-integration.md)) |
 
 No open model reads fast, continuous ISL reliably; the reader handles isolated signs over a known vocabulary, and the subject's pick decides the meaning.
@@ -342,18 +342,3 @@ The session view model combines the database's event flow with local state into 
 - Three colour schemes: slate and indigo for the officer, warm peach and teal for the stage, and black, white and yellow for sun mode. Shapes are 8, 12, 14, 20 and 24 dp; spacing tokens run from 4 to 32 dp; one outlined officer card (`OfficerCard`) and one choice tile (`ChoiceTile`) serve every officer screen; headings use Baloo 2 and the stage uses a larger type scale.
 - The officer interface uses Android resources in English and Hindi; everything the subject sees comes from content files keyed by language, so a new subject language needs no code change.
 - Touch targets are at least 48 dp and answer cards 96 dp; layouts reflow above 1.3 font scale; instrumented accessibility tests cover the stage states and the stage device screens in both themes and two screen sizes.
-
-## 10. Readiness
-
-| Item | State | Needed |
-| --- | --- | --- |
-| Application | Built; 147 unit tests pass for both flavors | Instrumented suite, Lint and a device run on the current build |
-| Content: gestures, alphabet, authored and recorded signs, ISL order, vocabulary, sign-word map, lesson-sheet and local-language wording, recordings | Built, awaiting review | Sign-off by ISL, child-welfare and language reviewers through the reviewer portal and the content review record |
-| Rights wording (English and Hindi), reworded x2 and x3 | Draft | Legal adviser and a legal translator |
-| Vision engine and sign reader | Built | Frame rate on the GPU delegate, memory and hand sides on a real 64-bit phone; accuracy with children; data for the core answer words |
-| Second screen | Built | Two-phone and tablet UAT; department devices and SOP |
-| Auto mode | Built, off by default | Department decision to allow it |
-| Assistant | Optional | Model file from the department; speed on an arm64 phone; language spot-checks |
-| Field tests | Pending | Timing and TalkBack on a real Android 10 phone; transfer test on two phones |
-| Security | Pending | MASVS checklist, CERT-In empanelled audit, release signing key with two custodians |
-| Pilot and rollout | Pending | One district with trained officers, then state-wise through the Mobile Seva AppStore |

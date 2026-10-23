@@ -52,10 +52,8 @@ fun wrapUp(events: List<SessionEvent>, startedAt: Long, now: Long): WrapUp {
     return WrapUp(((now - startedAt) / 60_000L).toInt().coerceAtLeast(0), shown.size, answers.size, asking.count { it.id !in answered }, unread)
 }
 
-/**
- * Finishing a session: what it gathered, a thank-you for the person, and a name to keep it under. It is saved
- * on this phone, encrypted, until the officer deletes it; a report can be exported now or later.
- */
+/** Finishing a session: what it gathered, a thank-you for the person, and a name to keep it under. It is saved
+ * on this phone, encrypted, until the officer deletes it; a report can be exported now or later. */
 /** A rooted phone keeps no history: finishing deletes the session whatever name was given. */
 fun titleToKeep(title: String?, historyOff: Boolean): String? = title.takeUnless { historyOff }
 

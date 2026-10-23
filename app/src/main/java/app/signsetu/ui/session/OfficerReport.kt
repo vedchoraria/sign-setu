@@ -182,7 +182,7 @@ internal fun ExportDialog(state: ExportState, onShare: () -> Unit, onFinish: () 
 }
 
 @Composable
-internal fun AiReportDialog(reportText: String, onDismiss: () -> Unit) {
+internal fun AiReportDialog(reportText: String, onDismiss: () -> Unit, onAttach: (() -> Unit)? = null) {
     GuardedAlertDialog(
         onDismissRequest = onDismiss,
         icon = { Icon(Icons.Filled.Star, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
@@ -213,6 +213,7 @@ internal fun AiReportDialog(reportText: String, onDismiss: () -> Unit) {
                 Text(stringResource(R.string.stage_done))
             }
         },
+        dismissButton = onAttach?.let { attach -> { TextButton(onClick = attach) { Text(stringResource(R.string.ai_report_attach)) } } },
     )
 }
 

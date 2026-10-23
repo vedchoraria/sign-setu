@@ -5,11 +5,8 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.geometry.Offset
 import kotlin.math.abs
 
-/**
- * The seam for on-device landmark tracking. The app calls [track] on one background thread with one
- * upright RGBA frame at a time, newest frame only. Frames never leave the device and are never stored: the bitmap is
- * reused after the call returns, so an implementation must not keep it.
- */
+/** The seam for on-device landmark tracking. The app calls [track] on one background thread with one upright
+ * RGBA frame at a time, newest frame only. */
 interface LandmarkTracker : AutoCloseable {
     fun track(frame: Bitmap, timestampMs: Long): LandmarkFrame?
     /** Loads the model ahead of the first frame, off the main thread; it analyses nothing. */
@@ -17,12 +14,8 @@ interface LandmarkTracker : AutoCloseable {
     override fun close() {}
 }
 
-/**
- * Landmarks of one frame in MediaPipe Holistic topology, normalised to the frame (origin top-left, no mirroring).
- * Hands are the subject's own left and right: 21 points each. Face: 468 points. Pose: 33 points. Null when not seen.
- * [aspect] is the upright frame's width / height, needed to measure distances in one unit.
- * Kept in memory only, for the current answer.
- */
+/** Landmarks of one frame in MediaPipe Holistic topology, normalised to the frame (origin top-left, no
+ * mirroring). Hands are the subject's own left and right: 21 points each. Face: 468 points. Pose: 33 points. */
 @Immutable
 data class LandmarkFrame(
     val timestampMs: Long,
@@ -46,7 +39,6 @@ data class LandmarkFrame(
     val hands: List<List<Offset>> get() = listOfNotNull(leftHand, rightHand)
 }
 
-/** Bones of the MediaPipe hand topology, for drawing. */
 val HandBones = listOf(
     0 to 1, 1 to 2, 2 to 3, 3 to 4,
     0 to 5, 5 to 6, 6 to 7, 7 to 8,
@@ -106,10 +98,7 @@ class FaceCueTracker {
 
 enum class Head { Nod, Shake }
 
-/**
- * Nods and shakes from the nose tip against the midpoint of the eyes over the last 1.5 s, in eye spans. Measured from
- * the eyes, a sway of the body or the Indian head wobble (a roll that keeps the nose centred) is not a shake.
- */
+/** Nods and shakes from the nose tip against the midpoint of the eyes over the last 1.5 s, in eye spans. */
 class HeadGestures(private val windowMs: Long = WINDOW_MS, private val swing: Float = SWING) {
     private class Sample(val ms: Long, val along: Float, val across: Float)
 
@@ -211,10 +200,8 @@ internal fun thumb(h: List<Offset>, aspect: Float): Head? {
     }
 }
 
-/**
- * A body part the subject points at with one finger and holds for 0.6 s, as a picture card id (head, mouth, stomach,
- * arm, leg): how a child shows where it hurts. Regions come from the pose, in shoulder widths.
- */
+/** A body part the subject points at with one finger and holds for 0.6 s, as a picture card id (head, mouth,
+ * stomach, arm, leg): how a child shows where it hurts. Regions come from the pose, in shoulder widths. */
 class BodyPointing(holdMs: Long = 600L) {
     private val hold = Held<String>(holdMs)
 

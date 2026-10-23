@@ -64,7 +64,7 @@ One Gradle module under `app.signsetu`, organised by feature.
 ```
 assets/content/
  manifest.json {"version": 1, "files": {path: SHA-256}}; its own SHA-256 is the content version
- triage.json 15 groups (sensitive, rights, roles[], child?) and 75 questions: id, group, phase, kind, after?, text{lang}, cards[], lexicon?, gesture?, answer?, field?, roles[], hiddenFor[], signed
+ triage.json 15 groups (sensitive, rights, roles[], child?) and 80 questions: id, group, phase, kind, after?, text{lang}, cards[], lexicon?, gesture?, answer?, field?, roles[], hiddenFor[], signed
  cards.json 12 categories and 117 cards: id, category, label{lang}
  lexicon.json 33 gesture-lookup entries: id, concept, card, locations[], actions[], label{lang}, how{lang}
  gestures.json 42 authored gestures, keyframes against named contact points
@@ -72,7 +72,7 @@ assets/content/
  asl_signs.json 250 signs retargeted from PopSign signers, 26 one-hand letters and 10 one-hand digits, by tools/isl/retarget_asl.py; draft
  asl_words.json ASL reader labels to vocabulary words (draft)
  isl_signs.json 262 signs retargeted from INCLUDE signers by tools/isl/retarget.py, in 16 categories
- words.json 123 vocabulary entries, 850 written forms, to sign, gesture and picture
+ words.json 223 vocabulary entries, 1,306 written forms, to sign, gesture and picture
  sign_words.json 49 sign-reader labels to vocabulary words (draft)
  languages.json 17 languages: code, name in its own script, English name, greeting
  subject_ui.json 35 words the stage shows the subject, per language
@@ -97,7 +97,8 @@ Each ASL asset is optional and degrades alone:
 The characters play keyframes only; no video clips ship.
 
 - The app checks every file except `models/` against the manifest each time it loads the content, and never parses or shows a file that fails. A failed picture, recording or motion file (`gestures.json`, `signs.json`, `isl_signs.json`) is left out and the rest still works; any other failed JSON file stops new sessions, because the subject could otherwise be shown wrong words. Either way the officer sees a notice on the home screen. Each model is checked by its own loader on first use.
-- `tools/content/build_content.py --manifest-only` rewrites the manifest after normalising JSON to LF line endings, so the hashes hold on every checkout (`.gitattributes` sets `eol=lf`).
+- `tools/content/build_content.py --manifest-only` rewrites the manifest after normalising JSON to LF line endings, so the hashes hold on every checkout (`.gitattributes` sets `eol=lf`). `--check` compares the manifest with the files without writing and exits 1 when it is stale; CI runs that, so a stale manifest is reported precisely and the checkout is not modified.
+- `tools/content/check_content.py` reads the bundle rather than hashing it: every question, word and phrase reference must resolve to a card, sign or gesture, ids must be unique, every card must have its WebP, and every subject-facing label must carry all 17 languages. CI runs it after the manifest check.
 - All approved languages ship in the APK. Recorded audio averages about 10 KB per item.
 - Interface strings use Android resources; subject-facing content uses the bundle, so content changes do not touch code.
 
@@ -143,17 +144,17 @@ API-level details for authentication are in [security](04-security.md).
 - `BuildConfig.BUILD_EPOCH_DAY` is set at build time for the build-expiry check.
 - Two product flavors on the `transport` dimension: `standard` (default, the reference build) and `nearby` (application ID suffix `.nearby`). Tasks are named per variant, for example `assembleStandardRelease`.
 - Version `0.1.0`, version code 1 (`app/build.gradle.kts`); the nearby flavor appends `-nearby` to the name.
-- Release builds: R8 full mode with resource shrinking, `debuggable=false`, `android.util.Log` calls stripped (`proguard-rules.pro`). The release ABI is arm64-v8a only; 32-bit phones cannot install the app. Nothing is compressed for size: native libraries, the holistic model and the reader weights are stored uncompressed in the APK, and reader weights ship at full float32 precision. Debug builds add x86_64 for the emulator. No app-specific Baseline Profile is generated; it is the next step if cold start on the oldest phone misses its 2 s target.
+- Release builds: R8 full mode with resource shrinking, `debuggable=false`, `android.util.Log` calls stripped (`proguard-rules.pro`). The release ABI is arm64-v8a only; 32-bit phones cannot install the app. Nothing is compressed for size: native libraries, the holistic model and the reader weights are stored uncompressed in the APK, and reader weights ship at full float32 precision. Debug builds add x86_64 for the emulator. No app-specific Baseline Profile is generated.
 - Release APKs are built per ABI set (`./gradlew assembleStandardRelease` universal; `-Pabi=arm64-v8a` phones only) and signed offline with the department key; CI runs unit tests, lint and the permission check on every push.
 
 ## 10. Performance
 
 | Target | Approach |
 | --- | --- |
-| Cold start under 2 s | No work on startup beyond unlocking; content manifest checked once per install |
+| Cold start under 2 s | No work on startup beyond unlocking; content manifest checked once per process, per file, on first use |
 | Preset under 300 ms | The item is logged, then drawn; the camera binds and pinning starts only after the stage's first frame; card images decoded lazily into a 48-entry cache; WebP, OGG and the `.task` model stored uncompressed in the APK |
 | Smooth motion | The character's clock is read only in the draw phase, so animation redraws without recomposition; idle breathing redraws at 20 fps and stops inside a sign window |
-| APK under 100 MB | WebP cards, Opus audio; the vision model (13.7 MB) and MediaPipe's 64-bit native code are the main cost; 0.5.1 signed release APKs: `sign-setu-0.5.1-arm64-v8a.apk` 82,769,883 bytes (78.9 MiB, phones; `-Pabi=arm64-v8a`) and `sign-setu-0.5.1-universal.apk` 109,263,376 bytes (104.2 MiB, arm64-v8a and x86_64). The phone APK is under the 100 MB target; the universal APK, which adds x86_64 for emulators and tablets, does not |
+| APK under 100 MB | WebP cards, Opus audio; the vision model (13.7 MB) and MediaPipe's 64-bit native code are the main cost; 0.5.1 release APKs: `sign-setu-0.5.1-arm64-v8a.apk` 82,769,883 bytes (78.9 MiB, phones; `-Pabi=arm64-v8a`) and `sign-setu-0.5.1-universal.apk` 109,132,509 bytes (104.1 MiB, arm64-v8a and x86_64). The phone APK is under the 100 MB target; the universal APK, which adds x86_64 for emulators and tablets, does not |
 | Memory under 300 MB | Analysis only inside a sign window; the vision model mapped, not copied; a narrative keeps no face points (about 20 MB for 3 minutes); the assistant and the landmark graph are freed on lock, on memory pressure, and (the assistant) while the stage shows |
 
 ## 11. Second screen
