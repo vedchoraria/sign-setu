@@ -493,14 +493,15 @@ class SessionViewModel(
                 }
                 if (current) local.update { it.copy(onStage = null, itemId = null) }
             }
+            // The stage's reader made these words, as this phone's reader makes its own: a reading, not the subject's answer.
             is AnswerBody.Signed -> {
                 val text = body.words.joinToString(" ").take(TEXT_CAP)
                 if (text.isNotBlank()) {
-                    repo.log(sessionId, EventType.ANSWER_SIGNED, EventSource.SUBJECT, lang, text = text, shownId = q, via = via)
+                    repo.log(sessionId, EventType.ANSWER_SIGNED, EventSource.MACHINE, lang, text = text, shownId = q, via = via)
                 }
                 if (body.skeletonPng != null && EvidenceMode.autoCapture.value) {
                     remotePng(body.skeletonPng)?.let { png ->
-                        repo.log(sessionId, EventType.ANSWER_DRAWING, EventSource.SUBJECT, drawingPng = png, shownId = q, via = via, reason = "evidence:skeleton")
+                        repo.log(sessionId, EventType.ANSWER_DRAWING, EventSource.MACHINE, drawingPng = png, shownId = q, via = via, reason = "evidence:skeleton")
                     }
                 }
             }

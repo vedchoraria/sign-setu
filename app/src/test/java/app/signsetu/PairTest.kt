@@ -521,11 +521,14 @@ class PairTest {
         assertNotNull(signedRow)
         assertEquals("police help", signedRow?.text)
         assertEquals("stage", signedRow?.via)
+        // The stage's reader made the reading; only the subject's confirmation makes a meaning theirs.
+        assertEquals(EventSource.MACHINE.name, signedRow?.source)
 
         val drawingRow = dao.rows.value.firstOrNull { it.type == EventType.ANSWER_DRAWING.name }
         assertNotNull(drawingRow)
         assertEquals("evidence:skeleton", drawingRow?.reason)
         assertEquals("stage", drawingRow?.via)
+        assertEquals(EventSource.MACHINE.name, drawingRow?.source)
     }
 
     // 18

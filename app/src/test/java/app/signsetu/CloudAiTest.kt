@@ -1,6 +1,9 @@
 package app.signsetu
 
+import app.signsetu.assistant.Assistant
 import app.signsetu.assistant.CloudAi
+import app.signsetu.assistant.ModelStore
+import app.signsetu.data.content.Language
 import app.signsetu.assistant.Direct
 import app.signsetu.assistant.Notice
 import app.signsetu.net.Http
@@ -157,6 +160,16 @@ class CloudAiTest {
         assertEquals("k", bearer)
         assertTrue(body!!.contains("\"instructions\":\"sys\"") && body.contains("\"input\":\"") && body.contains("\"reasoning\":{\"effort\":\"low\"}"))
         assertFalse(body.contains("Asha"))
+    }
+
+    @Test
+    fun aFailedBackTranslationShowsNoMeaningRatherThanTheOfficersOwnWords() = runBlocking {
+        var n = 0
+        val s = Server { _, _ -> if (n++ == 0) Reply(200, """{"text":"पानी चाहिए?"}""") else Reply(400, "") }
+        val models = ModelStore(android.content.ContextWrapper(null))
+        val suggestion = Assistant(models, ai(s)).suggest("Do you want water?", Language("hi", "हिन्दी", "Hindi", "नमस्ते"))!!
+        assertEquals("पानी चाहिए?", suggestion.caption)
+        assertNull(suggestion.meaning)
     }
 
     @Test

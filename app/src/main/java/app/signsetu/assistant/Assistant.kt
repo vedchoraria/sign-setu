@@ -4,9 +4,10 @@ import androidx.compose.runtime.Immutable
 import app.signsetu.data.content.Language
 import app.signsetu.data.content.isDevanagari
 
-/** A machine-made caption and what it says back in English, so the officer can see a wrong translation before Send. */
+/** A machine-made caption and what it says back in English, so the officer can see a wrong translation before Send.
+ * [meaning] is null when the back-translation failed; the officer's own words are never shown in its place. */
 @Immutable
-data class Suggestion(val caption: String, val meaning: String)
+data class Suggestion(val caption: String, val meaning: String?)
 
 /** The on-device assistant. It only translates the officer's own words into the subject's language and back; it
  * never answers, judges or adds anything, and the officer decides whether the caption is used. */
@@ -21,8 +22,7 @@ class Assistant(private val models: ModelStore, private val cloud: CloudAi? = nu
         if (local != null) return local
         // Only the officer's own sentence goes out; it holds no subject details.
         val caption = cloud?.ask(toLanguage(language), text, emptyList(), 200)?.firstLine() ?: return null
-        val meaning = cloud.ask(BACK_TO_ENGLISH, caption, emptyList(), 120)?.firstLine() ?: text
-        return Suggestion(caption, meaning)
+        return Suggestion(caption, cloud.ask(BACK_TO_ENGLISH, caption, emptyList(), 120)?.firstLine())
     }
 
     private fun toLanguage(language: Language) = translatePrompt(language)

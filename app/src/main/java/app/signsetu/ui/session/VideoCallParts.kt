@@ -28,11 +28,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -49,18 +45,10 @@ import androidx.compose.ui.unit.sp
 import app.signsetu.R
 import app.signsetu.ui.components.CardImage
 import app.signsetu.ui.theme.Baloo
-import kotlinx.coroutines.delay
 
-/** Kept apart from the stage, so the clock's tick and the live dot's pulse redraw only this bar. */
+/** Kept apart from the stage, so the live dot's pulse redraws only this bar. */
 @Composable
 internal fun CallHeader(onBreathe: () -> Unit, modifier: Modifier) {
-    var callSeconds by remember { mutableLongStateOf(0L) }
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(1000L)
-            callSeconds++
-        }
-    }
     val pulseAlpha by rememberInfiniteTransition(label = "pulse").animateFloat(
         initialValue = 0.4f,
         targetValue = 1f,
@@ -99,11 +87,6 @@ internal fun CallHeader(onBreathe: () -> Unit, modifier: Modifier) {
                         )
                         Icon(Icons.Filled.Lock, contentDescription = null, tint = Color(0xFF38BDF8), modifier = Modifier.size(15.dp))
                     }
-                    Text(
-                        text = "%02d:%02d".format(callSeconds / 60, callSeconds % 60),
-                        fontSize = 12.sp,
-                        color = Color(0xFF94A3B8),
-                    )
                 }
             }
             Surface(

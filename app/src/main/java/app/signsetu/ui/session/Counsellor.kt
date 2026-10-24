@@ -69,7 +69,8 @@ class Counsellor(
                 // conversation keeps its pace with the officer watching; Take over cancels the job outright.
                 val go = withTimeoutOrNull(holdMs) { decided.first { it != null } } ?: true
                 if (!go) continue
-                val mark = events.maxOfOrNull { it.id } ?: 0L
+                // Taken at send time: an answer that came in while the line was written answered the line before.
+                val mark = ui.value?.events.orEmpty().maxOfOrNull { it.id } ?: 0L
                 send(line)
                 if (line.handoff) { state.value = Counsel.Paused(Counsel.Why.HANDOFF); return@launch }
                 state.value = Counsel.Waiting

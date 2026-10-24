@@ -13,11 +13,11 @@ import urllib.request
 
 import numpy as np
 
+from eval_video import landmarks as video_landmarks
+
 # Training and evaluation data stay outside the repository.
 DATA_ROOT = pathlib.Path(os.environ.get("SIGNSETU_DATA", "ml-data"))
 
-ROOT = pathlib.Path(__file__).resolve().parents[2]
-MODEL = ROOT / "app" / "src" / "main" / "assets" / "content" / "models" / "holistic_landmarker.task"
 BASE = "https://huggingface.co/datasets/silentone0725/Indian_Sign_Language_Data.gov_Rencoded/resolve/main/"
 DIGITS = {"Z/Zero": "0", "Numbers/1_One": "1", "Numbers/2_Two": "2", "Numbers/3_Three": "3", "Numbers/4_Four": "4",
           "Numbers/5_Five": "5", "Numbers/6_Six": "6", "Numbers/7_Seven": "7", "Numbers/8_Eight": "8", "Numbers/9_Nine": "9"}
@@ -26,30 +26,9 @@ ACRONYMS = {"A/ATM": 1, "B/BMW": 1, "C/CD": 1, "D/DVD": 1, "D/DTP": 2, "G/GST": 
 
 
 def landmarks(path: pathlib.Path) -> dict:
-    import cv2
-    import mediapipe as mp
-    from mediapipe.tasks.python import BaseOptions, vision
-    opts = vision.HolisticLandmarkerOptions(base_options=BaseOptions(model_asset_path=str(MODEL)),
-                                            running_mode=vision.RunningMode.VIDEO)
-    cap = cv2.VideoCapture(str(path))
-    fps = cap.get(cv2.CAP_PROP_FPS)
-    w, h = cap.get(cv2.CAP_PROP_FRAME_WIDTH), cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
-    pose, left, right, hp, hl, hr = [], [], [], [], [], []
-    with vision.HolisticLandmarker.create_from_options(opts) as lm:
-        t = 0
-        while True:
-            ok, frame = cap.read()
-            if not ok:
-                break
-            r = lm.detect_for_video(mp.Image(image_format=mp.ImageFormat.SRGB, data=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)),
-                                    int(t * 1000 / fps))
-            t += 1
-            pts = lambda ps, n: np.array([(p.x, p.y) for p in ps], np.float32) if ps else np.zeros((n, 2), np.float32)
-            pose.append(pts(r.pose_landmarks, 33)), hp.append(bool(r.pose_landmarks))
-            left.append(pts(r.left_hand_landmarks, 21)), hl.append(bool(r.left_hand_landmarks))
-            right.append(pts(r.right_hand_landmarks, 21)), hr.append(bool(r.right_hand_landmarks))
-    return {"fps": fps, "aspect": w / h, "pose": np.stack(pose), "left": np.stack(left), "right": np.stack(right),
-            "has_pose": np.array(hp), "has_left": np.array(hl), "has_right": np.array(hr)}
+    c = video_landmarks(path)
+    return {"fps": c["fps"], "aspect": c["aspect"], **{k: np.stack(c[k]) for k in ("pose", "left", "right")},
+            **{k: np.array(c[k]) for k in ("has_pose", "has_left", "has_right")}}
 
 
 def main(data: pathlib.Path) -> None:

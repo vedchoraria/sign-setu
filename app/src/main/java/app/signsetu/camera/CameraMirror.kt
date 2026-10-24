@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Paint
+import android.os.PowerManager
 import android.util.Log
 import android.util.Size
 import app.signsetu.BuildConfig
@@ -53,6 +54,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.withContext
@@ -114,11 +116,19 @@ fun CameraMirror(
         LaunchedEffect(owner, tracker) { withContext(Dispatchers.Main.immediate) {
             // Opening the camera waits for the stage's first frame, so the question appears first.
             withFrameNanos { }
-            val provider = ProcessCameraProvider.awaitInstance(context)
-            val selector = when {
-                provider.hasCamera(CameraSelector.DEFAULT_FRONT_CAMERA) -> CameraSelector.DEFAULT_FRONT_CAMERA.also { front = true }
-                provider.hasCamera(CameraSelector.DEFAULT_BACK_CAMERA) -> CameraSelector.DEFAULT_BACK_CAMERA.also { front = false }
-                else -> { failed = true; return@withContext }
+            // A camera service that fails to start, or a camera another app holds, shows the placeholder instead of crashing.
+            val (provider, selector) = try {
+                val provider = ProcessCameraProvider.awaitInstance(context)
+                provider to when {
+                    provider.hasCamera(CameraSelector.DEFAULT_FRONT_CAMERA) -> CameraSelector.DEFAULT_FRONT_CAMERA.also { front = true }
+                    provider.hasCamera(CameraSelector.DEFAULT_BACK_CAMERA) -> CameraSelector.DEFAULT_BACK_CAMERA.also { front = false }
+                    else -> { failed = true; return@withContext }
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                failed = true
+                return@withContext
             }
             val preview = Preview.Builder().setResolutionSelector(PREVIEW_RESOLUTION).build().apply { setSurfaceProvider { request = it } }
             val frames = tracker?.let {
@@ -135,7 +145,9 @@ fun CameraMirror(
                 provider.bindToLifecycle(owner, selector, *useCases.toTypedArray())
                 analysis = frames
                 awaitCancellation()
-            } catch (e: IllegalArgumentException) {
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
                 failed = true
             } finally {
                 analysis = null
@@ -156,12 +168,17 @@ fun CameraMirror(
         var lastMs: Long? = null
         var reused: Bitmap? = null
         var busy = false
+        // Heard on the analysis thread, so the analyzer reads it without a lock. Severe heat slows the idle mirror first.
+        var hot = false
+        val power = context.getSystemService(PowerManager::class.java)
+        val thermal = PowerManager.OnThermalStatusChangedListener { hot = it >= PowerManager.THERMAL_STATUS_SEVERE }
+        power?.addThermalStatusListener(executor, thermal)
         a.setAnalyzer(executor) { proxy ->
             proxy.use {
                 val ms = it.imageInfo.timestamp / 1_000_000
                 // An empty room outside a sign window is checked about three times a second, to save battery and heat.
                 val idle = lastPerson.let { seenAt -> seenAt == null || ms - seenAt > IDLE_AFTER_MS }
-                val interval = if (analysing) ANALYSIS_INTERVAL_MS else if (idle) IDLE_INTERVAL_MS else PREVIEW_INTERVAL_MS
+                val interval = if (analysing) ANALYSIS_INTERVAL_MS else if (idle || hot) IDLE_INTERVAL_MS else PREVIEW_INTERVAL_MS
                 if (busy || !analysisDue(lastMs, ms, interval)) return@setAnalyzer
                 lastMs = ms
                 val plane = it.planes[0]
@@ -194,6 +211,7 @@ fun CameraMirror(
             }
         }
         onDispose {
+            power?.removeThermalStatusListener(thermal)
             a.clearAnalyzer()
             executor.execute { reused?.recycle() }
             executor.shutdown()

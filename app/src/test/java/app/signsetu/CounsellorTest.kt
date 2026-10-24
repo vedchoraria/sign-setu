@@ -62,6 +62,20 @@ class CounsellorTest {
     }
 
     @Test
+    fun anAnswerGivenWhileTheLineWasWrittenDoesNotAnswerIt() = runTest {
+        val flow = MutableStateFlow<SessionUi?>(ui(emptyList()))
+        val sent = mutableListOf<String>()
+        val c = Counsellor(this, flow, send = { sent += it.say }, holdMs = 1_000)
+        val late = ui(listOf(ev(5, EventType.ANSWER_CARD, card = "yes")))
+        c.start("system", write = { _, _ -> flow.value = late; """{"say": "Line."}""" }, transcript = { "" })
+        advanceTimeBy(5_000)
+        runCurrent()
+        assertEquals(listOf("Line."), sent)
+        assertEquals(Counsel.Waiting, c.counsel.value)
+        c.takeOver()
+    }
+
+    @Test
     fun aLineWaitsForTheOfficerThenTheAnswerStartsTheNextTurnAndStopHandsBack() = runTest {
         val flow = MutableStateFlow<SessionUi?>(ui(emptyList()))
         val sent = mutableListOf<String>()

@@ -283,6 +283,16 @@ fun Stage(
 
     // The call view is the stage. Items that need more than Yes or No (pictures, numbers, drawing), writing, lessons and the
     // language finder keep their own panels below.
+    // Over the whole stage, so no answer can be tapped during a break; the officer's way out stays above it.
+    // A break can still become a Stop without first ending the pause.
+    val pauseLayer: @Composable () -> Unit = {
+        val stopInPause: (@Composable (Modifier) -> Unit)? = if (ui.answeredCard != "break") null else { m ->
+            val answer = LocalAnswerColors.current
+            SmallAnswer("stop", content.subjectText("stop", lang), stringResource(R.string.stage_stop), answer.pause, answer.onPause, false, { onCard("stop") }, m)
+        }
+        PauseLayer(content.subjectText("ready", lang), onPauseEnd, stop = stopInPause, modifier = Modifier.fillMaxSize().graphicsLayer { rotationZ = if (ui.rotated) 180f else 0f })
+    }
+
     if (!drawing && !writing && pending != Pending.LanguageFinder && choices == null && lesson == null && item.choices.isEmpty() && !item.canDraw) {
         Box(Modifier.fillMaxSize()) {
             VideoCallStage(
@@ -295,9 +305,9 @@ fun Stage(
                 onStartSigning = onStartSigning,
                 onOpenExpressBoard = { showExpressBoard = true },
                 onCue = onCue,
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize().then(if (paused) Modifier.clearAndSetSemantics {} else Modifier),
             )
-            if (showExpressBoard) {
+            if (showExpressBoard && !paused) {
                 FullChildMuteCommunicationBoard(
                     lang = lang,
                     chosenCard = ui.answeredCard,
@@ -306,6 +316,7 @@ fun Stage(
                     tts = tts,
                 )
             }
+            if (paused) pauseLayer()
             onOfficer?.let { OfficerHandle(it, Modifier.align(if (ui.rotated) Alignment.BottomStart else Alignment.TopEnd).safeDrawingPadding()) }
         }
         return
@@ -557,14 +568,8 @@ fun Stage(
                 answerPane(Modifier.weight(1f - topAnimated).fillMaxWidth())
             }
         }
-        // Over the whole stage, so no answer can be tapped during a break; the officer's way out stays above it.
-        // A break can still become a Stop without first ending the pause.
-        val stopInPause: (@Composable (Modifier) -> Unit)? = if (ui.answeredCard != "break") null else { m ->
-            val answer = LocalAnswerColors.current
-            SmallAnswer("stop", content.subjectText("stop", lang), stringResource(R.string.stage_stop), answer.pause, answer.onPause, false, { onCard("stop") }, m)
-        }
-        if (paused) PauseLayer(content.subjectText("ready", lang), onPauseEnd, stop = stopInPause, modifier = Modifier.fillMaxSize().graphicsLayer { rotationZ = if (ui.rotated) 180f else 0f })
-        if (showExpressBoard) {
+        if (paused) pauseLayer()
+        if (showExpressBoard && !paused) {
             FullChildMuteCommunicationBoard(
                 lang = lang,
                 chosenCard = ui.answeredCard,

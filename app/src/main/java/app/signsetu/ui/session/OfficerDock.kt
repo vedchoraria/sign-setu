@@ -171,7 +171,7 @@ internal fun Dock(
                         subjectNames(ui.events, content, officerLang),
                         subjectDetails(ui.events, content, officerLang),
                     )
-                    aiFollowUps = suggestions
+                    aiFollowUps = suggestions.distinct()
                     aiLoadingFollowUps = false
                 }
             }

@@ -1,18 +1,11 @@
 import { useRef, useState, type KeyboardEvent } from "react";
 import { aslGestures, languages } from "./content";
+import { reviewerRoles } from "./missing";
 import { exportJson, keyOf, load, save, type Review } from "./reviews";
 import { IslReview, LanguageReview, WelfareReview } from "./screens";
 import { nextTabIndex } from "./tabs";
 
-// The roles of the sign-off table in the content review record, plus one language reviewer per greeting language.
-const ROLES = [
-  "Child-welfare reviewer",
-  "ISL reviewer",
-  "ASL reviewer",
-  "Language reviewer (English)",
-  ...languages.map((l) => `Language reviewer (${l.english})`),
-  "Content owner",
-];
+const ROLES = reviewerRoles(languages);
 
 const TABS = { isl: "ISL review", asl: "ASL review", language: "Language review", welfare: "Child-welfare review" } as const;
 type Tab = keyof typeof TABS;

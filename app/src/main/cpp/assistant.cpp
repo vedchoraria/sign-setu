@@ -15,10 +15,13 @@ struct Assistant {
     llama_context * ctx = nullptr;
 };
 
+// GetStringUTFChars gives modified UTF-8, which splits characters outside the BMP into surrogates; ask Java for real UTF-8.
 std::string utf8(JNIEnv * env, jstring s) {
-    const char * chars = env->GetStringUTFChars(s, nullptr);
-    std::string out(chars);
-    env->ReleaseStringUTFChars(s, chars);
+    jclass string = env->FindClass("java/lang/String");
+    jmethodID getBytes = env->GetMethodID(string, "getBytes", "(Ljava/lang/String;)[B");
+    auto bytes = static_cast<jbyteArray>(env->CallObjectMethod(s, getBytes, env->NewStringUTF("UTF-8")));
+    std::string out(static_cast<size_t>(env->GetArrayLength(bytes)), '\0');
+    env->GetByteArrayRegion(bytes, 0, static_cast<jsize>(out.size()), reinterpret_cast<jbyte *>(out.data()));
     return out;
 }
 

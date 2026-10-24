@@ -523,9 +523,9 @@
     <string name="call_breathe">साँस लें</string>
     <string name="call_signing">इशारा हो रहा है…</string>
     <string name="call_you">आप</string>
-    <string name="call_live">इशारे: %1$s</string>
     <string name="call_courtesy">कहने के लिए दबाएँ: %1$s</string>
     <string name="call_sign_hint">इशारे से, या सिर हिलाकर हाँ-ना में जवाब दें</string>
+    <string name="call_with_you">हम आपके साथ हैं।</string>
     <string name="call_breath_title">शांति से साँस</string>
     <string name="call_inhale">साँस अंदर</string>
     <string name="call_exhale">साँस बाहर</string>

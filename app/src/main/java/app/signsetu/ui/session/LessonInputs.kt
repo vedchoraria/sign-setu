@@ -384,7 +384,7 @@ private fun PictureChoices(cards: List<String>, content: ContentBundle, lang: St
     val answer = LocalAnswerColors.current
     Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
         LazyVerticalGrid(GridCells.Fixed(3), Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-            items(cards.filter { it in content.cards }, key = { it }) { id ->
+            items(cards.filter { it in content.cards }.distinct(), key = { it }) { id ->
                 ChoiceTile(id, content.cards[id]?.label?.pick(lang), id in picked, { if (!picked.remove(id)) picked += id }, Modifier, name = content.cards[id]?.label?.pick("en"))
             }
         }
