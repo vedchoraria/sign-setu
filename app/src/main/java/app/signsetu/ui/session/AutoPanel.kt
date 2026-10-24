@@ -41,7 +41,6 @@ import app.signsetu.R
 import app.signsetu.data.content.ContentBundle
 import app.signsetu.data.content.Kind
 import app.signsetu.data.content.Phase
-import app.signsetu.data.content.pick
 import app.signsetu.data.session.EventType
 import app.signsetu.data.session.Role as SessionRole
 import app.signsetu.data.session.SessionEvent
@@ -195,8 +194,8 @@ private fun NextCard(p: Proposal, advance: Boolean, auto: AutoPilot, ui: Session
                     Text(stringResource(R.string.conv_source_rule), style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp))
                 }
             }
-            Text(q.text.pick(officerLang) ?: q.id, style = MaterialTheme.typography.titleMedium)
-            val caption = q.text.pick(subjectLang)
+            Text(q.text.get(officerLang) ?: q.id, style = MaterialTheme.typography.titleMedium)
+            val caption = q.text.get(subjectLang)
             if (caption == null) {
                 Text(stringResource(R.string.media_missing, stringResource(R.string.media_caption)), style = MaterialTheme.typography.bodySmall, color = colors.error)
             } else if (subjectLang != officerLang) {
@@ -228,7 +227,7 @@ private fun NextCard(p: Proposal, advance: Boolean, auto: AutoPilot, ui: Session
 private fun reasonText(p: Proposal, content: ContentBundle, officerLang: String): String = when (p.reason) {
     Reason.FOLLOWS_ANSWER -> {
         val ref = p.q.after?.substringBefore(':')?.let(content::question)
-        stringResource(R.string.reason_follows, ref?.text?.pick(officerLang) ?: ref?.id.orEmpty())
+        stringResource(R.string.reason_follows, ref?.text?.get(officerLang) ?: ref?.id.orEmpty())
     }
     Reason.BREAK_AFTER_UNSURE -> stringResource(R.string.reason_unsure_break)
     Reason.CARRY_ON -> stringResource(R.string.reason_carry_on)

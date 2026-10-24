@@ -4,7 +4,7 @@ project(assistant LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# llama.cpp (MIT) v0.5.0, vendored in third_party/llama.cpp so configuring needs no network (SEC-50).
+# llama.cpp (MIT) v0.5.0, vendored in third_party/llama.cpp so configuring needs no network.
 # The commit is fixed here because the build-info script would otherwise read this repository's history.
 set(LLAMA_BUILD_NUMBER 0 CACHE STRING "" FORCE)
 set(LLAMA_BUILD_COMMIT "7fe450e" CACHE STRING "" FORCE)

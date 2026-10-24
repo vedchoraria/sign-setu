@@ -1,7 +1,4 @@
-"""Downloads the INCLUDE pose release (OpenHands, MediaPipe Holistic keypoints) and caches it as normalised landmarks.
-
-    python tools/ml/prepare.py [data_dir]   # default $SIGNSETU_DATA/include_pose
-"""
+"""Downloads the INCLUDE pose release and caches it as normalised landmarks."""
 import csv
 import os
 import pathlib

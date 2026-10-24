@@ -1,19 +1,5 @@
-"""Video files through the chain the app runs: MediaPipe Holistic, the app's sign segmentation, the shipped reader.
-
-This is the measurement behind "sign extraction from video": decode each clip at its own frame rate, track it with the
-same holistic model the app bundles, cut it into signs with the same pause and motion rules (`sign/SignCapture.kt`),
-featurize each sign the way `LandmarkSignReader` does (`features.py`) and score it with the exported NumPy reader, so
-the numbers are what ships rather than what training saw.
-
-Runs in the mediapipe venv (opencv + mediapipe + numpy):
-
-    signsetu-mp/python -I tools/ml/eval_video.py <clip.mp4> [<clip.mp4> ...]
-    signsetu-mp/python -I tools/ml/eval_video.py --dir <folder>          # every .mp4 in it
-
-A clip's expected label comes from a `labels.json` beside it ({"clip.mp4": "word"}), else from its file name
-(`1_One.mp4` is digit 1, `ATM.mp4` is not scored as a word), else it is only transcribed and not scored.
-Words are scored with `sign_reader`; digits and single letters with `isl_spell`, as `SignReaders.kt` decides.
-"""
+"""Video clips through the chain the app runs: Holistic, SignCapture's segmentation rules and the shipped reader,
+so the numbers are what ships. See tools/README.md."""
 import json
 import os
 import pathlib

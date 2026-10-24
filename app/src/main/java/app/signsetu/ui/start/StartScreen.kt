@@ -1,5 +1,7 @@
 package app.signsetu.ui.start
 
+import app.signsetu.ui.session.clockDate
+import app.signsetu.ui.session.clockTime
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -63,7 +65,6 @@ import app.signsetu.ui.session.SYSTEM_JUVENILE
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -107,8 +108,6 @@ import app.signsetu.ui.theme.LocalInk
 import app.signsetu.ui.theme.LocalStageColors
 import app.signsetu.ui.theme.Spacing
 import kotlinx.coroutines.launch
-import java.text.DateFormat
-import java.util.Date
 
 /** Home: the character greets on top; below, one quick choice of who is being helped and in which language. The
  * session itself opens on the stage, with the camera mirror. */
@@ -339,7 +338,7 @@ private fun ResumeCard(session: Session, languageName: String, onResume: () -> U
                         R.string.start_resume_body,
                         stringResource(profileTitle(session.profile)),
                         languageName,
-                        DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(session.startedAt)),
+                        clockTime(session.startedAt),
                     ),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -374,7 +373,7 @@ private fun SavedSessions(repo: SessionRepository, onOpen: (String) -> Unit) {
                     Column(Modifier.weight(1f)) {
                         Text(s.title.orEmpty(), style = MaterialTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
                         Text(
-                            DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(Date(s.endedAt ?: s.startedAt)),
+                            clockDate(s.endedAt ?: s.startedAt),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )

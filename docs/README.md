@@ -201,12 +201,13 @@ flowchart LR
 
 | Level | What runs |
 | --- | --- |
-| Unit (JVM) | Content, translation, signing plans, sign pipeline, record and grades, auto mode, counsellor, pairing protocol and crypto, export integrity, both flavors |
+| Unit (JVM) | Content, translation, signing plans, sign pipeline, record and grades, auto mode, counsellor, pairing protocol and crypto, export integrity, segmentation numbers against the Python evaluator, both flavors |
 | Instrumented | Stage accessibility, overlay touch filter, database migrations, report export on an emulator; the camera and MediaPipe tests on a phone |
 | Portal | Formatting, lint, type checks and tests, including rig parity with `Rig.kt` |
 | Gateway | pytest suite for enrolment, limits, assist proxy, feedback, admin and database tools |
 | Tools | Python unit tests; content manifest and reference checks |
 | Security | Release lint, semgrep, OSV-Scanner on the shipped runtime lockfile, gitleaks |
+| Release record | Each push to `master` keeps the release APK, bundle, CycloneDX SBOM and SHA-256 checksums; the OSV report is kept on every run |
 
 Sign reader accuracy, measured, not targets:
 

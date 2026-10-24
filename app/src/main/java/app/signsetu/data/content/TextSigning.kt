@@ -2,10 +2,6 @@ package app.signsetu.data.content
 
 import androidx.compose.runtime.Immutable
 import java.text.Normalizer
-import app.signsetu.ui.avatar.Gesture
-import app.signsetu.ui.avatar.Key
-import app.signsetu.ui.avatar.QuestionKind
-import app.signsetu.ui.avatar.chain
 import kotlinx.serialization.Serializable
 
 /** What the character does with typed text; the officer turns each one on or off. TYPED_ORDER is set by Settings, not shown as a chip. */

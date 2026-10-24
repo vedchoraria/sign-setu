@@ -42,11 +42,11 @@ import app.signsetu.pair.encodeToOfficer
 import app.signsetu.pair.fits
 import app.signsetu.pair.officerHandshake
 import app.signsetu.pair.readPlain
-import app.signsetu.pair.resolve
+import app.signsetu.ui.pair.resolve
 import app.signsetu.pair.sha256
 import app.signsetu.pair.stageHandshake
-import app.signsetu.pair.toStageView
-import app.signsetu.pair.toWire
+import app.signsetu.ui.pair.toStageView
+import app.signsetu.ui.pair.toWire
 import app.signsetu.pair.writePlain
 import app.signsetu.ui.session.Mode
 import app.signsetu.ui.session.Pending

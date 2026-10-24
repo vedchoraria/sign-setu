@@ -1,8 +1,6 @@
 package app.signsetu.data.content
 
 import androidx.compose.runtime.Immutable
-import app.signsetu.ui.avatar.Gesture
-import app.signsetu.ui.avatar.Key
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 

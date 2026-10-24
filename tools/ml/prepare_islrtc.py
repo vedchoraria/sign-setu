@@ -1,10 +1,4 @@
-"""Real-signer ISL letters and digits for evaluation only (never shipped): clips from the ISLRTC Indian Sign Language
-Dictionary (data.gov.in, Government Open Data Licence India; huggingface.co/datasets/silentone0725/
-Indian_Sign_Language_Data.gov_Rencoded, MIT). The dictionary has no clip per letter, so letters come from acronyms it
-fingerspells (ATM, DVD, ...); digits are its 0 to 9 clips. Landmarks by the app's Holistic model at the full 25 fps.
-Runs in the mediapipe venv:
-    python -I tools/ml/prepare_islrtc.py [data_dir]   # default $SIGNSETU_DATA/islrtc -> islrtc.pkl
-"""
+"""Evaluation-only ISLRTC dictionary digits and fingerspelled acronyms, landmarked by the app's Holistic model."""
 import os
 import pathlib
 import pickle

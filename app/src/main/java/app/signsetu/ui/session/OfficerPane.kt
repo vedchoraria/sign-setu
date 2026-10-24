@@ -50,11 +50,8 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.listSaver
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -79,7 +76,6 @@ import app.signsetu.data.content.Question
 import app.signsetu.data.content.SignLanguage
 import app.signsetu.data.content.SignMode
 import app.signsetu.data.content.forSignLanguage
-import app.signsetu.data.content.pick
 import app.signsetu.data.content.toHindi
 import androidx.compose.runtime.LaunchedEffect
 import kotlinx.coroutines.delay
@@ -98,7 +94,7 @@ import java.io.File
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Tab
 import app.signsetu.sign.SignWindow
-import app.signsetu.pair.PairedPane
+import app.signsetu.ui.pair.PairedPane
 import app.signsetu.ui.pair.PairedBar
 import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
@@ -272,7 +268,7 @@ fun OfficerPane(
             Tool.DRAW -> { vm.prepare(Pending.Drawing); page = 0 }
             Tool.LANGUAGE -> { vm.prepare(Pending.LanguageFinder); page = 0 }
             Tool.RULES -> { vm.prepare(Pending.GroundRules()); page = 0 }
-            Tool.DICTIONARY -> sheet = Sheet.DICTIONARY // ISL hook: IslDictionarySheet.kt
+            Tool.DICTIONARY -> sheet = Sheet.DICTIONARY
         }
     }
 
@@ -574,11 +570,11 @@ private fun typedModes(modes: List<SignMode>, islReorder: Boolean) = if (islReor
 
 @Composable
 internal fun describe(p: Pending, content: ContentBundle, lang: String): String = when (p) {
-    is Pending.Ask -> p.question.text.pick(lang) ?: p.question.id
+    is Pending.Ask -> p.question.text.get(lang) ?: p.question.id
     is Pending.FreeText -> if (p.cardIds.isEmpty()) p.text else "${p.text}  ·  ${pluralStringResource(R.plurals.officer_pictures, p.cardIds.size, p.cardIds.size)}"
-    is Pending.Cards -> p.cardIds.joinToString { content.cards[it]?.label?.pick(lang) ?: it }
-    is Pending.ShowBack -> "${stringResource(R.string.officer_gesture)}: ${p.entry.label.pick(lang) ?: p.entry.id}"
-    is Pending.PhraseAsk -> p.slot.text.pick(lang) ?: p.slot.card
+    is Pending.Cards -> p.cardIds.joinToString { content.cards[it]?.label?.get(lang) ?: it }
+    is Pending.ShowBack -> "${stringResource(R.string.officer_gesture)}: ${p.entry.label.get(lang) ?: p.entry.id}"
+    is Pending.PhraseAsk -> p.slot.text.get(lang) ?: p.slot.card
     Pending.LanguageFinder -> stringResource(R.string.officer_find_language)
     Pending.Drawing -> stringResource(R.string.officer_draw)
     is Pending.GroundRules -> stringResource(R.string.officer_rules)

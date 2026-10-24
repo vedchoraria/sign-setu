@@ -3,9 +3,10 @@ package app.signsetu.ui.session
 import android.content.res.Resources
 import app.signsetu.R
 import app.signsetu.data.content.ContentBundle
-import app.signsetu.data.content.pick
 import app.signsetu.data.session.EventType
 import app.signsetu.data.session.SessionEvent
+import java.text.DateFormat
+import java.util.Date
 
 fun Grade.label() = when (this) {
     Grade.SAID -> R.string.grade_said
@@ -20,6 +21,12 @@ fun Grade.label() = when (this) {
 val Grade.isReading: Boolean get() = this == Grade.OFFICER_READ || this == Grade.MACHINE_READ
 
 private fun seconds(ms: Long) = (ms / 1000).toInt()
+
+/** A time of day as the phone writes it, such as 4:05 pm. */
+fun clockTime(ms: Long): String = DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(ms))
+
+/** A date and time as the phone writes them. */
+fun clockDate(ms: Long): String = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(Date(ms))
 
 fun durationText(res: Resources, ms: Long): String =
     seconds(ms).let { s -> if (s < 60) res.getString(R.string.trail_seconds, s) else res.getString(R.string.trail_minutes, s / 60, s % 60) }
@@ -36,7 +43,7 @@ fun promptText(res: Resources, content: ContentBundle, lang: String, r: PromptRe
         R.string.prompt_detail,
         r.caption?.replace('\n', ' ') ?: none,
         r.motions.joinToString().ifEmpty { none },
-        r.cards.joinToString { content.cards[it]?.label?.pick(lang) ?: it }.ifEmpty { none },
+        r.cards.joinToString { content.cards[it]?.label?.get(lang) ?: it }.ifEmpty { none },
         r.content,
     )
 }

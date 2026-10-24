@@ -1,14 +1,5 @@
-"""Exports consented feedback labels as JSON Lines for the model pipeline.
-
-Usage:
-    DATABASE_URL=... python tools/export_feedback.py                  # every label, to stdout
-    DATABASE_URL=... python tools/export_feedback.py --out labels.jsonl
-    DATABASE_URL=... python tools/export_feedback.py --since 2026-10-01
-
-One object per line, oldest first: id, at, predicted, outcome, confirmed, model_version.
-The device id is deliberately left out, so a training set cannot be tied back to a phone.
-The tool never changes or deletes a label; stdout carries the rows and the count goes to stderr.
-"""
+"""Exports consented feedback labels as JSON Lines, oldest first, without device ids; never changes a label.
+Usage is in backend/README.md."""
 import argparse
 import json
 import os

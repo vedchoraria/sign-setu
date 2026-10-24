@@ -1,7 +1,6 @@
 package app.signsetu.ui.session
 
 import app.signsetu.data.content.ContentBundle
-import app.signsetu.data.content.pick
 import app.signsetu.data.session.EventSource
 import app.signsetu.data.session.EventType
 import app.signsetu.data.session.SessionEvent
@@ -38,9 +37,8 @@ sealed interface Counsel {
     enum class Why { STOP, HANDOFF, NO_REPLY, LIMIT }
 }
 
-/** The AI counsellor, on a paired second screen or this phone's stage. The officer's phone writes each turn
- * with the online assistant and shows it before it goes out; the officer can send it, skip it, or take over.
- * It starts only for a victim: the role must be set, and changing it away from victim stops the counsellor. */
+/** The AI counsellor: each line is written by the online assistant and shown to the officer before it goes out.
+ * Only for a victim or witness; any other role stops it. */
 class Counsellor(
     private val scope: CoroutineScope,
     private val ui: StateFlow<SessionUi?>,
@@ -119,7 +117,7 @@ private const val MAX_SAY = 160
  * officer's as officer, so the model reads the conversation in order rather than as a wall of lines. */
 fun counselHistory(events: List<SessionEvent>, content: ContentBundle): String = buildJsonArray {
     events.forEach { e ->
-        val card = e.cardId?.let { id -> content.cards[id]?.label?.pick("en") ?: id }
+        val card = e.cardId?.let { id -> content.cards[id]?.label?.get("en") ?: id }
         val turn = when {
             e.type == EventType.QUESTION_SHOWN -> (if (e.reason == SHOWN_AI) "assistant" else "officer") to e.text
             e.type == EventType.ANSWER_SIGNED -> "user" to signedWords(e.text)?.let { "(signed, unconfirmed) $it" }

@@ -18,10 +18,10 @@ import app.signsetu.data.content.search
 import app.signsetu.data.content.signBack
 import app.signsetu.ui.avatar.AdultBuild
 import app.signsetu.ui.avatar.ChildBuild
-import app.signsetu.ui.avatar.Gesture
-import app.signsetu.ui.avatar.HandKey
+import app.signsetu.data.content.Gesture
+import app.signsetu.data.content.HandKey
 import app.signsetu.ui.avatar.HandShape
-import app.signsetu.ui.avatar.Key
+import app.signsetu.data.content.Key
 import app.signsetu.ui.avatar.Timeline
 import app.signsetu.ui.avatar.handShape
 import kotlinx.serialization.json.Json

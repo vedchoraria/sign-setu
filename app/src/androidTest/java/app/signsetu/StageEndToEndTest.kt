@@ -26,7 +26,6 @@ import androidx.test.platform.app.InstrumentationRegistry
 import app.signsetu.camera.LandmarkFrame
 import app.signsetu.camera.LandmarkTracker
 import app.signsetu.camera.SkeletonOverlay
-import app.signsetu.data.content.pick
 import app.signsetu.data.session.EventType
 import app.signsetu.data.session.Profile
 import app.signsetu.data.session.SessionDatabase
@@ -127,7 +126,7 @@ class StageEndToEndTest {
         rule.onNodeWithContentDescription(str(R.string.officer_show)).performClick()
 
         // 2. On the stage the subject taps a picture, then No; neither follows a gesture. Four of six pictures show, shuffled.
-        val pictures = h1.cards.associateWith { hasContentDescription(content.cards.getValue(it).label.pick("en")!!) }
+        val pictures = h1.cards.associateWith { hasContentDescription(content.cards.getValue(it).label.get("en")!!) }
         rule.waitUntil(15_000) { pictures.values.any { count(it) == 1 } }
         val (picked, picture) = pictures.entries.first { count(it.value) == 1 }
         rule.onNode(picture).performClick()

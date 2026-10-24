@@ -1,11 +1,5 @@
-"""Retargets INCLUDE signers' MediaPipe Holistic landmarks onto the app's 2D rig: writes isl_signs.json.
-
-For each word the cleanest recording is picked, smoothed, normalised to the signer's shoulders and face, and turned
-into gestures.json keyframes (anchor plus dx/dy, per-finger curls, palm roll and hand angle). Draft until ISL review.
-    python tools/isl/retarget.py [data_dir]   # default $SIGNSETU_DATA/include_pose
-    python tools/content/build_content.py --manifest-only
-INCLUDE (AI4Bharat, Sridhar et al. 2020), OpenHands pose release zenodo.org/records/6674324, CC BY 4.0.
-"""
+"""Retargets INCLUDE signers' Holistic landmarks onto the app's rig into isl_signs.json; drafts until ISL review.
+Usage and licences are in tools/isl/README.md."""
 import json
 import math
 import os

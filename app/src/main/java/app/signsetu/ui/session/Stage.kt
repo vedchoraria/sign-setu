@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.animateFloatAsState
@@ -63,10 +62,9 @@ import app.signsetu.R
 import app.signsetu.camera.CameraMirror
 import app.signsetu.camera.LandmarkTracker
 import app.signsetu.data.content.ContentBundle
-import app.signsetu.data.content.pick
 import app.signsetu.data.content.planText
 import app.signsetu.ui.avatar.Timeline
-import app.signsetu.ui.avatar.chain
+import app.signsetu.data.content.chain
 import app.signsetu.data.content.signBack
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableFloatStateOf
@@ -101,7 +99,7 @@ fun readBackLabels(ui: SessionUi): List<String> {
     }
 }
 
-/** Profiles whose subjects hear the questions without the officer pressing play (03-ux §3). */
+/** Profiles whose subjects hear the questions without the officer pressing play. */
 private val AutoSpeech = setOf(Profile.YOUNG_CHILD, Profile.OTHER_LANGUAGE)
 
 /** A No to a reading of the subject's own answer gives them their own way to say it again, never a dead end. */
@@ -178,8 +176,6 @@ fun Stage(
     LaunchedEffect(ui.answeredCard, ui.answeredYes) { reacting = answered }
     val paused = ui.answeredCard in PauseCards
     val context = LocalContext.current
-    val tts = remember(context) { ChildSpeechSynthesizer(context) }
-    DisposableEffect(tts) { onDispose { tts.shutdown() } }
     var showExpressBoard by rememberSaveable { mutableStateOf(false) }
 
     // A young child is not startled by a buzz in the hand.
@@ -241,7 +237,7 @@ fun Stage(
         gestureId != null -> content.gestures[gestureId]
         pending is Pending.PhraseAsk -> content.gestureFor(pending.phrase, pending.slot)
         pending is Pending.FreeText -> plan?.gesture ?: content.gestures["ask"]
-        pending is Pending.Ask -> content.gestureFor(pending.question) // ISL hook: signed through the lexicon
+        pending is Pending.Ask -> content.gestureFor(pending.question)
         else -> null
     }
     // Follows the character through typed text, so the word being signed is lit and its picture or letters shown.
@@ -281,8 +277,6 @@ fun Stage(
         else -> item.caption
     }
 
-    // The call view is the stage. Items that need more than Yes or No (pictures, numbers, drawing), writing, lessons and the
-    // language finder keep their own panels below.
     // Over the whole stage, so no answer can be tapped during a break; the officer's way out stays above it.
     // A break can still become a Stop without first ending the pause.
     val pauseLayer: @Composable () -> Unit = {
@@ -293,6 +287,7 @@ fun Stage(
         PauseLayer(content.subjectText("ready", lang), onPauseEnd, stop = stopInPause, modifier = Modifier.fillMaxSize().graphicsLayer { rotationZ = if (ui.rotated) 180f else 0f })
     }
 
+    // The call view is the stage; pictures, drawing, writing, lessons and the language finder keep their own panels.
     if (!drawing && !writing && pending != Pending.LanguageFinder && choices == null && lesson == null && item.choices.isEmpty() && !item.canDraw) {
         Box(Modifier.fillMaxSize()) {
             VideoCallStage(
@@ -309,11 +304,11 @@ fun Stage(
             )
             if (showExpressBoard && !paused) {
                 FullChildMuteCommunicationBoard(
+                    content = content,
                     lang = lang,
                     chosenCard = ui.answeredCard,
                     onCard = { id -> onCard(id); reacting = true },
                     onDismiss = { showExpressBoard = false },
-                    tts = tts,
                 )
             }
             if (paused) pauseLayer()
@@ -409,7 +404,7 @@ fun Stage(
                         key(shownCard) {
                             HeldCard(
                                 shownCard,
-                                content.cards[shownCard]?.label?.pick(lang),
+                                content.cards[shownCard]?.label?.get(lang),
                                 Modifier.align(Alignment.CenterEnd).padding(end = Spacing.lg).popIn(rememberPopIn(0)),
                             )
                         }
@@ -417,7 +412,7 @@ fun Stage(
                         key(id) {
                             HeldCard(
                                 id,
-                                content.cards[id]?.label?.pick(lang),
+                                content.cards[id]?.label?.get(lang),
                                 Modifier.align(Alignment.CenterEnd).padding(end = Spacing.lg).popIn(rememberPopIn(150)),
                             )
                         }
@@ -571,6 +566,7 @@ fun Stage(
         if (paused) pauseLayer()
         if (showExpressBoard && !paused) {
             FullChildMuteCommunicationBoard(
+                content = content,
                 lang = lang,
                 chosenCard = ui.answeredCard,
                 onCard = { id ->
@@ -578,7 +574,6 @@ fun Stage(
                     reacting = true
                 },
                 onDismiss = { showExpressBoard = false },
-                tts = tts,
             )
         }
         onOfficer?.let { OfficerHandle(it, Modifier.align(if (ui.rotated) Alignment.BottomStart else Alignment.TopEnd).safeDrawingPadding()) }
@@ -597,11 +592,11 @@ internal class StageItem(
 
 internal fun describeItem(pending: Pending?, content: ContentBundle, lang: String): StageItem {
     val (caption, cards) = when (pending) {
-        is Pending.Ask -> pending.question.text.pick(lang) to pending.question.cards
+        is Pending.Ask -> pending.question.text.get(lang) to pending.question.cards
         is Pending.FreeText -> (pending.caption ?: pending.text) to pending.cardIds
         is Pending.Cards -> null to pending.cardIds
         is Pending.ShowBack -> content.subjectText("is_this_it", lang) to pending.choices.takeIf { pending.asksChoice }.orEmpty()
-        is Pending.PhraseAsk -> pending.slot.text.pick(lang) to listOf(pending.slot.card)
+        is Pending.PhraseAsk -> pending.slot.text.get(lang) to listOf(pending.slot.card)
         is Pending.GroundRules -> ruleStep(pending)?.let { ruleText(content, it.key, lang) } to
             if (isPractice(pending)) listOf("draw") else listOfNotNull(ruleStep(pending)?.card)
         else -> null to emptyList()

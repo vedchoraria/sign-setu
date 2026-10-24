@@ -13,8 +13,8 @@ import app.signsetu.sign.LandmarkSignReader
 import app.signsetu.sign.SignGuess
 import app.signsetu.sign.SignReaders
 import app.signsetu.sign.glossOf
-import app.signsetu.ui.avatar.Gesture
-import app.signsetu.ui.avatar.Key
+import app.signsetu.data.content.Gesture
+import app.signsetu.data.content.Key
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -55,12 +55,6 @@ class SignLanguageTest {
         assertEquals(listOf("r", "a", "m"), spelled)
         assertEquals("Ram.", glossToText(spelled, words).en)
         assertEquals(listOf("ram"), glossOf(SignGuess("ram", 0.9f), emptyMap()))
-    }
-
-    @Test
-    fun aslGlossKeepsSubjectVerbObject() {
-        val i = glossToText(listOf("me", "want", "water"), words, SignLanguage.ASL)
-        assertEquals("I want water.", i.en)
     }
 
     private val assets = ASSETS

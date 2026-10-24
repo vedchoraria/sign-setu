@@ -1,10 +1,4 @@
-"""Synthesises Holistic landmarks for the ISL two-handed alphabet and digits from the app's own keyframes (signs.json).
-
-No redistributable ISL fingerspelling landmark set was found (the public ones are CC BY-NC), so the letters and digits
-the character signs are posed on a Python copy of the rig (Rig.kt), turned into 21-point hands and the arm points of the
-pose, and jittered. The model trained on it is labelled synthetic.
-    python tools/ml/synth_isl.py [out.pkl] [per_class]   # default $SIGNSETU_DATA/isl_spell/isl_spell.pkl
-"""
+"""Synthetic Holistic landmarks for the ISL alphabet and digits, posed from signs.json on a Python copy of the rig."""
 import json
 import math
 import os

@@ -1,5 +1,6 @@
 package app.signsetu.ui.pair
 
+import app.signsetu.ui.session.clockTime
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,14 +28,11 @@ import androidx.compose.ui.unit.dp
 import app.signsetu.R
 import app.signsetu.data.content.ContentBundle
 import app.signsetu.pair.LinkState
-import app.signsetu.pair.PairedPane
 import app.signsetu.ui.session.AnswerEvents
 import app.signsetu.ui.session.Mode
 import app.signsetu.ui.session.SessionUi
 import app.signsetu.ui.session.describe
 import app.signsetu.ui.theme.Spacing
-import java.text.DateFormat
-import java.util.Date
 
 /** Above the officer's page while paired: the device, what is on it, the last answer, and any alert. */
 @Composable
@@ -71,7 +69,7 @@ fun PairedBar(pane: PairedPane, ui: SessionUi, content: ContentBundle, officerLa
         }
         if (pane.breakPending) Alert(stringResource(R.string.second_screen_break), stringResource(R.string.second_screen_break_given) to pane.onBreakGiven)
         pane.askedAt?.let {
-            Text(stringResource(R.string.second_screen_asked_before, DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(it))), style = MaterialTheme.typography.bodySmall, color = colors.tertiary)
+            Text(stringResource(R.string.second_screen_asked_before, clockTime(it)), style = MaterialTheme.typography.bodySmall, color = colors.tertiary)
         }
         if (ui.mode == Mode.SHOW) {
             Surface(shape = MaterialTheme.shapes.medium, color = colors.primaryContainer, contentColor = colors.onPrimaryContainer) {

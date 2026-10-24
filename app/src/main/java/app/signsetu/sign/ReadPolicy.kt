@@ -35,12 +35,9 @@ fun decideRead(
     return SignSegment(frames, guesses, needsSlower(frames, all), cards)
 }
 
-/** A whole sign window as words, one per sign: each sign's best guess for the item on screen, "?" where none was read. */
-fun readWindow(frames: List<LandmarkFrame>, reader: SignReader?, cards: Set<String>, words: Map<String, WordEntry>): List<String> {
-    val capture = SignCapture()
-    val signs = frames.flatMap(capture::add) + capture.finish()
-    return signs.map { sign ->
+/** The signs of one window as words, one per sign: each sign's best guess for the item on screen, "?" where none was read. */
+fun readSigns(signs: List<List<LandmarkFrame>>, reader: SignReader?, cards: Set<String>, words: Map<String, WordEntry>): List<String> =
+    signs.map { sign ->
         val all = reader?.let { r -> runCatching { r.read(sign) }.getOrNull() }.orEmpty().sortedByDescending { it.score }
         decideRead(sign, all, null, cards, reader?.words.orEmpty(), words, reader?.cards.orEmpty()).word ?: "?"
     }
-}

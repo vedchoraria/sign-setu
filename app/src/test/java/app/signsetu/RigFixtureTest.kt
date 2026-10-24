@@ -2,7 +2,7 @@ package app.signsetu
 
 import app.signsetu.ui.avatar.AdultBuild
 import app.signsetu.ui.avatar.ChildBuild
-import app.signsetu.ui.avatar.Gesture
+import app.signsetu.data.content.Gesture
 import app.signsetu.ui.avatar.HandPose
 import app.signsetu.ui.avatar.Pose
 import app.signsetu.ui.avatar.Side

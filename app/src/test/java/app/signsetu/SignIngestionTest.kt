@@ -1,7 +1,9 @@
 package app.signsetu
 
 import androidx.compose.ui.geometry.Offset
+import app.signsetu.camera.BlurMeter
 import app.signsetu.camera.LandmarkFrame
+import app.signsetu.camera.laplacianVariance
 import app.signsetu.data.content.WordEntry
 import app.signsetu.sign.SignCapture
 import app.signsetu.sign.SignChoice
@@ -10,13 +12,14 @@ import app.signsetu.sign.SignReader
 import app.signsetu.sign.SignSegment
 import app.signsetu.sign.SignWindow
 import app.signsetu.sign.cardFor
+import app.signsetu.sign.decideRead
 import app.signsetu.sign.inContext
 import app.signsetu.sign.needsSlower
-import app.signsetu.sign.parseSignWords
-import app.signsetu.sign.decideRead
 import app.signsetu.sign.parseSignCards
-import app.signsetu.sign.readWindow
+import app.signsetu.sign.parseSignWords
+import app.signsetu.sign.readSigns
 import app.signsetu.sign.signChoices
+import java.io.File
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonArray
@@ -27,7 +30,6 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.io.File
 
 class SignIngestionTest {
     private val content = ASSETS
@@ -52,9 +54,10 @@ class SignIngestionTest {
             override val labels = listOf("water", "help", "pain", "food")
             override fun read(frames: List<LandmarkFrame>) = labels.mapIndexed { i, w -> SignGuess(w, 0.4f - i * 0.1f) }
         }
-        val frames = stream(moving(15) + still(15) + moving(15) + gone(40))
-        assertEquals(listOf("water", "water"), readWindow(frames, reader, emptySet(), words))
-        assertEquals(listOf("?", "?"), readWindow(frames, null, emptySet(), words))
+        val capture = SignCapture()
+        val signs = stream(moving(15) + still(15) + moving(15) + gone(40)).flatMap(capture::add) + capture.finish()
+        assertEquals(listOf("water", "water"), readSigns(signs, reader, emptySet(), words))
+        assertEquals(listOf("?", "?"), readSigns(signs, null, emptySet(), words))
     }
 
     @Test
@@ -160,5 +163,43 @@ class SignIngestionTest {
         val core = listOf("yes", "no", "water", "pain", "toilet", "home", "mother", "father", "police", "help", "stop", "don't know")
         val missing = core.filter { w -> words[w]?.let { it !in known } ?: (w !in labels) }
         assertEquals(listOf("yes", "no", "water", "pain", "help", "stop", "don't know"), missing)
+    }
+
+    private val hand = List(21) { androidx.compose.ui.geometry.Offset(0.5f, 0.5f) }
+    private fun frames(gap: Long, blurry: Boolean = false) = List(10) { LandmarkFrame(it * gap, rightHand = hand, blurry = blurry) }
+    private val weak = listOf(SignGuess("water", 0.1f))
+
+    @Test
+    fun smearedOrSlowPicturesAskForSlowerSigning() {
+        assertFalse(decideRead(frames(33), weak, null, emptySet(), emptyMap(), emptyMap()).slower)
+        assertTrue(decideRead(frames(33, blurry = true), weak, null, emptySet(), emptyMap(), emptyMap()).slower)
+        assertTrue(decideRead(frames(200), weak, null, emptySet(), emptyMap(), emptyMap()).slower)
+    }
+
+    @Test
+    fun aSureReadIsNeverBlamedOnThePicture() {
+        val sure = listOf(SignGuess("water", 0.9f))
+        assertFalse(decideRead(frames(33, blurry = true), sure, null, emptySet(), emptyMap(), emptyMap()).slower)
+    }
+
+    @Test
+    fun homeSignComesFirstAndCandidatesStopAtThree() {
+        val all = listOf("a", "b", "c", "d").map { SignGuess(it, 0.5f) }
+        val seg = decideRead(frames(33), all, SignGuess("home", 1f), emptySet(), emptyMap(), emptyMap())
+        assertEquals(listOf("home", "a", "b"), seg.guesses!!.map { it.word })
+    }
+
+    @Test
+    fun edgesReadSharpAndSmearReadsBlurry() {
+        val w = 32
+        val sharp = IntArray(w * w) { if (it % w % 3 == 0) 0xFFFFFF else 0 }
+        val flat = IntArray(w * w) { 0x808080 }
+        val s = laplacianVariance(sharp, w, w)
+        assertTrue(s > 1000f)
+        assertEquals(0f, laplacianVariance(flat, w, w), 1e-3f)
+        val m = BlurMeter()
+        assertFalse(m.judge(s))
+        assertTrue(m.judge(s * 0.1f))
+        assertFalse("flat scene alone is not blur", BlurMeter().judge(1f))
     }
 }

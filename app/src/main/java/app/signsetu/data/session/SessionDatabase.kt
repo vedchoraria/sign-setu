@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.Flow
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-// No table has a field for a subject's name, address, phone number or photograph (02-architecture §6). The
+// No table has a field for a subject's name, address, phone number or photograph. The
 // officer's own name for a saved session is free text and may hold one; it is encrypted like every row.
 
 @Entity(tableName = "session")

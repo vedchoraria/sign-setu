@@ -3,11 +3,9 @@ package app.signsetu.ui.session
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.signsetu.data.content.ContentBundle
-import app.signsetu.data.content.Question
 import app.signsetu.data.content.SignLanguage
 import app.signsetu.data.content.SignMode
 import app.signsetu.data.content.glossToText
-import app.signsetu.data.content.pick
 import app.signsetu.data.session.EventSource
 import app.signsetu.data.session.EventType
 import app.signsetu.data.session.Profile
@@ -354,7 +352,7 @@ class SessionViewModel(
         }
     }
 
-    private fun label(c: SignChoice) = c.card?.let { content.cards[it]?.label?.pick(officerLang) } ?: c.text
+    private fun label(c: SignChoice) = c.card?.let { content.cards[it]?.label?.get(officerLang) } ?: c.text
 
     private suspend fun logChoices(choices: List<SignChoice>) {
         val prompt = content.subjectText("is_this_it", officerLang)
@@ -405,7 +403,7 @@ class SessionViewModel(
             )
             is Pending.Ask -> repo.log(
                 sessionId, EventType.QUESTION_SHOWN, EventSource.PRESET, lang,
-                text = pending.question.text.pick(officerLang), lexiconId = pending.question.lexicon,
+                text = pending.question.text.get(officerLang), lexiconId = pending.question.lexicon,
                 itemId = pending.question.id, reason = shownReason(content, pending.question, lang),
             )
             // A machine-made caption is logged next to the officer's own words, so the record shows both.
@@ -415,15 +413,15 @@ class SessionViewModel(
             )
             is Pending.Cards -> repo.log(
                 sessionId, EventType.QUESTION_SHOWN, EventSource.BOARD, lang,
-                text = pending.cardIds.joinToString { id -> content.cards[id]?.label?.pick(officerLang) ?: id },
+                text = pending.cardIds.joinToString { id -> content.cards[id]?.label?.get(officerLang) ?: id },
             )
             is Pending.ShowBack -> repo.log(
                 sessionId, EventType.QUESTION_SHOWN, EventSource.SHOW_BACK, lang,
-                text = pending.entry.label.pick(officerLang), cardId = pending.entry.card, lexiconId = pending.entry.id,
+                text = pending.entry.label.get(officerLang), cardId = pending.entry.card, lexiconId = pending.entry.id,
             )
             is Pending.PhraseAsk -> repo.log(
                 sessionId, EventType.QUESTION_SHOWN, EventSource.PHRASE, lang,
-                text = pending.slot.text.pick(officerLang), cardId = pending.slot.card,
+                text = pending.slot.text.get(officerLang), cardId = pending.slot.card,
             )
             Pending.LanguageFinder -> repo.log(sessionId, EventType.SYSTEM, EventSource.OFFICER, text = SYSTEM_LANGUAGE_FINDER)
             Pending.Drawing -> repo.log(sessionId, EventType.SYSTEM, EventSource.OFFICER, text = SYSTEM_DRAWING)
@@ -458,14 +456,14 @@ class SessionViewModel(
         when (body) {
             is AnswerBody.Card -> {
                 if (!logChecked(shown[itemId], body.id, null, q, via)) {
-                    repo.log(sessionId, EventType.ANSWER_CARD, EventSource.SUBJECT, lang, text = content.cards[body.id]?.label?.pick(lang), cardId = body.id, shownId = q, via = via, reason = body.cue?.let { "cue:$it" })
+                    repo.log(sessionId, EventType.ANSWER_CARD, EventSource.SUBJECT, lang, text = content.cards[body.id]?.label?.get(lang), cardId = body.id, shownId = q, via = via, reason = body.cue?.let { "cue:$it" })
                 }
                 if (current) local.update { it.copy(answeredCard = body.id, answeredYes = null) }
             }
             is AnswerBody.YesNo -> {
                 if (!logChecked(shown[itemId], null, body.yes, q, via)) {
                     val id = if (body.yes) "yes" else "no"
-                    repo.log(sessionId, EventType.ANSWER_CARD, EventSource.SUBJECT, lang, text = content.cards[id]?.label?.pick(lang), cardId = id, shownId = q, via = via, reason = body.cue?.let { "cue:$it" })
+                    repo.log(sessionId, EventType.ANSWER_CARD, EventSource.SUBJECT, lang, text = content.cards[id]?.label?.get(lang), cardId = id, shownId = q, via = via, reason = body.cue?.let { "cue:$it" })
                 }
                 if (current) local.update { it.copy(answeredYes = body.yes, answeredCard = null) }
             }
@@ -551,7 +549,7 @@ class SessionViewModel(
             if (!logChecked(item, cardId, null, local.value.itemId)) {
                 repo.log(
                     sessionId, EventType.ANSWER_CARD, EventSource.SUBJECT, officerLang,
-                    text = content.cards[cardId]?.label?.pick(officerLang), cardId = cardId, shownId = local.value.itemId,
+                    text = content.cards[cardId]?.label?.get(officerLang), cardId = cardId, shownId = local.value.itemId,
                     reason = cue?.let { "cue:$it" },
                 )
             }
@@ -574,7 +572,7 @@ class SessionViewModel(
         viewModelScope.launch {
             if (!logChecked(pending, null, yes, local.value.itemId)) {
                 val id = if (yes) "yes" else "no"
-                repo.log(sessionId, EventType.ANSWER_CARD, EventSource.SUBJECT, officerLang, text = content.cards[id]?.label?.pick(officerLang), cardId = id, shownId = local.value.itemId, reason = cue?.let { "cue:$it" })
+                repo.log(sessionId, EventType.ANSWER_CARD, EventSource.SUBJECT, officerLang, text = content.cards[id]?.label?.get(officerLang), cardId = id, shownId = local.value.itemId, reason = cue?.let { "cue:$it" })
             }
             if (advancesRun(pending, yes)) advanceRun()
         }
@@ -587,18 +585,18 @@ class SessionViewModel(
         val text: String?
         val lexiconId: String?
         when (item) {
-            is Pending.ShowBack -> { meant = item.entry.card; text = item.entry.label.pick(officerLang); lexiconId = item.entry.id }
+            is Pending.ShowBack -> { meant = item.entry.card; text = item.entry.label.get(officerLang); lexiconId = item.entry.id }
             is Pending.FreeText if item.ref != null -> { meant = item.meant; text = item.text; lexiconId = REF_PREFIX + item.ref }
             else -> return false
         }
         val choices = if (item is Pending.ShowBack) item.choices else (item as Pending.FreeText).cardIds
         val picked = item.asksChoice && card != null && card in choices
         when {
-            yes == true -> repo.log(sessionId, EventType.ANSWER_CARD, EventSource.SUBJECT, officerLang, text = content.cards["yes"]?.label?.pick(officerLang), cardId = "yes", lexiconId = lexiconId, shownId = shownId, via = via)
+            yes == true -> repo.log(sessionId, EventType.ANSWER_CARD, EventSource.SUBJECT, officerLang, text = content.cards["yes"]?.label?.get(officerLang), cardId = "yes", lexiconId = lexiconId, shownId = shownId, via = via)
             yes == false || (picked && card == SOMETHING_ELSE) ->
                 repo.log(sessionId, EventType.ANSWER_UNCLEAR, EventSource.SUBJECT, officerLang, text = text, cardId = "no", lexiconId = lexiconId, shownId = shownId, via = via)
             picked && card == meant -> repo.log(sessionId, EventType.ANSWER_GESTURE, EventSource.SUBJECT, officerLang, text = text, cardId = card, lexiconId = lexiconId, shownId = shownId, via = via)
-            picked -> repo.log(sessionId, EventType.ANSWER_CARD, EventSource.SUBJECT, officerLang, text = content.cards[card]?.label?.pick(officerLang), cardId = card, lexiconId = lexiconId, shownId = shownId, via = via)
+            picked -> repo.log(sessionId, EventType.ANSWER_CARD, EventSource.SUBJECT, officerLang, text = content.cards[card]?.label?.get(officerLang), cardId = card, lexiconId = lexiconId, shownId = shownId, via = via)
             else -> return false
         }
         return true
@@ -688,7 +686,7 @@ class SessionViewModel(
         val pending = if (paired) l.onStage else l.pending
         // The officer closed the item unanswered; the subject gave nothing, so the row is the officer's.
         if (pending is Pending.ShowBack && l.answeredYes == null && l.answeredCard == null) {
-            repo.log(sessionId, EventType.ANSWER_UNCLEAR, EventSource.OFFICER, officerLang, text = pending.entry.label.pick(officerLang), cardId = pending.entry.card, lexiconId = pending.entry.id, shownId = l.itemId)
+            repo.log(sessionId, EventType.ANSWER_UNCLEAR, EventSource.OFFICER, officerLang, text = pending.entry.label.get(officerLang), cardId = pending.entry.card, lexiconId = pending.entry.id, shownId = l.itemId)
         }
         if (pending is Pending.GroundRules && !isPractice(pending)) repo.log(sessionId, EventType.SYSTEM, EventSource.OFFICER, text = SYSTEM_RULES_SKIPPED)
         if (pending is Pending.FreeText && pending.ref != null && l.answeredYes == null && l.answeredCard == null) {

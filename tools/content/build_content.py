@@ -1,12 +1,4 @@
-"""Builds the app's content bundle: renders picture cards and writes the hash manifest.
-
-Run with the tools environment (resvg-py, Pillow):
-    python tools/content/build_content.py                  # cards and manifest
-    python tools/content/build_content.py --manifest-only  # after editing JSON or audio
-    python tools/content/build_content.py --only a,b       # render only these cards, then the manifest
-    python tools/content/build_content.py --check          # exit 1 if the manifest is stale; writes nothing
-Audio is generated separately by build_audio.py, which needs the GPU environment.
-"""
+"""Renders picture cards and writes the content hash manifest. See tools/README.md for the flags."""
 import hashlib
 import io
 import json

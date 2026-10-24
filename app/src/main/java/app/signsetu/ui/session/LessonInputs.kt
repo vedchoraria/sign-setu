@@ -68,7 +68,7 @@ import app.signsetu.data.content.AnswerType
 import app.signsetu.data.content.CLASSES
 import app.signsetu.data.content.ContentBundle
 import app.signsetu.data.content.Given
-import app.signsetu.data.content.Localized
+import app.signsetu.data.content.or
 import app.signsetu.data.content.Method
 import app.signsetu.data.content.NAME_MAX
 import app.signsetu.data.content.Question
@@ -76,7 +76,6 @@ import app.signsetu.data.content.TEXT_MAX
 import app.signsetu.data.content.answerText
 import app.signsetu.data.content.groupPhone
 import app.signsetu.data.content.padPress
-import app.signsetu.data.content.pick
 import app.signsetu.data.content.state
 import app.signsetu.data.content.valid
 import app.signsetu.ui.components.CardImage
@@ -94,8 +93,6 @@ internal val Off = Color(0xFFBFD8CB)
 
 /** The question on stage, when it takes a lesson-sheet answer input instead of the answer rails. */
 fun lessonQuestion(pending: Pending?): Question? = (pending as? Pending.Ask)?.question?.takeIf { it.answer != null }
-
-private fun Localized.or(lang: String) = this[lang] ?: this["en"].orEmpty()
 
 /** Answer inputs for the lesson-sheet questions. A written or typed answer is read back large and logged as the
  * subject's own only when they accept it; a read-back left open is logged unconfirmed. */
@@ -301,11 +298,11 @@ private fun PlacePicker(type: AnswerType, content: ContentBundle, lang: String, 
     var districtId by rememberSaveable { mutableStateOf<String?>(null) }
     val state = content.state(stateId)
     when {
-        state == null -> PickList(content.subjectText("pick_state", lang), content.states.map { it.id to it.name.or(lang) }, null) { id ->
+        state == null -> PickList(content.subjectText("pick_state", lang), content.states.map { it.id to it.name.or(lang).orEmpty() }, null) { id ->
             if (type == AnswerType.STATE) onPicked(listOf(id), "") else stateId = id
         }
         state.districts.isNotEmpty() && districtId == null ->
-            PickList(content.subjectText("pick_district", lang), state.districts.map { it.id to it.name.or(lang) }, { stateId = null }) { id ->
+            PickList(content.subjectText("pick_district", lang), state.districts.map { it.id to it.name.or(lang).orEmpty() }, { stateId = null }) { id ->
                 if (type == AnswerType.DISTRICT) onPicked(listOf(state.id, id), "") else districtId = id
             }
         else -> {
@@ -385,7 +382,7 @@ private fun PictureChoices(cards: List<String>, content: ContentBundle, lang: St
     Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
         LazyVerticalGrid(GridCells.Fixed(3), Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
             items(cards.filter { it in content.cards }.distinct(), key = { it }) { id ->
-                ChoiceTile(id, content.cards[id]?.label?.pick(lang), id in picked, { if (!picked.remove(id)) picked += id }, Modifier, name = content.cards[id]?.label?.pick("en"))
+                ChoiceTile(id, content.cards[id]?.label?.get(lang), id in picked, { if (!picked.remove(id)) picked += id }, Modifier, name = content.cards[id]?.label?.get("en"))
             }
         }
         BigButton(
@@ -400,7 +397,7 @@ private fun PictureChoices(cards: List<String>, content: ContentBundle, lang: St
 private fun WaysOut(content: ContentBundle, lang: String, chosen: String?, onCard: (String) -> Unit, onSign: (() -> Unit)?, extra: String? = null) {
     val answer = LocalAnswerColors.current
     Row(Modifier.fillMaxWidth().height(64.dp), horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-        extra?.let { Way(it, content.cards[it]?.label?.pick(lang), stringResource(R.string.stage_no_phone), Color.White, Ink, chosen == it) { onCard(it) } }
+        extra?.let { Way(it, content.cards[it]?.label?.get(lang), stringResource(R.string.stage_no_phone), Color.White, Ink, chosen == it) { onCard(it) } }
         Way("dont_know", content.subjectText("dont_know", lang), stringResource(R.string.stage_dont_know), answer.unsure, answer.onUnsure, chosen == "dont_know") { onCard("dont_know") }
         Way(DONT_UNDERSTAND, content.subjectText(DONT_UNDERSTAND, lang), stringResource(R.string.stage_dont_understand), answer.unsure, answer.onUnsure, chosen == DONT_UNDERSTAND) { onCard(DONT_UNDERSTAND) }
         Way("wrong", content.subjectText("wrong", lang), stringResource(R.string.stage_wrong), answer.unsure, answer.onUnsure, chosen == "wrong") { onCard("wrong") }
@@ -453,7 +450,7 @@ internal fun PhraseBoard(content: ContentBundle, lang: String, chosen: String?, 
     Column(modifier, verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
         LazyVerticalGrid(GridCells.Fixed(2), Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
             items(phrases, key = { it.id }) { q ->
-                val label = q.text.pick(lang)
+                val label = q.text.get(lang)
                 PressableSurface(
                     onClick = { onSay(Given(q.id, Method.BOARD, true)) },
                     shape = RoundedCornerShape(18.dp),

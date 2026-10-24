@@ -1,9 +1,4 @@
-"""Tracked files must not carry a developer's absolute home path.
-
-The workspace moved from C:\\Users\\<name>\\dev to C:\\work; a checked-in path from the old tree would break
-the build for everyone else and for CI. This scans git's tracked text files, so ignored build output and
-the repository's own .git folder are not considered.
-"""
+"""Tracked text files must not carry a developer's absolute home path."""
 
 import pathlib
 import subprocess

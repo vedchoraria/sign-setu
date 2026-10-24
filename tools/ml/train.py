@@ -1,8 +1,4 @@
-"""Trains a format 1 reader on a landmark cache (INCLUDE, synthetic ISL letters, ASL) and reports test-split accuracy.
-
-    python tools/ml/train.py [cache.pkl] [out.pt] [epochs]   # default INCLUDE: include.pkl -> sign_reader.pt, 400
-SIGN_HIDDEN and SIGN_DROPOUT override the width and dropout; export.py needs the same SIGN_HIDDEN (asl_reader: 320).
-"""
+"""Trains a format 1 reader on a landmark cache and reports test-split accuracy. See tools/README.md."""
 import os
 import pathlib
 import pickle

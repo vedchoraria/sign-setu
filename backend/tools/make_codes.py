@@ -1,8 +1,4 @@
-"""Prints N one-time enrolment codes and the ENROLL_HASHES value for the gateway.
-
-Give each code to one officer's phone; keep only the hashes on the server.
-Usage: python tools/make_codes.py 10
-"""
+"""Prints N one-time enrolment codes and the ENROLL_HASHES line; only the hashes go on the server."""
 import hashlib
 import secrets
 import sys

@@ -5,7 +5,6 @@ import app.signsetu.data.content.ContentBundle
 import app.signsetu.data.content.Kind
 import app.signsetu.data.content.Phase
 import app.signsetu.data.content.Question
-import app.signsetu.data.content.pick
 import app.signsetu.data.session.EventSource
 import app.signsetu.data.session.EventType
 import app.signsetu.data.session.SessionEvent
@@ -213,7 +212,7 @@ class AutoPilot(
     // The outcome row and the QUESTION_SHOWN after it are two inserts, not one transaction; a crash between
     // them leaves an approval with nothing shown, which the sequencer reads as not shown.
     private suspend fun mark(type: EventType, source: EventSource, q: Question, reason: String? = null) {
-        repo.log(sessionId, type, source, officerLang, text = q.text.pick(officerLang), itemId = q.id, reason = reason)
+        repo.log(sessionId, type, source, officerLang, text = q.text.get(officerLang), itemId = q.id, reason = reason)
     }
 
     private suspend fun system(key: String) {

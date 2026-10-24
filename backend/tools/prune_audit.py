@@ -1,13 +1,5 @@
-"""Deletes audit rows older than the department's agreed retention period.
-
-Usage:
-    DATABASE_URL=... python tools/prune_audit.py --days 90           # says what it would delete
-    DATABASE_URL=... python tools/prune_audit.py --days 90 --apply   # deletes them
-
-`--before YYYY-MM-DD` sets the cutoff directly instead of counting back from now. Nothing is deleted
-without --apply, and a cutoff later than now is refused so a mistyped year cannot empty the table.
-The audit table holds no subject data; feedback labels are training data and are left alone.
-"""
+"""Deletes audit rows older than the agreed retention; nothing goes without --apply, and a future cutoff is refused.
+Usage is in backend/README.md."""
 import argparse
 import os
 import sys

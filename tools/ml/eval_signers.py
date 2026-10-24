@@ -1,6 +1,4 @@
-"""Top-1 and top-3 of word-reader checkpoints on a cache split, e.g. ISLRTC signers held out of training.
-    python tools/ml/eval_signers.py <cache.pkl> <split> <model.pt>...
-"""
+"""Top-1 and top-3 of word-reader checkpoints on a held-out signer split."""
 import pickle
 import sys
 

@@ -1,10 +1,5 @@
-"""Top-1 and top-3 of the shipped ISL readers on held-out data: words (INCLUDE test split, sign_reader) and letters
-and digits (synthetic test split, isl_spell; synthetic scores flatter real signers). Then a sentence demo: held-out
-segments read one by one, top-1 each, written out as English and Hindi by glossToText's rules (TextSigning.kt).
-The combined rows read each held-out segment through both models and the app's sign-or-spell gate (SignReaders.kt).
-The real rows read ISLRTC dictionary signers (prepare_islrtc.py, evaluation only).
-    python tools/ml/eval_isl.py [include.pkl] [isl_spell.pkl] [islrtc.pkl]
-"""
+"""Scores the shipped ISL readers, the sign-or-spell gate and ISLRTC real signers, with a glossToText sentence demo.
+See tools/README.md."""
 import json
 import os
 import pathlib

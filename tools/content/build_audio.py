@@ -1,10 +1,4 @@
-"""Generates placeholder speech for the content bundle with Indic Parler-TTS (Apache-2.0, runs offline).
-
-Every file is a placeholder until a fluent volunteer records or approves it (content policy).
-Run with the GPU environment, then refresh the manifest:
-    python tools/content/build_audio.py [--force]
-    python tools/content/build_content.py --manifest-only
-"""
+"""Placeholder speech for the content bundle with Indic Parler-TTS, until fluent speakers record it. See tools/README.md."""
 import json
 import pathlib
 import sys
