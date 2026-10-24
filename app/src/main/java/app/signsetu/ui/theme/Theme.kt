@@ -87,7 +87,7 @@ fun SignSetuTheme(dark: Boolean = isSystemInDarkTheme(), content: @Composable ()
     }
 }
 
-/** The stage keeps the light scheme in both themes; only its backdrop dims at night (03-ux §6). */
+/** The stage keeps the light scheme in both themes; only its backdrop dims at night. */
 @Composable
 fun SubjectTheme(content: @Composable () -> Unit) {
     val bright by rememberSunMode()

@@ -1,12 +1,5 @@
-"""Real-signer ISL letters and digits from photographs, both CC BY 4.0 on Mendeley Data:
-- "A Multimodal Indian Sign Language Dataset for English and Marathi Alphabets" (Hambir, Khandagale, Cherian, Gaikwad;
-  doi:10.17632/2tj6c7pzfk.1): English A-Z and 0-9, four signers, used for training.
-- ISLAN (doi:10.17632/rc349j45m5.1): other signers, used only as the held-out test split.
-Hands come from MediaPipe Hand Landmarker (Apache-2.0, used here only, never shipped). Each photograph becomes a short
-still sequence; train.py's time and point jitter makes it move. In an unmirrored photograph the subject's left hand is
-the one further right, which is how Holistic names hands in the app. Runs in the mediapipe venv:
-    python -I tools/ml/prepare_isl_real.py <isl_real dir> <hand_landmarker.task> <out.pkl>
-"""
+"""Real-signer ISL letters and digits from photographs, through MediaPipe Hand Landmarker (never shipped).
+Sources and licences are in tools/README.md."""
 import pathlib
 import pickle
 import sys

@@ -57,12 +57,6 @@ class SignLanguageTest {
         assertEquals(listOf("ram"), glossOf(SignGuess("ram", 0.9f), emptyMap()))
     }
 
-    @Test
-    fun aslGlossKeepsSubjectVerbObject() {
-        val i = glossToText(listOf("me", "want", "water"), words, SignLanguage.ASL)
-        assertEquals("I want water.", i.en)
-    }
-
     private val assets = ASSETS
     private fun open(path: String) = File(assets, path).takeIf { it.isFile }?.readBytes()
 

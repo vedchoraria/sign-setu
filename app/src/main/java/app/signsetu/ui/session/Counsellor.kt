@@ -37,9 +37,8 @@ sealed interface Counsel {
     enum class Why { STOP, HANDOFF, NO_REPLY, LIMIT }
 }
 
-/** The AI counsellor, on a paired second screen or this phone's stage. The officer's phone writes each turn
- * with the online assistant and shows it before it goes out; the officer can send it, skip it, or take over.
- * It starts only for a victim: the role must be set, and changing it away from victim stops the counsellor. */
+/** The AI counsellor: each line is written by the online assistant and shown to the officer before it goes out.
+ * Only for a victim or witness; any other role stops it. */
 class Counsellor(
     private val scope: CoroutineScope,
     private val ui: StateFlow<SessionUi?>,

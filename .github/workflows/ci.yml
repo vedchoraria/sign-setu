@@ -10,6 +10,9 @@ permissions:
 jobs:
   android:
     runs-on: ubuntu-24.04
+    env:
+      # Pushes to master also keep the release APK, bundle, SBOM and checksums.
+      RECORD: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -19,14 +22,32 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           dependency-graph: disabled
-      - name: Unit tests
-        run: ./gradlew --console=plain :app:testStandardDebugUnitTest :app:testNearbyDebugUnitTest
-      - name: Lint
-        run: ./gradlew --console=plain :app:lintStandardRelease
-      - name: Assemble
-        run: ./gradlew --console=plain :app:assembleStandardRelease
-      - name: Assemble other variants
-        run: ./gradlew --console=plain :app:assembleStandardDebug :app:assembleNearbyRelease
+      - uses: actions/setup-python@v5
+        if: env.RECORD == 'true'
+        with:
+          python-version: "3.12"
+      # One Gradle run so configuration and the native build happen once.
+      - name: Test, lint and assemble
+        run: >-
+          ./gradlew --console=plain :app:testStandardDebugUnitTest :app:testNearbyDebugUnitTest
+          :app:compileStandardDebugAndroidTestKotlin :app:lintStandardRelease
+          :app:assembleStandardRelease :app:assembleNearbyRelease
+          ${{ env.RECORD == 'true' && ':app:bundleStandardRelease' || '' }}
+      - id: syft
+        if: env.RECORD == 'true'
+        uses: anchore/sbom-action/download-syft@v0
+      - name: Release record
+        if: env.RECORD == 'true'
+        run: |
+          python tools/security/sbom.py "${{ steps.syft.outputs.cmd }}"
+          mkdir record
+          cp app/build/outputs/apk/standard/release/*.apk app/build/outputs/bundle/standardRelease/*.aab app/build/sbom/sign-setu-release.cdx.json record/
+          (cd record && sha256sum *.apk *.aab > SHA256SUMS)
+      - uses: actions/upload-artifact@v4
+        if: env.RECORD == 'true'
+        with:
+          name: release-record
+          path: record/
 
   portal:
     runs-on: ubuntu-24.04
@@ -99,6 +120,11 @@ jobs:
           worst=$(jq '[.results[]?.packages[]?.groups[]?.max_severity | select(. != null and . != "") | tonumber] | max // 0' osv.json)
           echo "worst CVSS: $worst"
           jq -e ". < 7" <<< "$worst" > /dev/null
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: osv
+          path: osv.json
 
   instrumented:
     runs-on: ubuntu-24.04
@@ -142,37 +168,3 @@ jobs:
       - uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  release-record:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 21
-      - uses: gradle/actions/setup-gradle@v4
-        with:
-          dependency-graph: disabled
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - run: ./gradlew --console=plain :app:assembleStandardRelease :app:bundleStandardRelease
-      - id: syft
-        uses: anchore/sbom-action/download-syft@v0
-      - run: python tools/security/sbom.py "${{ steps.syft.outputs.cmd }}"
-      - name: Scan and record checksums
-        run: |
-          mkdir record
-          cp app/build/outputs/apk/standard/release/*.apk app/build/outputs/bundle/standardRelease/*.aab app/build/sbom/sign-setu-release.cdx.json record/
-          curl -sSfL -o osv-scanner https://github.com/google/osv-scanner/releases/download/v2.0.2/osv-scanner_linux_amd64
-          chmod +x osv-scanner
-          mkdir shipped
-          grep -E '(standard|nearby)ReleaseRuntimeClasspath' app/gradle.lockfile > shipped/gradle.lockfile
-          ./osv-scanner scan source --lockfile shipped/gradle.lockfile --format json --output record/osv.json || true
-          (cd record && sha256sum *.apk *.aab > SHA256SUMS)
-      - uses: actions/upload-artifact@v4
-        with:
-          name: release-record
-          path: record/

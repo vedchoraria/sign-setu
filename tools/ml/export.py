@@ -1,9 +1,4 @@
-"""Exports a trained format 1 reader to the app's content bundle and writes its Kotlin parity fixture.
-
-    python tools/ml/export.py [name] [checkpoint.pt] [cache.pkl]   # default sign_reader from include_pose
-Names: sign_reader (INCLUDE), isl_spell (synthetic ISL letters and digits), asl_reader (PopSign ASL).
-Then rebuild the manifest: python tools/content/build_content.py --manifest-only
-"""
+"""Exports a trained format 1 reader to the content bundle and writes its Kotlin parity fixture."""
 import json
 import os
 import pathlib

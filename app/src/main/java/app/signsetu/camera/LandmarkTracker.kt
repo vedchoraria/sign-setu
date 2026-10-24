@@ -296,9 +296,8 @@ internal fun shrug(frame: LandmarkFrame): Boolean {
 /** Courteous gestures that are neither signs nor one of the stage's answer cards. */
 enum class Everyday { NAMASTE, WAVE, THANKS, BOW }
 
-/** The everyday courtesies people offer with or without a sign language, each held long enough to be deliberate:
- * hands joined at the chest for [Everyday.NAMASTE], an open hand swinging for [Everyday.WAVE], a hand laid on the
- * chest for [Everyday.THANKS] and a shallow [Everyday.BOW]. Every one is a proposal; only the subject's tap logs it. */
+/** Joined hands, a wave, a hand on the chest or a bow, held long enough to be deliberate. Each is a proposal; only
+ * the subject's tap logs it. */
 class EverydayGestures(private val holdMs: Long = 480L) {
     private val hold = Held<Everyday>(holdMs)
     private val wave = WaveDetector()

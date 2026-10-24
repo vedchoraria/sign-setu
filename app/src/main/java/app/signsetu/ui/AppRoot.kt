@@ -518,9 +518,8 @@ private fun shareReport(activity: Activity, file: File) {
     activity.startActivity(Intent.createChooser(send, null))
 }
 
-/** Pins the app to the screen while [enabled]. Unpinning still takes the system gesture, so this raises friction
- * rather than locking the phone; a device owner can make it strict. Failures (a managed profile, an OEM quirk) leave
- * the stage usable. */
+/** Pins the app while [enabled]: friction, not a lock, since unpinning keeps its system gesture. A refusal (managed
+ * profile, OEM quirk) leaves the stage usable. */
 @Composable
 internal fun PinWhile(activity: Activity?, enabled: Boolean) {
     DisposableEffect(activity, enabled) {

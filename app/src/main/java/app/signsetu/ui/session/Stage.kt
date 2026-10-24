@@ -99,7 +99,7 @@ fun readBackLabels(ui: SessionUi): List<String> {
     }
 }
 
-/** Profiles whose subjects hear the questions without the officer pressing play (03-ux §3). */
+/** Profiles whose subjects hear the questions without the officer pressing play. */
 private val AutoSpeech = setOf(Profile.YOUNG_CHILD, Profile.OTHER_LANGUAGE)
 
 /** A No to a reading of the subject's own answer gives them their own way to say it again, never a dead end. */
@@ -237,7 +237,7 @@ fun Stage(
         gestureId != null -> content.gestures[gestureId]
         pending is Pending.PhraseAsk -> content.gestureFor(pending.phrase, pending.slot)
         pending is Pending.FreeText -> plan?.gesture ?: content.gestures["ask"]
-        pending is Pending.Ask -> content.gestureFor(pending.question) // ISL hook: signed through the lexicon
+        pending is Pending.Ask -> content.gestureFor(pending.question)
         else -> null
     }
     // Follows the character through typed text, so the word being signed is lit and its picture or letters shown.
@@ -277,8 +277,6 @@ fun Stage(
         else -> item.caption
     }
 
-    // The call view is the stage. Items that need more than Yes or No (pictures, numbers, drawing), writing, lessons and the
-    // language finder keep their own panels below.
     // Over the whole stage, so no answer can be tapped during a break; the officer's way out stays above it.
     // A break can still become a Stop without first ending the pause.
     val pauseLayer: @Composable () -> Unit = {
@@ -289,6 +287,7 @@ fun Stage(
         PauseLayer(content.subjectText("ready", lang), onPauseEnd, stop = stopInPause, modifier = Modifier.fillMaxSize().graphicsLayer { rotationZ = if (ui.rotated) 180f else 0f })
     }
 
+    // The call view is the stage; pictures, drawing, writing, lessons and the language finder keep their own panels.
     if (!drawing && !writing && pending != Pending.LanguageFinder && choices == null && lesson == null && item.choices.isEmpty() && !item.canDraw) {
         Box(Modifier.fillMaxSize()) {
             VideoCallStage(

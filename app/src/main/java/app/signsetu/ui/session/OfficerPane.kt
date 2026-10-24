@@ -268,7 +268,7 @@ fun OfficerPane(
             Tool.DRAW -> { vm.prepare(Pending.Drawing); page = 0 }
             Tool.LANGUAGE -> { vm.prepare(Pending.LanguageFinder); page = 0 }
             Tool.RULES -> { vm.prepare(Pending.GroundRules()); page = 0 }
-            Tool.DICTIONARY -> sheet = Sheet.DICTIONARY // ISL hook: IslDictionarySheet.kt
+            Tool.DICTIONARY -> sheet = Sheet.DICTIONARY
         }
     }
 

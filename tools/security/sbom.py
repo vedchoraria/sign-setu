@@ -1,10 +1,4 @@
-"""Writes a CycloneDX SBOM of what ships in the release APK.
-
-Only libraries on the release runtime classpath ship; build tools such as Android Lint do not, so they are left out.
-Needs Syft (https://github.com/anchore/syft, Apache-2.0):
-    python tools/security/sbom.py path/to/syft.exe
-Output: app/build/sbom/sign-setu-release.cdx.json
-"""
+"""Writes a CycloneDX SBOM of the release runtime classpath with Syft; build-only tools are left out."""
 import pathlib
 import subprocess
 import sys

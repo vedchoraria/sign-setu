@@ -85,7 +85,11 @@ android {
     lint { error += listOf("HardcodedDebugMode", "SetJavaScriptEnabled", "ExportedService", "AllowBackup") }
 
     // Android calls made in plain JVM tests return defaults instead of throwing (timing marks, log lines).
-    testOptions { unitTests.isReturnDefaultValues = true }
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+        // SignCaptureTest compares the app's segmentation numbers with the Python evaluator's.
+        unitTests.all { it.inputs.file("../tools/ml/eval_video.py") }
+    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

@@ -1,42 +1,50 @@
 package app.signsetu
 
 import app.signsetu.data.content.ContentBundle
-import app.signsetu.data.content.Phrase
-import app.signsetu.data.content.PhraseSlot
+import app.signsetu.data.content.Gesture
 import app.signsetu.data.content.IslSign
 import app.signsetu.data.content.IslSigns
+import app.signsetu.data.content.Key
+import app.signsetu.data.content.LexiconEntry
+import app.signsetu.data.content.Phrase
+import app.signsetu.data.content.PhraseSlot
 import app.signsetu.data.content.Signability
-import app.signsetu.data.content.signability
 import app.signsetu.data.content.WordEntry
 import app.signsetu.data.content.complete
+import app.signsetu.data.content.signability
 import app.signsetu.data.content.signabilitySpans
 import app.signsetu.data.content.templatesFor
 import app.signsetu.data.session.EventSource
 import app.signsetu.data.session.EventType
 import app.signsetu.data.session.SessionEvent
-import app.signsetu.data.content.Gesture
-import app.signsetu.data.content.Key
+import app.signsetu.ui.session.BackAction
 import app.signsetu.ui.session.Grade
+import app.signsetu.ui.session.Pending
 import app.signsetu.ui.session.PromptRecord
 import app.signsetu.ui.session.REF_PREFIX
 import app.signsetu.ui.session.SOMETHING_ELSE
 import app.signsetu.ui.session.SYSTEM_RUN_ENDED
+import app.signsetu.ui.session.WrapUp
+import app.signsetu.ui.session.advancesRun
 import app.signsetu.ui.session.answerTrails
+import app.signsetu.ui.session.backAction
 import app.signsetu.ui.session.canSayBack
 import app.signsetu.ui.session.choicePositions
 import app.signsetu.ui.session.decodePrompt
 import app.signsetu.ui.session.encode
 import app.signsetu.ui.session.grades
 import app.signsetu.ui.session.offered
-import app.signsetu.ui.session.unseen
 import app.signsetu.ui.session.prompts
+import app.signsetu.ui.session.reopensInput
 import app.signsetu.ui.session.signedWords
+import app.signsetu.ui.session.unseen
+import app.signsetu.ui.session.wrapUp
+import kotlin.random.Random
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import kotlin.random.Random
 
 class MainPageTest {
 
@@ -190,5 +198,73 @@ class MainPageTest {
         assertEquals("water … home", signedWords("water ? home"))
         assertEquals("water", signedWords("water"))
         assertEquals(null, signedWords(null))
+    }
+
+    @Test
+    fun backStepsToTheFirstTabBeforeAnythingElse() {
+        assertEquals(BackAction.FIRST_TAB, backAction(page = 1, secondScreenShowing = false))
+        assertEquals(BackAction.FIRST_TAB, backAction(page = 1, secondScreenShowing = true))
+    }
+
+    @Test
+    fun leavingWithASecondScreenAsksFirstBecauseItDropsTheLink() {
+        assertEquals(BackAction.ASK_LEAVE, backAction(page = 0, secondScreenShowing = true))
+    }
+
+    @Test
+    fun leavingWithoutASecondScreenIsImmediateAndKeepsTheSessionOpen() {
+        assertEquals(BackAction.LEAVE, backAction(page = 0, secondScreenShowing = false))
+    }
+
+    private fun ev(id: Long, type: EventType, text: String? = null, shownId: Long? = null) =
+        SessionEvent(id, id * 1000, type, EventSource.SUBJECT, "hi", text, null, null, null, shownId = shownId)
+
+    @Test
+    fun countsQuestionsLeftOpenButNotGreetingsAndSignsStillToRead() {
+        val events = listOf(
+            ev(1, EventType.QUESTION_SHOWN, "I am a police officer. I am here to help you."),
+            ev(2, EventType.QUESTION_SHOWN, "Are you hurt?"),
+            ev(3, EventType.ANSWER_CARD, shownId = 2),
+            ev(4, EventType.QUESTION_SHOWN, "Who do you live with?"),
+            ev(5, EventType.ANSWER_SIGNED, "mother ?", shownId = 6),
+            ev(6, EventType.QUESTION_SHOWN, "Where do you live?"),
+        )
+        assertEquals(WrapUp(minutes = 12, shown = 4, answers = 2, unanswered = 1, unreadSigns = 1), wrapUp(events, 0, 12 * 60_000L + 5))
+    }
+
+    private val sayBack = Pending.FreeText("they hit me", listOf("hit"), ref = 1L)
+    private val showBack = Pending.ShowBack(LexiconEntry("hit", "hit", "hit", emptyList(), emptyList(), mapOf("en" to "hit"), mapOf("en" to "")))
+
+    @Test fun noToAReadingReopensInput() {
+        assertTrue(reopensInput(sayBack, yes = false))
+        assertTrue(reopensInput(showBack, yes = false))
+        assertFalse(reopensInput(sayBack, yes = true))
+        // A plain question's No is the answer itself; a choice already offers "none of these".
+        assertFalse(reopensInput(Pending.FreeText("are you hurt", emptyList()), yes = false))
+        assertFalse(reopensInput(sayBack.copy(cardIds = listOf("hit", "push"), meant = "hit"), yes = false))
+    }
+
+    @Test fun noThatReopensInputHoldsTheRun() {
+        assertFalse(advancesRun(sayBack, yes = false))
+        assertFalse(advancesRun(showBack, yes = false))
+        assertTrue(advancesRun(sayBack, yes = true))
+        assertTrue(advancesRun(Pending.FreeText("are you hurt", emptyList()), yes = false))
+    }
+
+    private fun event(id: Long, type: EventType, source: EventSource, card: String?, ref: Long? = null) =
+        SessionEvent(id, id, type, source, "en", null, card, ref?.let { REF_PREFIX + it }, null)
+
+    @Test fun pickedMeaningConfirmsAndNoRejects() {
+        val line = event(1, EventType.ANSWER_SIGNED, EventSource.OFFICER, null)
+        val picked = event(2, EventType.ANSWER_GESTURE, EventSource.SUBJECT, "hit", ref = 1)
+        assertEquals(Grade.CONFIRMED, grades(listOf(line, picked))[1])
+        val no = event(3, EventType.ANSWER_UNCLEAR, EventSource.SUBJECT, "no", ref = 1)
+        assertEquals(Grade.SAID_NO, grades(listOf(line, no))[1])
+        // A Yes to a single reading is the subject's Yes; the reading stays the officer's.
+        val yes = event(4, EventType.ANSWER_CARD, EventSource.SUBJECT, "yes", ref = 1)
+        assertEquals(Grade.SAID, grades(listOf(line, yes))[4])
+        assertEquals(Grade.OFFICER_READ, grades(listOf(line, yes))[1])
+        // A "no" that checks nothing is unclear, not a rejection.
+        assertEquals(Grade.UNCLEAR, grades(listOf(event(5, EventType.ANSWER_UNCLEAR, EventSource.SUBJECT, "no")))[5])
     }
 }

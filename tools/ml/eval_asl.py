@@ -1,10 +1,4 @@
-"""Scores the shipped ASL readers: word top-1 and top-3 (PopSign test signers, asl_reader) and fingerspelling
-character error rate (sequences from held-out ASLNow! letters, asl_spell; synthetic, so it flatters real signing).
-No real-signer fingerspelling set is open without Kaggle credentials (FSboard, Google's ASL Fingerspelling).
-The combined rows read the same segments through both models and the app's sign-or-spell gate (SignReaders.kt);
-the gate rows weigh SPELL_MIN_PEAK by the real PopSign word reads it costs against the spelled reads it keeps.
-    python tools/ml/eval_asl.py [asl.pkl] [asl_spell_dir]
-"""
+"""Scores the shipped ASL readers and the app's sign-or-spell gate (SignReaders.kt). See tools/README.md."""
 import os
 import pathlib
 import pickle

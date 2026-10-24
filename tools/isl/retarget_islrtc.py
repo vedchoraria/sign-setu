@@ -1,11 +1,5 @@
-"""Adds ISL words the app could only fingerspell, retargeted from the ISLRTC Indian Sign Language Dictionary
-(Indian Sign Language Research and Training Centre, Government of India; data.gov.in, Government Open Data
-License - India; clips via huggingface.co/datasets/silentone0725/Indian_Sign_Language_Data.gov_Rencoded).
-Only keyframes on the app's character ship, never video. Entries go into isl_signs.json with rec "ISLRTC/...";
-retarget.py keeps them when it rebuilds the INCLUDE signs. Draft until Deaf review. Runs in the mediapipe venv:
-    python -I tools/isl/retarget_islrtc.py <targets.json: word -> clip path> [data_dir]
-    python tools/content/build_content.py --manifest-only
-"""
+"""Adds ISLRTC dictionary words the app could only fingerspell; only keyframes ship, never video.
+Usage and licences are in tools/isl/README.md."""
 import json
 import os
 import pathlib

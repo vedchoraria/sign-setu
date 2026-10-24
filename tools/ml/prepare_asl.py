@@ -1,15 +1,5 @@
-"""Builds the ASL landmark cache from PopSign ASL v1.0 frames with the app's own Holistic model.
-
-PopSign ASL v1.0 (Georgia Tech, NTID; 250 signs, 47 Deaf signers) is CC BY 4.0. Google's Kaggle "Isolated Sign
-Language Recognition" set is the same corpus as landmarks, also CC BY 4.0, but needs Kaggle credentials; the
-huggingface.co/datasets/sign/popsign-images release holds the clips as 256x256 frames at about 5 a second instead.
-Its train and validation signers train and its test signers test (signer-independent). Each shard is deleted once
-read, so the 14.5 GB train split passes through the disk 500 MB at a time.
-The non-game split misses some of the 250 signs; the game split's validation and test signers fill them in, read
-by HTTP range so only the row groups holding a missing sign are fetched.
-Runs in a venv with mediapipe, pyarrow and pillow (not the torch one):
-    python -I tools/ml/prepare_asl.py [data_dir] [workers] [limit]   # default $SIGNSETU_DATA/popsign
-"""
+"""Builds the ASL landmark cache from PopSign ASL v1.0 frames with the app's Holistic model, signer-independent.
+See tools/README.md."""
 import io
 import json
 import os

@@ -1,8 +1,5 @@
-"""Feature extraction shared by training and export; LandmarkSignReader.kt must match it exactly.
-
-Input per frame, MediaPipe Holistic normalised image coordinates (0..1, origin top-left, unmirrored):
-left and right hand (21 points, or missing) and pose (33 points, or missing).
-"""
+"""Feature extraction shared by training and export; LandmarkSignReader.kt must match it exactly. Input is Holistic
+normalised image points: two hands of 21 points and a pose of 33, each possibly missing."""
 import numpy as np
 
 FRAMES = 32
@@ -47,9 +44,8 @@ def featurize(left, right, pose, has_left, has_right, has_pose):
 
 
 def featurize_hands(left, right, pose, has_left, has_right, has_pose):
-    """Like featurize, but centred on the mean of all hand points and scaled by the mean wrist to middle-knuckle length
-    (points 0, 9), so close-ups without shoulders read the same; arm features stay zero. For the letter reader ("norm":
-    "hands" in its json)."""
+    """Like featurize, but centred on all hand points and scaled by the mean wrist to middle-knuckle length, so close-ups
+    without shoulders read the same; arm features stay zero."""
     present = [h[m] for h, m in ((left, has_left), (right, has_right)) if m.any()]
     if not present:
         return None
@@ -90,12 +86,8 @@ def spell_resample(ts) -> np.ndarray:
 
 
 def spell_features(ts, left, right, has_left, has_right, aspect: float) -> np.ndarray:
-    """left, right: (N, 21, 2) normalised image points; ts in ms. Returns (frames, SPELL_FEATURES).
-
-    The hand seen in more resampled frames signs (ties to the right); a left hand is mirrored to look like a right one.
-    Points are taken from the wrist and divided by the wrist to middle-knuckle length; motion is the wrist's step since
-    the previous frame in the same unit, zero when that frame has no hand.
-    """
+    """One hand per frame (the one seen more, a left mirrored to a right), from the wrist in wrist to middle-knuckle
+    lengths, plus the wrist's step since the previous frame. Returns (frames, SPELL_FEATURES)."""
     idx = spell_resample(ts)
     use_left = has_left[idx].sum() > has_right[idx].sum()
     hand, has = (left, has_left) if use_left else (right, has_right)

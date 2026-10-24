@@ -1,8 +1,4 @@
-"""ASL reader trainer with augmentation on the GPU, so long runs, ensembles and distillation fit in an evening.
-
-    python tools/ml/train_asl.py [asl.pkl] [out.pt] [epochs] [teachers...]
-With teacher checkpoints, the student also matches their averaged soft targets (distillation).
-"""
+"""ASL reader trainer with GPU augmentation and optional distillation from teacher checkpoints."""
 import os
 import pathlib
 import pickle

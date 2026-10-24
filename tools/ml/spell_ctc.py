@@ -1,13 +1,5 @@
-"""The ASL fingerspelling reader: a small CTC model over one hand's landmarks (format 2, CtcSpellReader.kt).
-
-Google's Kaggle "ASL Fingerspelling" set is CC BY 4.0 but needs Kaggle credentials (none here), and FSboard is video.
-Instead, sequences are synthesised from real static letters: ASLNow! (huggingface.co/datasets/sid220/
-asl-now-fingerspelling, MIT), 21 MediaPipe hand points per sample, A-Z with J and Z as their end shape. Letters are
-chained with holds, transitions, J's twist and Z's trace, a slide for double letters, camera jitter and dropped frames.
-    python tools/ml/spell_ctc.py prepare [data_dir] [per_letter]   # download and cache asl_now.pkl
-    python tools/ml/spell_ctc.py train [data_dir] [epochs]          # asl_spell.pt, prints test CER
-    python tools/ml/spell_ctc.py export [data_dir]                  # assets models/asl_spell.{bin,json} + fixture
-"""
+"""The ASL fingerspelling reader: a CTC model over one hand (format 2, CtcSpellReader.kt), trained on synthetic
+sequences of real ASLNow! letters. See tools/README.md."""
 import hashlib
 import json
 import math

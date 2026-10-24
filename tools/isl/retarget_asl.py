@@ -1,14 +1,5 @@
-"""Retargets PopSign ASL signers onto the app's 2D rig like retarget.py: writes asl_signs.json and asl_words.json.
-
-PopSign ASL v1.0 (Starner et al. 2023, the 250 signs of Google's Isolated Sign Language Recognition), CC BY 4.0,
-frames at 5 fps from huggingface.co/datasets/sign/popsign-images. tools/ml/prepare_asl.py landmarks them with
-MediaPipe Holistic, then retarget.py's maths makes the keys. Most signers hold the phone in one hand, so a two-handed
-sign takes a clip where both hands sign, else the right hand alone, flagged one_hand_source. The one-hand ASL alphabet
-and numbers are authored as keyframes. Draft until ASL review.
-    python tools/isl/retarget_asl.py extra <gloss>...   # more game test clips for signs left with one key
-    python tools/isl/retarget_asl.py         # landmarks from prepare_asl.py, then the JSON
-    python tools/content/build_content.py --manifest-only
-"""
+"""Retargets PopSign ASL signers onto the rig like retarget.py and authors the one-hand alphabet; drafts until ASL
+review. Usage and licences are in tools/isl/README.md."""
 import functools
 import io
 import json

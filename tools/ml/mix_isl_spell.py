@@ -1,7 +1,4 @@
-"""Training cache for the ISL letter and digit reader: real photographs (prepare_isl_real.py) plus synthetic poses
-(synth_isl.py) in train, real held-out signers only in test, all with hand-normalised features.
-    python tools/ml/mix_isl_spell.py <isl_real.pkl> <synthetic isl_spell.pkl> <out.pkl>
-"""
+"""Training cache for the ISL letter reader: real photographs plus synthetic poses in train, real held-out signers in test."""
 import pickle
 import sys
 

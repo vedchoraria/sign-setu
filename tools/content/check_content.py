@@ -1,12 +1,4 @@
-"""Checks the content bundle before it ships: ids, references and language coverage.
-
-    python tools/content/check_content.py
-
-Unlike `build_content.py --check`, which compares SHA-256 hashes, this reads the JSON and verifies that
-every card, sign, gesture and group a question, word or phrase points at actually exists; that ids are
-unique; that every card has its WebP; and that every subject-facing label is present in all 17 languages.
-Exit 1 with a list of errors, or print a summary and exit 0. No file is written.
-"""
+"""Checks the bundle's references, unique ids, card images and 17-language labels; exits 1 with the errors."""
 import json
 import pathlib
 import sys

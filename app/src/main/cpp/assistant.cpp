@@ -1,4 +1,4 @@
-// JNI bridge to llama.cpp for the on-device assistant (D-24). One model and one context per handle;
+// JNI bridge to llama.cpp for the on-device assistant. One model and one context per handle;
 // every call starts from an empty context, so nothing from one request reaches the next.
 #include <jni.h>
 #include <algorithm>

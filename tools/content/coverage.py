@@ -1,15 +1,5 @@
-"""How much of what the app asks can actually be signed.
-
-Every question in triage.json is text the officer can show. With the ISL reader and the sign vocabulary behind it,
-each word either has a sign (a recorded ISL sign or a vocabulary entry), is grammar the sign language leaves out,
-or is fingerspelled. Fingerspelling a question word by word is slow enough that a frightened person loses track,
-so the words without a sign are what a training run or a new recorded sign should target.
-
-    python tools/content/coverage.py             # report, and write tools/ml/target_words.txt
-    python tools/content/coverage.py --check     # exit 1 when more than MAX_UNSIGNED questions carry a gap
-
-The word lists here mirror TextSigning.kt: keep them in step.
-"""
+"""How much of what the app asks can be signed; unsigned words go to tools/ml/target_words.txt.
+The word lists mirror TextSigning.kt: keep them in step."""
 import json
 import pathlib
 import re

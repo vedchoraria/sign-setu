@@ -49,7 +49,7 @@ enum class AvatarView(val left: Float, val top: Float, val width: Float, val hei
 const val AVATAR_ASPECT = 220f / 258f
 
 
-/** Colours of one character. Clothes are plain and regionally neutral (05-avatar-and-gestures §4). */
+/** Colours of one character. Clothes are plain and regionally neutral. */
 internal class Look(
     val skin: Color, val skinShade: Color, val line: Color, val outline: Color,
     val hair: Color, val hairShine: Color,
@@ -399,7 +399,7 @@ private fun DrawScope.drawHead(k: Kit, pose: Pose, blink: Float) {
 
     drawHair(k, pose.turn)
 
-    // Brows carry the question and worry (ISL facial grammar, 05 §4).
+    // Brows carry the question and worry: ISL facial grammar.
     val browY = fy - (if (child) 15f else 13f) - f.browRaise * 5f + f.browFrown * 2f
     val browGap = if (child) 7f else 6f
     val browLen = if (child) 13f else 12f

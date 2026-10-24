@@ -66,7 +66,7 @@ class SignSetuApp : Application() {
     }
 }
 
-/** Manual wiring; the app is small enough not to need a DI framework (02-architecture §3). */
+/** Manual wiring; the app is small enough not to need a DI framework. */
 class AppContainer(private val app: Application) : DefaultLifecycleObserver, ComponentCallbacks2 {
     val content = ContentRepository(app.assets)
     val settings = SettingsStore(app)

@@ -1,8 +1,4 @@
-"""Writes signs.json: the fingerspelling alphabet, digits and draft ISL word signs, in the gestures.json format.
-
-Every entry is a draft until an ISL reviewer signs it off (content-review-record.md).
-    python tools/content/build_signs.py && python tools/content/build_content.py --manifest-only
-"""
+"""Writes signs.json: fingerspelling alphabet, akshara, digits and draft ISL word signs, drafts until ISL review."""
 import json
 import pathlib
 

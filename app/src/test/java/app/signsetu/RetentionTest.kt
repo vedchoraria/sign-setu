@@ -88,11 +88,13 @@ class RetentionTest {
         assertTrue(allSessionsExpired(nowMs = 100 * hour, newestSessionAt = 70 * hour, retentionHours = 24))
         assertFalse(allSessionsExpired(nowMs = 100 * hour, newestSessionAt = 80 * hour, retentionHours = 24))
         assertFalse(allSessionsExpired(nowMs = 100_000 * hour, newestSessionAt = 1 * hour, retentionHours = 0))
+        assertFalse("no sessions yet", allSessionsExpired(nowMs = 100 * hour, newestSessionAt = 0, retentionHours = 24))
     }
 
     @Test
     fun theStoredSchemaDeletesEventsAndDrawingsWithTheirSession() {
-        val schema = Json.parseToJsonElement(File("schemas/app.signsetu.data.session.SessionDatabase/4.json").readText())
+        val latest = File("schemas/app.signsetu.data.session.SessionDatabase").listFiles()!!.maxBy { it.nameWithoutExtension.toInt() }
+        val schema = Json.parseToJsonElement(latest.readText())
         val entities = schema.jsonObject["database"]!!.jsonObject["entities"]!!.jsonArray.map { it.jsonObject }
         val children = entities.filter { it["tableName"]!!.jsonPrimitive.content in setOf("event", "drawing") }
         assertEquals(2, children.size)
@@ -139,5 +141,25 @@ class RetentionTest {
         val recent = session(startedHoursAgo = 2)
         assertEquals(2, SessionRepository(dao, clock = { now }).purgeExpired(24))
         assertEquals(setOf(recent), dao.sessions.value.keys)
+    }
+
+    @Test
+    fun buildExpiresAfterOneHundredAndEightyDays() {
+        assertFalse(buildExpired(todayEpochDay = 1000 + 180, builtEpochDay = 1000))
+        assertTrue(buildExpired(todayEpochDay = 1000 + 181, builtEpochDay = 1000))
+    }
+
+    @Test
+    fun aFinishedSessionIsKeptUnderItsNameAndRetentionZeroPurgesNothing() = runBlocking {
+        now = 1_000L
+        val id = repo.start(Profile.ISL_USER, "hi")
+        now = 5_000L
+        repo.end(id, "  FIR 214/2026 Raipur  ")
+        assertEquals(listOf("FIR 214/2026 Raipur"), repo.saved().first().map { it.title })
+        assertEquals(5_000L, repo.saved().first().single().endedAt)
+        now = 100L * 24 * 3_600_000L
+        assertEquals(0, repo.purgeExpired(0))
+        repo.reopen(id)
+        assertEquals(emptyList<String>(), repo.saved().first().map { it.title })
     }
 }

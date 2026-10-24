@@ -1,10 +1,5 @@
-"""Copies devices, feedback and audit rows from one gateway database to another, keeping ids.
-
-Usage: SOURCE_URL=sqlite:///gateway.db TARGET_URL=postgresql://... python tools/migrate_db.py [--dry-run]
-
-The URLs are read from the environment so credentials never reach a shell history or this tool's output.
-The target must have no rows yet. Take a copy of the source file before running; the source is only read.
-"""
+"""Copies devices, feedback and audit rows between gateway databases, keeping ids; URLs come from the environment so
+credentials stay out of shell history. Usage is in backend/README.md."""
 import os
 import sys
 

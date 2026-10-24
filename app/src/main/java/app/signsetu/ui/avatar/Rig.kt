@@ -13,7 +13,7 @@ import kotlin.math.cos
 import kotlin.math.hypot
 import kotlin.math.sin
 
-/* A 2D upper-body rig shared by both characters (05-avatar-and-gestures §5.1). Character space is 200 x 200,
+/* A 2D upper-body rig shared by both characters. Character space is 200 x 200,
  * y down, facing the viewer; gestures.json keyframes are character-relative, so both play the same file. */
 
 enum class Side(val sign: Float) { R(-1f), L(1f) }
@@ -326,7 +326,7 @@ class Timeline(val gesture: Gesture?, private val build: Build) {
         val m = if (free) easeOutBack(raw) else f
         val pa = resolve(a, side, other)
         val pb = resolve(b, side, other)
-        // ISL hook: handShape (MeasuredShape.kt) also reads measured "c:" shapes from isl_signs.json.
+        // handShape (MeasuredShape.kt) also reads measured "c:" shapes from isl_signs.json.
         val sa = handShape(a.shape) ?: HandShape.ALL.getValue("RELAX")
         val sb = handShape(b.shape) ?: HandShape.ALL.getValue("RELAX")
         val angleA = a.angle?.let { it * side.sign } ?: Float.NaN
