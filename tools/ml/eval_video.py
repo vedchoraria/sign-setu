@@ -30,8 +30,8 @@ CONTENT = ROOT / "app" / "src" / "main" / "assets" / "content"
 HOLISTIC = MODELS / "holistic_landmarker.task"
 
 # Mirrors SignWindow.ANSWER and SignCapture's rules; keep in step with sign/SignCapture.kt.
-PAUSE_MS = 300
-MIN_MS = 180
+PAUSE_MS = 400
+MIN_MS = 200
 MIN_ACTIVE_FRAMES = 3
 STILL_SPEED = 0.3
 LIMIT_MS = 20_000
