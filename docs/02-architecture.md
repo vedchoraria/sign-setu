@@ -485,7 +485,7 @@ stateDiagram-v2
 
 *Figure 14. `LinkState`. A stage that fails before Live goes back to waiting; an officer link shows why it failed.*
 
-Frames are `u32 length | u64 counter | AES-256-GCM`; the IV is a direction byte and the counter, the receiver accepts only the next counter, handshake frames are capped at 4 KiB and encrypted frames at 1 MiB. The stage reads signs itself (`readWindow`) and sends words only; landmarks never cross the link. The officer phone re-encodes every drawing it receives, after bounding its size.
+Frames are `u32 length | u64 counter | AES-256-GCM`; the IV is a direction byte and the counter, the receiver accepts only the next counter, handshake frames are capped at 4 KiB and encrypted frames at 1 MiB. The stage reads signs itself (`readSigns`, one word per sign) and sends words only; landmarks never cross the link. The officer phone re-encodes every drawing it receives, after bounding its size.
 
 ## 10. Assistant
 
@@ -563,7 +563,7 @@ sequenceDiagram
 
 ## 13. Build and delivery
 
-- `applicationId` `in.signsetu`; code namespace `app.signsetu` (`in` is a Kotlin keyword). Version 0.6.0, code 9. Flavors `standard` (reference) and `nearby` (`.nearby` suffix, Play services).
+- `applicationId` `in.signsetu`; code namespace `app.signsetu` (`in` is a Kotlin keyword). Version 0.7.0, code 10. Flavors `standard` (reference) and `nearby` (`.nearby` suffix, Play services).
 - Release builds: R8 with resource shrinking, `android.util.Log` calls stripped, native libraries and models stored uncompressed. Default ABIs arm64-v8a and x86_64 (universal); `-Pabi=arm64-v8a` builds the phone APK. APKs are unsigned; signing is a manual offline step.
 - Build gates on every variant before packaging: `check<Variant>Permissions` fails on RECORD_AUDIO or background location in any build and on discovery and location permissions in `standard`; `check<Variant>NoEmbeddedKey` fails a release that would compile in an assistant key.
-- The gateway (`backend/`, FastAPI and SQLAlchemy, SQLite or PostgreSQL) enrols devices, serves the model manifest, proxies assistant calls and stores consented feedback labels; `render.yaml` is a hosting blueprint. The reviewer portal (`portal/`, Vite+, React 19, TypeScript 7) draws every motion with a TypeScript port of the rig checked against `Rig.kt` through `src/rig-fixtures.json`.
+- The gateway (`backend/`, FastAPI and SQLAlchemy, SQLite or PostgreSQL) enrols devices, serves the model manifest, and proxies assistant calls. Voluntary officer feedback and correction proposals undergo forensic team triage before any ML fine-tuning. The reviewer portal (`portal/`, Vite+, React 19, TypeScript 7) draws every motion with a TypeScript port of the rig checked against `Rig.kt` through `src/rig-fixtures.json`.

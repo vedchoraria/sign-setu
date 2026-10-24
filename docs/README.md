@@ -4,9 +4,21 @@ Sign Setu is an offline Android app that helps a police officer communicate with
 
 | Field | Value |
 | --- | --- |
-| Version | 0.6.0 (version code 9), applicationId `in.signsetu` |
+| Version | 0.7.0 (version code 10), applicationId `in.signsetu` |
 | Classification | Internal |
 | Source of truth | This repository; the code wins over any document, and documents are corrected when they drift |
+
+## MVP — Live links
+
+| Resource | URL | Notes |
+| --- | --- | --- |
+| 📱 **Demo APK** (arm64, debug-signed, ~189 MB) | [sign-setu-0.7.0-debug.apk](https://github.com/Yash-Awasthi/sign-setu/releases/download/v0.7.0/sign-setu-0.7.0-debug.apk) | Gateway wired in; install directly — no signing step needed |
+| 📱 Phone APK — unsigned release (arm64, ~83 MB) | [sign-setu-0.7.0-arm64-v8a-unsigned.apk](https://github.com/Yash-Awasthi/sign-setu/releases/download/v0.7.0/sign-setu-0.7.0-arm64-v8a-unsigned.apk) | Needs `zipalign` + `apksigner` before install |
+| 📦 Universal APK — unsigned release (arm64 + x86\_64, ~109 MB) | [sign-setu-0.7.0-universal-unsigned.apk](https://github.com/Yash-Awasthi/sign-setu/releases/download/v0.7.0/sign-setu-0.7.0-universal-unsigned.apk) | Phones, tablets and emulators; needs signing |
+| 🏷️ GitHub release | [v0.7.0](https://github.com/Yash-Awasthi/sign-setu/releases/tag/v0.7.0) | All APKs and checksums |
+| 🌐 Department gateway (API) | [signsetu-gateway.onrender.com](https://signsetu-gateway.onrender.com) | FastAPI; Neon Postgres; cold-start ~30 s on free tier |
+| 🖥️ Reviewer portal | [signsetu-portal.pages.dev](https://fc39beea.signsetu-portal.pages.dev) | Vite + React; Cloudflare Pages |
+| 🤖 On-device model | [gemma-3-1b-it-Q4\_K\_M.gguf on Hugging Face](https://huggingface.co/ggml-org/gemma-3-1b-it-GGUF/resolve/main/gemma-3-1b-it-Q4_K_M.gguf) | ~806 MB; import via Settings → On-device assistant |
 
 ## Contents
 

@@ -32,7 +32,7 @@ The Gemma licence is free for government use but is not an OSI open-source licen
 
 | Model | SHA-256 |
 | --- | --- |
-| `gemma-3-1b-it-Q4_K_M.gguf` from `ggml-org/gemma-3-1b-it-GGUF` | `8ccc5cd1f1b3602548715ae25a66ed73fd5dc68a210412eea643eb20eb75a135` |
+| [`gemma-3-1b-it-Q4_K_M.gguf`](https://huggingface.co/ggml-org/gemma-3-1b-it-GGUF/resolve/main/gemma-3-1b-it-Q4_K_M.gguf) from `ggml-org/gemma-3-1b-it-GGUF` on Hugging Face | `8ccc5cd1f1b3602548715ae25a66ed73fd5dc68a210412eea643eb20eb75a135` |
 
 ## 4. Budgets
 

@@ -97,7 +97,7 @@ Core answer words that INCLUDE does not cover (yes, no, water, pain, help, stop,
 | Time per tracked frame | 33 ms on the oldest supported 64-bit phone | About 110 ms on the CPU of a mid-range phone (9 frames per second); the GPU rate is to be measured |
 | Time per read | Under 100 ms | About 18 ms on a desktop JVM |
 | Memory | Session under 300 MB | Narrative landmarks about 20 MB for 3 minutes; model mapped, not copied |
-| APK | Release under 100 MB | See the release record for the current sizes; the arm64-v8a phone APK meets the target, the universal APK does not |
+| APK | Distribution target under 100 MB | The arm64-v8a phone APK meets the target (82.7 MB); the multi-architecture universal APK is unconstrained |
 
 ## 8. Privacy and safety
 

@@ -78,7 +78,7 @@ separates the reader's accuracy from the app's cutting.
 Format 2 (`CtcSpellReader.kt`, `spell_features` in `features.py`): frames resampled to 15 a second by timestamp; the
 hand seen more often signs, a left hand mirrored; 21 points from the wrist in wrist to middle-knuckle lengths, the
 wrist's step since the last frame, a presence flag. Per-frame linear layer, four residual dilated convolutions, per-frame
-logits over blank and a to z, greedy CTC decoding. `AslSpellTest` checks logits and letters against the fixture.
+logits over blank and a to z, greedy CTC decoding. `SignReaderTest` checks logits and letters against the fixture.
 
 ## Features
 

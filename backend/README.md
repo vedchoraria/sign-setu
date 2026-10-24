@@ -1,5 +1,7 @@
 # Sign Setu gateway
 
+**Live deployment:** [signsetu-gateway.onrender.com](https://signsetu-gateway.onrender.com) (Render free tier, Neon Postgres — cold-start ~30 s)
+
 The department gateway the app uses while online. It is optional: a build without `gatewayUrl` never connects, and the app works the same without it. It also carries the online assistant that the AI counsellor needs.
 
 | Route | Caller | Purpose |
