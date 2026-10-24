@@ -2,7 +2,6 @@ package app.signsetu.ui.session
 
 import app.signsetu.data.content.ContentBundle
 import app.signsetu.data.content.Phrase
-import app.signsetu.data.content.pick
 import app.signsetu.data.content.planText
 import app.signsetu.data.session.EventType
 import app.signsetu.data.session.SessionEvent
@@ -28,7 +27,7 @@ fun decodePrompt(text: String?): PromptRecord? = text?.let { runCatching { json.
 /** Mirrors what the stage plays for each item (Stage.kt), so the record names what the subject actually saw. */
 fun ContentBundle.promptFor(pending: Pending, lang: String): PromptRecord {
     val (caption, motions, cards) = when (pending) {
-        is Pending.Ask -> Triple(pending.question.text.pick(lang), listOfNotNull(pending.question.gesture ?: pending.question.lexicon), pending.question.cards)
+        is Pending.Ask -> Triple(pending.question.text.get(lang), listOfNotNull(pending.question.gesture ?: pending.question.lexicon), pending.question.cards)
         is Pending.FreeText -> Triple(
             pending.caption ?: pending.text,
             if (pending.asksChoice) listOf("ask") else planText(pending.text, pending.modes).motions,
@@ -41,7 +40,7 @@ fun ContentBundle.promptFor(pending: Pending, lang: String): PromptRecord {
             Triple(subjectText("is_this_it", lang), listOf(pending.entry.id), listOf(pending.entry.card))
         }
         is Pending.PhraseAsk -> Triple(
-            pending.slot.text.pick(lang),
+            pending.slot.text.get(lang),
             pending.phrase.signs.mapNotNull { if (it == Phrase.SLOT) pending.slot.sign else it },
             listOf(pending.slot.card),
         )

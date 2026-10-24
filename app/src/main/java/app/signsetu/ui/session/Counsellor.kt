@@ -1,7 +1,6 @@
 package app.signsetu.ui.session
 
 import app.signsetu.data.content.ContentBundle
-import app.signsetu.data.content.pick
 import app.signsetu.data.session.EventSource
 import app.signsetu.data.session.EventType
 import app.signsetu.data.session.SessionEvent
@@ -119,7 +118,7 @@ private const val MAX_SAY = 160
  * officer's as officer, so the model reads the conversation in order rather than as a wall of lines. */
 fun counselHistory(events: List<SessionEvent>, content: ContentBundle): String = buildJsonArray {
     events.forEach { e ->
-        val card = e.cardId?.let { id -> content.cards[id]?.label?.pick("en") ?: id }
+        val card = e.cardId?.let { id -> content.cards[id]?.label?.get("en") ?: id }
         val turn = when {
             e.type == EventType.QUESTION_SHOWN -> (if (e.reason == SHOWN_AI) "assistant" else "officer") to e.text
             e.type == EventType.ANSWER_SIGNED -> "user" to signedWords(e.text)?.let { "(signed, unconfirmed) $it" }

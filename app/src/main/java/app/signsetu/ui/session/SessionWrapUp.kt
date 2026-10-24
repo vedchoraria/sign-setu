@@ -36,7 +36,7 @@ import app.signsetu.ui.theme.Spacing
 
 /** The name a session is saved under until the officer types their own: its start, as the phone writes dates. */
 fun defaultTitle(res: android.content.res.Resources, startedAt: Long): String =
-    res.getString(R.string.wrap_default_name, java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.MEDIUM, java.text.DateFormat.SHORT).format(java.util.Date(startedAt)))
+    res.getString(R.string.wrap_default_name, clockDate(startedAt))
 
 /** What a session gathered, for the officer before it ends. */
 data class WrapUp(val minutes: Int, val shown: Int, val answers: Int, val unanswered: Int, val unreadSigns: Int)

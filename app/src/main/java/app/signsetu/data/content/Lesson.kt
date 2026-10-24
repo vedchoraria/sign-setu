@@ -86,8 +86,6 @@ fun valid(type: AnswerType, value: String): Boolean {
 /** Ten digits read back in two groups of five, as people say a mobile number. */
 fun groupPhone(digits: String) = if (digits.length > 5) digits.take(5) + " " + digits.drop(5) else digits
 
-private fun Localized.or(lang: String) = this[lang] ?: this["en"]
-
 fun ContentBundle.state(id: String?) = states.firstOrNull { it.id == id }
 
 /** A place as an address line: anything written, the district if picked, then the state, in [lang] or else English. */

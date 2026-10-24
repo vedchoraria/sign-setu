@@ -48,7 +48,7 @@ import app.signsetu.data.settings.OfficerLocale
 import app.signsetu.ui.settings.languageName
 import app.signsetu.ui.avatar.Avatar
 import app.signsetu.ui.avatar.Character
-import app.signsetu.ui.avatar.Gesture
+import app.signsetu.data.content.Gesture
 import app.signsetu.ui.session.Backdrop
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight

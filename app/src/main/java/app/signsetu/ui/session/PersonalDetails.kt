@@ -5,7 +5,6 @@ import app.signsetu.R
 import app.signsetu.data.content.ContentBundle
 import app.signsetu.data.content.Method
 import app.signsetu.data.content.givenOf
-import app.signsetu.data.content.pick
 import app.signsetu.data.session.EventSource
 import app.signsetu.data.session.EventType
 import app.signsetu.data.session.SessionEvent
@@ -22,7 +21,7 @@ private val NotDetails = setOf("stop", "break", DONT_UNDERSTAND, "wrong", "yes",
 fun personalDetails(events: List<SessionEvent>, content: ContentBundle, lang: String): List<Detail> {
     val byId = events.associateBy { it.id }
     fun field(itemId: String?) = itemId?.let(content::question)?.takeIf { it.answer != null }
-        ?.let { q -> q.field?.pick(lang) ?: q.field?.get("en") ?: q.text.pick(lang) ?: q.id }
+        ?.let { q -> q.field?.get(lang) ?: q.field?.get("en") ?: q.text.get(lang) ?: q.id }
     return events.filter { it.source == EventSource.SUBJECT }.mapNotNull { e ->
         val given = givenOf(e.reason)
         val ref = refOf(e)

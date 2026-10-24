@@ -5,7 +5,6 @@ import androidx.compose.ui.platform.InterceptPlatformTextInput
 import androidx.compose.ui.ExperimentalComposeUiApi
 import android.view.inputmethod.InputConnection
 import android.view.inputmethod.EditorInfo
-import app.signsetu.assistant.ModelStore
 import app.signsetu.assistant.Assistant
 import android.app.Activity
 import android.content.Intent
@@ -110,7 +109,7 @@ import androidx.compose.runtime.remember
 import app.signsetu.pair.ByeReason
 import app.signsetu.pair.LinkRole
 import app.signsetu.pair.LinkState
-import app.signsetu.pair.rememberPairedStage
+import app.signsetu.ui.pair.rememberPairedStage
 import app.signsetu.ui.pair.SecondScreenSheet
 import app.signsetu.ui.pair.StageDeviceScreen
 import app.signsetu.ui.pair.UseAsStageButton
@@ -226,7 +225,8 @@ private fun Navigation(repo: SessionRepository, content: ContentBundle, settings
     // Each reads and hashes model files, so none is built on the main thread; null until ready, as with no model.
     val tracker by produceState<LandmarkTracker?>(null) { value = withContext(Dispatchers.IO) { container.landmarkTracker } }
     val reader by produceState<SignReader?>(null) { value = withContext(Dispatchers.IO) { container.signReader } }
-    val modelState by produceState<ModelStore.State?>(null, backStack.size) { value = withContext(Dispatchers.IO) { container.models.state() } }
+    // Loads the assistant's native library off the main thread, before Settings asks whether it runs here.
+    LaunchedEffect(Unit) { withContext(Dispatchers.IO) { container.models.state() } }
     if (pairing) SecondScreenSheet(container, onDismiss = { pairing = false })
     NavDisplay(
         backStack = backStack,

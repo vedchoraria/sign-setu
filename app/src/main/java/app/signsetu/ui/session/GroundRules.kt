@@ -3,7 +3,6 @@ package app.signsetu.ui.session
 import android.content.res.Resources
 import app.signsetu.R
 import app.signsetu.data.content.ContentBundle
-import app.signsetu.data.content.pick
 
 /** One opening step: its words (a question id or a subject_ui key), the character's gesture and the picture held up. */
 internal data class RuleStep(val key: String, val gesture: String, val card: String?)
@@ -35,7 +34,7 @@ internal fun ruleStep(pending: Pending?): RuleStep? = (pending as? Pending.Groun
 internal fun isPractice(pending: Pending?): Boolean = (pending as? Pending.GroundRules)?.step == RuleSteps.lastIndex
 
 internal fun ruleText(content: ContentBundle, key: String, lang: String): String? =
-    content.questions.firstOrNull { it.id == key }?.text?.pick(lang) ?: content.subjectText(key, lang)
+    content.questions.firstOrNull { it.id == key }?.text?.get(lang) ?: content.subjectText(key, lang)
 
 internal fun ruleAudio(content: ContentBundle, key: String, lang: String): String? =
     content.questionAudio(key, lang) ?: content.subjectAudio(key, lang)

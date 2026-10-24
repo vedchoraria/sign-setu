@@ -1,5 +1,7 @@
 package app.signsetu.ui.avatar
 
+import app.signsetu.data.content.Gesture
+import app.signsetu.data.content.QuestionKind
 import android.provider.Settings
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
@@ -46,8 +48,6 @@ enum class AvatarView(val left: Float, val top: Float, val width: Float, val hei
 /** Width over height of [AvatarView.Body]; callers size the avatar with it. */
 const val AVATAR_ASPECT = 220f / 258f
 
-/** The face that marks a question in ISL: raised brows for yes-no, furrowed brows for a question word. */
-enum class QuestionKind { YES_NO, WH }
 
 /** Colours of one character. Clothes are plain and regionally neutral (05-avatar-and-gestures §4). */
 internal class Look(

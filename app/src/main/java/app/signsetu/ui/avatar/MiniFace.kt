@@ -1,5 +1,6 @@
 package app.signsetu.ui.avatar
 
+import app.signsetu.data.content.Gesture
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset

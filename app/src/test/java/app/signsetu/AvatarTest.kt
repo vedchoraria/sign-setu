@@ -5,12 +5,12 @@ import app.signsetu.ui.avatar.AdultBuild
 import app.signsetu.ui.avatar.AvatarView
 import app.signsetu.ui.avatar.HandPose
 import app.signsetu.ui.avatar.ChildBuild
-import app.signsetu.ui.avatar.Gesture
+import app.signsetu.data.content.Gesture
 import app.signsetu.ui.avatar.HandShape
-import app.signsetu.ui.avatar.Key
+import app.signsetu.data.content.Key
 import app.signsetu.ui.avatar.Side
 import app.signsetu.ui.avatar.Timeline
-import app.signsetu.ui.avatar.chain
+import app.signsetu.data.content.chain
 import app.signsetu.ui.avatar.point
 import app.signsetu.data.content.ContentBundle
 import app.signsetu.data.content.SignMode
@@ -19,7 +19,7 @@ import app.signsetu.data.content.planText
 import app.signsetu.data.content.spelling
 import app.signsetu.data.content.questionKind
 import app.signsetu.ui.session.spelledIndex
-import app.signsetu.ui.avatar.QuestionKind
+import app.signsetu.data.content.QuestionKind
 import app.signsetu.ui.avatar.elbowAt
 import app.signsetu.ui.avatar.solveElbow
 import kotlinx.serialization.Serializable

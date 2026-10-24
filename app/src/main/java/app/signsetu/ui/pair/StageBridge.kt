@@ -1,4 +1,4 @@
-package app.signsetu.pair
+package app.signsetu.ui.pair
 
 import androidx.activity.compose.LocalActivity
 import androidx.compose.runtime.Composable
@@ -14,13 +14,25 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.signsetu.BuildConfig
-import app.signsetu.data.content.pick
+import app.signsetu.data.content.ContentBundle
 import app.signsetu.data.session.EventType
 import app.signsetu.data.session.SessionEvent
 import app.signsetu.data.settings.AppSettings
-import app.signsetu.ui.pair.LinkKey
+import app.signsetu.pair.AnswerBody
+import app.signsetu.pair.ByeReason
+import app.signsetu.pair.LinkState
+import app.signsetu.pair.StageLink
+import app.signsetu.pair.StageView
+import app.signsetu.pair.ToOfficer
+import app.signsetu.pair.WirePending
+import app.signsetu.pair.sha256
+import app.signsetu.ui.session.Mode
 import app.signsetu.ui.session.Pending
+import app.signsetu.ui.session.SessionUi
 import app.signsetu.ui.session.SessionViewModel
+import app.signsetu.ui.session.child
+import app.signsetu.ui.session.ruleStep
+import app.signsetu.ui.session.signLanguage
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
@@ -47,10 +59,10 @@ class PairedPane(
 /** When [p] was last shown in this session, if it was. */
 fun askedAt(events: List<SessionEvent>, p: Pending, officerLang: String): Long? = events.lastOrNull { e ->
     e.type == EventType.QUESTION_SHOWN && when (p) {
-        is Pending.Ask -> e.text == p.question.text.pick(officerLang)
+        is Pending.Ask -> e.text == p.question.text.get(officerLang)
         is Pending.ShowBack -> e.lexiconId == p.entry.id
         is Pending.FreeText -> e.text == listOfNotNull(p.text, p.caption).joinToString("\n")
-        is Pending.PhraseAsk -> e.text == p.slot.text.pick(officerLang) && e.cardId == p.slot.card
+        is Pending.PhraseAsk -> e.text == p.slot.text.get(officerLang) && e.cardId == p.slot.card
         else -> false
     }
 }?.ts
@@ -154,5 +166,45 @@ fun rememberPairedStage(
                 else -> { warnedFor = null; asked = null; true }
             }
         },
+    )
+}
+
+fun Pending.toWire(): WirePending = when (this) {
+    is Pending.Ask -> WirePending.Ask(question.id)
+    is Pending.FreeText -> WirePending.FreeText(text, cardIds, modes, caption, meant)
+    is Pending.Cards -> WirePending.Cards(cardIds)
+    is Pending.ShowBack -> WirePending.ShowBack(entry.id, choices)
+    is Pending.PhraseAsk -> WirePending.PhraseAsk(phrase.id, slot.card)
+    Pending.LanguageFinder -> WirePending.LanguageFinder
+    Pending.Drawing -> WirePending.Drawing
+    is Pending.GroundRules -> WirePending.Rules(step)
+}
+
+/** Null for an ID this build's content does not have; the stage then shows nothing rather than a guess. */
+fun WirePending.resolve(content: ContentBundle): Pending? = when (this) {
+    is WirePending.Ask -> content.questions.firstOrNull { it.id == questionId }?.let { Pending.Ask(it) }
+    is WirePending.FreeText -> if (cardIds.all { it in content.cards }) Pending.FreeText(text, cardIds, modes, caption, meant = meant?.takeIf { it in cardIds }) else null
+    is WirePending.Cards -> if (cardIds.all { it in content.cards }) Pending.Cards(cardIds) else null
+    is WirePending.ShowBack -> content.lexicon[lexiconId]?.takeIf { choices.all { c -> c in content.cards } }?.let { Pending.ShowBack(it, choices) }
+    is WirePending.PhraseAsk -> content.phrases.firstOrNull { it.id == phraseId }?.let { p -> p.slots.firstOrNull { it.card == slotCard }?.let { Pending.PhraseAsk(p, it) } }
+    WirePending.LanguageFinder -> Pending.LanguageFinder
+    WirePending.Drawing -> Pending.Drawing
+    is WirePending.Rules -> Pending.GroundRules(step).takeIf { ruleStep(it) != null }
+}
+
+/** Reads only what is on stage, never the officer's draft. */
+fun SessionUi.toStageView(largeCaptions: Boolean, gestureSpeed: Float, cameraOn: Boolean): StageView {
+    val live = mode == Mode.SHOW && onStage != null
+    return StageView(
+        lang = session.subjectLang,
+        profile = session.profile.name,
+        live = live,
+        item = onStage?.takeIf { live }?.toWire(),
+        rotated = rotated,
+        largeCaptions = largeCaptions,
+        gestureSpeed = gestureSpeed,
+        cameraOn = cameraOn,
+        signLanguage = signLanguage.name,
+        child = child,
     )
 }

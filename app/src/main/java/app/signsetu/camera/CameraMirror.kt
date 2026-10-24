@@ -167,7 +167,6 @@ fun CameraMirror(
         val executor = Executors.newSingleThreadExecutor()
         var lastMs: Long? = null
         var reused: Bitmap? = null
-        var busy = false
         // Heard on the analysis thread, so the analyzer reads it without a lock. Severe heat slows the idle mirror first.
         var hot = false
         val power = context.getSystemService(PowerManager::class.java)
@@ -179,7 +178,7 @@ fun CameraMirror(
                 // An empty room outside a sign window is checked about three times a second, to save battery and heat.
                 val idle = lastPerson.let { seenAt -> seenAt == null || ms - seenAt > IDLE_AFTER_MS }
                 val interval = if (analysing) ANALYSIS_INTERVAL_MS else if (idle || hot) IDLE_INTERVAL_MS else PREVIEW_INTERVAL_MS
-                if (busy || !analysisDue(lastMs, ms, interval)) return@setAnalyzer
+                if (!analysisDue(lastMs, ms, interval)) return@setAnalyzer
                 lastMs = ms
                 val plane = it.planes[0]
                 val packed = plane.pixelStride == 4 && plane.rowStride == it.width * 4
@@ -191,11 +190,9 @@ fun CameraMirror(
                     it.toBitmap()
                 }
                 val aspect = bitmap.width.toFloat() / bitmap.height
-                busy = true
                 // Picture quality is judged only while a sign is being read; elsewhere it costs nothing.
                 val blurry = analysing && blur.blurry(bitmap)
                 val frame = runCatching { tracker.track(bitmap, ms)?.let { raw -> pipeline.mark(raw, aspect, blurry) } }.getOrNull()
-                busy = false
                 if (!packed) bitmap.recycle()
                 if (frame?.pose != null) lastPerson = ms
                 shown = frame

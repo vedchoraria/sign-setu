@@ -40,7 +40,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import app.signsetu.R
 import app.signsetu.data.content.ContentBundle
-import app.signsetu.data.content.pick
 import app.signsetu.sign.SignChoice
 import app.signsetu.sign.SignSegment
 import app.signsetu.ui.theme.LocalStageColors
@@ -61,7 +60,7 @@ internal fun SignChoicePanel(choices: List<SignChoice>, content: ContentBundle, 
         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.fillMaxWidth()) {
             choices.forEach { c ->
                 if (c.card != null) {
-                    ChoiceTile(c.card, content.cards[c.card]?.label?.pick(lang), false, { onChoose(c) }, Modifier.weight(1f), name = content.cards[c.card]?.label?.pick("en"))
+                    ChoiceTile(c.card, content.cards[c.card]?.label?.get(lang), false, { onChoose(c) }, Modifier.weight(1f), name = content.cards[c.card]?.label?.get("en"))
                 } else {
                     PressableSurface(onClick = { onChoose(c) }, shape = RoundedCornerShape(20.dp), color = Color.White, border = TileEdge, modifier = Modifier.weight(1f).heightIn(min = 96.dp)) {
                         Box(contentAlignment = Alignment.Center) { Text(c.text, style = MaterialTheme.typography.titleLarge, color = Ink, textAlign = TextAlign.Center, modifier = Modifier.padding(8.dp)) }

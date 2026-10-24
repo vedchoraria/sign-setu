@@ -55,7 +55,6 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import app.signsetu.R
-import app.signsetu.data.content.pick
 import app.signsetu.data.session.EventType
 import app.signsetu.data.session.Profile
 import app.signsetu.data.session.SessionEvent
@@ -68,8 +67,6 @@ import app.signsetu.ui.theme.PictureWell
 import app.signsetu.ui.theme.Spacing
 import androidx.compose.material.icons.filled.PlayArrow
 import app.signsetu.sign.SignSegment
-import java.text.DateFormat
-import java.util.Date
 import app.signsetu.ui.pair.linkText
 
 /** The conversation so far: what was shown on the right, the subject's answers on the left, newest at the bottom. */
@@ -130,7 +127,7 @@ internal fun systemText(text: String?) = systemText(LocalResources.current, text
 
 private val AutoRows = setOf(EventType.SUGGESTED, EventType.APPROVED, EventType.SKIPPED, EventType.AUTO_ADVANCED)
 
-private fun timeOf(e: SessionEvent) = DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(e.ts))
+private fun timeOf(e: SessionEvent) = clockTime(e.ts)
 
 @Composable
 internal fun Shown(e: SessionEvent, by: ShownBy? = null) {

@@ -47,7 +47,6 @@ import app.signsetu.data.content.DictionaryEntry
 import app.signsetu.data.content.SignLanguage
 import app.signsetu.data.content.Question
 import app.signsetu.data.content.dictionary
-import app.signsetu.data.content.pick
 import app.signsetu.data.content.search
 import app.signsetu.ui.avatar.Avatar
 import app.signsetu.ui.avatar.Character
@@ -113,7 +112,7 @@ fun IslDictionarySheet(content: ContentBundle, lang: String, signLanguage: SignL
             LazyRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), contentPadding = PaddingValues(vertical = Spacing.sm)) {
                 item { FilterChip(category == null, { category = null }, { Text(stringResource(R.string.isl_dictionary_all)) }, Modifier.heightIn(min = 48.dp)) }
                 items(categories) { c ->
-                    val name = content.isl.categories[c]?.let { it.pick(lang) ?: it["en"] } ?: c
+                    val name = content.isl.categories[c]?.let { it.get(lang) ?: it["en"] } ?: c
                     FilterChip(category == c, { category = if (category == c) null else c }, { Text(name) }, Modifier.heightIn(min = 48.dp))
                 }
             }

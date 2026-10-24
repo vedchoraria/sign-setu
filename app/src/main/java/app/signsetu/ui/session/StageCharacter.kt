@@ -75,7 +75,6 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import app.signsetu.R
 import app.signsetu.data.content.ContentBundle
-import app.signsetu.data.content.pick
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
@@ -324,7 +323,7 @@ internal fun MirrorWindow(
                         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.fillMaxWidth()) {
                             row.forEach { id ->
                                 val delay = 70 * choices.indexOf(id)
-                                ChoiceTile(id, content.cards[id]?.label?.pick(lang), chosenCard == id, { onCard(id) }, Modifier.weight(1f).popIn(rememberPopIn(delay)), name = content.cards[id]?.label?.pick("en"), proposed = proposedCard == id)
+                                ChoiceTile(id, content.cards[id]?.label?.get(lang), chosenCard == id, { onCard(id) }, Modifier.weight(1f).popIn(rememberPopIn(delay)), name = content.cards[id]?.label?.get("en"), proposed = proposedCard == id)
                             }
                             repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
                         }

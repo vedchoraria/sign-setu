@@ -1,11 +1,11 @@
 package app.signsetu
 
 import app.signsetu.ui.avatar.AdultBuild
-import app.signsetu.ui.avatar.Gesture
-import app.signsetu.ui.avatar.HandKey
-import app.signsetu.ui.avatar.Key
+import app.signsetu.data.content.Gesture
+import app.signsetu.data.content.HandKey
+import app.signsetu.data.content.Key
 import app.signsetu.ui.avatar.Side
-import app.signsetu.ui.avatar.chain
+import app.signsetu.data.content.chain
 import app.signsetu.ui.avatar.clampReach
 import app.signsetu.ui.avatar.solveElbow
 import org.junit.Assert.assertEquals

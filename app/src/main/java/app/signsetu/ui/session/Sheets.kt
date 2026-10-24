@@ -83,7 +83,6 @@ import app.signsetu.data.content.HandAction
 import app.signsetu.data.content.LexiconEntry
 import app.signsetu.data.content.Phrase
 import app.signsetu.data.content.PhraseSlot
-import app.signsetu.data.content.pick
 import app.signsetu.data.session.EventType
 import app.signsetu.data.session.Profile
 import app.signsetu.data.session.Role as SessionRole
@@ -96,8 +95,6 @@ import app.signsetu.ui.start.JuvenileNotice
 import app.signsetu.ui.start.profileTitle
 import app.signsetu.ui.theme.PictureWell
 import app.signsetu.ui.theme.Spacing
-import java.text.DateFormat
-import java.util.Date
 import app.signsetu.ui.components.FilterObscuredTouches
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.filled.PlayArrow
@@ -119,7 +116,7 @@ internal fun <T : Any> stateListSaver() = listSaver<SnapshotStateList<T>, T>(sav
 fun PhraseSheet(phrase: Phrase, content: ContentBundle, lang: String, onPick: (PhraseSlot) -> Unit, onDismiss: () -> Unit) {
     OfficerSheet(onDismiss) {
         Column(Modifier.padding(horizontal = Spacing.lg).padding(bottom = Spacing.lg)) {
-            SheetTitle(phrase.label.pick(lang) ?: phrase.id)
+            SheetTitle(phrase.label.get(lang) ?: phrase.id)
             LazyVerticalGrid(
                 columns = GridCells.Fixed(3),
                 horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
@@ -127,7 +124,7 @@ fun PhraseSheet(phrase: Phrase, content: ContentBundle, lang: String, onPick: (P
                 contentPadding = PaddingValues(top = Spacing.md),
             ) {
                 items(phrase.slots, key = { it.card }) { slot ->
-                    PictureCard(slot.card, content.cards[slot.card]?.label?.pick(lang), onClick = { onPick(slot) }, minSize = 104.dp)
+                    PictureCard(slot.card, content.cards[slot.card]?.label?.get(lang), onClick = { onPick(slot) }, minSize = 104.dp)
                 }
             }
         }
@@ -176,7 +173,7 @@ fun BoardSheet(
                 }
                 item { FilterChip(selected = category == null, onClick = { category = null }, label = { Text(stringResource(R.string.board_all)) }) }
                 items(content.categories, key = { it.id }) { c ->
-                    FilterChip(selected = category == c.id, onClick = { category = c.id }, label = { Text(c.label.pick(lang) ?: c.id) })
+                    FilterChip(selected = category == c.id, onClick = { category = c.id }, label = { Text(c.label.get(lang) ?: c.id) })
                 }
             }
             LazyVerticalGrid(
@@ -189,7 +186,7 @@ fun BoardSheet(
                     Box {
                         PictureCard(
                             cardId = card.id,
-                            label = card.label.pick(lang),
+                            label = card.label.get(lang),
                             selected = card.id in chosen,
                             onClick = { if (card.id in chosen) chosen.remove(card.id) else chosen.add(card.id) },
                             minSize = 104.dp,
@@ -262,8 +259,8 @@ fun GestureSheet(content: ContentBundle, lang: String, onPick: (LexiconEntry, Li
                 items(results, key = { it.id }) { entry ->
                     Surface(shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.surfaceContainerLow) {
                         ListItem(
-                            headlineContent = { Text(entry.label.pick(lang) ?: entry.id) },
-                            supportingContent = { Text(entry.how.pick(lang) ?: entry.how["en"].orEmpty()) },
+                            headlineContent = { Text(entry.label.get(lang) ?: entry.id) },
+                            supportingContent = { Text(entry.how.get(lang) ?: entry.how["en"].orEmpty()) },
                             leadingContent = { GesturePreview(content, entry) },
                             trailingContent = { TextButton(onClick = { onPick(entry, results) }) { Text(stringResource(R.string.gl_show_back)) } },
                             colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
@@ -355,7 +352,7 @@ fun EventRow(e: SessionEvent, modifier: Modifier = Modifier, question: String? =
                 else -> ""
             }
             val kind = givenOf(e.reason)?.let { stringResource(it.first.label()).replaceFirstChar(Char::uppercase) } ?: stringResource(e.type.label())
-            Text("${DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(e.ts))}  ·  $kind$mark")
+            Text("${clockTime(e.ts)}  ·  $kind$mark")
         },
         headlineContent = {
             val res = LocalResources.current

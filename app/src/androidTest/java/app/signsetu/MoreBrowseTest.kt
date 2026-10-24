@@ -12,7 +12,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import app.signsetu.data.content.ContentBundle
 import app.signsetu.data.content.ContentRepository
-import app.signsetu.data.content.pick
 import app.signsetu.data.session.Profile
 import app.signsetu.data.session.Role
 import app.signsetu.data.session.Session
@@ -47,9 +46,9 @@ class MoreBrowseTest {
         val role = Role.VICTIM
         val profile = Profile.NOT_SURE
         val group = content.groupsFor(role).first { content.questionsIn(it.id, role, profile).isNotEmpty() }
-        val label = group.label.pick("en") ?: group.id
+        val label = group.label.get("en") ?: group.id
         val question = content.questionsIn(group.id, role, profile).first()
-        val title = question.text.pick("en")!!
+        val title = question.text.get("en")!!
 
         val ui = SessionUi(
             session = Session("test", 0L, profile, "hi", role),

@@ -20,8 +20,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -46,8 +44,6 @@ import app.signsetu.ui.start.roleTitle
 import app.signsetu.data.session.Role as SessionRole
 import app.signsetu.ui.theme.Spacing
 import java.io.File
-import java.text.DateFormat
-import java.util.Date
 import app.signsetu.ui.pair.linkText
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.foundation.rememberScrollState
@@ -80,21 +76,19 @@ internal fun answerSummary(res: Resources, events: List<SessionEvent>): Pair<Str
 }
 
 internal fun reportText(res: Resources, ui: SessionUi, content: ContentBundle): ReportText {
-    val time = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
     val language = content.language(ui.session.subjectLang)
     return ReportText(
         title = res.getString(R.string.report_title),
         disclaimer = res.getString(R.string.report_disclaimer) + "\n" + res.getString(R.string.report_grade_legend),
         header = listOfNotNull(
-            res.getString(R.string.report_started) to time.format(Date(ui.session.startedAt)),
-            res.getString(R.string.report_exported) to time.format(Date()),
+            res.getString(R.string.report_started) to clockDate(ui.session.startedAt),
+            res.getString(R.string.report_exported) to clockDate(System.currentTimeMillis()),
             // A role the officer never set is left out rather than guessed.
             (res.getString(R.string.report_role) to res.getString(roleTitle(ui.session.role))).takeIf { ui.session.role != SessionRole.NOT_KNOWN },
             res.getString(R.string.report_profile) to res.getString(profileTitle(ui.session.profile)),
             res.getString(R.string.report_language) to (language?.let { "${it.english} (${it.name})" } ?: ui.session.subjectLang),
         ) + ui.events.filter { it.via != null }.let { remote ->
-            val clock = DateFormat.getTimeInstance(DateFormat.SHORT)
-            if (remote.isEmpty()) emptyList() else listOf(res.getString(R.string.report_second_screen) to res.getString(R.string.report_via_header, clock.format(Date(remote.first().ts)), clock.format(Date(remote.last().ts))))
+            if (remote.isEmpty()) emptyList() else listOf(res.getString(R.string.report_second_screen) to res.getString(R.string.report_via_header, clockTime(remote.first().ts), clockTime(remote.last().ts)))
         } + autoHeader(res, ui.events) + listOfNotNull(answerSummary(res, ui.events)),
         time = res.getString(R.string.report_time),
         event = res.getString(R.string.report_event),
@@ -102,7 +96,7 @@ internal fun reportText(res: Resources, ui: SessionUi, content: ContentBundle): 
         inReplyTo = res.getString(R.string.report_in_reply),
         page = { n, total -> res.getString(R.string.report_page, n, total) },
         eventLabel = { res.getString(it.label()) },
-        formatTime = { DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(it)) },
+        formatTime = ::clockTime,
         notStatement = res.getString(R.string.report_not_statement),
         readings = res.getString(R.string.report_readings),
     )

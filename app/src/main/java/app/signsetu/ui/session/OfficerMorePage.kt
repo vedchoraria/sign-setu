@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -63,7 +62,6 @@ import app.signsetu.data.content.ContentBundle
 import app.signsetu.data.content.Phrase
 import app.signsetu.data.content.Question
 import app.signsetu.data.content.SignLanguage
-import app.signsetu.data.content.pick
 import app.signsetu.data.session.Profile
 import app.signsetu.ui.components.CardImage
 import app.signsetu.ui.theme.PictureWell
@@ -138,7 +136,7 @@ internal fun MorePage(
                 verticalArrangement = Arrangement.spacedBy(Spacing.xs),
             ) {
                 groups.forEach { g ->
-                    val label = g.label.pick(officerLang) ?: g.id
+                    val label = g.label.get(officerLang) ?: g.id
                     key(g.id) {
                         Surface(
                             shape = RoundedCornerShape(20.dp),
@@ -172,8 +170,8 @@ internal fun MorePage(
                 phrases.forEach { p -> key(p.id) {
                     QuestionRow(
                         cardId = p.slots.firstOrNull()?.card,
-                        title = p.label.pick(officerLang) ?: p.id,
-                        caption = p.label.pick(subjectLang)?.takeIf { subjectLang != officerLang },
+                        title = p.label.get(officerLang) ?: p.id,
+                        caption = p.label.get(subjectLang)?.takeIf { subjectLang != officerLang },
                         hasGesture = true,
                         hasAudio = ui.session.profile != Profile.ISL_USER && p.slots.any { content.phraseAudio(p, it, subjectLang) != null },
                         selected = (pending as? Pending.PhraseAsk)?.phrase?.id == p.id,
@@ -184,9 +182,9 @@ internal fun MorePage(
                 questions.forEach { (g, q) -> key(q.id) {
                     QuestionRow(
                         cardId = q.cards.firstOrNull(),
-                        title = q.text.pick(officerLang) ?: q.text.values.first(),
-                        caption = q.text.pick(subjectLang)?.takeIf { subjectLang != officerLang },
-                        missing = if (q.text.pick(subjectLang) == null) stringResource(R.string.officer_caption_missing, content.language(subjectLang)?.english ?: subjectLang) else null,
+                        title = q.text.get(officerLang) ?: q.text.values.first(),
+                        caption = q.text.get(subjectLang)?.takeIf { subjectLang != officerLang },
+                        missing = if (q.text.get(subjectLang) == null) stringResource(R.string.officer_caption_missing, content.language(subjectLang)?.english ?: subjectLang) else null,
                         hasGesture = content.gestureFor(q) != null,
                         hasAudio = content.questionAudio(q.id, subjectLang) != null && ui.session.profile != Profile.ISL_USER,
                         selected = (pending as? Pending.Ask)?.question?.id == q.id,

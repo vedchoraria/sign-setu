@@ -67,6 +67,7 @@ import app.signsetu.camera.Head
 import app.signsetu.camera.LandmarkFrame
 import app.signsetu.camera.LandmarkTracker
 import app.signsetu.camera.countOpenFingers
+import app.signsetu.data.content.or
 import app.signsetu.data.content.AnswerType
 import app.signsetu.data.content.ContentBundle
 import app.signsetu.data.content.planText
@@ -561,4 +562,4 @@ private const val GUIDE_STEP_MS = 3_000L
 private val FINGERS = Regex("n\\d+")
 
 private fun cardLabel(content: ContentBundle, card: String, lang: String): String =
-    content.cards[card]?.label?.let { it[lang] ?: it["en"] } ?: card.removePrefix("n").takeIf { card.matches(FINGERS) } ?: card
+    content.cards[card]?.label?.or(lang) ?: card.removePrefix("n").takeIf { card.matches(FINGERS) } ?: card

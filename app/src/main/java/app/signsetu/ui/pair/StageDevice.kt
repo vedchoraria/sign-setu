@@ -52,7 +52,6 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -88,13 +87,9 @@ import app.signsetu.pair.StageTransports
 import app.signsetu.pair.ToOfficer
 import app.signsetu.pair.b64
 import app.signsetu.pair.fitDrawing
-import app.signsetu.pair.resolve
-import app.signsetu.sign.SIGN_LIMIT_MS
-import app.signsetu.sign.STILL_SPEED
-import app.signsetu.sign.SignQuiet
+import app.signsetu.sign.SignCapture
 import app.signsetu.sign.SignReader
-import app.signsetu.sign.moving
-import app.signsetu.sign.readWindow
+import app.signsetu.sign.readSigns
 import app.signsetu.ui.ImmersiveWhile
 import app.signsetu.ui.PinWhile
 import app.signsetu.ui.components.GuardedAlertDialog
@@ -255,10 +250,9 @@ private fun LiveStage(link: StageLink, baseContent: ContentBundle, state: LinkSt
     val reader by produceState<SignReader?>(null, lang) {
         value = withContext(Dispatchers.IO) { container.signReader(lang) ?: container.signReader }
     }
-    var signing by remember { mutableStateOf(false) }
-    val signFrames = remember { mutableStateListOf<LandmarkFrame>() }
-    // The same rule as the officer's phone: three seconds to start, two of quiet hands to end, no tap needed.
-    val quiet = remember { SignQuiet() }
+    // The same window as the officer's phone: 20 s at most, closed by quiet hands, read one sign at a time.
+    var capture by remember { mutableStateOf<SignCapture?>(null) }
+    val signs = remember { mutableListOf<List<LandmarkFrame>>() }
     val itemId = show?.itemId
     // The item answered last; Stop on an idle screen still belongs somewhere in the record.
     val lastItem = remember { LongArray(1) }
@@ -276,14 +270,15 @@ private fun LiveStage(link: StageLink, baseContent: ContentBundle, state: LinkSt
 
     // Ends the window and sends what was read; a window that has gone quiet ends itself here, like a tap on Done.
     val endSigning: () -> Unit = {
-        signing = false
-        if (signFrames.isNotEmpty()) {
-            val frames = signFrames.toList()
-            signFrames.clear()
+        capture?.let { signs += it.finish() }
+        capture = null
+        val taken = signs.toList()
+        signs.clear()
+        if (taken.isNotEmpty()) {
             val r = reader
             val cards = pending.answerCards()
             scope.launch {
-                val words = withContext(Dispatchers.Default) { readWindow(frames, r, cards, content.words) }
+                val words = withContext(Dispatchers.Default) { readSigns(taken, r, cards, content.words) }
                 if (words.any { it != "?" }) send(AnswerBody.Signed(words))
             }
         }
@@ -341,23 +336,16 @@ private fun LiveStage(link: StageLink, baseContent: ContentBundle, state: LinkSt
                     onSignFrame = { frame ->
                         // Frames arrive on the camera's thread; the window's state lives on the main thread only.
                         mainExecutor.execute {
-                            if (signing) {
-                                quiet.see(frame.timestampMs, moving(signFrames.lastOrNull(), frame, STILL_SPEED))
-                                signFrames.add(frame)
-                                // The officer's phone caps a window at 20 s; this phone's frames are held here, so it does too.
-                                val capped = frame.timestampMs - (signFrames.firstOrNull()?.timestampMs ?: frame.timestampMs) >= SIGN_LIMIT_MS
-                                if (quiet.settled(frame.timestampMs) || capped) endSigning()
+                            capture?.let { c ->
+                                signs += c.add(frame)
+                                if (c.full || c.settled()) endSigning()
                             }
                         }
                     },
                     // Called on the camera's thread for every frame until the stage recomposes; only the first opens a window.
                     onStartSigning = {
                         mainExecutor.execute {
-                            if (!signing) {
-                                signFrames.clear()
-                                quiet.reset()
-                                signing = true
-                            }
+                            if (capture == null) capture = SignCapture()
                         }
                     },
                     onDoneSigning = { endSigning() },

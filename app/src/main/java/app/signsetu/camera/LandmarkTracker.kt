@@ -213,10 +213,9 @@ class BodyPointing(holdMs: Long = 600L) {
 
 internal fun region(frame: LandmarkFrame): String? {
     val p = frame.pose?.takeIf { it.size >= 25 } ?: return null
-    fun u(o: Offset) = Offset(o.x * frame.aspect, o.y)
-    val ls = u(p[11]); val rs = u(p[12])
-    val sw = (ls - rs).getDistance().takeIf { it > 1e-4f } ?: return null
-    val mid = (ls + rs) / 2f
+    fun u(o: Offset) = unit(frame, o)
+    val sw = shoulderWidth(frame) ?: return null
+    val mid = (u(p[11]) + u(p[12])) / 2f
     for ((hand, other) in listOf(frame.leftHand to (12 to 14 to 16), frame.rightHand to (11 to 13 to 15))) {
         val h = hand?.takeIf { it.size >= 21 }?.map(::u) ?: continue
         fun d(a: Int, b: Int) = (h[a] - h[b]).getDistance()
@@ -259,7 +258,7 @@ class PalmGestures(holdMs: Long = 800L) {
 internal fun raisedPalm(frame: LandmarkFrame): Boolean {
     val p = frame.pose?.takeIf { it.size >= 13 } ?: return false
     val shoulders = (p[11].y + p[12].y) / 2f
-    val sw = p.dist(11, 12, frame.aspect).takeIf { it > 1e-4f } ?: return false
+    val sw = shoulderWidth(frame) ?: return false
     return frame.hands.any { h ->
         if (h.size < 21) return@any false
         fun d(a: Int, b: Int) = h.dist(a, b, frame.aspect)
@@ -281,8 +280,8 @@ internal fun shrug(frame: LandmarkFrame): Boolean {
     val p = frame.pose?.takeIf { it.size >= 13 } ?: return false
     val l = frame.leftHand?.takeIf { it.size >= 21 } ?: return false
     val r = frame.rightHand?.takeIf { it.size >= 21 } ?: return false
-    fun u(o: Offset) = Offset(o.x * frame.aspect, o.y)
-    val sw = (u(p[11]) - u(p[12])).getDistance().takeIf { it > 1e-4f } ?: return false
+    fun u(o: Offset) = unit(frame, o)
+    val sw = shoulderWidth(frame) ?: return false
     val shoulders = (p[11].y + p[12].y) / 2f
     fun open(h: List<Offset>): Boolean {
         fun d(a: Int, b: Int) = (u(h[a]) - u(h[b])).getDistance()

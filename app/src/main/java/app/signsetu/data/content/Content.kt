@@ -10,8 +10,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import app.signsetu.data.session.Profile
 import app.signsetu.data.session.Role
-import app.signsetu.ui.avatar.Gesture
-import app.signsetu.ui.avatar.chain
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.io.InputStream
@@ -22,7 +20,8 @@ import kotlinx.coroutines.sync.withLock
 
 typealias Localized = Map<String, String>
 
-fun Localized.pick(lang: String): String? = this[lang]
+/** The text in [lang], else the English. */
+fun Localized.or(lang: String): String? = this[lang] ?: this["en"]
 
 /** [rights] items are shown, never taken as understood: each carries the interpreter notice. [child] true is
  * only for a person who may be under 18, false only for an adult. */
@@ -202,7 +201,7 @@ data class ContentBundle(
     fun phraseAudio(phrase: Phrase, slot: PhraseSlot, lang: String) = audio("audio/$lang/phrase.${phrase.id}.${slot.card}.ogg")
 
     fun language(code: String): Language? = languages.firstOrNull { it.code == code }
-    fun subjectText(key: String, lang: String): String? = subjectUi[key]?.pick(lang)
+    fun subjectText(key: String, lang: String): String? = subjectUi[key]?.get(lang)
     fun hasCardImage(id: String) = "cards/$id.webp" in files
 
     /** A text file failed its check, so the subject could be shown wrong words: no session may start. */

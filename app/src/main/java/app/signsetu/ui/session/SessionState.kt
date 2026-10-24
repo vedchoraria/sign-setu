@@ -7,7 +7,6 @@ import app.signsetu.data.content.PhraseSlot
 import app.signsetu.data.content.Question
 import app.signsetu.data.content.SignLanguage
 import app.signsetu.data.content.SignMode
-import app.signsetu.data.content.pick
 import app.signsetu.data.session.EventType
 import app.signsetu.data.session.Profile
 import app.signsetu.data.session.Session

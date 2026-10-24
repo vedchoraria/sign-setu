@@ -13,8 +13,8 @@ import app.signsetu.sign.LandmarkSignReader
 import app.signsetu.sign.SignGuess
 import app.signsetu.sign.SignReaders
 import app.signsetu.sign.glossOf
-import app.signsetu.ui.avatar.Gesture
-import app.signsetu.ui.avatar.Key
+import app.signsetu.data.content.Gesture
+import app.signsetu.data.content.Key
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue

@@ -14,8 +14,8 @@ import app.signsetu.data.content.templatesFor
 import app.signsetu.data.session.EventSource
 import app.signsetu.data.session.EventType
 import app.signsetu.data.session.SessionEvent
-import app.signsetu.ui.avatar.Gesture
-import app.signsetu.ui.avatar.Key
+import app.signsetu.data.content.Gesture
+import app.signsetu.data.content.Key
 import app.signsetu.ui.session.Grade
 import app.signsetu.ui.session.PromptRecord
 import app.signsetu.ui.session.REF_PREFIX

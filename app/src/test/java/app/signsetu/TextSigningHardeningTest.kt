@@ -56,7 +56,7 @@ class TextSigningHardeningTest {
     @Test
     fun aQuestionMarkInAnotherScriptStillAsks() {
         // Arabic question mark: the same intent as "?" and already counted by questionKind.
-        assertEquals(app.signsetu.ui.avatar.QuestionKind.WH, questionKind("तुम कहाँ हो؟"))
+        assertEquals(app.signsetu.data.content.QuestionKind.WH, questionKind("तुम कहाँ हो؟"))
         // A question word is signed as itself; a plain yes/no question falls back to the asking gesture.
         val wh = shipped.planText("तुम कहाँ हो؟", SIGNS_SPELL).motions
         assertTrue("nothing signs the question: $wh", wh.any { it == "ask" || it.startsWith("sign.where") || it.startsWith("isl.where") })

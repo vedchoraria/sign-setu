@@ -1,13 +1,6 @@
 package app.signsetu.pair
 
-import app.signsetu.ui.session.signLanguage
-import app.signsetu.ui.session.child
-import app.signsetu.data.content.ContentBundle
 import app.signsetu.data.content.SignMode
-import app.signsetu.ui.session.Mode
-import app.signsetu.ui.session.Pending
-import app.signsetu.ui.session.SessionUi
-import app.signsetu.ui.session.ruleStep
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -100,46 +93,6 @@ fun AnswerBody.fits(): Boolean = when (this) {
     is AnswerBody.Given -> value.length <= TEXT_CAP && picks.size <= 4 && picks.all { it.length <= 64 }
     is AnswerBody.Signed -> words.joinToString(" ").length <= TEXT_CAP && (skeletonPng == null || skeletonPng.length <= (DRAWING_CAP + 2) / 3 * 4)
     else -> true
-}
-
-fun Pending.toWire(): WirePending = when (this) {
-    is Pending.Ask -> WirePending.Ask(question.id)
-    is Pending.FreeText -> WirePending.FreeText(text, cardIds, modes, caption, meant)
-    is Pending.Cards -> WirePending.Cards(cardIds)
-    is Pending.ShowBack -> WirePending.ShowBack(entry.id, choices)
-    is Pending.PhraseAsk -> WirePending.PhraseAsk(phrase.id, slot.card)
-    Pending.LanguageFinder -> WirePending.LanguageFinder
-    Pending.Drawing -> WirePending.Drawing
-    is Pending.GroundRules -> WirePending.Rules(step)
-}
-
-/** Null for an ID this build's content does not have; the stage then shows nothing rather than a guess. */
-fun WirePending.resolve(content: ContentBundle): Pending? = when (this) {
-    is WirePending.Ask -> content.questions.firstOrNull { it.id == questionId }?.let { Pending.Ask(it) }
-    is WirePending.FreeText -> if (cardIds.all { it in content.cards }) Pending.FreeText(text, cardIds, modes, caption, meant = meant?.takeIf { it in cardIds }) else null
-    is WirePending.Cards -> if (cardIds.all { it in content.cards }) Pending.Cards(cardIds) else null
-    is WirePending.ShowBack -> content.lexicon[lexiconId]?.takeIf { choices.all { c -> c in content.cards } }?.let { Pending.ShowBack(it, choices) }
-    is WirePending.PhraseAsk -> content.phrases.firstOrNull { it.id == phraseId }?.let { p -> p.slots.firstOrNull { it.card == slotCard }?.let { Pending.PhraseAsk(p, it) } }
-    WirePending.LanguageFinder -> Pending.LanguageFinder
-    WirePending.Drawing -> Pending.Drawing
-    is WirePending.Rules -> Pending.GroundRules(step).takeIf { ruleStep(it) != null }
-}
-
-/** Reads only what is on stage, never the officer's draft. */
-fun SessionUi.toStageView(largeCaptions: Boolean, gestureSpeed: Float, cameraOn: Boolean): StageView {
-    val live = mode == Mode.SHOW && onStage != null
-    return StageView(
-        lang = session.subjectLang,
-        profile = session.profile.name,
-        live = live,
-        item = onStage?.takeIf { live }?.toWire(),
-        rotated = rotated,
-        largeCaptions = largeCaptions,
-        gestureSpeed = gestureSpeed,
-        cameraOn = cameraOn,
-        signLanguage = signLanguage.name,
-        child = child,
-    )
 }
 
 /** A drawing from the link is refused on its declared size, before any pixels are decoded. */

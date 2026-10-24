@@ -60,7 +60,6 @@ import app.signsetu.data.content.PhraseSlot
 import app.signsetu.data.content.Question
 import app.signsetu.data.content.Signability
 import app.signsetu.data.content.complete
-import app.signsetu.data.content.pick
 import app.signsetu.data.content.signabilitySpans
 import app.signsetu.data.content.templatesFor
 import app.signsetu.data.session.SessionEvent
@@ -145,7 +144,7 @@ fun CompletionRows(content: ContentBundle, text: String, officerLang: String, on
                     modifier = Modifier.height(36.dp),
                 ) {
                     Box(Modifier.padding(horizontal = 12.dp), contentAlignment = Alignment.Center) {
-                        Text(s.text.pick(officerLang) ?: s.card, style = MaterialTheme.typography.labelLarge)
+                        Text(s.text.get(officerLang) ?: s.card, style = MaterialTheme.typography.labelLarge)
                     }
                 }
             }
@@ -231,7 +230,7 @@ fun RunTray(run: List<Question>, officerLang: String, onRemove: (Question) -> Un
                     Surface(shape = RoundedCornerShape(50), color = colors.surfaceContainerLowest, modifier = Modifier.heightIn(min = 48.dp)) {
                         Row(Modifier.padding(start = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                             // Ellipsised so a long question never pushes its remove button out of the chip.
-                            Text("${i + 1}  ${q.text.pick(officerLang) ?: q.id}", style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                            Text("${i + 1}  ${q.text.get(officerLang) ?: q.id}", style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
                             IconButton(onClick = { onRemove(q) }, modifier = Modifier.size(48.dp)) {
                                 Icon(Icons.Filled.Close, contentDescription = remove, modifier = Modifier.size(16.dp))
                             }

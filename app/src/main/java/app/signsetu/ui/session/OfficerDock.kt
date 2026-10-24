@@ -77,7 +77,6 @@ import app.signsetu.data.content.ContentBundle
 import app.signsetu.data.content.Phrase
 import app.signsetu.data.content.Question
 import app.signsetu.data.content.SignMode
-import app.signsetu.data.content.pick
 import androidx.compose.runtime.LaunchedEffect
 import app.signsetu.data.session.EventType
 import app.signsetu.data.session.Profile
@@ -134,7 +133,7 @@ internal fun Dock(
     val noLanguage = ui.session.profile == Profile.OTHER_LANGUAGE
     val quick = remember(content, officerLang, asked, pending, noLanguage) {
         (if (noLanguage) (NoLanguageQuestions + QuickQuestions).distinct() else QuickQuestions).mapNotNull { id -> content.questions.firstOrNull { it.id == id } }
-            .filter { q -> q.text.pick(officerLang) !in asked || (pending as? Pending.Ask)?.question?.id == q.id }
+            .filter { q -> q.text.get(officerLang) !in asked || (pending as? Pending.Ask)?.question?.id == q.id }
     }
     Surface(color = colors.surfaceContainerLowest, shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp), shadowElevation = 8.dp) {
         Column(Modifier.navigationBarsPadding().padding(top = Spacing.md)) {
@@ -150,7 +149,7 @@ internal fun Dock(
                     }
                     if (run.isEmpty()) item(key = "run_basics") { CategoryChip(stringResource(R.string.run_basics), false, locked = false, onClick = onRunBasics) }
                     items(quick, key = { it.id }) { q ->
-                        CategoryChip(q.text.pick(officerLang) ?: q.id, (pending as? Pending.Ask)?.question?.id == q.id, locked = false, onLongClick = { onAddToRun(q) }, longClickLabel = addLabel) { onQuestion(q) }
+                        CategoryChip(q.text.get(officerLang) ?: q.id, (pending as? Pending.Ask)?.question?.id == q.id, locked = false, onLongClick = { onAddToRun(q) }, longClickLabel = addLabel) { onQuestion(q) }
                     }
                 }
             }
@@ -232,7 +231,7 @@ internal fun Dock(
                         Surface(shape = RoundedCornerShape(50), color = colors.secondaryContainer, contentColor = colors.onSecondaryContainer, modifier = Modifier.height(32.dp)) {
                             Row(Modifier.padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                                 CardImage(id, Modifier.size(20.dp))
-                                Text(content.cards[id]?.label?.pick(officerLang) ?: id, style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(start = 4.dp))
+                                Text(content.cards[id]?.label?.get(officerLang) ?: id, style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(start = 4.dp))
                             }
                         }
                     }
@@ -437,7 +436,7 @@ private fun ModeChip(label: String, on: Boolean, onClick: () -> Unit) {
 @Composable
 private fun MediaSummary(question: Question, content: ContentBundle, subjectLang: String, profile: Profile) {
     val items = buildList {
-        add(R.string.media_caption to (question.text.pick(subjectLang) != null))
+        add(R.string.media_caption to (question.text.get(subjectLang) != null))
         if (profile != Profile.ISL_USER) add(R.string.media_audio to (content.questionAudio(question.id, subjectLang) != null))
         add(R.string.media_gesture to (content.gestureFor(question) != null))
     }

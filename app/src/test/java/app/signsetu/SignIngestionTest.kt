@@ -15,7 +15,7 @@ import app.signsetu.sign.needsSlower
 import app.signsetu.sign.parseSignWords
 import app.signsetu.sign.decideRead
 import app.signsetu.sign.parseSignCards
-import app.signsetu.sign.readWindow
+import app.signsetu.sign.readSigns
 import app.signsetu.sign.signChoices
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -52,9 +52,10 @@ class SignIngestionTest {
             override val labels = listOf("water", "help", "pain", "food")
             override fun read(frames: List<LandmarkFrame>) = labels.mapIndexed { i, w -> SignGuess(w, 0.4f - i * 0.1f) }
         }
-        val frames = stream(moving(15) + still(15) + moving(15) + gone(40))
-        assertEquals(listOf("water", "water"), readWindow(frames, reader, emptySet(), words))
-        assertEquals(listOf("?", "?"), readWindow(frames, null, emptySet(), words))
+        val capture = SignCapture()
+        val signs = stream(moving(15) + still(15) + moving(15) + gone(40)).flatMap(capture::add) + capture.finish()
+        assertEquals(listOf("water", "water"), readSigns(signs, reader, emptySet(), words))
+        assertEquals(listOf("?", "?"), readSigns(signs, null, emptySet(), words))
     }
 
     @Test
