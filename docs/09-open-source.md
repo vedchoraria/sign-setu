@@ -52,7 +52,7 @@ GPL and AGPL code is never shipped in the app (policy §2); it may be used as a 
 | | zip4j | Apache-2.0 | Alternative | AES-256 zip; recipients need 7-Zip, so PDF is preferred |
 | Drawing canvas | Compose Canvas | Platform | Ship | No library needed |
 | Characters | Compose Canvas | Platform | Ship | 2D rig and keyframes drawn in code; no animation library |
-| Camera mirror | CameraX (camera-camera2, camera-lifecycle, camera-compose) | Apache-2.0 | Ship | Preview, and ImageAnalysis inside sign windows |
+| Camera mirror | CameraX (camera-camera2, camera-lifecycle, camera-compose) | Apache-2.0 | Ship | Preview and ImageAnalysis only; no capture or recording |
 | Type | Baloo 2 (Ek Type) | SIL OFL 1.1 | Ship (font) | Latin and Devanagari; licence text kept with the font |
 | Icons | Material Icons (selected vectors) | Apache-2.0 | Ship (assets) | Hand, grid, translate, keyboard, camera, volume, pin |
 | Interpreter call | Sandes (NIC) or WhatsApp, opened by intent or link | Government service; third-party app | Ship (hand-off only) | Video call happens in the messenger, not in this app; no library needed |
@@ -61,12 +61,13 @@ GPL and AGPL code is never shipped in the app (policy §2); it may be used as a 
 | Second screen | Android Bluetooth RFCOMM | Platform | Ship | Bonded devices only; no library needed |
 | | Google Play services Nearby Connections 19.5.1 | Google APIs Terms of Service (not open source) | Ship in the `nearby` flavor only | Never in the standard build |
 | | Ping (CryptoUtils, NearbyTransport) | MIT | Reference | Design reused: P-256 ECDH, HKDF-SHA256, AES-256-GCM, 6-digit short authentication string, transport interface with an in-process fake for JVM tests; written afresh in Kotlin |
-| Reviewer portal | vite-plus 1.0.0 (the `vp` command line) | MIT | Tool | Build, check and test of the static portal; not shipped in the app |
-| | React 19.3.0, React DOM | MIT | Tool | Portal user interface |
+| Reviewer portal | vite-plus 1.3.0 (the `vp` command line) | MIT | Tool | Build, check and test of the static portal; not shipped in the app |
+| | React 19.3.1, React DOM | MIT | Tool | Portal user interface |
 | | TypeScript 7.0.2 | Apache-2.0 | Tool | Native compiler; type checking of the portal and the rig port |
 | Symbols drawn for the app | Sign Setu original drawings (`content/symbols/sign-setu/`) | CC BY-SA 4.0 | Ship (assets) | Drawn in OpenMoji style for a card OpenMoji lacks ("Something else") |
-| On-device assistant | llama.cpp v0.5.0 | MIT | Ship (native library) | Built from source by CMake; the source is vendored in `app/src/main/cpp/third_party/llama.cpp` (provenance in `PROVENANCE.md`) |
+| On-device assistant | llama.cpp v0.5.0 | MIT | Ship (native library) | Built from source by CMake; the source is vendored in `app/src/main/cpp/third_party/llama.cpp` at commit `7fe450e`, recorded in `app/src/main/cpp/CMakeLists.txt` |
 | | Gemma 3 1B instruction-tuned (GGUF) | Gemma Terms of Use | Ship (optional model file, not in the APK) | Free for government use, not OSI open source; see [on-device assistant](12-on-device-assistant.md) |
+| Department gateway | FastAPI, Uvicorn, SQLAlchemy, psycopg 3, httpx2, PyJWT with cryptography | MIT, BSD-3-Clause, LGPL-3.0 (psycopg) | Ship (gateway) | Versions pinned in `backend/pyproject.toml` |
 
 ## 2. Attribution
 

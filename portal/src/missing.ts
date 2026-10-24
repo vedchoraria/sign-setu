@@ -9,3 +9,14 @@ export function reviewerLang(role: string, languages: { code: string; english: s
 
 /** True when the reviewer's language has no caption here, so there is nothing to approve. */
 export const isMissing = (text: Text, code: string | undefined): boolean => code !== undefined && !text[code]?.trim();
+
+/** The sign-off table's roles, with one language reviewer per greeting language (English among them). */
+export function reviewerRoles(languages: { english: string }[]): string[] {
+  return [
+    "Child-welfare reviewer",
+    "ISL reviewer",
+    "ASL reviewer",
+    ...languages.map((l) => `Language reviewer (${l.english})`),
+    "Content owner",
+  ];
+}

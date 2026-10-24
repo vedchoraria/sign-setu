@@ -6,6 +6,7 @@ import app.signsetu.data.content.WordEntry
 import app.signsetu.sign.SignCapture
 import app.signsetu.sign.SignChoice
 import app.signsetu.sign.SignGuess
+import app.signsetu.sign.SignReader
 import app.signsetu.sign.SignSegment
 import app.signsetu.sign.SignWindow
 import app.signsetu.sign.cardFor
@@ -14,6 +15,7 @@ import app.signsetu.sign.needsSlower
 import app.signsetu.sign.parseSignWords
 import app.signsetu.sign.decideRead
 import app.signsetu.sign.parseSignCards
+import app.signsetu.sign.readWindow
 import app.signsetu.sign.signChoices
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -43,6 +45,17 @@ class SignIngestionTest {
     private fun moving(n: Int) = List<Float?>(n) { 0.2f + it * 0.03f }
     private fun still(n: Int) = List<Float?>(n) { 0.5f }
     private fun gone(n: Int) = List<Float?>(n) { null }
+
+    @Test
+    fun aWindowIsReadOneWordPerSignNotAsTheReadersAlternatives() {
+        val reader = object : SignReader {
+            override val labels = listOf("water", "help", "pain", "food")
+            override fun read(frames: List<LandmarkFrame>) = labels.mapIndexed { i, w -> SignGuess(w, 0.4f - i * 0.1f) }
+        }
+        val frames = stream(moving(15) + still(15) + moving(15) + gone(40))
+        assertEquals(listOf("water", "water"), readWindow(frames, reader, emptySet(), words))
+        assertEquals(listOf("?", "?"), readWindow(frames, null, emptySet(), words))
+    }
 
     @Test
     fun captureFindsTheSameSignsAsAFullScanAndKeepsGoingWhenHandsLeave() {

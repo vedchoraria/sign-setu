@@ -110,6 +110,8 @@ fun VideoCallStage(
     // A string resource and its optional argument, resolved where it is drawn so a language change is followed.
     var recentReaction by remember { mutableStateOf<Reaction?>(null) }
     var showBreathingGuide by remember { mutableStateOf(false) }
+    // A new item or a Stop closes the guide, so it never hides what was just asked or the pause.
+    LaunchedEffect(pending, ui.answeredCard in PauseCards) { showBreathingGuide = false }
     LaunchedEffect(recentReaction) {
         if (recentReaction != null) {
             delay(4000L)
@@ -189,10 +191,7 @@ fun VideoCallStage(
         }
     }
     val shownGesture = guided?.let { content.gestures[it.second] } ?: gesture
-    val promptText = (pending as? Pending.FreeText)?.let { it.caption ?: it.text } ?: item.caption ?: content.subjectText("hint_wait", lang) ?: "We are here with you."
-    val liveTranscript = remember(ui.reading) {
-        ui.reading?.mapNotNull { it.word }?.filter { it != "?" }?.joinToString(" ")
-    }
+    val promptText = (pending as? Pending.FreeText)?.let { it.caption ?: it.text } ?: item.caption ?: content.subjectText("hint_wait", lang) ?: stringResource(R.string.call_with_you)
 
     // Held-up fingers answer an age or count question without opening a keypad.
     val isNumberOrAgeQuestion = remember(pending) {
@@ -389,29 +388,8 @@ fun VideoCallStage(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            if (!liveTranscript.isNullOrBlank()) {
-                Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    color = Color(0xEE064E3B),
-                    border = BorderStroke(1.5.dp, Color(0xFF10B981)),
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        Text("👋", fontSize = 16.sp)
-                        Text(
-                            text = stringResource(R.string.call_live, liveTranscript),
-                            fontFamily = Baloo,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 15.sp,
-                            color = Color(0xFF6EE7B7),
-                        )
-                    }
-                }
-            }
+            // One dot per sign seen, never the reader's words: those are proposals the subject has not confirmed.
+            SeenSigns(ui.reading.orEmpty(), Modifier)
 
             courtesy?.let { (card, cue) ->
                 Surface(

@@ -7,8 +7,8 @@ val local = Properties().apply { rootProject.file("local.properties").takeIf { i
 // Direct online assistant key: env OPENROUTER_API_KEY, else openrouterKey.
 val openrouterKey: String = System.getenv("OPENROUTER_API_KEY") ?: local.getProperty("openrouterKey", "")
 val gatewayUrl: String = providers.gradleProperty("gatewayUrl").orNull ?: local.getProperty("gatewayUrl", "")
-// Some services accept calls only from their own client, so the header is set here rather than in code.
-val assistUserAgent: String = local.getProperty("assistUserAgent", "claude-cli/2.0.5 (external, cli)")
+// The client name sent to the assistant service; local.properties may set the one a service requires.
+val assistUserAgent: String = local.getProperty("assistUserAgent", "SignSetu")
 
 plugins {
     alias(libs.plugins.android.application)

@@ -126,6 +126,7 @@ fun StartScreen(
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val res = LocalResources.current
     val ink = LocalInk.current
     var refresh by remember { mutableIntStateOf(0) }
     val open by produceState<Session?>(null, refresh) { value = repo.openSession() }
@@ -141,6 +142,8 @@ fun StartScreen(
         if (starting) return@begin
         starting = true
         scope.launch {
+            // An unfinished session joins the saved ones first; left open it would be hidden behind the new one.
+            repo.openSession()?.let { repo.end(it.id, defaultTitle(res, it.startedAt)) }
             val id = repo.start(p, lang, role)
             if (p == Profile.ISL_USER && signLang != SignLanguage.ISL) repo.log(id, EventType.SYSTEM, EventSource.OFFICER, text = SYSTEM_SIGN_LANGUAGE + signLang.name)
             // The record shows the officer saw the Juvenile Justice notice, and whether they marked the person a child.
@@ -203,7 +206,6 @@ fun StartScreen(
                     if (content.aslDisabled) Notice(null, stringResource(R.string.start_asl_off), MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onTertiaryContainer)
                     if (rooted) Notice(null, stringResource(R.string.start_rooted), MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onTertiaryContainer)
                     open?.let { session ->
-                        val res = LocalResources.current
                         ResumeCard(
                             session = session,
                             languageName = content.language(session.subjectLang)?.name ?: session.subjectLang,

@@ -68,8 +68,7 @@ class ModelStore(private val context: Context) {
                 }
                 digest.digest().toHexString() in KNOWN_MODELS
             }.getOrDefault(false)
-            if (ok) partial.renameTo(file) else partial.delete()
-            ok
+            (ok && partial.renameTo(file)).also { if (!it) partial.delete() }
         }
     }
 

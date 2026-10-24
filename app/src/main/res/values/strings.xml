@@ -530,9 +530,9 @@
     <string name="call_breathe">Breathe</string>
     <string name="call_signing">Signing…</string>
     <string name="call_you">You</string>
-    <string name="call_live">Signing: %1$s</string>
     <string name="call_courtesy">Tap to say: %1$s</string>
     <string name="call_sign_hint">Answer by signing, nodding or shaking your head</string>
+    <string name="call_with_you">We are here with you.</string>
     <string name="call_breath_title">Calm breathing</string>
     <string name="call_inhale">Breathe in</string>
     <string name="call_exhale">Breathe out</string>

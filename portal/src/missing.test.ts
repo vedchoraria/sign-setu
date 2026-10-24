@@ -1,5 +1,5 @@
 import { expect, it } from "vite-plus/test";
-import { isMissing, reviewerLang } from "./missing";
+import { isMissing, reviewerLang, reviewerRoles } from "./missing";
 
 const langs = [
   { code: "hi", english: "Hindi" },
@@ -17,4 +17,10 @@ it("marks a caption missing only for the reviewer's own language", () => {
   expect(isMissing({ en: "Are you hurt?", bn: " " }, "bn")).toBe(true);
   expect(isMissing({ en: "Are you hurt?" }, "en")).toBe(false);
   expect(isMissing({ en: "Are you hurt?" }, undefined)).toBe(false);
+});
+
+it("lists every reviewer role once, English included", () => {
+  const all = reviewerRoles([...langs, { code: "en", english: "English" }]);
+  expect(new Set(all).size).toBe(all.length);
+  expect(all).toContain("Language reviewer (English)");
 });

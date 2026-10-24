@@ -17,9 +17,9 @@ The app helps an officer communicate with a person who is Deaf, hard of hearing,
 
 | Category | Examples | Held in | Retention |
 | --- | --- | --- | --- |
-| Answers | Taps, drawings, typed text, confirmed signs, lesson answers (name, address, school), and the officer's name for a saved session | Encrypted session database | Until the officer deletes it (default), or a set period of 4 to 72 h |
-| Landmarks | Hand, pose and face points of signed answers | Memory only | Until the answer is confirmed, lock or session end |
-| Camera frames | The live picture inside a sign window | Memory only, one frame at a time | Not stored |
+| Answers | Taps, drawings, typed text, confirmed signs, lesson answers (name, address, school), and the officer's name for a saved session | Encrypted session database | 24 h idle by default, a set period of 4 to 72 h, or until the officer deletes it when the department chooses |
+| Landmarks | Hand, pose and face points of signed answers | Memory only | Until the session ends or the app locks |
+| Camera frames | The live picture while the stage camera shows, tracked for the overlay and gesture proposals | Memory only, one reused buffer | Not stored |
 | Skeleton snapshot | A drawing of the pose for one answer, when the officer turns it on | Encrypted session database | As answers |
 | Officer settings | Language, interpreter contact | DataStore | Until cleared |
 | Device enrolment | Device token (hashed on the gateway), audit rows without subject data | Gateway database | Until revoked **[confirm]** |
@@ -32,7 +32,7 @@ Children, victims of sexual offences and persons with disabilities are expected 
 Camera, then MediaPipe Holistic on the phone, then the on-device sign reader, then the subject's confirmation, then an answer row. Nothing in this chain leaves the phone. The optional paths are:
 
 - The second screen over bonded Bluetooth. It is encrypted (P-256 ECDH, AES-GCM) and carries no landmarks.
-- The online assistant through the department gateway. It carries masked text only.
+- The online assistant through the department gateway, or a direct service in a private build without a gateway. It carries masked text only, and session text only after the officer allows it for the session.
 - The encrypted PDF export, on an officer's action only.
 
 ## 2. Lawful basis
@@ -64,17 +64,17 @@ Likelihood (L) and severity (S) are each rated 1 (low) to 3 (high), before and a
 | --- | --- | --- | --- |
 | A lost, stolen or seized phone exposes session records | 3×3 | SQLCipher with a Keystore-wrapped key usable only while the phone is unlocked; FLAG_SECURE; no backup. Sessions are purged after 24 hours by default (checked at every unlock, and the whole store is destroyed by a background job once even the newest session is past the period); keeping them until deleted is a choice that leaves more on a lost phone. A session's name is free text, stored in the encrypted row, shown on the start screen to whoever holds the unlocked phone, and deleted with the session; officers are told to use a case number. Rooted phones keep no history | 2×3 |
 | A wrong machine reading is recorded as the person's answer | 3×3 | The subject confirms from pictures. A reading is never logged as confirmed. "Sign slower" asks again when a reading is unsure | 1×3 |
-| Speech or text sent to a cloud service is retained or reused | 2×3 | No voice. Masked text only, through the department gateway, which stores none. Masking is pattern based, not anonymisation: it replaces the names and details the subject gave, emails, links, PAN-style ids and runs of six or more digits, and lets through any name, place or description it was not told about, so an officer's own typed words can still identify someone. Off unless the officer turns it on and the device is enrolled. The AI counsellor sends the masked session text each turn, under the same controls | 1×2 |
-| Camera pictures or landmarks leave the phone | 2×3 | No upload path exists. Landmarks never reach disk or the Bluetooth link. The INTERNET permission is used only by the gateway client | 1×3 |
+| Speech or text sent to a cloud service is retained or reused | 2×3 | No voice. Masked text only, through the department gateway, which stores none, or a direct third-party service in a private build, whose retention the department must check before allowing it. Masking is pattern based, not anonymisation: it replaces the names and details the subject gave, emails, links, PAN-style ids and runs of six or more digits, and lets through any name, place or description it was not told about, so an officer's own typed words can still identify someone. Off unless the officer turns it on and the device is enrolled. The AI counsellor sends the masked session text each turn, under the same controls | 1×2 |
+| Camera pictures or landmarks leave the phone | 2×3 | No upload path exists. Landmarks never reach disk or the Bluetooth link. The INTERNET permission is used only by the online assistant client | 1×3 |
 | A child is identified through the record or export | 2×3 | No name, photo or face is stored by design. Export only on an officer's action, encrypted with a passphrase shown once (JJ s.74, POCSO ss.24, 26) | 1×3 |
 | A tampered model or content file changes what the person is shown | 2×3 | SHA-256 manifest checked before every load. APK signing. An imported assistant model is accepted only with a known hash | 1×3 |
 | The app is treated as the statutory recording or as the interpreter | 2×3 | Notices in the session and on every exported page (section 3); officer training **[confirm]** | 1×2 |
 | The second screen is spoofed or overheard | 2×2 | Bonded devices only. Six-digit comparison code, ECDH and AES-GCM. The stage device never opens the database | 1×2 |
 | Feedback reveals who the person is | 1×3 | The gateway refuses any field other than the label. Explicit consent; off by default | 1×1 |
 | Reader accuracy is lower for some signers (regional variants, children, left-handed signers) | 3×2 | Confirmation by the subject, picture choices and fingerspelling; evaluation on unseen signers in `tools/ml/EVAL.md` | 2×2 |
-| Biometric points are held in memory for the length of a session | 2×2 | Memory only; cleared on confirm, lock and end; face points only for grammar cues, never for identity | 1×2 |
+| Biometric points are held in memory for the length of a session | 2×2 | Memory only; cleared on lock and session end; face points only for grammar cues, never for identity | 1×2 |
 | Gateway compromise exposes device tokens and audit rows | 2×2 | Tokens stored only as hashes and revocable; no subject data on the gateway; Keycloak for admin | 1×2 |
-| The AI counsellor asks a leading question, or misses distress | 2×3 | Non-leading prompt; each line held 6 s on the officer's phone with Take over; risk or Stop hands back; only for victims and witnesses on a paired second screen; every line marked in the record | 1×3 |
+| The AI counsellor asks a leading question, or misses distress | 2×3 | Non-leading prompt; each line shown 2 s on the officer's phone before it goes, with Send now, Another line and Take over; risk or Stop hands back; only for victims and witnesses; every line marked in the record | 1×3 |
 
 ## 5. Data principal rights
 

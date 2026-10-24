@@ -29,14 +29,14 @@ Every screen of the application, captured from the `standard` debug build on an 
 | Introduction | [06-stage-introduction.png](screens/06-stage-introduction.png) | A statement: only Next and Stop, with the hint "Tap Next when you are ready" |
 | Ground rule | [07-stage-ground-rule.png](screens/07-stage-ground-rule.png) | Same layout as the introduction |
 | Practice round | [08-stage-practice.png](screens/08-stage-practice.png) | Open question: no Yes, No or "That's wrong"; Draw, Write and Sign offered |
-| Question | [09-stage-question.png](screens/09-stage-question.png) | Caption, held picture, answer rails, hint over the camera window |
+| Question | [09-stage-question.png](screens/09-stage-question.png) | Caption, held picture, answer rails, hint over the camera window. Captured before the call view: a plain question now opens the call view (03-ux §2) |
 | Writing | [10-stage-writing.png](screens/10-stage-writing.png) | The stage makes room for the keyboard; the character stays in view |
 | Drawing | [11-stage-drawing.png](screens/11-stage-drawing.png) | Five ink colours, Undo, Start again, Done |
 | Drawing hand-back | [12-stage-drawing-hand-back.png](screens/12-stage-drawing-hand-back.png) | After a requested drawing: thanks, give the phone back, Draw more |
 | Drawing in Chhattisgarhi | [13-stage-drawing-chhattisgarhi.png](screens/13-stage-drawing-chhattisgarhi.png) | Every stage word in the chosen language |
 | Phrase board | [14-stage-phrase-board.png](screens/14-stage-phrase-board.png) | Eight everyday phrases the subject can say |
 | Number pad | [15-stage-number-pad.png](screens/15-stage-number-pad.png) | Lesson-sheet answer input; the Sign button carries a word and a tool colour |
-| Sign window | [16-stage-signing.png](screens/16-stage-signing.png) | Time bar, body guide, live hand skeleton, one dot per sign seen, "Sign to the camera. Tap Done when you finish." |
+| Sign window | [16-stage-signing.png](screens/16-stage-signing.png) | Time bar, body guide, live hand skeleton, one dot per sign seen; quiet hands also end the window |
 | After signing | [17-stage-after-signing.png](screens/17-stage-after-signing.png) | "Is this it?": two or three pictures per sign read and "None of these"; only the person's tap records a meaning |
 | Pause | [18-stage-pause.png](screens/18-stage-pause.png) | Breathing circle and bubbles; only "I'm ready" ends it |
 | Language finder | [19-stage-language-finder.png](screens/19-stage-language-finder.png) | Seventeen languages in their own scripts; the tapped one greets back |
@@ -76,3 +76,4 @@ Every screen of the application, captured from the `standard` debug build on an 
 | --- | --- |
 | Unlock prompt | The system credential window is secure and captures blank |
 | Second-screen stage device | Needs two devices |
+| Call view, breathing guide, picture board (Help), AI counsellor panel | Added after this catalogue was captured; to be captured on the next debug build |

@@ -94,10 +94,12 @@ import app.signsetu.sign.STILL_SPEED
 import app.signsetu.sign.SignQuiet
 import app.signsetu.sign.SignReader
 import app.signsetu.sign.moving
+import app.signsetu.sign.readWindow
 import app.signsetu.ui.ImmersiveWhile
 import app.signsetu.ui.PinWhile
 import app.signsetu.ui.components.GuardedAlertDialog
 import app.signsetu.ui.session.Mode
+import app.signsetu.ui.session.answerCards
 import app.signsetu.ui.session.SessionUi
 import app.signsetu.ui.session.Stage
 import app.signsetu.ui.session.SmallAnswer
@@ -279,11 +281,10 @@ private fun LiveStage(link: StageLink, baseContent: ContentBundle, state: LinkSt
             val frames = signFrames.toList()
             signFrames.clear()
             val r = reader
+            val cards = pending.answerCards()
             scope.launch {
-                val words = withContext(Dispatchers.Default) {
-                    r?.read(frames)?.mapNotNull { it.word }?.filter { it != "?" }?.take(4).orEmpty()
-                }
-                if (words.isNotEmpty()) send(AnswerBody.Signed(words))
+                val words = withContext(Dispatchers.Default) { readWindow(frames, r, cards, content.words) }
+                if (words.any { it != "?" }) send(AnswerBody.Signed(words))
             }
         }
     }
@@ -349,10 +350,15 @@ private fun LiveStage(link: StageLink, baseContent: ContentBundle, state: LinkSt
                             }
                         }
                     },
+                    // Called on the camera's thread for every frame until the stage recomposes; only the first opens a window.
                     onStartSigning = {
-                        signFrames.clear()
-                        quiet.reset()
-                        signing = true
+                        mainExecutor.execute {
+                            if (!signing) {
+                                signFrames.clear()
+                                quiet.reset()
+                                signing = true
+                            }
+                        }
                     },
                     onDoneSigning = { endSigning() },
                     onOfficer = null,
