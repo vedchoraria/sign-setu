@@ -110,6 +110,9 @@ class AppContainer(private val app: Application) : DefaultLifecycleObserver, Com
         }
     private val databaseKey = DatabaseKey(app)
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    init {
+        scope.launch(Dispatchers.IO) { settings.current().let { cloudAi.restoreCustom(it.devAiUrl, it.devAiModel) } }
+    }
     private var database: SessionDatabase? = null
     private var backgroundedAt = 0L
 

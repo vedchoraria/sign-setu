@@ -1,6 +1,6 @@
 # Sign Setu gateway
 
-**Live deployment:** [signsetu-gateway.onrender.com](https://signsetu-gateway.onrender.com) (Render free tier, Neon Postgres — cold-start ~30 s)
+**Live deployment:** [signsetu-gateway.onrender.com](https://signsetu-gateway.onrender.com/healthz) (Render free tier, Neon Postgres — cold-start ~30 s)
 
 The department gateway the app uses while online. It is optional: a build without `gatewayUrl` never connects, and the app works the same without it. It also carries the online assistant that the AI counsellor needs.
 
@@ -8,9 +8,9 @@ The department gateway the app uses while online. It is optional: a build withou
 | --- | --- | --- |
 | `GET /healthz` | Host | Health check |
 | `POST /v1/enroll` | Phone | Trades a one-time enrolment code for a device token |
-| `GET /v1/models`, `GET /v1/models/{name}` | Phone (not yet called by the app, which imports its model from a file) | Model manifest (`MODEL_DIR/manifest.json`); a file is served only if it matches its manifest hash. The file's ETag is that hash (a matching `If-None-Match` gets 304) and `Range` is supported, so a download resumes instead of starting again |
+| `GET /v1/models`, `GET /v1/models/{name}` | Not called by the app in any build: the app imports its model from a file (see [docs/12](../docs/12-on-device-assistant.md)). Kept for a later in-app download | Model manifest (`MODEL_DIR/manifest.json`); a file is served only if it matches its manifest hash. The file's ETag is that hash (a matching `If-None-Match` gets 304) and `Range` is supported, so a download resumes instead of starting again |
 | `POST /v1/assist` | Phone | Proxy to the AI service; the key stays here and no text is stored. The whole system prompt must match a template in `signsetu_gateway/app_prompts.json` (language names fill the marked slots, one line, up to 80 characters), so a caller cannot add instructions. The file is written by the app's `GatewayPromptContractTest` (`UPDATE_PROMPT_FIXTURE=1`) and that test fails when a prompt changes without it |
-| `POST /v1/feedback` | Phone (not yet called by the app) | Label outcome of a reading, with consent; any extra field is refused, and an `outcome` of `corrected` must carry the `confirmed` label it was corrected to |
+| `POST /v1/feedback` | Not called by the app today. Feeds the reviewer portal once the app sends labels | Label outcome of a reading, with consent; any extra field is refused, and an `outcome` of `corrected` must carry the `confirmed` label it was corrected to |
 | `GET /v1/admin/feedback` | Reviewer portal | Keycloak access token with the `reviewer` realm role. Newest first; `limit` is 1–1000, default 200. Each row carries its `id`; pass the oldest as `before` for the next page. `outcome` filters to `confirmed`, `corrected` or `rejected` |
 | `GET /v1/admin/devices`, `POST /v1/admin/devices/{id}/revoke` | Administrator | Keycloak access token with the `gateway-admin` realm role (`ADMIN_ROLE` to rename it). Lists device ids, whether each is revoked and when it was last seen (to the hour), never tokens; `limit` is 1–1000, default 200. A revoked device gets 401 and its app drops the token and falls back to the on-device assistant. Written to the audit table |
 | `GET /v1/admin/audit` | Administrator | The same role. Newest first; `limit` is 1–1000 (default 200), `before` pages by id, and `action` or `device` filters. Returns only id, time, device id and action, never tokens or subject data. The read is itself written to the audit table as `admin.audit` |

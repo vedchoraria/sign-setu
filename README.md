@@ -49,11 +49,11 @@ Tests worth knowing:
 | Resource | URL | Notes |
 | --- | --- | --- |
 | 📱 Phone APK — gateway (arm64, ~83 MB) | [sign-setu-0.7.0-arm64-v8a-gateway.apk](https://github.com/Yash-Awasthi/sign-setu/releases/download/v0.7.0/sign-setu-0.7.0-arm64-v8a-gateway.apk) | Signed; calls the department gateway |
-| 📱 Phone APK — no gateway (arm64, ~83 MB) | [sign-setu-0.7.0-arm64-v8a-nogateway.apk](https://github.com/Yash-Awasthi/sign-setu/releases/download/v0.7.0/sign-setu-0.7.0-arm64-v8a-nogateway.apk) | Signed; no key built in; enter an OpenAI compatible key (groq for test phase) in Settings |
+| 📱 Phone APK — no gateway (arm64, ~83 MB) | [sign-setu-0.7.0-arm64-v8a-nogateway.apk](https://github.com/Yash-Awasthi/sign-setu/releases/download/v0.7.0/sign-setu-0.7.0-arm64-v8a-nogateway.apk) | Signed; no key built in; Settings, Developer: address, key and model of any OpenAI compatible service (Groq by default), with a model list and a test ping |
 | 📦 Universal APK — gateway (arm64 + x86\_64, ~109 MB) | [sign-setu-0.7.0-universal-gateway.apk](https://github.com/Yash-Awasthi/sign-setu/releases/download/v0.7.0/sign-setu-0.7.0-universal-gateway.apk) | Signed; phones, tablets and emulators; calls the department gateway |
-| 📦 Universal APK — no gateway (arm64 + x86\_64, ~109 MB) | [sign-setu-0.7.0-universal-nogateway.apk](https://github.com/Yash-Awasthi/sign-setu/releases/download/v0.7.0/sign-setu-0.7.0-universal-nogateway.apk) | Signed; no key built in; enter an OpenAI compatible key (groq for test phase) in Settings |
+| 📦 Universal APK — no gateway (arm64 + x86\_64, ~109 MB) | [sign-setu-0.7.0-universal-nogateway.apk](https://github.com/Yash-Awasthi/sign-setu/releases/download/v0.7.0/sign-setu-0.7.0-universal-nogateway.apk) | Signed; no key built in; Settings, Developer: address, key and model of any OpenAI compatible service (Groq by default), with a model list and a test ping |
 | 🏷️ GitHub release | [v0.7.0](https://github.com/Yash-Awasthi/sign-setu/releases/tag/v0.7.0) | All APKs |
-| 🌐 Department gateway (API) | [signsetu-gateway.onrender.com](https://signsetu-gateway.onrender.com) | FastAPI on Render free tier; backed by Neon Postgres; cold-start ~30 s |
+| 🌐 Department gateway (API) | [signsetu-gateway.onrender.com](https://signsetu-gateway.onrender.com/healthz) | FastAPI on Render free tier; backed by Neon Postgres; cold-start ~30 s |
 | 🖥️ Reviewer portal | [signsetu-portal.pages.dev](https://fc39beea.signsetu-portal.pages.dev) | Vite + React; static on Cloudflare Pages |
 | 🤖 On-device model | [gemma-3-1b-it-Q4\_K\_M.gguf on Hugging Face](https://huggingface.co/ggml-org/gemma-3-1b-it-GGUF/resolve/main/gemma-3-1b-it-Q4_K_M.gguf) | ~806 MB; import via Settings → On-device assistant |
 | 📖 Full documentation | [docs/README.md](docs/README.md) | Requirements, architecture, security, DPIA |

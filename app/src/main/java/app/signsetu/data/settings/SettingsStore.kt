@@ -48,6 +48,9 @@ data class AppSettings(
     val islReorder: Boolean = true,
     /** Sends masked session text to the department gateway while online; off until the officer accepts the notice. */
     val cloudAi: Boolean = false,
+    /** Developer settings: an OpenAI-style service the officer's phone talks to instead of the build's own; its key is kept apart, in the Keystore. */
+    val devAiUrl: String = "",
+    val devAiModel: String = "",
 ) {
     val interpreterConfigured get() = interpreterApp != InterpreterApp.NONE && interpreterContact.isNotBlank()
 
@@ -84,6 +87,8 @@ class SettingsStore(private val context: Context) {
         val allowAuto = booleanPreferencesKey("allow_auto")
         val islReorder = booleanPreferencesKey("isl_reorder")
         val cloudAi = booleanPreferencesKey("cloud_ai")
+        val devAiUrl = stringPreferencesKey("dev_ai_url")
+        val devAiModel = stringPreferencesKey("dev_ai_model")
     }
 
     val settings: Flow<AppSettings> = context.store.data.map { it.toSettings() }
@@ -104,6 +109,10 @@ class SettingsStore(private val context: Context) {
     suspend fun setAllowAuto(on: Boolean) = context.store.edit { it[Keys.allowAuto] = on }
     suspend fun setIslReorder(on: Boolean) = context.store.edit { it[Keys.islReorder] = on }
     suspend fun setCloudAi(on: Boolean) = context.store.edit { it[Keys.cloudAi] = on }
+    suspend fun setDevAi(url: String, model: String) = context.store.edit {
+        it[Keys.devAiUrl] = url.trim()
+        it[Keys.devAiModel] = model.trim()
+    }
     suspend fun setTiltToShow(on: Boolean) = context.store.edit { it[Keys.tiltToShow] = on }
     suspend fun setVolumeKeys(on: Boolean) = context.store.edit { it[Keys.volumeKeys] = on }
     suspend fun toggleFavourite(cardId: String) = context.store.edit {
@@ -127,6 +136,8 @@ class SettingsStore(private val context: Context) {
         allowAuto = this[Keys.allowAuto] ?: false,
         islReorder = this[Keys.islReorder] ?: true,
         cloudAi = this[Keys.cloudAi] ?: false,
+        devAiUrl = this[Keys.devAiUrl] ?: "",
+        devAiModel = this[Keys.devAiModel] ?: "",
     )
 }
 
