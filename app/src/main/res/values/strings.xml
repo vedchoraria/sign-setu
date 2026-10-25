@@ -216,6 +216,8 @@
     <string name="settings_cloud_ai_summary">When online, sends masked text to the department gateway for reports and suggestions. Off by default; the phone works the same without a connection.</string>
     <string name="settings_cloud_ai_key">Enrolment code</string>
     <string name="settings_cloud_ai_enrolled">Enrolled</string>
+    <string name="settings_direct_key">AI key</string>
+    <string name="settings_direct_key_set">Set</string>
     <string name="settings_cloud_ai_direct">Online assistant (third party)</string>
     <string name="settings_cloud_ai_summary_direct">When online, sends masked text to an outside AI service for reports and suggestions. Off by default; the phone works the same without a connection.</string>
     <string name="cloud_notice_title_direct">Send text to a third party?</string>

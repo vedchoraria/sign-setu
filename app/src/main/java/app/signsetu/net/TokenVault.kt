@@ -18,8 +18,8 @@ interface TokenVault {
 }
 
 /** The token is stored only wrapped by a non-exportable Keystore key, in a file excluded from backup. */
-class KeystoreVault(context: Context) : TokenVault {
-    private val file = File(context.noBackupFilesDir, "gw.bin")
+class KeystoreVault(context: Context, name: String = "gw.bin", private val alias: String = ALIAS) : TokenVault {
+    private val file = File(context.noBackupFilesDir, name)
 
     override fun get(): String? = runCatching {
         val b = file.takeIf { it.exists() }?.readBytes() ?: return null
@@ -42,14 +42,14 @@ class KeystoreVault(context: Context) : TokenVault {
 
     override fun clear() {
         file.delete()
-        runCatching { keystore().deleteEntry(ALIAS) }
+        runCatching { keystore().deleteEntry(alias) }
     }
 
     private fun keystore() = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
 
     private fun key(): SecretKey {
-        (keystore().getEntry(ALIAS, null) as? KeyStore.SecretKeyEntry)?.secretKey?.let { return it }
-        val spec = KeyGenParameterSpec.Builder(ALIAS, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
+        (keystore().getEntry(alias, null) as? KeyStore.SecretKeyEntry)?.secretKey?.let { return it }
+        val spec = KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
             .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
             .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
             .setKeySize(256)

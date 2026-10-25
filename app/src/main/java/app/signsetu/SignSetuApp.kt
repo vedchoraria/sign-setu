@@ -72,7 +72,7 @@ class AppContainer(private val app: Application) : DefaultLifecycleObserver, Com
     val settings = SettingsStore(app)
     val report = SessionReport(app)
     val models = ModelStore(app)
-    val cloudAi = CloudAi({ settings.current().cloudAi }, BuildConfig.GATEWAY_URL, UrlHttp(), KeystoreVault(app), Direct(BuildConfig.ASSIST_URL, BuildConfig.ASSIST_MODEL, BuildConfig.ASSIST_KEY)) { isOnline(app) }
+    val cloudAi = CloudAi({ settings.current().cloudAi }, BuildConfig.GATEWAY_URL, UrlHttp(), KeystoreVault(app), Direct(BuildConfig.ASSIST_URL, BuildConfig.ASSIST_MODEL, BuildConfig.ASSIST_KEY), KeystoreVault(app, "assist.bin", "signsetu.assist.key")) { isOnline(app) }
     val assistant = Assistant(models, cloudAi)
     val hardKeys = HardKeys()
 

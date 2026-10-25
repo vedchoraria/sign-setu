@@ -48,10 +48,11 @@ Tests worth knowing:
 
 | Resource | URL | Notes |
 | --- | --- | --- |
-| 📱 **Demo APK** (arm64, debug-signed, ~189 MB) | [sign-setu-0.7.0-debug.apk](https://github.com/Yash-Awasthi/sign-setu/releases/download/v0.7.0/sign-setu-0.7.0-debug.apk) | Gateway wired in; install directly — no signing step needed |
-| 📱 Phone APK — unsigned release (arm64, ~83 MB) | [sign-setu-0.7.0-arm64-v8a-unsigned.apk](https://github.com/Yash-Awasthi/sign-setu/releases/download/v0.7.0/sign-setu-0.7.0-arm64-v8a-unsigned.apk) | Needs `zipalign` + `apksigner` before install |
-| 📦 Universal APK — unsigned release (arm64 + x86\_64, ~109 MB) | [sign-setu-0.7.0-universal-unsigned.apk](https://github.com/Yash-Awasthi/sign-setu/releases/download/v0.7.0/sign-setu-0.7.0-universal-unsigned.apk) | Phones, tablets and emulators; needs signing |
-| 🏷️ GitHub release | [v0.7.0](https://github.com/Yash-Awasthi/sign-setu/releases/tag/v0.7.0) | All APKs and checksums |
+| 📱 Phone APK — gateway (arm64, ~83 MB) | [sign-setu-0.7.0-arm64-v8a-gateway.apk](https://github.com/Yash-Awasthi/sign-setu/releases/download/v0.7.0/sign-setu-0.7.0-arm64-v8a-gateway.apk) | Signed; calls the department gateway |
+| 📱 Phone APK — no gateway (arm64, ~83 MB) | [sign-setu-0.7.0-arm64-v8a-nogateway.apk](https://github.com/Yash-Awasthi/sign-setu/releases/download/v0.7.0/sign-setu-0.7.0-arm64-v8a-nogateway.apk) | Signed; no key built in; enter an OpenAI compatible key (groq for test phase) in Settings |
+| 📦 Universal APK — gateway (arm64 + x86\_64, ~109 MB) | [sign-setu-0.7.0-universal-gateway.apk](https://github.com/Yash-Awasthi/sign-setu/releases/download/v0.7.0/sign-setu-0.7.0-universal-gateway.apk) | Signed; phones, tablets and emulators; calls the department gateway |
+| 📦 Universal APK — no gateway (arm64 + x86\_64, ~109 MB) | [sign-setu-0.7.0-universal-nogateway.apk](https://github.com/Yash-Awasthi/sign-setu/releases/download/v0.7.0/sign-setu-0.7.0-universal-nogateway.apk) | Signed; no key built in; enter an OpenAI compatible key (groq for test phase) in Settings |
+| 🏷️ GitHub release | [v0.7.0](https://github.com/Yash-Awasthi/sign-setu/releases/tag/v0.7.0) | All APKs |
 | 🌐 Department gateway (API) | [signsetu-gateway.onrender.com](https://signsetu-gateway.onrender.com) | FastAPI on Render free tier; backed by Neon Postgres; cold-start ~30 s |
 | 🖥️ Reviewer portal | [signsetu-portal.pages.dev](https://fc39beea.signsetu-portal.pages.dev) | Vite + React; static on Cloudflare Pages |
 | 🤖 On-device model | [gemma-3-1b-it-Q4\_K\_M.gguf on Hugging Face](https://huggingface.co/ggml-org/gemma-3-1b-it-GGUF/resolve/main/gemma-3-1b-it-Q4_K_M.gguf) | ~806 MB; import via Settings → On-device assistant |
@@ -66,7 +67,7 @@ Tests worth knowing:
 | `./gradlew assembleStandardRelease` | Universal APK, arm64-v8a and x86_64 (about 109 MB): phones, tablets and emulators |
 | `./gradlew assembleStandardRelease -Pabi=arm64-v8a` | Phone-only APK (about 83 MB) |
 
-Release builds use R8 with resource shrinking. Add `-PgatewayUrl=https://...` (or `gatewayUrl=` in `local.properties`) for a gateway build. A release build fails if an assistant key (`OPENROUTER_API_KEY` or `openrouterKey`) is set, because the key would be readable from the APK; pass `-PallowEmbeddedKey` only for a private build. The APK is unsigned: the release key is held offline, and signing is a manual `zipalign` and `apksigner` step on that machine. See [docs/README.md](docs/README.md), section 8.
+Release builds use R8 with resource shrinking. Add `-PgatewayUrl=https://...` (or `gatewayUrl=` in `local.properties`) for a gateway build. A release build fails if an assistant key (`OPENROUTER_API_KEY` or `openrouterKey`) is set, because the key would be readable from the APK; pass `-PallowEmbeddedKey` only for a private build. The APKs are signed with the release key, which is held offline; signing is a manual `zipalign` and `apksigner` step on that machine. See [docs/README.md](docs/README.md), section 8.
 
 ## Repository
 

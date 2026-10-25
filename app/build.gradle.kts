@@ -32,8 +32,8 @@ android {
         // The department's gateway: -PgatewayUrl=https://... or gatewayUrl in local.properties.
         buildConfigField("String", "GATEWAY_URL", "\"$gatewayUrl\"")
         buildConfigField("String", "ASSIST_KEY", "\"$openrouterKey\"")
-        buildConfigField("String", "ASSIST_URL", "\"https://agentrouter.org/v1/responses\"")
-        buildConfigField("String", "ASSIST_MODEL", "\"gpt-5.6-sol\"")
+        buildConfigField("String", "ASSIST_URL", "\"https://api.groq.com/openai/v1/chat/completions\"")
+        buildConfigField("String", "ASSIST_MODEL", "\"openai/gpt-oss-20b\"")
         buildConfigField("String", "ASSIST_UA", "\"$assistUserAgent\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // The on-device assistant runs only on 64-bit phones; the x86_64 build serves the emulator.

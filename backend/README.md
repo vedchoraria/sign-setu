@@ -42,9 +42,10 @@ Phone routes need the device token and are rate limited to 30 requests a minute.
 | `TOKEN_TTL_DAYS` | `0` | Days a device token stays valid after enrolment; `0` means no expiry. An expired token gets 401, the app drops it, and the phone needs a new enrolment code |
 | `MODEL_DIR` | `models` | Folder holding `manifest.json` and the model files it lists |
 | `ENROLL_HASHES` | empty | Comma-separated SHA-256 hex of each issued enrolment code; empty means no phone can enrol |
-| `ASSIST_URL` | empty | Chat completions endpoint of the AI service |
+| `ASSIST_URL` | empty | Chat completions endpoint of the AI service (OpenAI compatible, groq for test phase) |
 | `ASSIST_KEY` | empty | Bearer key for the AI service |
 | `ASSIST_MODEL` | empty | Model name sent to the AI service |
+| `ASSIST_REASONING_EFFORT` | empty | `low` for gpt-oss models, so they answer instead of thinking past the budget |
 | `OIDC_ISSUER` | empty | Keycloak realm URL; empty disables the admin route |
 | `OIDC_AUDIENCE` | `signsetu-portal` | Expected audience of reviewer tokens |
 
