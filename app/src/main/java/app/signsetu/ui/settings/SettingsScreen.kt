@@ -47,6 +47,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -66,6 +67,8 @@ import app.signsetu.R
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import app.signsetu.assistant.AiProbe
+import app.signsetu.net.UrlHttp
 import app.signsetu.ui.components.LocalCloudAi
 import app.signsetu.data.settings.AppSettings
 import app.signsetu.data.settings.InterpreterApp
@@ -78,7 +81,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import app.signsetu.ui.components.GuardedAlertDialog
 
-private enum class Dialog { APP, CONTACT, RETENTION, CLEAR, LICENCES, LANGUAGE, CLOUD, AIKEY }
+private enum class Dialog { APP, CONTACT, RETENTION, CLEAR, LICENCES, LANGUAGE, CLOUD, AIKEY, DEVELOPER }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -92,6 +95,11 @@ fun SettingsScreen(store: SettingsStore, models: ModelStore, onBack: () -> Unit,
     val notSet = stringResource(R.string.settings_not_set)
     val cloud = LocalCloudAi.current
     var enrolled by remember { mutableStateOf(cloud.enrolled) }
+    // The saved developer service changes what the assistant is; the screen reads it again after a save or a removal.
+    var devVersion by remember { mutableIntStateOf(0) }
+    val available = remember(devVersion, s.devAiUrl) { cloud.available }
+    val viaGateway = cloud.viaGateway
+    val probe = remember { AiProbe(UrlHttp()) }
     var modelState by remember { mutableStateOf(models.state()) }
     var importing by remember { mutableStateOf(false) }
     var badModel by remember { mutableStateOf(false) }
@@ -163,9 +171,9 @@ fun SettingsScreen(store: SettingsStore, models: ModelStore, onBack: () -> Unit,
                         }
                     },
                 )
-                if (cloud.available) ListItem(
-                    headlineContent = { Text(stringResource(if (cloud.viaGateway) R.string.settings_cloud_ai else R.string.settings_cloud_ai_direct)) },
-                    supportingContent = { Text(stringResource(if (cloud.viaGateway) R.string.settings_cloud_ai_summary else R.string.settings_cloud_ai_summary_direct)) },
+                if (available) ListItem(
+                    headlineContent = { Text(stringResource(if (viaGateway) R.string.settings_cloud_ai else R.string.settings_cloud_ai_direct)) },
+                    supportingContent = { Text(stringResource(if (viaGateway) R.string.settings_cloud_ai_summary else R.string.settings_cloud_ai_summary_direct)) },
                     colors = ItemColors,
                     trailingContent = { Switch(checked = s.cloudAi, onCheckedChange = null) },
                     modifier = Modifier.toggleable(s.cloudAi, role = Role.Switch) { on ->
@@ -173,8 +181,7 @@ fun SettingsScreen(store: SettingsStore, models: ModelStore, onBack: () -> Unit,
                     },
                 )
                 if (s.cloudAi) {
-                    if (cloud.viaGateway) Item(stringResource(R.string.settings_cloud_ai_key), if (enrolled) stringResource(R.string.settings_cloud_ai_enrolled) else notSet) { dialog = Dialog.AIKEY }
-                    else Item(stringResource(R.string.settings_direct_key), if (enrolled) stringResource(R.string.settings_direct_key_set) else notSet) { dialog = Dialog.AIKEY }
+                    if (viaGateway) Item(stringResource(R.string.settings_cloud_ai_key), if (enrolled) stringResource(R.string.settings_cloud_ai_enrolled) else notSet) { dialog = Dialog.AIKEY }
                 }
                 SwitchItem(R.string.settings_allow_auto, R.string.settings_allow_auto_summary, s.allowAuto) { on -> scope.launch { store.setAllowAuto(on) } }
                 SwitchItem(R.string.settings_tilt, R.string.settings_tilt_summary, s.tiltToShow) { on -> scope.launch { store.setTiltToShow(on) } }
@@ -210,6 +217,12 @@ fun SettingsScreen(store: SettingsStore, models: ModelStore, onBack: () -> Unit,
                         scope.launch { models.remove(); modelState = models.state() }
                     }
                 }
+            }
+            if (!viaGateway) Group(R.string.settings_developer) {
+                Item(
+                    stringResource(R.string.settings_developer_mode),
+                    if (s.devAiUrl.isBlank()) stringResource(R.string.settings_developer_summary) else "${s.devAiModel} · ${s.devAiUrl.removePrefix("https://")}",
+                ) { dialog = Dialog.DEVELOPER }
             }
             Group(R.string.settings_records) {
                 Item(
@@ -282,10 +295,10 @@ fun SettingsScreen(store: SettingsStore, models: ModelStore, onBack: () -> Unit,
         )
         Dialog.CLOUD -> GuardedAlertDialog(
             onDismissRequest = { dialog = null },
-            title = { Text(stringResource(if (cloud.viaGateway) R.string.cloud_notice_title else R.string.cloud_notice_title_direct)) },
-            text = { Text(stringResource(if (cloud.viaGateway) R.string.cloud_notice_body else R.string.cloud_notice_body_direct)) },
+            title = { Text(stringResource(if (viaGateway) R.string.cloud_notice_title else R.string.cloud_notice_title_direct)) },
+            text = { Text(stringResource(if (viaGateway) R.string.cloud_notice_body else R.string.cloud_notice_body_direct)) },
             confirmButton = {
-                TextButton(onClick = { scope.launch { store.setCloudAi(true) }; dialog = if (!enrolled) Dialog.AIKEY else null }) {
+                TextButton(onClick = { scope.launch { store.setCloudAi(true) }; dialog = if (viaGateway && !enrolled) Dialog.AIKEY else null }) {
                     Text(stringResource(R.string.cloud_notice_accept))
                 }
             },
@@ -295,7 +308,7 @@ fun SettingsScreen(store: SettingsStore, models: ModelStore, onBack: () -> Unit,
             var key by rememberSaveable { mutableStateOf("") }
             GuardedAlertDialog(
                 onDismissRequest = { dialog = null },
-                title = { Text(stringResource(if (cloud.viaGateway) R.string.settings_cloud_ai_key else R.string.settings_direct_key)) },
+                title = { Text(stringResource(R.string.settings_cloud_ai_key)) },
                 text = {
                     OutlinedTextField(
                         value = key,
@@ -306,10 +319,23 @@ fun SettingsScreen(store: SettingsStore, models: ModelStore, onBack: () -> Unit,
                         modifier = Modifier.fillMaxWidth(),
                     )
                 },
-                confirmButton = { TextButton(onClick = { scope.launch { enrolled = (if (cloud.viaGateway) cloud.enroll(key) else cloud.saveOwnKey(key)) || enrolled; dialog = null } }, enabled = key.isNotBlank()) { Text(stringResource(R.string.save)) } },
+                confirmButton = { TextButton(onClick = { scope.launch { enrolled = cloud.enroll(key) || enrolled; dialog = null } }, enabled = key.isNotBlank()) { Text(stringResource(R.string.save)) } },
                 dismissButton = { TextButton(onClick = { dialog = null }) { Text(stringResource(R.string.cancel)) } },
             )
         }
+        Dialog.DEVELOPER -> DeveloperAiDialog(
+            probe = probe,
+            initialUrl = s.devAiUrl.ifBlank { BuildConfig.ASSIST_URL },
+            initialModel = s.devAiModel.ifBlank { BuildConfig.ASSIST_MODEL },
+            loadKey = cloud::customKey,
+            onSave = { url, model, key ->
+                val stored = cloud.saveCustom(url, model, key)
+                if (stored) { scope.launch { store.setDevAi(url, model) }; devVersion++ }
+                stored
+            },
+            onClear = { cloud.clearCustom(); scope.launch { store.setDevAi("", "") }; devVersion++ },
+            onDismiss = { dialog = null },
+        )
         Dialog.LICENCES -> LicencesDialog(onDismiss = { dialog = null })
         Dialog.LANGUAGE -> ChoiceDialog(
             title = stringResource(R.string.settings_app_language),

@@ -15,8 +15,8 @@ import kotlinx.serialization.json.Json
 @Serializable private data class EnrollReq(val code: String)
 @Serializable private data class EnrollResp(val token: String = "")
 @Serializable private data class Msg(val role: String, val content: String)
-// Groq rejects the OpenRouter reasoning object, so only reasoning_effort is sent.
-@Serializable private data class ChatReq(val model: String, val messages: List<Msg>, val temperature: Double, val max_tokens: Int, val reasoning_effort: String = "low")
+// Only Groq is known to take reasoning_effort; any other service may refuse a request that carries it.
+@Serializable private data class ChatReq(val model: String, val messages: List<Msg>, val temperature: Double, val max_tokens: Int, val reasoning_effort: String? = null)
 @Serializable private data class Choice(val message: Msg)
 @Serializable private data class ChatResp(val choices: List<Choice> = emptyList())
 // Some services answer only on the Responses API: instructions and input go in, an output item list comes back.
@@ -34,7 +34,7 @@ import kotlinx.serialization.json.Json
 @Serializable private data class OutItem(val type: String = "", val content: List<OutPart> = emptyList())
 @Serializable private data class ResponsesResp(val output: List<OutItem> = emptyList(), val output_text: String? = null)
 
-/** A build that talks straight to an OpenAI-style service with its own key, when it has no gateway. The key is in the APK. */
+/** An OpenAI-style service a build without a gateway talks to; the key is the one the officer saves in Settings. */
 class Direct(val url: String, val model: String, val key: String) {
     /** True when the service speaks the Responses API rather than chat completions. */
     val responses: Boolean get() = url.contains("/responses")
@@ -50,13 +50,17 @@ class CloudAi(
     gatewayUrl: String,
     private val http: Http,
     private val vault: TokenVault,
-    private val direct: Direct? = null,
-    /** The key the officer typed in a direct build; it overrides the one compiled into the APK. */
-    private val ownKey: TokenVault? = null,
+    private val builtIn: Direct? = null,
+    /** Holds the key the officer saves for a direct service; unused on a gateway build. */
+    private val customVault: TokenVault? = null,
     private val online: () -> Boolean,
 ) {
-    // Defaults are encoded: a request option left at its default (reasoning excluded) must still reach the service.
-    private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
+    // Defaults are encoded: a request option left at its default must still reach the service; nulls are left out.
+    private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true; explicitNulls = false }
+
+    /** The service the officer saved in Settings; it replaces the build's default and never exists on a gateway build. */
+    @Volatile var custom: Direct? = null
+    private val direct: Direct? get() = custom ?: builtIn
 
     /** Called on any thread; the UI shows it as a toast. */
     var onNotice: (Notice) -> Unit = {}
@@ -76,10 +80,30 @@ class CloudAi(
     val available: Boolean get() = viaGateway || direct?.url?.startsWith("https://") == true && directKey() != null
     val enrolled: Boolean get() = if (viaGateway) vault.get() != null else directKey() != null
 
-    private fun directKey(): String? = ownKey?.get()?.takeIf { it.isNotBlank() } ?: direct?.key?.takeIf { it.isNotBlank() }
+    private fun directKey(): String? = customVault?.get()?.takeIf { it.isNotBlank() } ?: direct?.key?.takeIf { it.isNotBlank() }
 
-    /** Stores the officer's own key; false on a gateway build or when storage fails. */
-    fun saveOwnKey(key: String): Boolean = !viaGateway && ownKey?.put(key.trim()) == true
+    /** The saved key, to show it is set; null when none is stored. */
+    fun customKey(): String? = if (viaGateway) null else customVault?.get()
+
+    /** Stores the key apart from the settings and switches to the service; false on a gateway build or when storage fails. */
+    fun saveCustom(url: String, model: String, key: String): Boolean {
+        val vault = customVault ?: return false
+        if (viaGateway || !vault.put(key.trim())) return false
+        custom = Direct(AiEndpoint.chatUrl(url), model.trim(), key.trim())
+        degraded = false
+        return true
+    }
+
+    fun clearCustom() {
+        customVault?.clear()
+        custom = null
+    }
+
+    /** At launch: bring back the service saved in Settings, if its key is still readable. */
+    fun restoreCustom(url: String, model: String) {
+        val key = customVault?.get()
+        custom = if (viaGateway || url.isBlank() || model.isBlank() || key.isNullOrBlank()) null else Direct(AiEndpoint.chatUrl(url), model.trim(), key)
+    }
 
     /** True when a request would actually leave the phone: the officer must have allowed that for the session. */
     suspend fun sendsSessionData(): Boolean = available && enabled() && withContext(Dispatchers.IO) { enrolled }
@@ -112,6 +136,7 @@ class CloudAi(
     suspend fun ask(system: String, user: String, names: Collection<String>, maxTokens: Int = 800, details: Collection<String> = emptyList()): String? {
         if (!available || !enabled()) return null
         // Keystore decryption and the token file are disk work; never do them on the caller's UI thread.
+        val d = direct
         val token = if (viaGateway) withContext(Dispatchers.IO) { vault.get() } ?: return null else directKey() ?: return null
         if (!online()) return fallBack(Notice.FALLBACK_OFFLINE)
         val mask = Pseudonymizer(names, details)
@@ -120,13 +145,13 @@ class CloudAi(
                 if (viaGateway) http.call("POST", "$base/v1/assist", json.encodeToString(AssistReq.serializer(), AssistReq(system, mask.mask(user), maxTokens)), token)
                 // A reasoning model spends the first tokens on thinking, so a short reply budget is all thinking
                 // and no answer; the floor leaves room for the answer itself. Output stays as short as it likes.
-                else if (direct!!.responses) http.call(
+                else if (d!!.responses) http.call(
                     "POST",
-                    direct.url,
-                    json.encodeToString(ResponsesReq.serializer(), ResponsesReq(direct.model, system, mask.mask(user), maxOf(maxTokens, DIRECT_MIN_TOKENS))),
+                    d.url,
+                    json.encodeToString(ResponsesReq.serializer(), ResponsesReq(d.model, system, mask.mask(user), maxOf(maxTokens, DIRECT_MIN_TOKENS))),
                     token,
                 )
-                else http.call("POST", direct.url, json.encodeToString(ChatReq.serializer(), ChatReq(direct.model, listOf(Msg("system", system), Msg("user", mask.mask(user))), 0.2, maxOf(maxTokens, DIRECT_MIN_TOKENS))), token)
+                else http.call("POST", d.url, json.encodeToString(ChatReq.serializer(), ChatReq(d.model, listOf(Msg("system", system), Msg("user", mask.mask(user))), 0.2, maxOf(maxTokens, DIRECT_MIN_TOKENS), "low".takeIf { "api.groq.com" in d.url })), token)
             }.getOrNull()
         }
         // A busy free service sometimes answers with nothing; one retry keeps a conversation going. A refused key,
@@ -142,7 +167,7 @@ class CloudAi(
         val text = reply?.takeIf { it.ok }?.let {
             runCatching {
                 if (viaGateway) json.decodeFromString(AssistResp.serializer(), it.body).text.trim()
-                else if (direct!!.responses) responsesText(it.body)
+                else if (d!!.responses) responsesText(it.body)
                 else json.decodeFromString(ChatResp.serializer(), it.body).choices.first().message.content.trim()
             }.getOrNull()
         }

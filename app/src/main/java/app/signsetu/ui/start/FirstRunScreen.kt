@@ -18,6 +18,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Icon
@@ -63,6 +64,7 @@ private class Step(@StringRes val title: Int, @StringRes val body: Int, val gest
 
 private val STEPS = listOf(
     Step(R.string.intro_aid_title, R.string.intro_aid_body, "namaste") { rememberVectorPainter(Icons.Filled.Info) },
+    Step(R.string.intro_delete_title, R.string.intro_delete_body, "ask") { rememberVectorPainter(Icons.Filled.Delete) },
     Step(R.string.intro_private_title, R.string.intro_private_body, "me.chest") { rememberVectorPainter(Icons.Filled.Lock) },
 )
 

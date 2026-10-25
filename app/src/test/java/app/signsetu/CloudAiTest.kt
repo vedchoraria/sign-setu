@@ -191,7 +191,7 @@ class CloudAiTest {
         val own = Vault(null)
         val c = CloudAi({ true }, "", text, Vault(null), Direct("https://llm.example/v1/chat", "m", ""), own) { true }
         assertFalse(c.available)
-        assertTrue(c.saveOwnKey(" typed "))
+        assertTrue(c.saveCustom("https://llm.example/v1", "m2", " typed "))
         assertTrue(c.available && c.enrolled)
         assertEquals("typed", own.token)
     }

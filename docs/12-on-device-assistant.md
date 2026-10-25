@@ -54,7 +54,7 @@ The Gemma licence is free for government use but is not an OSI open-source licen
 
 | Item | Behaviour |
 | --- | --- |
-| Where it goes | The department gateway (`POST /v1/assist`) when the build has one; otherwise the OpenAI compatible service (groq for test phase), with the key the officer enters in Settings, using chat completions |
+| Where it goes | The department gateway (`POST /v1/assist`) when the build has one; otherwise the OpenAI compatible service the officer saves in Settings, Developer (address, key, model; Groq pre-filled), using chat completions. A gateway build has no Developer setting and talks only to its gateway; a build without a gateway talks only to that service. The key is kept in the Keystore |
 | When | Only with the online switch on (Settings, after a notice), the phone on a validated network, and, for the gateway, the device enrolled with a one-time department code |
 | Masking | `Pseudonymizer` replaces the subject's names and written details from the session, and email addresses, links, PAN-like ids and long numbers, with stand-ins before sending, and restores them in the reply |
 | Consent | Session text (counsellor history, draft report) goes only after the officer allows it once for the session |
