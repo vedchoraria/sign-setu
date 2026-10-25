@@ -10,7 +10,7 @@ Both measures depend on the production gateway host and its certificate authorit
 | Gateway host | Set at build time with `-PgatewayUrl`; empty means the app never connects. The reference blueprint (`render.yaml`) deploys to a free Render host whose certificate chain is managed by the host. |
 | Device identity | A one-time enrolment code, kept on the server only as a SHA-256 hash, is traded at `POST /v1/enroll` for a random 256-bit bearer token. The server keeps only the token's SHA-256. |
 | Token handling on the phone | Wrapped by a non-exportable Keystore key (`signsetu.gateway.token`) that needs no screen unlock, stored in a file excluded from backup. Any code running as the app can use it. |
-| Token lifetime | Optional. With `TOKEN_TTL_DAYS` set, a token stops working that many days after enrolment and the phone must enrol again with a new code. Unset or 0, the default, means a token works until an administrator sets `revoked`. There is no rotation. |
+| Token lifetime | Optional. With `TOKEN_TTL_DAYS` set, a token stops working that many days after enrolment and the phone must enrol again with a new code. Unset or 0, the default in code, means a token works until an administrator sets `revoked`; the reference blueprint (`render.yaml`) sets 90 days. There is no rotation. |
 | Abuse limits | A per-device rate limit, and per-address and global wrong-code limits on enrolment. |
 
 ## 2. Threat model
@@ -66,7 +66,7 @@ Server requirements: a nonce table; an X.509 and ASN.1 parser for the key descri
 
 ## 5. Token life and revocation (recommended regardless)
 
-Both measures above are weaker than ordinary token hygiene. Token expiry (`TOKEN_TTL_DAYS`, off by default so existing devices keep working until the department chooses a life) and a `last_seen` timestamp on devices (written at most once an hour, shown by `/v1/admin/devices`) are built. The admin route to list and revoke a device exists (`/v1/admin/devices`). The life is set with `TOKEN_TTL_DAYS`; expiry is off by default.
+Both measures above are weaker than ordinary token hygiene. Token expiry (`TOKEN_TTL_DAYS`, off by default in code, 90 days in the reference blueprint, until the department chooses a life) and a `last_seen` timestamp on devices (written at most once an hour, shown by `/v1/admin/devices`) are built. The admin route to list and revoke a device exists (`/v1/admin/devices`). The life is set with `TOKEN_TTL_DAYS`; expiry is off by default.
 
 ## 6. Deployment inputs
 

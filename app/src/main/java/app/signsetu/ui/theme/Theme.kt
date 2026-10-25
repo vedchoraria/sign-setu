@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.signsetu.R
+import app.signsetu.data.settings.ColorTheme
 
 @Immutable
 object Spacing {
@@ -34,7 +35,8 @@ val SubjectCardMin: Dp = 96.dp
 
 val LocalAnswerColors = staticCompositionLocalOf { AnswerLight }
 val LocalStageColors = staticCompositionLocalOf { StageLight }
-val LocalInk = staticCompositionLocalOf { Ink }
+val LocalInk = staticCompositionLocalOf { paletteOf(ColorTheme.EMERALD).inkLight }
+val LocalCall = staticCompositionLocalOf { paletteOf(ColorTheme.EMERALD).call }
 
 private val AppShapes = Shapes(
     extraSmall = RoundedCornerShape(8.dp),
@@ -73,13 +75,16 @@ private val SubjectType = OfficerType.copy(
 )
 
 @Composable
-fun SignSetuTheme(dark: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
+fun SignSetuTheme(dark: Boolean = isSystemInDarkTheme(), theme: ColorTheme = ColorTheme.EMERALD, content: @Composable () -> Unit) {
+    val palette = paletteOf(theme)
     CompositionLocalProvider(
         LocalAnswerColors provides if (dark) AnswerDark else AnswerLight,
         LocalStageColors provides if (dark) StageDark else StageLight,
+        LocalInk provides if (dark) palette.inkDark else palette.inkLight,
+        LocalCall provides palette.call,
     ) {
         MaterialTheme(
-            colorScheme = if (dark) OfficerDark else OfficerLight,
+            colorScheme = if (dark) palette.dark else palette.light,
             typography = OfficerType,
             shapes = AppShapes,
             content = content,

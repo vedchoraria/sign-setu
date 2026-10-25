@@ -63,6 +63,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.compose.ui.platform.LocalView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
@@ -101,6 +102,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import app.signsetu.ui.start.StartScreen
 import app.signsetu.ui.theme.SignSetuTheme
+import app.signsetu.data.settings.ThemeMode
+import app.signsetu.data.settings.ColorTheme
+import androidx.compose.foundation.isSystemInDarkTheme
 import app.signsetu.ui.theme.SubjectTheme
 import kotlinx.serialization.Serializable
 import app.signsetu.ui.components.GuardedAlertDialog
@@ -147,8 +151,22 @@ fun AppRoot(container: AppContainer) {
         onDispose { container.cloudAi.onNotice = {} }
     }
 
+    val dark = when (settings?.themeMode) {
+        ThemeMode.LIGHT -> false
+        ThemeMode.DARK -> true
+        else -> isSystemInDarkTheme()
+    }
+    // Edge-to-edge picks bar icons from the phone's theme; a pinned app theme must set them itself.
+    val view = LocalView.current
+    DisposableEffect(view, dark) {
+        val controller = (view.context as? Activity)?.window?.let { WindowCompat.getInsetsController(it, view) }
+        controller?.isAppearanceLightStatusBars = !dark
+        controller?.isAppearanceLightNavigationBars = !dark
+        onDispose {}
+    }
+
     CompositionLocalProvider(LocalContentRepository provides container.content, LocalCloudAi provides container.cloudAi) { NoPersonalisedLearning {
-        SignSetuTheme {
+        SignSetuTheme(dark = dark, theme = settings?.colorTheme ?: ColorTheme.EMERALD) {
             val r = repo
             val c = content
             val s = settings

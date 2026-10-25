@@ -105,6 +105,10 @@ import app.signsetu.ui.avatar.MiniFace
 import app.signsetu.ui.session.characterFor
 import app.signsetu.ui.theme.Baloo
 import app.signsetu.ui.theme.LocalInk
+import androidx.compose.runtime.DisposableEffect
+import androidx.core.view.WindowCompat
+import androidx.compose.ui.platform.LocalView
+import android.app.Activity
 import app.signsetu.ui.theme.LocalStageColors
 import app.signsetu.ui.theme.Spacing
 import kotlinx.coroutines.launch
@@ -127,6 +131,14 @@ fun StartScreen(
     val context = LocalContext.current
     val res = LocalResources.current
     val ink = LocalInk.current
+    // The ink header needs light status-bar icons in both themes.
+    val barView = LocalView.current
+    DisposableEffect(barView) {
+        val controller = (barView.context as? Activity)?.window?.let { WindowCompat.getInsetsController(it, barView) }
+        val before = controller?.isAppearanceLightStatusBars
+        controller?.isAppearanceLightStatusBars = false
+        onDispose { before?.let { controller.isAppearanceLightStatusBars = it } }
+    }
     var refresh by remember { mutableIntStateOf(0) }
     val open by produceState<Session?>(null, refresh) { value = repo.openSession() }
     var profile by rememberSaveable { mutableStateOf<Profile?>(null) }

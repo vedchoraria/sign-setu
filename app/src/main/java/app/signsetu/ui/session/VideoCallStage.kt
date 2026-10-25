@@ -61,6 +61,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.signsetu.R
+import app.signsetu.ui.theme.LocalCall
 import app.signsetu.camera.CameraMirror
 import app.signsetu.camera.Everyday
 import app.signsetu.camera.Head
@@ -240,7 +241,7 @@ fun VideoCallStage(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFF0F172A))
+            .background(LocalCall.current.bg)
             .pointerInput(Unit) {
                 awaitPointerEventScope {
                     while (true) {
@@ -258,7 +259,7 @@ fun VideoCallStage(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Brush.radialGradient(listOf(Color(0xFF1E293B), Color(0xFF0F172A)))),
+                    .background(Brush.radialGradient(listOf(LocalCall.current.surface, LocalCall.current.bg))),
             )
             Box(
                 modifier = Modifier
@@ -338,7 +339,7 @@ fun VideoCallStage(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color(0xFF1E293B)),
+                        .background(LocalCall.current.surface),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(painterResource(R.drawable.ic_videocam), contentDescription = null, tint = Color.White.copy(alpha = 0.5f), modifier = Modifier.size(24.dp))
@@ -347,7 +348,7 @@ fun VideoCallStage(
 
             Surface(
                 shape = RoundedCornerShape(12.dp),
-                color = if (showVictimSkeleton) Color(0xDD0F172A) else Color(0x99000000),
+                color = if (showVictimSkeleton) LocalCall.current.bg.copy(alpha = 0.87f) else Color(0x99000000),
                 border = BorderStroke(1.dp, if (showVictimSkeleton) Color(0xFFFBBF24) else Color(0x44FFFFFF)),
                 modifier = Modifier
                     .align(Alignment.TopEnd)
@@ -357,7 +358,7 @@ fun VideoCallStage(
                 Text(
                     text = stringResource(if (showVictimSkeleton) R.string.call_skeleton_on else R.string.call_skeleton_off),
                     fontSize = 9.sp,
-                    color = if (showVictimSkeleton) Color(0xFFFDE68A) else Color(0xFFE2E8F0),
+                    color = if (showVictimSkeleton) Color(0xFFFDE68A) else LocalCall.current.text,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
                 )
@@ -395,8 +396,8 @@ fun VideoCallStage(
             courtesy?.let { (card, cue) ->
                 Surface(
                     shape = RoundedCornerShape(16.dp),
-                    color = Color(0xFF1E3A8A),
-                    border = BorderStroke(1.5.dp, Color(0xFF93C5FD)),
+                    color = LocalCall.current.accentDeep,
+                    border = BorderStroke(1.5.dp, LocalCall.current.accentSoft),
                     modifier = Modifier.padding(horizontal = 8.dp).clickable {
                         answer(card, cue)
                         courtesy = null
@@ -413,7 +414,7 @@ fun VideoCallStage(
                             fontFamily = Baloo,
                             fontWeight = FontWeight.Bold,
                             fontSize = 15.sp,
-                            color = Color(0xFFDBEAFE),
+                            color = LocalCall.current.accentSoft,
                         )
                     }
                 }
@@ -422,8 +423,8 @@ fun VideoCallStage(
             AnimatedVisibility(visible = recentReaction != null) {
                 Surface(
                     shape = RoundedCornerShape(20.dp),
-                    color = Color(0xEE1E293B),
-                    border = BorderStroke(1.dp, Color(0xFF38BDF8)),
+                    color = LocalCall.current.surface.copy(alpha = 0.93f),
+                    border = BorderStroke(1.dp, LocalCall.current.accent),
                 ) {
                     Text(
                         text = when (val reaction = recentReaction) {
@@ -434,7 +435,7 @@ fun VideoCallStage(
                         fontFamily = Baloo,
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp,
-                        color = Color(0xFF38BDF8),
+                        color = LocalCall.current.accent,
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
                     )
                 }
@@ -442,7 +443,7 @@ fun VideoCallStage(
 
             Surface(
                 shape = RoundedCornerShape(24.dp),
-                color = Color(0xDD0F172A),
+                color = LocalCall.current.bg.copy(alpha = 0.87f),
                 border = BorderStroke(1.5.dp, Color(0x44FFFFFF)),
                 shadowElevation = 10.dp,
                 modifier = Modifier.fillMaxWidth(),
@@ -463,7 +464,7 @@ fun VideoCallStage(
                     if (!ui.child) Text(
                         text = stringResource(R.string.call_sign_hint),
                         fontSize = 11.sp,
-                        color = Color(0xFF94A3B8),
+                        color = LocalCall.current.muted,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(top = 2.dp),
                     )
@@ -475,8 +476,8 @@ fun VideoCallStage(
             val label = cardLabel(content, card, lang)
             Surface(
                 shape = RoundedCornerShape(24.dp),
-                color = Color(0xFF0E7490),
-                border = BorderStroke(2.dp, Color(0xFF67E8F9)),
+                color = LocalCall.current.accentDeep,
+                border = BorderStroke(2.dp, LocalCall.current.accent),
                 shadowElevation = 12.dp,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -492,15 +493,15 @@ fun VideoCallStage(
                 ) {
                     if (content.hasCardImage(card)) CardImage(card, Modifier.size(36.dp))
                     Text(label, fontFamily = Baloo, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color.White)
-                    content.subjectText("is_this_it", lang)?.let { Text(it, fontSize = 14.sp, color = Color(0xFFCFFAFE)) }
+                    content.subjectText("is_this_it", lang)?.let { Text(it, fontSize = 14.sp, color = LocalCall.current.accentSoft) }
                 }
             }
         }
 
         Surface(
             shape = RoundedCornerShape(32.dp),
-            color = Color(0xEE1E293B),
-            border = BorderStroke(1.dp, Color(0xFF334155)),
+            color = LocalCall.current.surface.copy(alpha = 0.93f),
+            border = BorderStroke(1.dp, LocalCall.current.line),
             shadowElevation = 12.dp,
             modifier = Modifier
                 .align(Alignment.BottomCenter)

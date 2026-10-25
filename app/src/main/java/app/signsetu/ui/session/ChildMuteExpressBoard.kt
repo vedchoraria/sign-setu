@@ -82,29 +82,29 @@ private val ExpressCards = listOf(
     ExpressCard("water", "needs", Color(0xFFD8F3FF), Color(0xFF026AA7)),
     ExpressCard("toilet", "needs", Color(0xFFE8DEFF), Color(0xFF5521B5)),
     ExpressCard("food", "needs", Color(0xFFFFECCC), Color(0xFF8C5500)),
-    ExpressCard("rest", "needs", Color(0xFFE2E8F0), Color(0xFF334155)),
+    ExpressCard("rest", "needs", Color(0xFFEFE3D3), Color(0xFF4F4539)),
     ExpressCard("phone", "needs", Color(0xFFC7F9CC), Color(0xFF145A32)),
     ExpressCard("medicine", "needs", Color(0xFFCCFBF1), Color(0xFF115E59)),
     ExpressCard("mother", "people", Color(0xFFFFD6E0), Color(0xFF881337)),
     ExpressCard("father", "people", Color(0xFFDBEAFE), Color(0xFF1E40AF)),
-    ExpressCard("brother", "people", Color(0xFFE0E7FF), Color(0xFF3730A3)),
+    ExpressCard("brother", "people", Color(0xFFD9E6DD), Color(0xFF2B4A3A)),
     ExpressCard("sister", "people", Color(0xFFFCE7F3), Color(0xFF9D174D)),
     ExpressCard("friends", "people", Color(0xFFDCFCE7), Color(0xFF166534)),
     ExpressCard("someone_else", "people", Color(0xFFFEE2E2), Color(0xFF991B1B)),
     ExpressCard("home", "places", Color(0xFFFEF3C7), Color(0xFF92400E)),
     ExpressCard("school", "places", Color(0xFFE0F2FE), Color(0xFF0369A1)),
     ExpressCard("hospital", "places", Color(0xFFFFE4E6), Color(0xFF9F1239)),
-    ExpressCard("bus_stand", "places", Color(0xFFF1F5F9), Color(0xFF334155)),
+    ExpressCard("bus_stand", "places", Color(0xFFF2EADF), Color(0xFF4F4539)),
     ExpressCard("road", "places", Color(0xFFF3F4F6), Color(0xFF374151)),
     ExpressCard("yes", "answers", Color(0xFFC2F0C2), Color(0xFF0F5132)),
     ExpressCard("no", "answers", Color(0xFFFFC5C5), Color(0xFF842029)),
-    ExpressCard("dont_know", "answers", Color(0xFFE2E8F0), Color(0xFF475569)),
+    ExpressCard("dont_know", "answers", Color(0xFFEFE3D3), Color(0xFF4F4539)),
     ExpressCard("dont_understand", "answers", Color(0xFFFFF3CD), Color(0xFF664D03)),
     ExpressCard("thank_you", "answers", Color(0xFFE0F2FE), Color(0xFF0369A1)),
     ExpressCard("head", "body", Color(0xFFFFE4E6), Color(0xFF9F1239)),
     ExpressCard("throat", "body", Color(0xFFFEF3C7), Color(0xFF92400E)),
     ExpressCard("stomach", "body", Color(0xFFFFECCC), Color(0xFF8C5500)),
-    ExpressCard("arm", "body", Color(0xFFE0E7FF), Color(0xFF3730A3)),
+    ExpressCard("arm", "body", Color(0xFFD9E6DD), Color(0xFF2B4A3A)),
     ExpressCard("leg", "body", Color(0xFFDCFCE7), Color(0xFF166534)),
     ExpressCard("back", "body", Color(0xFFF3E8FF), Color(0xFF6B21A8)),
 )
@@ -160,10 +160,10 @@ fun FullChildMuteCommunicationBoard(
                 if (said == null) Spacer(Modifier.weight(1f))
                 Surface(
                     shape = CircleShape,
-                    color = Color(0xFFE2E8F0),
+                    color = Color(0xFFEFE3D3),
                     modifier = Modifier.padding(start = 8.dp).size(40.dp).clickable { onDismiss() }.semantics { role = Role.Button; contentDescription = closeName },
                 ) {
-                    Box(contentAlignment = Alignment.Center) { Icon(Icons.Filled.Close, contentDescription = null, tint = Color(0xFF334155)) }
+                    Box(contentAlignment = Alignment.Center) { Icon(Icons.Filled.Close, contentDescription = null, tint = Color(0xFF4F4539)) }
                 }
             }
 
@@ -174,7 +174,7 @@ fun FullChildMuteCommunicationBoard(
                 Tabs.forEach { id ->
                     val selected = tab == id
                     val title = content.categories.firstOrNull { it.id == id }?.label?.or(lang) ?: id
-                    val fill by animateColorAsState(if (selected) Color(0xFF4F46E5) else Color(0xFFF1F5F9))
+                    val fill by animateColorAsState(if (selected) Color(0xFF1C6E74) else Color(0xFFF2EADF))
                     Surface(
                         shape = RoundedCornerShape(14.dp),
                         color = fill,
@@ -185,7 +185,7 @@ fun FullChildMuteCommunicationBoard(
                             fontFamily = Baloo,
                             fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
                             fontSize = 13.sp,
-                            color = if (selected) Color.White else Color(0xFF475569),
+                            color = if (selected) Color.White else Color(0xFF4F4539),
                             modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
                         )
                     }

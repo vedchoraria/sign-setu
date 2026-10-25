@@ -43,6 +43,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.signsetu.R
+import app.signsetu.ui.theme.LocalCall
 import app.signsetu.ui.components.CardImage
 import app.signsetu.ui.theme.Baloo
 
@@ -56,7 +57,7 @@ internal fun CallHeader(onBreathe: () -> Unit, modifier: Modifier) {
         label = "pulseAlpha",
     )
     Surface(
-        color = Color(0xCC0F172A),
+        color = LocalCall.current.bg.copy(alpha = 0.8f),
         modifier = modifier.fillMaxWidth(),
     ) {
         Row(
@@ -85,14 +86,14 @@ internal fun CallHeader(onBreathe: () -> Unit, modifier: Modifier) {
                             fontSize = 16.sp,
                             color = Color.White,
                         )
-                        Icon(Icons.Filled.Lock, contentDescription = null, tint = Color(0xFF38BDF8), modifier = Modifier.size(15.dp))
+                        Icon(Icons.Filled.Lock, contentDescription = null, tint = LocalCall.current.accent, modifier = Modifier.size(15.dp))
                     }
                 }
             }
             Surface(
                 shape = RoundedCornerShape(20.dp),
-                color = Color(0xFF1E3A8A).copy(alpha = 0.85f),
-                border = BorderStroke(1.dp, Color(0xFF3B82F6)),
+                color = LocalCall.current.accentDeep.copy(alpha = 0.85f),
+                border = BorderStroke(1.dp, LocalCall.current.accent),
                 modifier = Modifier.clickable(onClick = onBreathe),
             ) {
                 Row(
@@ -105,7 +106,7 @@ internal fun CallHeader(onBreathe: () -> Unit, modifier: Modifier) {
                         text = stringResource(R.string.call_breathe),
                         fontSize = 11.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = Color(0xFF93C5FD),
+                        color = LocalCall.current.accentSoft,
                     )
                 }
             }
@@ -127,8 +128,8 @@ internal fun CalmingBreathingGuide(onDismiss: () -> Unit) {
 
     Surface(
         shape = RoundedCornerShape(28.dp),
-        color = Color(0xFA0F172A),
-        border = BorderStroke(2.dp, Color(0xFF38BDF8)),
+        color = LocalCall.current.bg.copy(alpha = 0.98f),
+        border = BorderStroke(2.dp, LocalCall.current.accent),
         shadowElevation = 16.dp,
         modifier = Modifier
             .padding(24.dp)
@@ -153,7 +154,7 @@ internal fun CalmingBreathingGuide(onDismiss: () -> Unit) {
                 )
                 Surface(
                     shape = CircleShape,
-                    color = Color(0xFF334155),
+                    color = LocalCall.current.line,
                     modifier = Modifier
                         .size(32.dp)
                         .clickable(onClick = onDismiss),
@@ -170,11 +171,11 @@ internal fun CalmingBreathingGuide(onDismiss: () -> Unit) {
                     .size(160.dp)
                     .padding(vertical = 8.dp),
             ) {
-                Surface(shape = CircleShape, color = Color(0xFF0284C7).copy(alpha = 0.25f), modifier = Modifier.size(150.dp * breathScale)) {}
-                Surface(shape = CircleShape, color = Color(0xFF38BDF8).copy(alpha = 0.45f), modifier = Modifier.size(110.dp * breathScale)) {}
+                Surface(shape = CircleShape, color = LocalCall.current.ink.copy(alpha = 0.25f), modifier = Modifier.size(150.dp * breathScale)) {}
+                Surface(shape = CircleShape, color = LocalCall.current.accent.copy(alpha = 0.45f), modifier = Modifier.size(110.dp * breathScale)) {}
                 Surface(
                     shape = CircleShape,
-                    color = Color(0xFF0284C7),
+                    color = LocalCall.current.ink,
                     modifier = Modifier.size(72.dp),
                     shadowElevation = 6.dp,
                 ) {
@@ -194,12 +195,12 @@ internal fun CalmingBreathingGuide(onDismiss: () -> Unit) {
                 text = stringResource(R.string.call_breath_body),
                 textAlign = TextAlign.Center,
                 fontSize = 14.sp,
-                color = Color(0xFFE2E8F0),
+                color = LocalCall.current.text,
             )
 
             Surface(
                 shape = RoundedCornerShape(16.dp),
-                color = Color(0xFF0369A1),
+                color = LocalCall.current.ink,
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable(onClick = onDismiss),
@@ -249,7 +250,7 @@ internal fun CallActionButton(icon: String, label: String, backgroundColor: Colo
             fontFamily = Baloo,
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFFE2E8F0),
+            color = LocalCall.current.text,
         )
     }
 }

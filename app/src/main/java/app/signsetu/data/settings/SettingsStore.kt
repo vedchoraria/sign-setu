@@ -18,6 +18,12 @@ import kotlinx.coroutines.flow.map
 
 enum class InterpreterApp { NONE, WHATSAPP, SANDES }
 
+/** SYSTEM follows the phone and is the default; the officer can pin Light or Dark. */
+enum class ThemeMode { SYSTEM, LIGHT, DARK }
+
+/** The officer-side colour theme; each has a light and a dark form. */
+enum class ColorTheme { EMERALD, MOCHA, SAGE, CERULEAN, AMETHYST }
+
 /** Settings hold no personal data about any subject. */
 @Immutable
 data class AppSettings(
@@ -51,6 +57,8 @@ data class AppSettings(
     /** Developer settings: an OpenAI-style service the officer's phone talks to instead of the build's own; its key is kept apart, in the Keystore. */
     val devAiUrl: String = "",
     val devAiModel: String = "",
+    val themeMode: ThemeMode = ThemeMode.SYSTEM,
+    val colorTheme: ColorTheme = ColorTheme.EMERALD,
 ) {
     val interpreterConfigured get() = interpreterApp != InterpreterApp.NONE && interpreterContact.isNotBlank()
 
@@ -89,6 +97,8 @@ class SettingsStore(private val context: Context) {
         val cloudAi = booleanPreferencesKey("cloud_ai")
         val devAiUrl = stringPreferencesKey("dev_ai_url")
         val devAiModel = stringPreferencesKey("dev_ai_model")
+        val themeMode = stringPreferencesKey("theme_mode")
+        val colorTheme = stringPreferencesKey("color_theme")
     }
 
     val settings: Flow<AppSettings> = context.store.data.map { it.toSettings() }
@@ -113,6 +123,8 @@ class SettingsStore(private val context: Context) {
         it[Keys.devAiUrl] = url.trim()
         it[Keys.devAiModel] = model.trim()
     }
+    suspend fun setThemeMode(mode: ThemeMode) = context.store.edit { it[Keys.themeMode] = mode.name }
+    suspend fun setColorTheme(theme: ColorTheme) = context.store.edit { it[Keys.colorTheme] = theme.name }
     suspend fun setTiltToShow(on: Boolean) = context.store.edit { it[Keys.tiltToShow] = on }
     suspend fun setVolumeKeys(on: Boolean) = context.store.edit { it[Keys.volumeKeys] = on }
     suspend fun toggleFavourite(cardId: String) = context.store.edit {
@@ -138,6 +150,8 @@ class SettingsStore(private val context: Context) {
         cloudAi = this[Keys.cloudAi] ?: false,
         devAiUrl = this[Keys.devAiUrl] ?: "",
         devAiModel = this[Keys.devAiModel] ?: "",
+        themeMode = this[Keys.themeMode]?.let { runCatching { ThemeMode.valueOf(it) }.getOrNull() } ?: ThemeMode.SYSTEM,
+        colorTheme = this[Keys.colorTheme]?.let { runCatching { ColorTheme.valueOf(it) }.getOrNull() } ?: ColorTheme.EMERALD,
     )
 }
 

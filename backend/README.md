@@ -39,7 +39,7 @@ Phone routes need the device token and are rate limited to 30 requests a minute.
 | `TRUSTED_PROXY_HOPS` | `0` | How many reverse proxies in front of the gateway append to `X-Forwarded-For`. With 0 the header is ignored and the socket address is the caller, which behind a proxy means every caller shares one per-address budget (safe, but tight). Set it to 1 behind one proxy that appends the real client address on the right; check the host's documentation first, because a wrong value lets callers choose their own address. The image runs uvicorn with `--no-proxy-headers`, since its `--forwarded-allow-ips='*'` believed the leftmost entry, which a caller writes |
 | `ENROLL_PER_MINUTE`, `ENROLL_FAILURES_PER_MINUTE`, `ENROLL_FAILURES_GLOBAL_PER_MINUTE` | `10`, `20`, `200` | The enrolment limits above |
 | `REQUIRE_PERSISTENT_DB` | empty | Set to `1` to make the gateway refuse to start on SQLite, so a restart cannot lose enrolments |
-| `TOKEN_TTL_DAYS` | `0` | Days a device token stays valid after enrolment; `0` means no expiry. An expired token gets 401, the app drops it, and the phone needs a new enrolment code |
+| `TOKEN_TTL_DAYS` | `0` | Days a device token stays valid after enrolment; `0` means no expiry; the `render.yaml` blueprint sets 90. An expired token gets 401, the app drops it, and the phone needs a new enrolment code |
 | `MODEL_DIR` | `models` | Folder holding `manifest.json` and the model files it lists |
 | `ENROLL_HASHES` | empty | Comma-separated SHA-256 hex of each issued enrolment code; empty means no phone can enrol |
 | `ASSIST_URL` | empty | Chat completions endpoint of the AI service (OpenAI compatible, groq for test phase) |
@@ -84,6 +84,24 @@ Render (free web service, HTTPS included) with Neon (free Postgres):
 4. Put the service URL in `local.properties` as `gatewayUrl=https://<name>.onrender.com`, then build the app.
 
 A free Render service sleeps after 15 minutes idle and takes up to a minute to wake. The app waits up to 60 seconds for a reply, shows the fallback toast and uses the on-device assistant, then recovers on a later call.
+
+## Deploy on Vercel
+
+The gateway also runs as a Vercel function. In the project settings set Root Directory to `backend`; `vercel.json` sends every path to `api/index.py`, which serves `create_app()`, and allows 60 seconds per call for the assistant. Set the variables below under Settings, Environment Variables (Production), or with `vercel env add NAME production`. Mark the three secrets Sensitive.
+
+| Variable | Value | Notes |
+| --- | --- | --- |
+| `DATABASE_URL` | `postgresql+psycopg://...?sslmode=require` | Secret. Postgres only: a function's disk is read-only and temporary |
+| `REQUIRE_PERSISTENT_DB` | `1` | The gateway refuses to start on SQLite |
+| `ENROLL_HASHES` | from `tools/make_codes.py` | Secret. Empty means no phone can enrol |
+| `ASSIST_URL`, `ASSIST_MODEL` | `https://api.groq.com/openai/v1/chat/completions`, `openai/gpt-oss-20b` | Same as `render.yaml` |
+| `ASSIST_KEY` | the upstream service key | Secret |
+| `ASSIST_REASONING_EFFORT` | `low` | For gpt-oss models |
+| `TOKEN_TTL_DAYS` | `90` | As in `render.yaml` |
+| `TRUSTED_PROXY_HOPS` | `1` | Vercel puts the client address in `X-Forwarded-For`; check it on the first deploy |
+| `OIDC_ISSUER`, `OIDC_AUDIENCE`, `ADMIN_ROLE` | Keycloak realm URL, `signsetu-portal`, `gateway-admin` | Leave `OIDC_ISSUER` empty to keep the admin routes off |
+
+The rate limits count per function instance, so they are looser than on one server; move them to a shared store before relying on them. `tests/test_vercel_entry.py` covers the entry point and the rewrite; the Vercel runtime itself has not been exercised from this repository.
 
 Deeper detail: [docs/README.md](../docs/README.md) and [docs/04-security.md](../docs/04-security.md).
 

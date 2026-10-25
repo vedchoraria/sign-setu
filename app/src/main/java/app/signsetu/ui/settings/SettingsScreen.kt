@@ -73,6 +73,8 @@ import app.signsetu.ui.components.LocalCloudAi
 import app.signsetu.data.settings.AppSettings
 import app.signsetu.data.settings.InterpreterApp
 import app.signsetu.data.settings.SettingsStore
+import app.signsetu.data.settings.ThemeMode
+import app.signsetu.data.settings.ColorTheme
 import app.signsetu.data.settings.whatsappNumber
 import app.signsetu.ui.theme.Spacing
 import kotlinx.coroutines.launch
@@ -81,7 +83,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import app.signsetu.ui.components.GuardedAlertDialog
 
-private enum class Dialog { APP, CONTACT, RETENTION, CLEAR, LICENCES, LANGUAGE, CLOUD, AIKEY, DEVELOPER }
+private enum class Dialog { APP, CONTACT, RETENTION, CLEAR, LICENCES, LANGUAGE, THEME, COLOUR, CLOUD, AIKEY, DEVELOPER }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -235,6 +237,8 @@ fun SettingsScreen(store: SettingsStore, models: ModelStore, onBack: () -> Unit,
                 }
             }
             Group(R.string.settings_about) {
+                Item(stringResource(R.string.settings_theme), stringResource(themeName(s.themeMode))) { dialog = Dialog.THEME }
+                Item(stringResource(R.string.settings_color_theme), stringResource(colorName(s.colorTheme))) { dialog = Dialog.COLOUR }
                 Item(stringResource(R.string.settings_app_language), stringResource(languageName(OfficerLocale.get(context)))) { dialog = Dialog.LANGUAGE }
                 Item(stringResource(R.string.settings_licences), stringResource(R.string.settings_licences_summary)) { dialog = Dialog.LICENCES }
                 ListItem(
@@ -349,6 +353,22 @@ fun SettingsScreen(store: SettingsStore, models: ModelStore, onBack: () -> Unit,
             },
             onDismiss = { dialog = null },
         )
+        Dialog.THEME -> ChoiceDialog(
+            title = stringResource(R.string.settings_theme),
+            options = ThemeMode.entries,
+            selected = s.themeMode,
+            label = { stringResource(themeName(it)) },
+            onPick = { scope.launch { store.setThemeMode(it) }; dialog = null },
+            onDismiss = { dialog = null },
+        )
+        Dialog.COLOUR -> ChoiceDialog(
+            title = stringResource(R.string.settings_color_theme),
+            options = ColorTheme.entries,
+            selected = s.colorTheme,
+            label = { stringResource(colorName(it)) },
+            onPick = { scope.launch { store.setColorTheme(it) }; dialog = null },
+            onDismiss = { dialog = null },
+        )
         null -> Unit
     }
 }
@@ -358,6 +378,22 @@ fun languageName(tag: String) = when (tag) {
     "en" -> R.string.lang_english
     "hi" -> R.string.lang_hindi
     else -> R.string.settings_lang_system
+}
+
+@StringRes
+private fun themeName(mode: ThemeMode) = when (mode) {
+    ThemeMode.SYSTEM -> R.string.settings_theme_system
+    ThemeMode.LIGHT -> R.string.settings_theme_light
+    ThemeMode.DARK -> R.string.settings_theme_dark
+}
+
+@StringRes
+private fun colorName(theme: ColorTheme) = when (theme) {
+    ColorTheme.EMERALD -> R.string.theme_emerald
+    ColorTheme.MOCHA -> R.string.theme_mocha
+    ColorTheme.SAGE -> R.string.theme_sage
+    ColorTheme.CERULEAN -> R.string.theme_cerulean
+    ColorTheme.AMETHYST -> R.string.theme_amethyst
 }
 
 @StringRes

@@ -152,6 +152,16 @@
         <item quantity="other">%1$d घंटे</item>
     </plurals>
     <string name="settings_retention_note">इससे पुराने सत्र मिट जाते हैं, भले ही किसी ने उन्हें खत्म न किया हो।</string>
+    <string name="settings_theme">रूप</string>
+    <string name="settings_color_theme">रंग थीम</string>
+    <string name="theme_emerald">पन्ना</string>
+    <string name="theme_mocha">मोचा</string>
+    <string name="theme_sage">सेज</string>
+    <string name="theme_cerulean">आसमानी</string>
+    <string name="theme_amethyst">जामुनी</string>
+    <string name="settings_theme_system">डिवाइस डिफ़ॉल्ट</string>
+    <string name="settings_theme_light">लाइट</string>
+    <string name="settings_theme_dark">डार्क</string>
     <string name="settings_app_language">ऐप की भाषा</string>
     <string name="settings_clear">सारा डेटा मिटाएँ</string>
     <string name="settings_clear_summary">एन्क्रिप्शन कुंजी नष्ट हो जाती है। इस फ़ोन का कोई भी सत्र पढ़ा नहीं जा सकेगा।</string>

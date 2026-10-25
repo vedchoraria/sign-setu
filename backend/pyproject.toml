@@ -18,5 +18,8 @@ test = ["pytest==9.1.1"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
+[tool.setuptools]
+packages = ["signsetu_gateway"]
+
 [tool.setuptools.package-data]
 signsetu_gateway = ["app_prompts.json"]

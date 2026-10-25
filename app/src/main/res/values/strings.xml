@@ -159,6 +159,16 @@
         <item quantity="other">%1$d hours</item>
     </plurals>
     <string name="settings_retention_note">Sessions older than this are deleted even if nobody ended them.</string>
+    <string name="settings_theme">Appearance</string>
+    <string name="settings_color_theme">Colour theme</string>
+    <string name="theme_emerald">Emerald</string>
+    <string name="theme_mocha">Mocha</string>
+    <string name="theme_sage">Sage</string>
+    <string name="theme_cerulean">Cerulean</string>
+    <string name="theme_amethyst">Amethyst</string>
+    <string name="settings_theme_system">Device default</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
     <string name="settings_app_language">App language</string>
     <string name="settings_clear">Delete all data</string>
     <string name="settings_clear_summary">Destroys the encryption key. Every session on this phone becomes unreadable.</string>

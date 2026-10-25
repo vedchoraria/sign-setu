@@ -205,7 +205,7 @@ private fun NumberPad(type: AnswerType, title: (@Composable () -> Unit)? = null,
                     Surface(
                         shape = RoundedCornerShape(12.dp),
                         color = if (digits == num) Color(0xFFFFB300) else Color.White,
-                        border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                        border = BorderStroke(1.dp, Color(0xFFD7C9B8)),
                         modifier = Modifier
                             .height(38.dp)
                             .padding(horizontal = 2.dp)

@@ -4,7 +4,7 @@ Sign Setu is an offline Android app that helps a police officer communicate with
 
 | Field | Value |
 | --- | --- |
-| Version | 0.7.1 (version code 11), applicationId `in.signsetu` |
+| Version | 0.7.2 (version code 12), applicationId `in.signsetu` |
 | Classification | Internal |
 | Source of truth | This repository; the code wins over any document, and documents are corrected when they drift |
 
@@ -12,13 +12,13 @@ Sign Setu is an offline Android app that helps a police officer communicate with
 
 | Resource | URL | Notes |
 | --- | --- | --- |
-| 📱 Phone APK — gateway (arm64, ~83 MB) | [sign-setu-0.7.1-arm64-v8a-gateway.apk](https://github.com/Yash-Awasthi/sign-setu/releases/download/v0.7.1/sign-setu-0.7.1-arm64-v8a-gateway.apk) | Signed; calls the department gateway |
-| 📱 Phone APK — no gateway (arm64, ~83 MB) | [sign-setu-0.7.1-arm64-v8a-nogateway.apk](https://github.com/Yash-Awasthi/sign-setu/releases/download/v0.7.1/sign-setu-0.7.1-arm64-v8a-nogateway.apk) | Signed; no key built in; Settings, Developer: address, key and model of any OpenAI compatible service (Groq by default), with a model list and a test ping |
-| 📦 Universal APK — gateway (arm64 + x86\_64, ~109 MB) | [sign-setu-0.7.1-universal-gateway.apk](https://github.com/Yash-Awasthi/sign-setu/releases/download/v0.7.1/sign-setu-0.7.1-universal-gateway.apk) | Signed; phones, tablets and emulators; calls the department gateway |
-| 📦 Universal APK — no gateway (arm64 + x86\_64, ~109 MB) | [sign-setu-0.7.1-universal-nogateway.apk](https://github.com/Yash-Awasthi/sign-setu/releases/download/v0.7.1/sign-setu-0.7.1-universal-nogateway.apk) | Signed; no key built in; Settings, Developer: address, key and model of any OpenAI compatible service (Groq by default), with a model list and a test ping |
-| 🏷️ GitHub release | [v0.7.1](https://github.com/Yash-Awasthi/sign-setu/releases/tag/v0.7.1) | All APKs |
+| 📱 Phone APK — gateway (arm64, ~83 MB) | [sign-setu-0.7.2-arm64-v8a-gateway.apk](https://github.com/Yash-Awasthi/sign-setu/releases/download/v0.7.2/sign-setu-0.7.2-arm64-v8a-gateway.apk) | Signed; calls the department gateway |
+| 📱 Phone APK — no gateway (arm64, ~83 MB) | [sign-setu-0.7.2-arm64-v8a-nogateway.apk](https://github.com/Yash-Awasthi/sign-setu/releases/download/v0.7.2/sign-setu-0.7.2-arm64-v8a-nogateway.apk) | Signed; no key built in; Settings, Developer: address, key and model of any OpenAI compatible service (Groq by default), with a model list and a test ping |
+| 📦 Universal APK — gateway (arm64 + x86\_64, ~109 MB) | [sign-setu-0.7.2-universal-gateway.apk](https://github.com/Yash-Awasthi/sign-setu/releases/download/v0.7.2/sign-setu-0.7.2-universal-gateway.apk) | Signed; phones, tablets and emulators; calls the department gateway |
+| 📦 Universal APK — no gateway (arm64 + x86\_64, ~109 MB) | [sign-setu-0.7.2-universal-nogateway.apk](https://github.com/Yash-Awasthi/sign-setu/releases/download/v0.7.2/sign-setu-0.7.2-universal-nogateway.apk) | Signed; no key built in; Settings, Developer: address, key and model of any OpenAI compatible service (Groq by default), with a model list and a test ping |
+| 🏷️ GitHub release | [v0.7.2](https://github.com/Yash-Awasthi/sign-setu/releases/tag/v0.7.2) | All APKs |
 | 🌐 Department gateway (API) | [signsetu-gateway.onrender.com](https://signsetu-gateway.onrender.com/healthz) | FastAPI; Neon Postgres; cold-start ~30 s on free tier |
-| 🖥️ Reviewer portal | [signsetu-portal.pages.dev](https://fc39beea.signsetu-portal.pages.dev) | Vite + React; Cloudflare Pages |
+| 🖥️ Reviewer portal | [signsetu-portal.pages.dev](https://signsetu-portal.pages.dev) | Vite + React; Cloudflare Pages |
 | 🤖 On-device model | [gemma-3-1b-it-Q4\_K\_M.gguf on Hugging Face](https://huggingface.co/ggml-org/gemma-3-1b-it-GGUF/resolve/main/gemma-3-1b-it-Q4_K_M.gguf) | ~806 MB; import via Settings → On-device assistant |
 
 ## Contents

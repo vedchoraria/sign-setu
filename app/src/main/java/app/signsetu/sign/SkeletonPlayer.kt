@@ -45,6 +45,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.signsetu.R
+import app.signsetu.ui.theme.LocalCall
 import app.signsetu.camera.ArmBones
 import app.signsetu.camera.FaceOutlines
 import app.signsetu.camera.HandBones
@@ -128,7 +129,7 @@ fun SkeletonPlayer(state: ReplayState, modifier: Modifier = Modifier) {
     LaunchedEffect(state, state.playing) { if (state.playing) state.run() }
     val colors = MaterialTheme.colorScheme
     Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Surface(shape = RoundedCornerShape(20.dp), color = Color(0xFF1F2430), modifier = Modifier.fillMaxWidth().aspectRatio(4f / 3f)) {
+        Surface(shape = RoundedCornerShape(20.dp), color = LocalCall.current.surface, modifier = Modifier.fillMaxWidth().aspectRatio(4f / 3f)) {
             Canvas(Modifier.fillMaxWidth()) { state.frame?.let { drawFigure(it) } }
         }
         val marker = colors.tertiary

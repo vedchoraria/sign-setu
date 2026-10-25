@@ -178,11 +178,11 @@ internal fun Dock(
             AnimatedVisibility(!typing && aiFollowUps.isNotEmpty(), enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
                 Column(Modifier.padding(horizontal = Spacing.lg).padding(bottom = 6.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Icon(Icons.Filled.Star, contentDescription = null, tint = Color(0xFFF59E0B), modifier = Modifier.size(13.dp))
+                        Icon(Icons.Filled.Star, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary, modifier = Modifier.size(13.dp))
                         Text(
                             text = stringResource(R.string.ai_followups_title),
                             style = MaterialTheme.typography.labelSmall,
-                            color = Color(0xFFD97706),
+                            color = MaterialTheme.colorScheme.tertiary,
                             fontWeight = FontWeight.Bold,
                         )
                     }
@@ -193,8 +193,8 @@ internal fun Dock(
                         items(aiFollowUps, key = { it }) { prompt ->
                             Surface(
                                 shape = RoundedCornerShape(14.dp),
-                                color = Color(0xFFFEF3C7),
-                                border = BorderStroke(1.dp, Color(0xFFFCD34D)),
+                                color = MaterialTheme.colorScheme.tertiaryContainer,
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary.copy(alpha = 0.4f)),
                                 modifier = Modifier
                                     .clickable { onText(prompt) }
                                     .semantics { role = Role.Button; contentDescription = prompt },
@@ -208,7 +208,7 @@ internal fun Dock(
                                     Text(
                                         text = prompt,
                                         style = MaterialTheme.typography.labelMedium,
-                                        color = Color(0xFF92400E),
+                                        color = MaterialTheme.colorScheme.onTertiaryContainer,
                                         fontWeight = FontWeight.SemiBold,
                                         maxLines = 1,
                                     )

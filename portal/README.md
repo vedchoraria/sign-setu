@@ -1,6 +1,6 @@
 # Reviewer portal
 
-**Live deployment:** [signsetu-portal.pages.dev](https://fc39beea.signsetu-portal.pages.dev) (Cloudflare Pages)
+**Live deployment:** [signsetu-portal.pages.dev](https://signsetu-portal.pages.dev) (Cloudflare Pages)
 
 A static web page for the people who sign off the subject-facing content: the ISL reviewer, the language reviewers
 and the child-welfare reviewer. It reads the app's content files from `../app/src/main/assets/content` when it is
