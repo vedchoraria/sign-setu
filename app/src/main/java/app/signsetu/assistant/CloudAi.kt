@@ -15,9 +15,8 @@ import kotlinx.serialization.json.Json
 @Serializable private data class EnrollReq(val code: String)
 @Serializable private data class EnrollResp(val token: String = "")
 @Serializable private data class Msg(val role: String, val content: String)
-@Serializable private data class Reasoning(val exclude: Boolean = true)
-// A reasoning model otherwise answers with its own deliberation; OpenRouter then returns the answer alone.
-@Serializable private data class ChatReq(val model: String, val messages: List<Msg>, val temperature: Double, val max_tokens: Int, val reasoning: Reasoning = Reasoning())
+// Groq rejects the OpenRouter reasoning object, so only reasoning_effort is sent.
+@Serializable private data class ChatReq(val model: String, val messages: List<Msg>, val temperature: Double, val max_tokens: Int, val reasoning_effort: String = "low")
 @Serializable private data class Choice(val message: Msg)
 @Serializable private data class ChatResp(val choices: List<Choice> = emptyList())
 // Some services answer only on the Responses API: instructions and input go in, an output item list comes back.
@@ -52,6 +51,8 @@ class CloudAi(
     private val http: Http,
     private val vault: TokenVault,
     private val direct: Direct? = null,
+    /** The key the officer typed in a direct build; it overrides the one compiled into the APK. */
+    private val ownKey: TokenVault? = null,
     private val online: () -> Boolean,
 ) {
     // Defaults are encoded: a request option left at its default (reasoning excluded) must still reach the service.
@@ -72,8 +73,13 @@ class CloudAi(
     val viaGateway: Boolean get() = base.startsWith("https://")
 
     /** This build has somewhere to send to; without it the online switches are not shown. */
-    val available: Boolean get() = viaGateway || direct?.url?.startsWith("https://") == true && direct.key.isNotBlank()
-    val enrolled: Boolean get() = !viaGateway || vault.get() != null
+    val available: Boolean get() = viaGateway || direct?.url?.startsWith("https://") == true && directKey() != null
+    val enrolled: Boolean get() = if (viaGateway) vault.get() != null else directKey() != null
+
+    private fun directKey(): String? = ownKey?.get()?.takeIf { it.isNotBlank() } ?: direct?.key?.takeIf { it.isNotBlank() }
+
+    /** Stores the officer's own key; false on a gateway build or when storage fails. */
+    fun saveOwnKey(key: String): Boolean = !viaGateway && ownKey?.put(key.trim()) == true
 
     /** True when a request would actually leave the phone: the officer must have allowed that for the session. */
     suspend fun sendsSessionData(): Boolean = available && enabled() && withContext(Dispatchers.IO) { enrolled }
@@ -106,7 +112,7 @@ class CloudAi(
     suspend fun ask(system: String, user: String, names: Collection<String>, maxTokens: Int = 800, details: Collection<String> = emptyList()): String? {
         if (!available || !enabled()) return null
         // Keystore decryption and the token file are disk work; never do them on the caller's UI thread.
-        val token = if (viaGateway) withContext(Dispatchers.IO) { vault.get() } ?: return null else direct!!.key
+        val token = if (viaGateway) withContext(Dispatchers.IO) { vault.get() } ?: return null else directKey() ?: return null
         if (!online()) return fallBack(Notice.FALLBACK_OFFLINE)
         val mask = Pseudonymizer(names, details)
         suspend fun once(): Reply? = withContext(Dispatchers.IO) {

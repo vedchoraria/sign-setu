@@ -92,30 +92,90 @@ class FeedbackIn(BaseModel):
         return self
 
 
+# Chat Completions is tried first; the Responses API is the fallback when a provider refuses it.
+CHAT_PATH = "/chat/completions"
+RESPONSES_PATH = "/responses"
+# Some hosts refuse a default library User-Agent with 401.
+GATEWAY_UA = "SignSetu-Gateway/0.7 (department gateway)"
+
+
+def formats_for(url: str) -> list[tuple[str, str]]:
+    if url.endswith(RESPONSES_PATH):
+        return [("responses", url), ("chat", url[: -len(RESPONSES_PATH)] + CHAT_PATH)]
+    responses = url[: -len(CHAT_PATH)] + RESPONSES_PATH if url.endswith(CHAT_PATH) else url
+    return [("chat", url), ("responses", responses)]
+
+
 def upstream_assist(s: Settings) -> Assist:
+    # Format that last answered, per endpoint.
+    working: dict[str, str] = {}
+
+    def body_for(fmt: str, system: str, user: str, max_tokens: int) -> dict:
+        if fmt == "responses":
+            # temperature is left out: a reasoning model rejects it.
+            return {"model": s.assist_model, "instructions": system, "input": user, "max_output_tokens": max_tokens}
+        body = {"model": s.assist_model, "temperature": 0.2, "max_tokens": max_tokens,
+                "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}]}
+        if s.assist_reasoning_effort:
+            body["reasoning_effort"] = s.assist_reasoning_effort
+        return body
+
+    def answer_from(fmt: str, payload: dict) -> str:
+        if fmt != "responses":
+            return (payload["choices"][0]["message"].get("content") or "").strip()
+        # Reasoning items are skipped; only message items hold the answer.
+        direct = payload.get("output_text")
+        if isinstance(direct, str) and direct.strip():
+            return direct.strip()
+        for item in payload.get("output") or []:
+            if isinstance(item, dict) and item.get("type") == "message":
+                parts = [p.get("text", "") for p in item.get("content") or [] if isinstance(p, dict)]
+                if "".join(parts).strip():
+                    return "".join(parts).strip()
+        return ""
+
     async def run(system: str, user: str, max_tokens: int) -> str:
         if not (s.assist_url and s.assist_key):
             raise HTTPException(503, "assistant not configured")
-        body = {"model": s.assist_model, "temperature": 0.2, "max_tokens": max_tokens,
-                "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}]}
-        try:
-            async with httpx2.AsyncClient(timeout=30) as c:
-                r = await c.post(s.assist_url, json=body, headers={"Authorization": f"Bearer {s.assist_key}"})
-        except httpx2.TimeoutException as e:
-            raise HTTPException(504, "assistant timed out") from e
-        except httpx2.HTTPError as e:
-            raise HTTPException(502, "assistant unreachable") from e
-        if r.status_code >= 300:
-            raise HTTPException(502, "assistant failed")
-        # A reasoning model can spend its whole budget thinking, return no content, or send a malformed body.
-        try:
-            content = r.json()["choices"][0]["message"].get("content")
-        except (ValueError, KeyError, IndexError, TypeError, AttributeError) as e:
-            raise HTTPException(502, "assistant returned an invalid response") from e
-        answer = (content or "").strip()
-        if not answer:
+        candidates = formats_for(s.assist_url)
+        known = working.get(s.assist_url)
+        if known:
+            candidates = [pair for pair in candidates if pair[0] == known]
+        headers = {"Authorization": f"Bearer {s.assist_key}", "User-Agent": GATEWAY_UA}
+        # Kind of the last failure: "failed", "invalid" or "empty".
+        outcome: tuple[str, int | None] = ("failed", 502)
+        for fmt, url in candidates:
+            try:
+                async with httpx2.AsyncClient(timeout=30) as c:
+                    r = await c.post(url, json=body_for(fmt, system, user, max_tokens), headers=headers)
+            except httpx2.TimeoutException as e:
+                # Slow in one format is slow in both.
+                raise HTTPException(504, "assistant timed out") from e
+            except httpx2.HTTPError as e:
+                raise HTTPException(502, "assistant unreachable") from e
+            if r.status_code >= 300:
+                outcome = ("failed", r.status_code)
+                # The refusal does not depend on the format; do not retry the other one.
+                if r.status_code in (401, 403, 413, 429):
+                    break
+                continue
+            # A 200 in an unknown shape is usually the other wire format.
+            try:
+                answer = answer_from(fmt, r.json())
+            except (ValueError, KeyError, IndexError, TypeError, AttributeError):
+                outcome = ("invalid", None)
+                continue
+            if not answer:
+                outcome = ("empty", None)
+                continue
+            working[s.assist_url] = fmt
+            return answer
+        kind, _ = outcome
+        if kind == "invalid":
+            raise HTTPException(502, "assistant returned an invalid response")
+        if kind == "empty":
             raise HTTPException(502, "assistant returned nothing")
-        return answer
+        raise HTTPException(502, "assistant failed")
     return run
 
 

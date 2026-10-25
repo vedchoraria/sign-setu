@@ -14,6 +14,8 @@ class Settings:
     assist_url: str = field(default_factory=lambda: os.environ.get("ASSIST_URL", ""))
     assist_key: str = field(default_factory=lambda: os.environ.get("ASSIST_KEY", ""))
     assist_model: str = field(default_factory=lambda: os.environ.get("ASSIST_MODEL", ""))
+    # Without it a reasoning model can spend its whole budget thinking.
+    assist_reasoning_effort: str = field(default_factory=lambda: os.environ.get("ASSIST_REASONING_EFFORT", ""))
     oidc_issuer: str = field(default_factory=lambda: os.environ.get("OIDC_ISSUER", ""))
     oidc_audience: str = field(default_factory=lambda: os.environ.get("OIDC_AUDIENCE", "signsetu-portal"))
     reviewer_role: str = "reviewer"

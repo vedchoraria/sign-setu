@@ -1,0 +1,15 @@
+# Android SDK root location (local to developer machine)
+# Windows: sdk.dir=C:\\Users\\<username>\\AppData\\Local\\Android\\Sdk
+# Linux/macOS: sdk.dir=/home/<username>/Android/Sdk
+sdk.dir=
+
+# Optional department gateway URL for enrolled devices
+# gatewayUrl=https://gateway.example.gov.in
+
+# Direct assistant API key (used for development/private builds only)
+# openrouterKey=your_api_key_here
+
+# Assistant client user-agent header override (e.g. for gateways requiring standard CLI or client identification)
+# assistUserAgent=SignSetu/0.7.0 (Android; client-sdk)
+# assistUserAgent=curl/8.6.0
+

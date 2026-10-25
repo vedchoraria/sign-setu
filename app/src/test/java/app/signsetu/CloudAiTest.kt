@@ -179,6 +179,24 @@ class CloudAiTest {
     }
 
     @Test
+    fun aKeyTheOfficerTypesOverridesTheOneCompiledIntoTheApp() = runBlocking {
+        val s = Server { _, _ -> Reply(200, """{"choices":[{"message":{"role":"assistant","content":"ok"}}]}""") }
+        val c = CloudAi({ true }, "", s, Vault(null), Direct("https://llm.example/v1/chat", "m", "embedded"), Vault("typed")) { true }
+        assertEquals("ok", c.ask("sys", "hi", emptyList()))
+        assertEquals("typed", s.calls.single().third)
+    }
+
+    @Test
+    fun aKeyTypedIntoADirectBuildIsStoredAndMakesItAvailable() {
+        val own = Vault(null)
+        val c = CloudAi({ true }, "", text, Vault(null), Direct("https://llm.example/v1/chat", "m", ""), own) { true }
+        assertFalse(c.available)
+        assertTrue(c.saveOwnKey(" typed "))
+        assertTrue(c.available && c.enrolled)
+        assertEquals("typed", own.token)
+    }
+
+    @Test
     fun offlineReportExtractsAnswersPainAgesCuesAndNotesFromTheLog() {
         val rawLog = """
             [QUESTION_SHOWN] [TEXT] text=Are you feeling pain anywhere? card=null lang=en

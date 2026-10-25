@@ -4,9 +4,22 @@ Sign Setu is an offline Android app that helps a police officer communicate with
 
 | Field | Value |
 | --- | --- |
-| Version | 0.6.0 (version code 9), applicationId `in.signsetu` |
+| Version | 0.7.0 (version code 10), applicationId `in.signsetu` |
 | Classification | Internal |
 | Source of truth | This repository; the code wins over any document, and documents are corrected when they drift |
+
+## MVP — Live links
+
+| Resource | URL | Notes |
+| --- | --- | --- |
+| 📱 Phone APK — gateway (arm64, ~83 MB) | [sign-setu-0.7.0-arm64-v8a-gateway.apk](https://github.com/Yash-Awasthi/sign-setu/releases/download/v0.7.0/sign-setu-0.7.0-arm64-v8a-gateway.apk) | Signed; calls the department gateway |
+| 📱 Phone APK — no gateway (arm64, ~83 MB) | [sign-setu-0.7.0-arm64-v8a-nogateway.apk](https://github.com/Yash-Awasthi/sign-setu/releases/download/v0.7.0/sign-setu-0.7.0-arm64-v8a-nogateway.apk) | Signed; no key built in; enter an OpenAI compatible key (groq for test phase) in Settings |
+| 📦 Universal APK — gateway (arm64 + x86\_64, ~109 MB) | [sign-setu-0.7.0-universal-gateway.apk](https://github.com/Yash-Awasthi/sign-setu/releases/download/v0.7.0/sign-setu-0.7.0-universal-gateway.apk) | Signed; phones, tablets and emulators; calls the department gateway |
+| 📦 Universal APK — no gateway (arm64 + x86\_64, ~109 MB) | [sign-setu-0.7.0-universal-nogateway.apk](https://github.com/Yash-Awasthi/sign-setu/releases/download/v0.7.0/sign-setu-0.7.0-universal-nogateway.apk) | Signed; no key built in; enter an OpenAI compatible key (groq for test phase) in Settings |
+| 🏷️ GitHub release | [v0.7.0](https://github.com/Yash-Awasthi/sign-setu/releases/tag/v0.7.0) | All APKs |
+| 🌐 Department gateway (API) | [signsetu-gateway.onrender.com](https://signsetu-gateway.onrender.com) | FastAPI; Neon Postgres; cold-start ~30 s on free tier |
+| 🖥️ Reviewer portal | [signsetu-portal.pages.dev](https://fc39beea.signsetu-portal.pages.dev) | Vite + React; Cloudflare Pages |
+| 🤖 On-device model | [gemma-3-1b-it-Q4\_K\_M.gguf on Hugging Face](https://huggingface.co/ggml-org/gemma-3-1b-it-GGUF/resolve/main/gemma-3-1b-it-Q4_K_M.gguf) | ~806 MB; import via Settings → On-device assistant |
 
 ## Contents
 
@@ -225,7 +238,7 @@ The readers generalise poorly to people they have not seen, so a reading is neve
 | Topic | Practice |
 | --- | --- |
 | Reproducibility | Gradle wrapper, version catalog, lockfile and checksum verification; llama.cpp vendored; `.gitattributes` forces LF so content hashes hold on every checkout |
-| Release build | `./gradlew assembleStandardRelease` (universal) and `-Pabi=arm64-v8a` (phone); add `-PgatewayUrl=https://...` for a gateway build; `-PallowEmbeddedKey` is needed for a private build that compiles in a direct assistant key |
+| Release build | `./gradlew assembleStandardRelease` (universal) and `-Pabi=arm64-v8a` (phone); add `-PgatewayUrl=https://...` for a gateway build; `-PallowEmbeddedKey` is only for a private build that compiles in a direct assistant key; shipped builds compile in none |
 | Signing | `zipalign` and `apksigner` with the department key, offline, signature scheme v3 |
 | Expiry | A build refuses new sessions 180 days after its build day |
 | Install | Allow installs from the source and open the APK. A screen lock is strongly recommended; without one the app warns once and keeps records under a key not tied to unlocking until a lock is set |

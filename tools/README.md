@@ -10,7 +10,7 @@ Build and research scripts. None ships in the APK. Run them from the repository 
 | `check_content.py` | Every card, sign, gesture and group a question, word or phrase names exists; ids are unique; every card has its WebP; every subject label has all 17 languages | `check_content.py`; exits 1 with the errors |
 | `build_signs.py` | Writes `signs.json`: fingerspelling alphabet, Hindi akshara, digits and draft word signs | `build_signs.py && build_content.py --manifest-only` |
 | `build_audio.py` | Placeholder speech with Indic Parler-TTS (Apache-2.0, offline, GPU environment); every file is a placeholder until a fluent speaker approves it | `build_audio.py [--force]`, then `build_content.py --manifest-only` |
-| `coverage.py` | How many questions can be signed word for word; words without a sign go to `tools/ml/target_words.txt`. Its word lists mirror `TextSigning.kt` | `coverage.py`, or `--check` to fail above `MAX_UNSIGNED` questions with a gap |
+| `coverage.py` | How many questions can be signed word for word; words without a sign go to `tools/ml/target_words.txt`. Its word lists mirror `TextSigning.kt` | `coverage.py`, or `--check` to fail above `MAX_GAPPED` questions with a gap |
 
 ## Recorded signs (`tools/isl`)
 

@@ -435,6 +435,86 @@ def test_an_upstream_failure_falls_back_with_a_gateway_status_not_a_500(tmp_path
         assert c.post("/v1/assist", json={"system": OK_SYSTEM, "user": "hi"}, headers=h).status_code == 502
 
 
+def _upstream(monkeypatch, reply):
+    """An upstream that answers however the test wants; every call it receives is recorded."""
+    seen: list[tuple[str, list, dict]] = []
+
+    class FakeClient:
+        def __init__(self, **kw):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *a):
+            return False
+
+        async def post(self, url, json, headers):
+            seen.append((url, json, headers))
+            return reply(json)
+
+    monkeypatch.setattr("signsetu_gateway.app.httpx2.AsyncClient", FakeClient)
+    return seen
+
+
+def class_response(status, payload):
+    return type("R", (), {"status_code": status, "json": lambda self: payload})()
+
+
+def test_a_provider_that_only_speaks_the_responses_api_is_reached_without_reconfiguring(tmp_path, monkeypatch):
+    # The provider refuses chat completions with 400 and needs the Responses shape.
+    def reply(body):
+        if "messages" in body:
+            return class_response(400, {"error": {"message": "does not support /v1/chat/completions"}})
+        return class_response(200, {"output": [{"type": "message", "content": [{"type": "output_text", "text": "ok"}]}]})
+
+    seen = _upstream(monkeypatch, reply)
+    with _client(tmp_path, assist_url="https://model.example/v1/chat/completions", assist_key="k", assist_model="gpt-5.6-sol") as c:
+        h = enrolled(c)
+        assert c.post("/v1/assist", json={"system": OK_SYSTEM, "user": "hi"}, headers=h).status_code == 200
+        assert c.post("/v1/assist", json={"system": OK_SYSTEM, "user": "again"}, headers=h).status_code == 200
+    assert [sorted(body) for _, body, _ in seen] == [
+        ["max_tokens", "messages", "model", "temperature"],
+        ["input", "instructions", "max_output_tokens", "model"],
+        ["input", "instructions", "max_output_tokens", "model"],
+    ], seen
+    assert [url for url, *_ in seen] == [
+        "https://model.example/v1/chat/completions",
+        "https://model.example/v1/responses",
+        "https://model.example/v1/responses",
+    ]
+    assert all(headers["User-Agent"].startswith("SignSetu-Gateway/") for *_, headers in seen)
+
+
+def test_a_chat_completions_provider_keeps_the_chat_format_and_never_sees_a_second_request(tmp_path, monkeypatch):
+    seen = _upstream(monkeypatch, lambda body: class_response(200, {"choices": [{"message": {"content": "ok"}}]}))
+    with _client(tmp_path, assist_url="https://model.example/v1/chat/completions", assist_key="k", assist_model="m") as c:
+        h = enrolled(c)
+        assert c.post("/v1/assist", json={"system": OK_SYSTEM, "user": "hi"}, headers=h).status_code == 200
+    assert len(seen) == 1, seen
+    url, body, headers = seen[0]
+    assert url == "https://model.example/v1/chat/completions"
+    assert body["messages"] == [{"role": "system", "content": OK_SYSTEM}, {"role": "user", "content": "hi"}]
+    assert headers["User-Agent"].startswith("SignSetu-Gateway/")
+
+
+def test_a_configured_reasoning_effort_is_sent_on_chat_completions(tmp_path, monkeypatch):
+    seen = _upstream(monkeypatch, lambda body: class_response(200, {"choices": [{"message": {"content": "ok"}}]}))
+    with _client(tmp_path, assist_url="https://model.example/v1/chat/completions", assist_key="k", assist_model="m", assist_reasoning_effort="low") as c:
+        h = enrolled(c)
+        assert c.post("/v1/assist", json={"system": OK_SYSTEM, "user": "hi"}, headers=h).status_code == 200
+    assert seen[0][1]["reasoning_effort"] == "low", seen
+
+
+def test_a_refused_key_is_not_mistaken_for_a_wrong_format(tmp_path, monkeypatch):
+    # A refused key says nothing about the format; no retry.
+    seen = _upstream(monkeypatch, lambda body: class_response(401, {"error": "unauthorized"}))
+    with _client(tmp_path, assist_url="https://model.example/v1/chat/completions", assist_key="k", assist_model="m") as c:
+        h = enrolled(c)
+        assert c.post("/v1/assist", json={"system": OK_SYSTEM, "user": "hi"}, headers=h).status_code == 502
+    assert len(seen) == 1, seen
+
+
 def _client(tmp_path, **kw):
     s = Settings(database_url="sqlite://", model_dir=tmp_path, enroll_hashes=frozenset({hashlib.sha256(CODE.encode()).hexdigest()}), **kw)
     return TestClient(create_app(s, jwks=lambda issuer: FakeJwks()))

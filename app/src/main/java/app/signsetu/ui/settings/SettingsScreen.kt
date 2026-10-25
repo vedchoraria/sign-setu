@@ -172,8 +172,9 @@ fun SettingsScreen(store: SettingsStore, models: ModelStore, onBack: () -> Unit,
                         if (on) dialog = Dialog.CLOUD else scope.launch { store.setCloudAi(false) }
                     },
                 )
-                if (cloud.viaGateway && s.cloudAi) {
-                    Item(stringResource(R.string.settings_cloud_ai_key), if (enrolled) stringResource(R.string.settings_cloud_ai_enrolled) else notSet) { dialog = Dialog.AIKEY }
+                if (s.cloudAi) {
+                    if (cloud.viaGateway) Item(stringResource(R.string.settings_cloud_ai_key), if (enrolled) stringResource(R.string.settings_cloud_ai_enrolled) else notSet) { dialog = Dialog.AIKEY }
+                    else Item(stringResource(R.string.settings_direct_key), if (enrolled) stringResource(R.string.settings_direct_key_set) else notSet) { dialog = Dialog.AIKEY }
                 }
                 SwitchItem(R.string.settings_allow_auto, R.string.settings_allow_auto_summary, s.allowAuto) { on -> scope.launch { store.setAllowAuto(on) } }
                 SwitchItem(R.string.settings_tilt, R.string.settings_tilt_summary, s.tiltToShow) { on -> scope.launch { store.setTiltToShow(on) } }
@@ -294,7 +295,7 @@ fun SettingsScreen(store: SettingsStore, models: ModelStore, onBack: () -> Unit,
             var key by rememberSaveable { mutableStateOf("") }
             GuardedAlertDialog(
                 onDismissRequest = { dialog = null },
-                title = { Text(stringResource(R.string.settings_cloud_ai_key)) },
+                title = { Text(stringResource(if (cloud.viaGateway) R.string.settings_cloud_ai_key else R.string.settings_direct_key)) },
                 text = {
                     OutlinedTextField(
                         value = key,
@@ -305,7 +306,7 @@ fun SettingsScreen(store: SettingsStore, models: ModelStore, onBack: () -> Unit,
                         modifier = Modifier.fillMaxWidth(),
                     )
                 },
-                confirmButton = { TextButton(onClick = { scope.launch { enrolled = cloud.enroll(key) || enrolled; dialog = null } }, enabled = key.isNotBlank()) { Text(stringResource(R.string.save)) } },
+                confirmButton = { TextButton(onClick = { scope.launch { enrolled = (if (cloud.viaGateway) cloud.enroll(key) else cloud.saveOwnKey(key)) || enrolled; dialog = null } }, enabled = key.isNotBlank()) { Text(stringResource(R.string.save)) } },
                 dismissButton = { TextButton(onClick = { dialog = null }) { Text(stringResource(R.string.cancel)) } },
             )
         }

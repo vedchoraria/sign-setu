@@ -209,6 +209,8 @@
     <string name="settings_cloud_ai_summary">ऑनलाइन होने पर रिपोर्ट और सुझावों के लिए छिपाया हुआ पाठ विभागीय गेटवे को भेजता है। डिफ़ॉल्ट रूप से बंद; कनेक्शन न होने पर भी फ़ोन वैसे ही चलता है।</string>
     <string name="settings_cloud_ai_key">नामांकन कोड</string>
     <string name="settings_cloud_ai_enrolled">नामांकित</string>
+    <string name="settings_direct_key">AI कुंजी</string>
+    <string name="settings_direct_key_set">सेट है</string>
     <string name="settings_cloud_ai_direct">ऑनलाइन सहायक (तीसरा पक्ष)</string>
     <string name="settings_cloud_ai_summary_direct">ऑनलाइन होने पर रिपोर्ट और सुझावों के लिए छिपाया हुआ पाठ बाहरी AI सेवा को भेजता है। डिफ़ॉल्ट रूप से बंद; कनेक्शन न होने पर भी फ़ोन वैसे ही चलता है।</string>
     <string name="cloud_notice_title_direct">पाठ तीसरे पक्ष को भेजें?</string>

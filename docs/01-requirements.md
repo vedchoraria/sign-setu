@@ -184,7 +184,7 @@ Priority: **MUST** (the app cannot ship without it) or **SHOULD** (wanted, not b
 | Cold start to usable Officer state under 2 seconds on the oldest test device. | MUST |
 | A preset question appears in the Show state within 300 ms of confirmation. | MUST |
 | Clips play at their source frame rate without visible stutter on the oldest test device. | MUST |
-| APK under 100 MB for the base content set, including the vision and sign-reader models at full precision; no part of the APK is compressed or quantised to save size. | MUST |
+| Phone distribution APK (arm64-v8a) under 100 MB for the base content set, including vision and sign-reader models at full precision; universal builds bundle all architectures and are not subject to the 100 MB ceiling. | MUST |
 | Memory under 300 MB during a session. | SHOULD |
 | Android 10 (API 29) and later, 3 GB RAM or more. | MUST |
 | Portrait, screens 5 to 6.9 inches. | MUST |
