@@ -1,5 +1,6 @@
 import hashlib
 import json
+import logging
 import re
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
@@ -18,6 +19,7 @@ from .db import Audit, Device, Feedback, make_engine
 from .prompts import allowed
 from .security import DeviceDep, RateLimiter, admin_auth, audit, client_key, default_jwks, device_auth, new_token, reviewer_auth, sha256
 
+log = logging.getLogger(__name__)
 type Assist = Callable[[str, str, int], Awaitable[str]]
 NAME = re.compile(r"^[a-z0-9_.-]{1,64}$")
 # The largest legitimate body is an assist request with a 1,000,000-character user turn. Two megabytes leaves room
@@ -186,6 +188,10 @@ def create_app(settings: Settings | None = None, assist: Assist | None = None, j
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         engine = make_engine(s.database_url, s.require_persistent_db)
+        if not s.enroll_hashes:
+            log.warning("ENROLL_HASHES is empty, so no device can enrol")
+        if assist is None and not (s.assist_url and s.assist_key):
+            log.warning("ASSIST_URL or ASSIST_KEY is empty, so /v1/assist answers 503")
         app.state.sessions = sessionmaker(engine, expire_on_commit=False)
         yield
         engine.dispose()

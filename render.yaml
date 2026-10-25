@@ -18,5 +18,8 @@ services:
         value: low
       - key: REQUIRE_PERSISTENT_DB
         value: "1"
+      # A device token stops working this many days after enrolment; the phone then enrols again with a new code.
+      - key: TOKEN_TTL_DAYS
+        value: "90"
       - key: ASSIST_KEY
         sync: false

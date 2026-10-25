@@ -607,3 +607,24 @@ def test_the_device_list_is_bounded(env):
     assert c.get("/v1/admin/devices?limit=1", headers=admin).status_code == 200
     for bad in ("0", "-1", "1001", "many"):
         assert c.get(f"/v1/admin/devices?limit={bad}", headers=admin).status_code == 422
+
+
+def start_warnings(caplog, **settings):
+    s = Settings(database_url="sqlite://", **settings)
+    with caplog.at_level("WARNING", logger="signsetu_gateway"), TestClient(create_app(s)):
+        pass
+    return [r.getMessage() for r in caplog.records if r.name.startswith("signsetu_gateway")]
+
+
+def test_startup_warns_when_no_enrolment_code_is_configured(caplog):
+    assert any("ENROLL_HASHES" in m for m in start_warnings(caplog, assist_url="https://up/chat/completions", assist_key="k"))
+
+
+def test_startup_warns_when_the_assistant_key_is_missing(caplog):
+    messages = start_warnings(caplog, enroll_hashes=frozenset({"a" * 64}), assist_url="https://up/chat/completions")
+    assert any("ASSIST_KEY" in m for m in messages)
+    assert not any("ENROLL_HASHES" in m for m in messages)
+
+
+def test_startup_is_quiet_when_enrolment_and_the_assistant_are_configured(caplog):
+    assert start_warnings(caplog, enroll_hashes=frozenset({"a" * 64}), assist_url="https://up/chat/completions", assist_key="k") == []
