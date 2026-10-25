@@ -1,12 +1,13 @@
 # Android SDK root location (local to developer machine)
-# Windows: sdk.dir=C:\\Users\\<username>\\AppData\\Local\\Android\\Sdk
+# Windows: sdk.dir=C\:/Users/<username>/AppData/Local/Android/Sdk (the colon must be escaped; lint rejects C:/...)
 # Linux/macOS: sdk.dir=/home/<username>/Android/Sdk
 sdk.dir=
 
 # Optional department gateway URL for enrolled devices
 # gatewayUrl=https://gateway.example.gov.in
 
-# Direct assistant API key (used for development/private builds only)
+# Direct assistant API key (used for development/private builds only).
+# The OPENROUTER_API_KEY environment variable is read first and is compiled into every build, debug included.
 # openrouterKey=your_api_key_here
 
 # Assistant client user-agent header override (e.g. for gateways requiring standard CLI or client identification)

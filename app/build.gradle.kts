@@ -6,6 +6,9 @@ import java.util.Properties
 val local = Properties().apply { rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use(::load) }
 // Direct online assistant key: env OPENROUTER_API_KEY, else openrouterKey.
 val openrouterKey: String = System.getenv("OPENROUTER_API_KEY") ?: local.getProperty("openrouterKey", "")
+if (openrouterKey.isNotBlank()) {
+    logger.warn("An assistant key is set (OPENROUTER_API_KEY or openrouterKey) and is compiled into every APK built here, debug builds included.")
+}
 val gatewayUrl: String = providers.gradleProperty("gatewayUrl").orNull ?: local.getProperty("gatewayUrl", "")
 // The client name sent to the assistant service; local.properties may set the one a service requires.
 val assistUserAgent: String = local.getProperty("assistUserAgent", "SignSetu")
